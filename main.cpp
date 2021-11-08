@@ -19,5 +19,13 @@ int main()
 
     SpMV(A, x, y);
 
+    MatrixCOO<float> B;
+    B.import(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count);
+
+    x.set_constant(1);
+    y.set_constant(0);
+
+    SpMV(B, x, y);
+
     return 0;
 }

@@ -3,33 +3,28 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-class MatrixCSR
+class MatrixCOO
 {
 private:
     VNT size;
     ENT non_zeroes_num;
 
-    ENT *row_ptr;
-    T *vals;
+    VNT *row_ids;
     VNT *col_ids;
+    T *vals;
 
     void alloc(VNT _size, ENT _non_zeroes_num);
     void free();
-
-    void construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, T *_vals, VNT _size, ENT _non_zeroes_num);
-
-    bool is_non_zero(int _row, int _col);
-    T get(int _row, int _col);
 public:
-    MatrixCSR();
-    ~MatrixCSR();
+    MatrixCOO();
+    ~MatrixCOO();
 
     VNT get_size() {return size;};
     ENT get_non_zeroes_num() {return non_zeroes_num;};
 
-    ENT *get_row_ptr(){return row_ptr;};
+    ENT *get_row_ids(){return row_ids;};
+    ENT *get_col_ids(){return col_ids;};
     T *get_vals(){return vals;};
-    VNT *get_col_ids(){return col_ids;};
 
     void resize(VNT _size, ENT _non_zeroes_num);
 
@@ -39,7 +34,7 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "csr_matrix.hpp"
+#include "coo_matrix.hpp"
 #include "import.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
