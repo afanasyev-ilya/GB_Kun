@@ -2,8 +2,8 @@
 
 int main()
 {
-    VNT scale = 3;
-    VNT avg_deg = 3;
+    VNT scale = 18;
+    VNT avg_deg = 16;
     EdgeListContainer<float> el;
     GraphGenerationAPI::random_uniform(el,
                                        pow(2.0, scale),
@@ -17,15 +17,7 @@ int main()
     x.set_constant(1);
     y.set_constant(0);
 
-    cout << "A:" << endl;
-    A.print();
-    cout << "x: " << endl;
-    x.print();
-
     SpMV(A, x, y);
-
-    cout << "y: " << endl;
-    y.print();
 
     return 0;
 }
