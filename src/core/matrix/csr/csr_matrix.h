@@ -2,15 +2,6 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <vector>
-#include <algorithm>
-#include <string>
-#include <fstream>
-#include <stdio.h>
-#include <string.h>
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 template <typename T>
 class MatrixCSR
 {
@@ -33,6 +24,13 @@ public:
     MatrixCSR();
     ~MatrixCSR();
 
+    VNT get_size() {return size;};
+    ENT get_non_zeroes_num() {return non_zeroes_num;};
+
+    VNT *get_row_ptr(){return row_ptr;};
+    T *get_vals(){return vals;};
+    ENT *get_col_ids(){return col_ids;};
+
     void resize(VNT _size, ENT _non_zeroes_num);
 
     void import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _non_zeroes_num);
@@ -41,7 +39,7 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "csr_mat.hpp"
+#include "csr_matrix.hpp"
 #include "import.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
