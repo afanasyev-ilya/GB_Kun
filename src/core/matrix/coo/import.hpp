@@ -1,15 +1,58 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCOO<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _non_zeroes_num)
+void reorder(T *data, ENT *indexes, ENT size)
+{
+    T *tmp;
+    MemoryAPI::allocate_array(&tmp, size);
+
+    for(ENT i = 0; i < size; i++)
+        tmp[i] = data[indexes[i]];
+
+    for(ENT i = 0; i < size; i++)
+        data[i] = tmp[i];
+
+    MemoryAPI::free_array(tmp);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MatrixCOO<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _non_zeroes_num, bool _optimized)
 {
     resize(_size, _non_zeroes_num);
-
     size = _size;
     non_zeroes_num = _non_zeroes_num;
+
+    if(_optimized)
+    {
+        ENT *sort_indexes;
+        MemoryAPI::allocate_array(&sort_indexes, _non_zeroes_num);
+        for(ENT i = 0; i < _non_zeroes_num; i++)
+            sort_indexes[i] = i;
+
+        int seg_size = size/4;
+        std::sort(sort_indexes, sort_indexes + _non_zeroes_num,
+                  [_row_ids, _col_ids, seg_size](int index1, int index2)
+                  {
+                          if(_row_ids[index1] / seg_size == _row_ids[index2] / seg_size)
+                              return _col_ids[index1] / seg_size < _col_ids[index2] / seg_size;
+                          else
+                              return _row_ids[index1] / seg_size < _row_ids[index2] / seg_size;
+                  });
+
+        reorder(_row_ids, sort_indexes, _non_zeroes_num);
+        reorder(_col_ids, sort_indexes, _non_zeroes_num);
+        reorder(_vals, sort_indexes, _non_zeroes_num);
+
+        MemoryAPI::free_array(sort_indexes);
+    }
+
     MemoryAPI::copy(row_ids, _row_ids, _non_zeroes_num);
     MemoryAPI::copy(col_ids, _col_ids, _non_zeroes_num);
     MemoryAPI::copy(vals, _vals, _non_zeroes_num);
+
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

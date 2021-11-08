@@ -15,7 +15,7 @@ void SpMV(MatrixCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 
     double t1 = omp_get_wtime();
 
-    #pragma omp parallel for schedule(guided, 1024)
+    #pragma omp parallel for schedule(static)
     for(VNT i = 0; i < size; i++)
     {
         for(ENT j = row_ptr[i]; j < row_ptr[i + 1]; j++)
@@ -26,8 +26,8 @@ void SpMV(MatrixCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 
     double t2 = omp_get_wtime();
 
-    cout << "SPMV perf: " << 2.0*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GFlop/s" << endl;
-    cout << "SPMV bw: " << (3.0*sizeof(VNT)+sizeof(T))*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GB/s" << endl;
+    cout << "SPMV(CSR) perf: " << 2.0*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GFlop/s" << endl;
+    cout << "SPMV(CSR) bw: " << (3.0*sizeof(VNT)+sizeof(T))*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GB/s" << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ void SpMV(MatrixCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 template <typename T>
 void SpMV(MatrixCOO<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 {
-    VNT size = _A.get_size();
+    ENT nz = _A.get_non_zeroes_num();
     VNT *row_ids = _A.get_row_ids();
     VNT *col_ids = _A.get_col_ids();
     T *vals = _A.get_vals();
@@ -46,7 +46,7 @@ void SpMV(MatrixCOO<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
     double t1 = omp_get_wtime();
 
     #pragma omp parallel for schedule(static)
-    for(ENT i = 0; i < size; i++)
+    for(ENT i = 0; i < nz; i++)
     {
         VNT row = row_ids[i];
         VNT col = col_ids[i];
@@ -57,8 +57,8 @@ void SpMV(MatrixCOO<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 
     double t2 = omp_get_wtime();
 
-    cout << "SPMV perf: " << 2.0*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GFlop/s" << endl;
-    cout << "SPMV bw: " << (1.0*sizeof(T)+2*sizeof(VNT))*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GB/s" << endl;
+    cout << "SPMV(COO) perf: " << 2.0*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GFlop/s" << endl;
+    cout << "SPMV(COO) bw: " << (1.0*sizeof(T)+2*sizeof(VNT))*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GB/s" << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

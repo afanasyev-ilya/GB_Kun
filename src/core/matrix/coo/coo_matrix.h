@@ -30,6 +30,8 @@ public:
 
     void import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _non_zeroes_num);
     void print();
+
+    void import(int *_row_ids, int *_col_ids, T *_vals, int _size, int _non_zeroes_num, bool _optimized);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

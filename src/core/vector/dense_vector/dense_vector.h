@@ -21,6 +21,7 @@ public:
     }
 
     T *get_vals() {return vals;};
+    VNT get_size() {return size;};
 
     void set_constant(T _val)
     {
@@ -39,5 +40,24 @@ public:
         cout << endl;
     }
 };
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+bool operator==(const DenseVector<T>& lhs, const DenseVector<T>& rhs)
+{
+    if(lhs.get_size() != rhs.get_size())
+        return false;
+
+    for(VNT i = 0; i < lhs.get_size(); i++)
+    {
+        if(fabs(lhs.get_vals()[i] - rhs.get_vals()[i]) > 0.0001)
+        {
+            cout << "Error in " << i << " : " << lhs.get_vals()[i] << " " << rhs.get_vals()[i] << endl;
+            return false;
+        }
+    }
+    return true;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
