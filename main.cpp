@@ -2,8 +2,9 @@
 
 int main()
 {
-    VNT scale = 10;
-    VNT avg_deg = 8;
+    Parser parser;
+    VNT scale = parser.get_scale();
+    VNT avg_deg = parser.get_avg_degree();
     EdgeListContainer<float> el;
     GraphGenerationAPI::random_uniform(el,
                                        pow(2.0, scale),

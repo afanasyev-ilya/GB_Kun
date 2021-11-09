@@ -31,7 +31,7 @@ void MatrixCOO<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT
         for(ENT i = 0; i < _non_zeroes_num; i++)
             sort_indexes[i] = i;
 
-        int seg_size = size/4;
+        int seg_size = 1024*1024 / sizeof(int);
         std::sort(sort_indexes, sort_indexes + _non_zeroes_num,
                   [_row_ids, _col_ids, seg_size](int index1, int index2)
                   {
@@ -51,8 +51,6 @@ void MatrixCOO<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT
     MemoryAPI::copy(row_ids, _row_ids, _non_zeroes_num);
     MemoryAPI::copy(col_ids, _col_ids, _non_zeroes_num);
     MemoryAPI::copy(vals, _vals, _non_zeroes_num);
-
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

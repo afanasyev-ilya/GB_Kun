@@ -20,6 +20,7 @@ using namespace std;
 #include "helpers/memory_API/memory_API.h"
 #include "helpers/random_generator/random_generator.h"
 #include "helpers/graph_generation/graph_generation.h"
+#include "helpers/cmd_parser/cmd_parser.h"
 
 #include "core/matrix/csr/csr_matrix.h"
 #include "core/matrix/coo/coo_matrix.h"
