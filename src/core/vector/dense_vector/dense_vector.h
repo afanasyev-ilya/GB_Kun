@@ -49,15 +49,20 @@ bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
     if(lhs.get_size() != rhs.get_size())
         return false;
 
+    VNT error_count = 0;
     for(VNT i = 0; i < lhs.get_size(); i++)
     {
         if(fabs(lhs.get_vals()[i] - rhs.get_vals()[i]) > 0.0001)
         {
-            cout << "Error in " << i << " : " << lhs.get_vals()[i] << " " << rhs.get_vals()[i] << endl;
-            return false;
+            if(error_count < 20)
+                cout << "Error in " << i << " : " << lhs.get_vals()[i] << " " << rhs.get_vals()[i] << endl;
+            error_count++;
         }
     }
-    return true;
+    if(error_count == 0)
+        return true;
+    else
+        return false;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

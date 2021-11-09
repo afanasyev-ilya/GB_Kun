@@ -63,7 +63,6 @@ void SpMV(MatrixCOO<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 template <typename T>
 void SpMV(MatrixSegmentedCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 {
@@ -98,9 +97,10 @@ void SpMV(MatrixSegmentedCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
         T *buffer = (T*)segment->vertex_buffer;
         VNT *conversion_indexes = segment->conversion_to_full;
 
-        #pragma omp parallel for schedule(static)
+        //#pragma omp parallel for schedule(static)
         for(VNT i = 0; i < segment->size; i++)
         {
+            cout << i << " -> " << conversion_indexes[i] << endl;
             y_vals[conversion_indexes[i]] += buffer[i];
         }
     }

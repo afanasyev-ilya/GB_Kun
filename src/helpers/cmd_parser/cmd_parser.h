@@ -12,13 +12,18 @@ private:
     int scale;
     int avg_degree;
     SyntheticGraphType synthetic_graph_type;
+    MatrixStorageFormat storage_format;
+
+    bool no_check;
 public:
     Parser();
     
     int get_scale() { return scale; };
     int get_avg_degree() { return avg_degree; };
+    bool check() { return !no_check; };
 
     SyntheticGraphType get_synthetic_graph_type() {return synthetic_graph_type;};
+    MatrixStorageFormat get_storage_format() {return storage_format;};
 
     void parse_args(int _argc, char **_argv);
 };
