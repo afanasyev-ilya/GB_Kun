@@ -1,10 +1,14 @@
 #include "src/gb_kun.h"
 
-int main()
+#define NUM_ITERS 3
+
+int main(int argc, char **argv)
 {
     Parser parser;
+    parser.parse_args(argc, argv);
     VNT scale = parser.get_scale();
     VNT avg_deg = parser.get_avg_degree();
+
     EdgeListContainer<float> el;
     GraphGenerationAPI::random_uniform(el,
                                        pow(2.0, scale),
@@ -20,17 +24,23 @@ int main()
     y.set_constant(0);
     z.set_constant(0);
 
-    SpMV(A, x, y);
+    for(int i = 0; i < NUM_ITERS; i++)
+        SpMV(A, x, y);
+    cout << endl << endl;
 
-    MatrixCOO<float> B;
+    /*MatrixCOO<float> B;
     B.import(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count, false);
 
-    SpMV(B, x, z);
+    for(int i = 0; i < NUM_ITERS; i++)
+        SpMV(B, x, z);
+    cout << endl << endl;
 
     B.import(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count, true);
 
     z.set_constant(0);
-    SpMV(B, x, z);
+    for(int i = 0; i < NUM_ITERS; i++)
+        SpMV(B, x, z);
+    cout << endl << endl;
 
     if(y == z)
     {
@@ -39,7 +49,7 @@ int main()
     else
     {
         cout << "Vectors are NOT equal" << endl;
-    }
+    }*/
 
     return 0;
 }

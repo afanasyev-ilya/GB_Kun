@@ -58,7 +58,7 @@ void SpMV(MatrixCOO<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
     double t2 = omp_get_wtime();
 
     cout << "SPMV(COO) perf: " << 2.0*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GFlop/s" << endl;
-    cout << "SPMV(COO) bw: " << (1.0*sizeof(T)+2*sizeof(VNT))*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GB/s" << endl;
+    cout << "SPMV(COO) bw: " << (3.0*sizeof(T)+2*sizeof(VNT))*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GB/s" << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

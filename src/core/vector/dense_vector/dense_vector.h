@@ -44,7 +44,7 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool operator==(const DenseVector<T>& lhs, const DenseVector<T>& rhs)
+bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
 {
     if(lhs.get_size() != rhs.get_size())
         return false;

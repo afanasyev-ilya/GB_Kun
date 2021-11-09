@@ -32,6 +32,9 @@ void MatrixCOO<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT
             sort_indexes[i] = i;
 
         int seg_size = 1024*1024 / sizeof(int);
+
+        cout << "num segments: " << (size - 1)/seg_size + 1 << endl;
+
         std::sort(sort_indexes, sort_indexes + _non_zeroes_num,
                   [_row_ids, _col_ids, seg_size](int index1, int index2)
                   {

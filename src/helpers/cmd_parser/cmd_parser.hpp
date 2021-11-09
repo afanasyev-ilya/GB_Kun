@@ -18,22 +18,22 @@ void Parser::parse_args(int _argc, char **_argv)
     {
         string option(_argv[i]);
         
-        if ((option.compare("-scale") == 0) || (option.compare("-s") == 0))
+        if ((option == "-scale") || (option == "-s"))
         {
             scale = atoi(_argv[++i]);
         }
 
-        if ((option.compare("-random_uniform") == 0) || (option.compare("-ru") == 0))
+        if ((option == "-random_uniform") || (option == "-ru"))
         {
             synthetic_graph_type = RANDOM_UNIFORM;
         }
 
-        if ((option.compare("-rmat") == 0) || (option.compare("-RMAT") == 0))
+        if ((option == "-rmat") || (option == "-RMAT"))
         {
             synthetic_graph_type = RMAT;
         }
 
-        if ((option.compare("-edges") == 0) || (option.compare("-e") == 0))
+        if ((option == "-edges") || (option == "-e"))
         {
             avg_degree = atoi(_argv[++i]);
         }
