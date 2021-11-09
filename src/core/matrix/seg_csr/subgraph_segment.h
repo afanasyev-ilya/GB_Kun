@@ -96,14 +96,19 @@ void SubgraphSegment<T>::construct_csr()
     MemoryAPI::allocate_array(&vertex_buffer, size);
 
     for(VNT i = 0; i < size + 1; i++)
-    {
         row_ptr[i] = 0;
-    }
 
-    for (VNT i = 0; i < nz; i++)
+    for(VNT i = 0; i < size; i++)
+        conversion_to_full[i] = 0;
+
+    for (ENT i = 0; i < nz; i++)
     {
         row_ptr[conv[tmp_row_ids[i]] + 1]++;
-        conversion_to_full[i] = tmp_row_ids[i];
+
+        VNT row_in_full = tmp_row_ids[i];
+        VNT row_in_seg = conv[tmp_row_ids[i]];
+
+        conversion_to_full[row_in_seg] = row_in_full;
     }
 
     for (VNT i = 0; i < size; i++)
@@ -115,7 +120,7 @@ void SubgraphSegment<T>::construct_csr()
         vals[i] = tmp_vals[i];
     }
 
-    cout << "size: " << size << endl;
+    /*cout << "size: " << size << endl;
     cout << "nz: " << nz << endl;
     for(VNT i = 0; i < size; i++)
     {
@@ -127,7 +132,7 @@ void SubgraphSegment<T>::construct_csr()
     {
         cout << col_ids[i] << " ";
     }
-    cout << endl;
+    cout << endl;*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

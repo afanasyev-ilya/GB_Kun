@@ -106,8 +106,12 @@ void SpMV(MatrixSegmentedCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
     }
     t2 = omp_get_wtime();
     double merge_time = t2 - t1;
+    double wall_time = merge_time + compute_time;
 
     cout << "times: " << compute_time << " vs " << merge_time << endl;
+
+    cout << "SPMV(CSR seg) perf: " << 2.0*_A.get_nz()/(wall_time*1e9) << " GFlop/s" << endl;
+    cout << "SPMV(CSR seg) bw: " << (3.0*sizeof(VNT)+sizeof(T))*_A.get_nz()/(wall_time*1e9) << " GB/s" << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

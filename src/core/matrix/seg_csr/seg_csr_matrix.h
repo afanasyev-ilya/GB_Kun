@@ -26,6 +26,9 @@ public:
     int get_num_segments() {return num_segments;};
     SubgraphSegment<T> *get_segment(int _seg_id) {return &subgraphs[_seg_id];};
 
+    VNT get_size() {return size;};
+    ENT get_nz() {return nz;};
+
     void import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
 };
 
