@@ -72,18 +72,14 @@ void SubgraphSegment<T>::sort_by_row_id()
 template<typename T>
 void SubgraphSegment<T>::construct_csr()
 {
-    size = 1;
     nz = tmp_row_ids.size();
 
     map<VNT, VNT> conv;
-
-    VNT cur_row = tmp_row_ids[0];
-    conv[tmp_row_ids[0]] = cur_row;
-    for(ENT i = 1; i < nz; i++)
+    for(ENT i = 0; i < nz; i++)
     {
-        if(tmp_row_ids[i] != cur_row)
+        if(conv.find(tmp_row_ids[i]) == conv.end())
         {
-            cur_row = tmp_row_ids[i];
+            conv[tmp_row_ids[i]] = size;
             size++;
         }
     }
