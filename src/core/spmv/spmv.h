@@ -26,8 +26,8 @@ void SpMV(MatrixCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 
     double t2 = omp_get_wtime();
 
-    cout << "SPMV(CSR) perf: " << 2.0*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GFlop/s" << endl;
-    cout << "SPMV(CSR) bw: " << (3.0*sizeof(VNT)+sizeof(T))*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GB/s" << endl;
+    cout << "SPMV(CSR) perf: " << 2.0*_A.get_nz()/((t2-t1)*1e9) << " GFlop/s" << endl;
+    cout << "SPMV(CSR) bw: " << (3.0*sizeof(VNT)+sizeof(T))*_A.get_nz()/((t2-t1)*1e9) << " GB/s" << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ void SpMV(MatrixCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 template <typename T>
 void SpMV(MatrixCOO<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 {
-    ENT nz = _A.get_non_zeroes_num();
+    ENT nz = _A.get_nz();
     VNT *row_ids = _A.get_row_ids();
     VNT *col_ids = _A.get_col_ids();
     T *vals = _A.get_vals();
@@ -57,8 +57,8 @@ void SpMV(MatrixCOO<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 
     double t2 = omp_get_wtime();
 
-    cout << "SPMV(COO) perf: " << 2.0*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GFlop/s" << endl;
-    cout << "SPMV(COO) bw: " << (3.0*sizeof(T)+2*sizeof(VNT))*_A.get_non_zeroes_num()/((t2-t1)*1e9) << " GB/s" << endl;
+    cout << "SPMV(COO) perf: " << 2.0*_A.get_nz()/((t2-t1)*1e9) << " GFlop/s" << endl;
+    cout << "SPMV(COO) bw: " << (3.0*sizeof(T)+2*sizeof(VNT))*_A.get_nz()/((t2-t1)*1e9) << " GB/s" << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -17,14 +17,14 @@ MatrixCOO<T>::~MatrixCOO()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCOO<T>::alloc(VNT _size, ENT _non_zeroes_num)
+void MatrixCOO<T>::alloc(VNT _size, ENT _nz)
 {
     this->size = _size;
-    this->non_zeroes_num = _non_zeroes_num;
+    this->nz = _nz;
 
-    MemoryAPI::allocate_array(&row_ids, this->non_zeroes_num);
-    MemoryAPI::allocate_array(&col_ids, this->non_zeroes_num);
-    MemoryAPI::allocate_array(&vals, this->non_zeroes_num);
+    MemoryAPI::allocate_array(&row_ids, this->nz);
+    MemoryAPI::allocate_array(&col_ids, this->nz);
+    MemoryAPI::allocate_array(&vals, this->nz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,10 +40,10 @@ void MatrixCOO<T>::free()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCOO<T>::resize(VNT _size, ENT _non_zeroes_num)
+void MatrixCOO<T>::resize(VNT _size, ENT _nz)
 {
     this->free();
-    this->alloc(_size, _non_zeroes_num);
+    this->alloc(_size, _nz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

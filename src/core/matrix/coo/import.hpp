@@ -18,24 +18,24 @@ void reorder(T *data, ENT *indexes, ENT size)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCOO<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _non_zeroes_num, bool _optimized)
+void MatrixCOO<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, bool _optimized)
 {
-    resize(_size, _non_zeroes_num);
+    resize(_size, _nz);
     size = _size;
-    non_zeroes_num = _non_zeroes_num;
+    nz = _nz;
 
     if(_optimized)
     {
         ENT *sort_indexes;
-        MemoryAPI::allocate_array(&sort_indexes, _non_zeroes_num);
-        for(ENT i = 0; i < _non_zeroes_num; i++)
+        MemoryAPI::allocate_array(&sort_indexes, _nz);
+        for(ENT i = 0; i < _nz; i++)
             sort_indexes[i] = i;
 
         int seg_size = 1024*1024 / sizeof(int);
 
         cout << "num segments: " << (size - 1)/seg_size + 1 << endl;
 
-        std::sort(sort_indexes, sort_indexes + _non_zeroes_num,
+        std::sort(sort_indexes, sort_indexes + _nz,
                   [_row_ids, _col_ids, seg_size](int index1, int index2)
                   {
                           if(_row_ids[index1] / seg_size == _row_ids[index2] / seg_size)
@@ -44,16 +44,16 @@ void MatrixCOO<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT
                               return _row_ids[index1] / seg_size < _row_ids[index2] / seg_size;
                   });
 
-        reorder(_row_ids, sort_indexes, _non_zeroes_num);
-        reorder(_col_ids, sort_indexes, _non_zeroes_num);
-        reorder(_vals, sort_indexes, _non_zeroes_num);
+        reorder(_row_ids, sort_indexes, _nz);
+        reorder(_col_ids, sort_indexes, _nz);
+        reorder(_vals, sort_indexes, _nz);
 
         MemoryAPI::free_array(sort_indexes);
     }
 
-    MemoryAPI::copy(row_ids, _row_ids, _non_zeroes_num);
-    MemoryAPI::copy(col_ids, _col_ids, _non_zeroes_num);
-    MemoryAPI::copy(vals, _vals, _non_zeroes_num);
+    MemoryAPI::copy(row_ids, _row_ids, _nz);
+    MemoryAPI::copy(col_ids, _col_ids, _nz);
+    MemoryAPI::copy(vals, _vals, _nz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

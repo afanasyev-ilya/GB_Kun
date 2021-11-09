@@ -11,17 +11,17 @@ class MatrixSegmentedCSR
 {
 private:
     VNT size;
-    ENT non_zeroes_num;
+    ENT nz;
 
     SubgraphSegment<T> *subgraphs;
 
-    void alloc(VNT _size, ENT _non_zeroes_num);
+    void alloc(VNT _size, ENT _nz);
     void free();
 public:
     MatrixSegmentedCSR();
     ~MatrixSegmentedCSR();
 
-    void import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _non_zeroes_num);
+    void import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
