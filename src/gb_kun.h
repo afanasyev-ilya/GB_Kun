@@ -9,6 +9,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <climits>
+#include <map>
 
 #include <omp.h>
 
