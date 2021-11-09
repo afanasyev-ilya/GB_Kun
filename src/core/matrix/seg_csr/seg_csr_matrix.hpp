@@ -30,7 +30,7 @@ void MatrixSegmentedCSR<T>::alloc(VNT _size, ENT _nz)
 template <typename T>
 void MatrixSegmentedCSR<T>::free()
 {
-    // TODO
+    delete []subgraphs;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

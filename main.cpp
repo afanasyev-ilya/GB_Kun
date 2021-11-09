@@ -40,6 +40,9 @@ int main(int argc, char **argv)
     MatrixSegmentedCSR<float> B;
     B.import(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count);
 
+    for(int i = 0; i < NUM_ITERS; i++)
+        SpMV(B, x, z);
+
     /*MatrixCOO<float> B;
     B.import(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count, false);
 
@@ -52,7 +55,7 @@ int main(int argc, char **argv)
     z.set_constant(0);
     for(int i = 0; i < NUM_ITERS; i++)
         SpMV(B, x, z);
-    cout << endl << endl;
+    cout << endl << endl;*/
 
     if(y == z)
     {
@@ -61,7 +64,7 @@ int main(int argc, char **argv)
     else
     {
         cout << "Vectors are NOT equal" << endl;
-    }*/
+    }
 
     return 0;
 }

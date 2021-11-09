@@ -13,6 +13,8 @@ private:
     VNT size;
     ENT nz;
 
+    int num_segments;
+
     SubgraphSegment<T> *subgraphs;
 
     void alloc(VNT _size, ENT _nz);
@@ -20,6 +22,9 @@ private:
 public:
     MatrixSegmentedCSR();
     ~MatrixSegmentedCSR();
+
+    int get_num_segments() {return num_segments;};
+    SubgraphSegment<T> *get_segment(int _seg_id) {return &subgraphs[_seg_id];};
 
     void import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
 };

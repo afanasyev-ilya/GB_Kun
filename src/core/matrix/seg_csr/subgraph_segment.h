@@ -3,9 +3,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-class SubgraphSegment
+struct SubgraphSegment
 {
-private:
     vector<VNT> tmp_row_ids;
     vector<VNT> tmp_col_ids;
     vector<T> tmp_vals;
@@ -19,7 +18,7 @@ private:
     ENT *row_ptr;
     T *vals;
     VNT *col_ids;
-public:
+
     SubgraphSegment();
     ~SubgraphSegment();
 
@@ -111,7 +110,10 @@ void SubgraphSegment<T>::construct_csr()
         row_ptr[i + 1] += row_ptr[i];
 
     for (ENT i = 0; i < nz; i++)
+    {
         col_ids[i] = tmp_col_ids[i];
+        vals[i] = tmp_vals[i];
+    }
 
     cout << "size: " << size << endl;
     cout << "nz: " << nz << endl;

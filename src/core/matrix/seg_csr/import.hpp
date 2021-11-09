@@ -7,8 +7,8 @@ void MatrixSegmentedCSR<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _
     nz = _nz;
 
     //VNT segment_size = 1024 * 1024 / sizeof(int);
-    //int num_segments = (size - 1) / segment_size + 1;
-    int num_segments = 2;
+    //num_segments = (size - 1) / segment_size + 1;
+    num_segments = 2;
     VNT segment_size = size/num_segments;
 
     subgraphs = new SubgraphSegment<T>[num_segments];
@@ -27,8 +27,6 @@ void MatrixSegmentedCSR<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _
         subgraphs[cur_seg].construct_csr();
         cout << endl << endl;
     }
-
-    delete []subgraphs;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

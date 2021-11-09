@@ -23,9 +23,9 @@ using namespace std;
 #include "helpers/graph_generation/graph_generation.h"
 #include "helpers/cmd_parser/cmd_parser.h"
 
+#include "core/vector/dense_vector/dense_vector.h"
 #include "core/matrix/csr/csr_matrix.h"
 #include "core/matrix/coo/coo_matrix.h"
 #include "core/matrix/seg_csr/seg_csr_matrix.h"
-#include "core/vector/dense_vector/dense_vector.h"
 
 #include "core/spmv/spmv.h"
