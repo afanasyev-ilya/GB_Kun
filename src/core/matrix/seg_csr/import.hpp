@@ -1,0 +1,32 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MatrixSegmentedCSR<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _non_zeroes_num)
+{
+    size = _size;
+    non_zeroes_num = _non_zeroes_num;
+
+    //VNT segment_size = 1024 * 1024 / sizeof(int);
+    //int num_segments = (size - 1) / segment_size + 1;
+    int num_segments = 2;
+    VNT segment_size = size/num_segments;
+
+    subgraphs = new SubgraphSegment<T>[num_segments];
+
+    for(ENT i = 0; i < _non_zeroes_num; i++)
+    {
+        int seg_id = _col_ids[i]/segment_size;
+        subgraphs[seg_id].add_edge(_row_ids[i], _col_ids[i], _vals[i]);
+    }
+
+    for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
+    {
+        cout << "seg " << cur_seg << endl;
+        subgraphs[cur_seg].dump();
+        cout << endl << endl;
+    }
+
+    delete []subgraphs;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

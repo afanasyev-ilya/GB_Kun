@@ -10,9 +10,18 @@ int main(int argc, char **argv)
     VNT avg_deg = parser.get_avg_degree();
 
     EdgeListContainer<float> el;
-    GraphGenerationAPI::random_uniform(el,
-                                       pow(2.0, scale),
-                                       avg_deg * pow(2.0, scale));
+    if(parser.get_synthetic_graph_type() == RANDOM_UNIFORM)
+    {
+        GraphGenerationAPI::random_uniform(el,
+                                           pow(2.0, scale),
+                                           avg_deg * pow(2.0, scale));
+        cout << "Using UNIFORM graph" << endl;
+    }
+    else if(parser.get_synthetic_graph_type() == RANDOM_UNIFORM)
+    {
+        GraphGenerationAPI::R_MAT(el, pow(2.0, scale), avg_deg * pow(2.0, scale), 57, 19, 19, 5);
+        cout << "Using RMAT graph" << endl;
+    }
 
     MatrixCSR<float> A;
     A.import(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count);
@@ -27,6 +36,9 @@ int main(int argc, char **argv)
     for(int i = 0; i < NUM_ITERS; i++)
         SpMV(A, x, y);
     cout << endl << endl;
+
+    MatrixSegmentedCSR<float> B;
+    B.import(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count);
 
     /*MatrixCOO<float> B;
     B.import(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count, false);

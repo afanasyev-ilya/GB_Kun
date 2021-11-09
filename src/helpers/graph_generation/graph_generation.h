@@ -37,7 +37,7 @@ public:
                                ENT _edges_count,
                                DirectionType _direction_type = DIRECTED_GRAPH);
 
-    /*template <typename T>
+    template <typename T>
     static void R_MAT(EdgeListContainer<T> _edges_container,
                       int _vertices_count,
                       long long _edges_count,
@@ -45,7 +45,7 @@ public:
                       int _b_prob,
                       int _c_prob,
                       int _d_prob,
-                      DirectionType _direction_type = DIRECTED_GRAPH);*/
+                      DirectionType _direction_type = DIRECTED_GRAPH);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

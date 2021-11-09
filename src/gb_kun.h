@@ -24,6 +24,7 @@ using namespace std;
 
 #include "core/matrix/csr/csr_matrix.h"
 #include "core/matrix/coo/coo_matrix.h"
+#include "core/matrix/seg_csr/seg_csr_matrix.h"
 #include "core/vector/dense_vector/dense_vector.h"
 
 #include "core/spmv/spmv.h"

@@ -52,49 +52,6 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-struct BatchedRand
-{
-    int rand_buffer_size;
-    int *rand_buffer;
-    int rand_pos;
-
-    BatchedRand()
-    {
-        rand_buffer_size = 100000;
-        MemoryAPI::allocate_array(&rand_buffer, rand_buffer_size);
-        rand_pos = 0;
-        generate_new_portion();
-    }
-
-    ~BatchedRand()
-    {
-        MemoryAPI::free_array(rand_buffer);
-    }
-
-    void generate_new_portion()
-    {
-        cout << "gen " << omp_get_thread_num() << endl;
-        RandomGenerator rng_api;
-        rng_api.generate_array_of_random_values<int>(rand_buffer, rand_buffer_size, 100);
-    }
-
-    inline int rand()
-    {
-        if(rand_pos >= rand_buffer_size)
-        {
-            generate_new_portion();
-            rand_pos = 0;
-        }
-
-        int rand_val = rand_buffer[rand_pos];
-        rand_pos++;
-        return rand_val;
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 template <typename T>
 void GraphGenerationAPI::R_MAT(EdgeListContainer<T> _edges_container,
                                int _vertices_count, long long _edges_count,
@@ -111,18 +68,19 @@ void GraphGenerationAPI::R_MAT(EdgeListContainer<T> _edges_container,
         edges_count *= 2;
     
     int step = 1;
-    if(_direction_type)
-    {
-        _edges_container.resize(vertices_count, edges_count);
-    }
-    else
-    {
+    if(!_direction_type)
         step = 2;
-        _edges_container.resize(vertices_count, 2*edges_count);
-    }
-    
-    int *src_ids = _edges_container.get_src_ids();
-    int *dst_ids = _edges_container.get_dst_ids();
+
+    _edges_container.vertices_count = vertices_count;
+    _edges_container.edges_count = edges_count;
+    _edges_container.src_ids.resize(edges_count);
+    _edges_container.dst_ids.resize(edges_count);
+    _edges_container.edge_vals.resize(edges_count);
+
+    // get pointers
+    VNT *src_ids = _edges_container.src_ids.data();
+    VNT *dst_ids = _edges_container.dst_ids.data();
+    T *vals = _edges_container.edge_vals.data();
 
     int threads_count = omp_get_max_threads();
     
@@ -173,11 +131,13 @@ void GraphGenerationAPI::R_MAT(EdgeListContainer<T> _edges_container,
 
             src_ids[cur_edge] = from;
             dst_ids[cur_edge] = to;
+            vals[cur_edge] = rand_r(&seed) / RAND_MAX;
             
             if(!_direction_type)
             {
                 src_ids[cur_edge + 1] = to;
                 dst_ids[cur_edge + 1] = from;
+                vals[cur_edge + 1] = rand_r(&seed) / RAND_MAX;
             }
         }
     }
@@ -193,4 +153,3 @@ void GraphGenerationAPI::R_MAT(EdgeListContainer<T> _edges_container,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-*/
