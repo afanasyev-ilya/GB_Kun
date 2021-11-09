@@ -59,6 +59,8 @@ bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
             error_count++;
         }
     }
+
+    cout << "error_count: " << error_count << "/" << max(lhs.get_size(), rhs.get_size())  << endl;
     if(error_count == 0)
         return true;
     else

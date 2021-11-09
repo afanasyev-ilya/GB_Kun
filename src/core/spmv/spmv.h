@@ -76,8 +76,9 @@ void SpMV(MatrixSegmentedCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
     {
         SubgraphSegment<T> *segment = _A.get_segment(seg_id);
         T *buffer = (T*)segment->vertex_buffer;
+        cout << segment->nz << "/" << _A.get_nz() << endl;
 
-        #pragma omp parallel for schedule(static)
+        //#pragma omp parallel for schedule(static)
         for(VNT i = 0; i < segment->size; i++)
         {
             buffer[i] = 0;
@@ -100,7 +101,10 @@ void SpMV(MatrixSegmentedCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
         //#pragma omp parallel for schedule(static)
         for(VNT i = 0; i < segment->size; i++)
         {
-            cout << i << " -> " << conversion_indexes[i] << endl;
+            if(conversion_indexes[i] == 0 || conversion_indexes[i] == 1)
+            {
+
+            }
             y_vals[conversion_indexes[i]] += buffer[i];
         }
     }

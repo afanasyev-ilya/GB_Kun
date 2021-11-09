@@ -76,14 +76,13 @@ void SubgraphSegment<T>::construct_csr()
     nz = tmp_row_ids.size();
 
     map<VNT, VNT> conv;
-    conv[tmp_row_ids[0]] = 0;
 
     VNT cur_row = tmp_row_ids[0];
+    conv[tmp_row_ids[0]] = cur_row;
     for(ENT i = 1; i < nz; i++)
     {
         if(tmp_row_ids[i] != cur_row)
         {
-            conv[tmp_row_ids[i]] = cur_row;
             cur_row = tmp_row_ids[i];
             size++;
         }
@@ -99,7 +98,7 @@ void SubgraphSegment<T>::construct_csr()
         row_ptr[i] = 0;
 
     for(VNT i = 0; i < size; i++)
-        conversion_to_full[i] = i;
+        conversion_to_full[i] = 0;
 
     for (ENT i = 0; i < nz; i++)
     {
@@ -108,7 +107,7 @@ void SubgraphSegment<T>::construct_csr()
         VNT row_in_full = tmp_row_ids[i];
         VNT row_in_seg = conv[tmp_row_ids[i]];
 
-        //conversion_to_full[row_in_seg] = row_in_full;
+        conversion_to_full[row_in_seg] = row_in_full;
     }
 
     for (VNT i = 0; i < size; i++)
