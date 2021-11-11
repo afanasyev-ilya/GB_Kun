@@ -2,6 +2,11 @@
 
 #define NUM_ITERS 3
 
+#define REPORT_STATS( CallInstruction ) { \
+    double bw = CallInstruction;          \
+    cout << "BW: " << bw << endl;         \
+}
+
 int main(int argc, char **argv)
 {
     Parser parser;
@@ -37,6 +42,8 @@ int main(int argc, char **argv)
         A.import(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count);
 
         SpMV(A, x, y);
+        y.set_constant(0);
+        REPORT_STATS(SpMV(A, x, y));
     }
     else if(parser.get_storage_format() == CSR_SEG)
     {
@@ -44,6 +51,8 @@ int main(int argc, char **argv)
 
         A.import(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count);
         SpMV(A, x, y);
+        y.set_constant(0);
+        REPORT_STATS(SpMV(A, x, y));
     }
     else if(parser.get_storage_format() == COO)
     {
@@ -51,6 +60,8 @@ int main(int argc, char **argv)
 
         A.import(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count, false);
         SpMV(A, x, y);
+        y.set_constant(0);
+        REPORT_STATS(SpMV(A, x, y));
     }
     else if(parser.get_storage_format() == COO_OPT)
     {
@@ -58,6 +69,8 @@ int main(int argc, char **argv)
 
         A.import(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count, true);
         SpMV(A, x, y);
+        y.set_constant(0);
+        REPORT_STATS(SpMV(A, x, y));
     }
 
     if(parser.check())

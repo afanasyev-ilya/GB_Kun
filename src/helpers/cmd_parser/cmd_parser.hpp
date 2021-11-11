@@ -39,15 +39,20 @@ void Parser::parse_args(int _argc, char **_argv)
         {
             avg_degree = atoi(_argv[++i]);
         }
-
-        if(option == "CSR")
-            storage_format = CSR;
-        else if(option == "COO")
-            storage_format = COO;
-        else if(option == "COO_OPT")
-            storage_format = COO_OPT;
-        else if(option == "CSR_SEG")
-            storage_format = CSR_SEG;
+        
+        if(option == "-format")
+        {
+            option = atoi(_argv[++i]);
+            
+            if(option == "CSR")
+                storage_format = CSR;
+            else if(option == "COO")
+                storage_format = COO;
+            else if(option == "COO_OPT")
+                storage_format = COO_OPT;
+            else if(option == "CSR_SEG")
+                storage_format = CSR_SEG;
+        }
 
         if(option == "-no-check")
             no_check = true;

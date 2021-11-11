@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void SpMV(MatrixCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
+double SpMV(MatrixCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 {
     VNT size = _A.get_size();
     ENT *row_ptr = _A.get_row_ptr();
@@ -27,13 +27,15 @@ void SpMV(MatrixCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
     double t2 = omp_get_wtime();
 
     cout << "SPMV(CSR) perf: " << 2.0*_A.get_nz()/((t2-t1)*1e9) << " GFlop/s" << endl;
-    cout << "SPMV(CSR) bw: " << (3.0*sizeof(VNT)+sizeof(T))*_A.get_nz()/((t2-t1)*1e9) << " GB/s" << endl;
+    double bw = (3.0*sizeof(VNT)+sizeof(T))*_A.get_nz()/((t2-t1)*1e9);
+    cout << "SPMV(CSR) bw: " << bw << " GB/s" << endl;
+    return bw;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void SpMV(MatrixCOO<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
+double SpMV(MatrixCOO<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 {
     ENT nz = _A.get_nz();
     VNT *row_ids = _A.get_row_ids();
@@ -58,13 +60,15 @@ void SpMV(MatrixCOO<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
     double t2 = omp_get_wtime();
 
     cout << "SPMV(COO) perf: " << 2.0*_A.get_nz()/((t2-t1)*1e9) << " GFlop/s" << endl;
-    cout << "SPMV(COO) bw: " << (3.0*sizeof(T)+2*sizeof(VNT))*_A.get_nz()/((t2-t1)*1e9) << " GB/s" << endl;
+    double bw = (3.0*sizeof(T)+2*sizeof(VNT))*_A.get_nz()/((t2-t1)*1e9);
+    cout << "SPMV(COO) bw: " << bw << " GB/s" << endl;
+    return bw;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void SpMV(MatrixSegmentedCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
+double SpMV(MatrixSegmentedCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 {
     T *x_vals = _x.get_vals();
     T *y_vals = _y.get_vals();
@@ -76,9 +80,8 @@ void SpMV(MatrixSegmentedCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
     {
         SubgraphSegment<T> *segment = _A.get_segment(seg_id);
         T *buffer = (T*)segment->vertex_buffer;
-        cout << segment->nz << "/" << _A.get_nz() << endl;
 
-        //#pragma omp parallel for schedule(static)
+        #pragma omp parallel for schedule(static)
         for(VNT i = 0; i < segment->size; i++)
         {
             buffer[i] = 0;
@@ -98,13 +101,9 @@ void SpMV(MatrixSegmentedCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
         T *buffer = (T*)segment->vertex_buffer;
         VNT *conversion_indexes = segment->conversion_to_full;
 
-        //#pragma omp parallel for schedule(static)
+        #pragma omp parallel for schedule(static)
         for(VNT i = 0; i < segment->size; i++)
         {
-            if(conversion_indexes[i] == 0 || conversion_indexes[i] == 1)
-            {
-
-            }
             y_vals[conversion_indexes[i]] += buffer[i];
         }
     }
@@ -115,7 +114,9 @@ void SpMV(MatrixSegmentedCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
     cout << "times: " << compute_time << " vs " << merge_time << endl;
 
     cout << "SPMV(CSR seg) perf: " << 2.0*_A.get_nz()/(wall_time*1e9) << " GFlop/s" << endl;
-    cout << "SPMV(CSR seg) bw: " << (3.0*sizeof(VNT)+sizeof(T))*_A.get_nz()/(wall_time*1e9) << " GB/s" << endl;
+    double bw = (3.0*sizeof(VNT)+sizeof(T))*_A.get_nz()/(wall_time*1e9);
+    cout << "SPMV(CSR seg) bw: " << bw << " GB/s" << endl;
+    return bw;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
