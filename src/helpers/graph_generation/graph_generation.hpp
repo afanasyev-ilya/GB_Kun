@@ -53,12 +53,15 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void GraphGenerationAPI::R_MAT(EdgeListContainer<T> _edges_container,
-                               int _vertices_count, long long _edges_count,
-                               int _a_prob, int _b_prob, int _c_prob,
-                               int _d_prob, DirectionType _direction_type)
+void GraphGenerationAPI::R_MAT(EdgeListContainer<T> &_edges_container,
+                               int _vertices_count,
+                               long long _edges_count,
+                               int _a_prob,
+                               int _b_prob,
+                               int _c_prob,
+                               int _d_prob,
+                               DirectionType _direction_type)
 {
-    double t1 = omp_get_wtime();
     int n = (int)log2(_vertices_count);
     int vertices_count = _vertices_count;
     long long edges_count = _edges_count;
@@ -141,14 +144,6 @@ void GraphGenerationAPI::R_MAT(EdgeListContainer<T> _edges_container,
             }
         }
     }
-
-    double t2 = omp_get_wtime();
-
-    #ifdef __PRINT_API_PERFORMANCE_STATS__
-    double work_per_edge = sizeof(int)*2.0;
-    cout << "rmat gen time: " << t2 - t1 << " sec" << endl;
-    cout << "rmat gen bandwidth: " << work_per_edge*directed_edges_count / ((t2 - t1)*1e9) << " GB/s" << endl;
-    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

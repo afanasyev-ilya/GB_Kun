@@ -22,7 +22,7 @@ int main(int argc, char **argv)
                                            avg_deg * pow(2.0, scale));
         cout << "Using UNIFORM graph" << endl;
     }
-    else if(parser.get_synthetic_graph_type() == RANDOM_UNIFORM)
+    else if(parser.get_synthetic_graph_type() == RMAT)
     {
         GraphGenerationAPI::R_MAT(el, pow(2.0, scale), avg_deg * pow(2.0, scale), 57, 19, 19, 5);
         cout << "Using RMAT graph" << endl;

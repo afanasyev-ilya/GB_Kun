@@ -6,8 +6,8 @@ Parser::Parser()
 {
     scale = 10;
     avg_degree = 16;
-    synthetic_graph_type = RANDOM_UNIFORM;
-    storage_format = CSR_SEG;
+    synthetic_graph_type = RMAT;
+    storage_format = CSR;
     no_check = false;
 }
 
@@ -25,14 +25,19 @@ void Parser::parse_args(int _argc, char **_argv)
             scale = atoi(_argv[++i]);
         }
 
-        if ((option == "-random_uniform") || (option == "-ru"))
+        if((option == "-graph") || (option == "-type"))
         {
-            synthetic_graph_type = RANDOM_UNIFORM;
-        }
+            option = _argv[++i];
 
-        if ((option == "-rmat") || (option == "-RMAT"))
-        {
-            synthetic_graph_type = RMAT;
+            if ((option == "random_uniform") || (option == "ru") || (option == "RU"))
+            {
+                synthetic_graph_type = RANDOM_UNIFORM;
+            }
+
+            if ((option == "rmat") || (option == "RMAT"))
+            {
+                synthetic_graph_type = RMAT;
+            }
         }
 
         if ((option == "-edges") || (option == "-e"))
@@ -42,7 +47,7 @@ void Parser::parse_args(int _argc, char **_argv)
         
         if(option == "-format")
         {
-            option = atoi(_argv[++i]);
+            option = _argv[++i];
             
             if(option == "CSR")
                 storage_format = CSR;

@@ -26,6 +26,7 @@ double SpMV(MatrixCSR<T> &_A, DenseVector<T> &_x, DenseVector<T> &_y)
 
     double t2 = omp_get_wtime();
 
+    cout << "nz num: " << _A.get_nz() << endl;
     cout << "SPMV(CSR) perf: " << 2.0*_A.get_nz()/((t2-t1)*1e9) << " GFlop/s" << endl;
     double bw = (3.0*sizeof(VNT)+sizeof(T))*_A.get_nz()/((t2-t1)*1e9);
     cout << "SPMV(CSR) bw: " << bw << " GB/s" << endl;
