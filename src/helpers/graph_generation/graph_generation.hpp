@@ -3,6 +3,34 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
+void random_shuffle_edges(EdgeListContainer<T> &_edges_container)
+{
+    srand ( unsigned ( time(0) ) );
+
+    VNT vertices_count = _edges_container.vertices_count;
+    ENT edges_count = _edges_container.edges_count;
+    VNT *src_ids = _edges_container.src_ids.data();
+    VNT *dst_ids = _edges_container.dst_ids.data();
+    T *vals = _edges_container.edge_vals.data();
+
+    vector<VNT> reorder_ids(vertices_count);
+    #pragma omp parallel for
+    for (VNT i = 0; i < vertices_count; i++)
+        reorder_ids[i] = i;
+
+    random_shuffle(reorder_ids.begin(), reorder_ids.end() );
+
+    for(ENT i = 0; i < edges_count; i++)
+    {
+        src_ids[i] = reorder_ids[src_ids[i]];
+        dst_ids[i] = reorder_ids[dst_ids[i]];
+        vals[i] = reorder_ids[dst_ids[i]];
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
 void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
                                         VNT _vertices_count,
                                         ENT _edges_count,
@@ -48,6 +76,8 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
             vals[i + directed_edges_count] = vals[i];
         }
     }
+
+    random_shuffle_edges(_edges_container);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,6 +174,8 @@ void GraphGenerationAPI::R_MAT(EdgeListContainer<T> &_edges_container,
             }
         }
     }
+
+    random_shuffle_edges(_edges_container);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
