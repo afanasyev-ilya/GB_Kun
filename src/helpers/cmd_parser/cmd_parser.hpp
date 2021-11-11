@@ -4,10 +4,10 @@
 
 Parser::Parser()
 {
-    scale = 10;
-    avg_degree = 16;
+    scale = 4;
+    avg_degree = 3;
     synthetic_graph_type = RMAT;
-    storage_format = CSR;
+    storage_format = LAV;
     no_check = false;
 }
 
@@ -57,6 +57,8 @@ void Parser::parse_args(int _argc, char **_argv)
                 storage_format = COO_OPT;
             else if(option == "CSR_SEG")
                 storage_format = CSR_SEG;
+            else if(option == "LAV")
+                storage_format = LAV;
         }
 
         if(option == "-no-check")
