@@ -77,6 +77,9 @@ int main(int argc, char **argv)
         MatrixLAV<float> A;
 
         A.import(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count);
+        SpMV(A, x, y);
+        y.set_constant(0);
+        REPORT_STATS(SpMV(A, x, y));
     }
 
     if(parser.check())

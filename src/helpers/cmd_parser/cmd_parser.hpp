@@ -4,8 +4,8 @@
 
 Parser::Parser()
 {
-    scale = 4;
-    avg_degree = 3;
+    scale = 10;
+    avg_degree = 16;
     synthetic_graph_type = RMAT;
     storage_format = LAV;
     no_check = false;
@@ -64,6 +64,8 @@ void Parser::parse_args(int _argc, char **_argv)
         if(option == "-no-check")
             no_check = true;
     }
+
+    cout << "parser_stats: Format " << to_string(storage_format) << " GraphType " << to_string(synthetic_graph_type) << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

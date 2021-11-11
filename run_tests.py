@@ -39,10 +39,11 @@ def get_sockets_count():  # returns number of sockets of target architecture
 
 def parse_timings(output):  # collect time, perf and BW values
     lines = output.splitlines()
-    timings = {"BW": 0}
+    timings = {"BW": 0, "parser_stats": 0}
     for line in lines:
-        if "BW" in line:
-            timings["BW"] = float(line.split(" ")[1])
+        for key in timings.keys():
+            if key in line:
+                timings[key] = line.split(":")[1]
     return timings
 
 
@@ -58,7 +59,6 @@ def run_and_wait(cmd, options):
     rc = p.returncode
     p_status = p.wait()
     string_output = output.decode("utf-8")
-
     return parse_timings(string_output)
 
 
@@ -81,11 +81,14 @@ if __name__ == "__main__":
 
     options, args = parser.parse_args()
 
+    bw_list = []
     for scale in range(int(options.first_scale), int(options.last_scale) + 1):
         cmd = "./GB_Kun -s " + str(scale) + " -e 16 " + " -format " + options.format + " -no-check" +\
-              " -type " + options.graph_type
+              " -graph " + options.graph_type
         timings = run_and_wait(cmd, options)
-        print("scale: " + str(scale) + ", BW: " + str(timings["BW"]))
+        print("scale: " + str(scale) + ", BW: " + str(timings["BW"]) + ", " + timings["parser_stats"])
+        bw_list.append(timings["BW"])
 
-
+    for bw in bw_list:
+        print(bw)
 
