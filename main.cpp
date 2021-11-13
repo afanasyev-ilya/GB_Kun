@@ -28,7 +28,7 @@ int main(int argc, char **argv)
         cout << "Using RMAT graph" << endl;
     }
 
-    VNT vertices_count = pow(2.0, scale);
+    /*VNT vertices_count = pow(2.0, scale);
     DenseVector<float> x(vertices_count);
     DenseVector<float> y(vertices_count);
     DenseVector<float> z(vertices_count);
@@ -97,7 +97,20 @@ int main(int argc, char **argv)
         {
             cout << "Vectors are NOT equal" << endl;
         }
-    }
+    }*/
+
+    Matrix<float> matrix;
+    Vector<float> x(el.vertices_count);
+    Vector<float> y(el.vertices_count);
+    matrix.build(el.src_ids.data(), el.dst_ids.data(), el.edge_vals.data(), el.vertices_count, el.edges_count);
+
+    SpMV(matrix, x, y);
+
+    double t1 = omp_get_wtime();
+    SpMV(matrix, x, y);
+    double t2 = omp_get_wtime();
+    cout << "SPMV perf: " << 2.0*el.edges_count/((t2-t1)*1e9) << " GFlop/s" << endl;
+    cout << "SPMV bw: " << (3.0*sizeof(float)+sizeof(VNT))*el.edges_count/((t2-t1)*1e9) << " GB/s" << endl;
 
     return 0;
 }

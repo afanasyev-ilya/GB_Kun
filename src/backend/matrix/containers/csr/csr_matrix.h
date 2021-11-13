@@ -2,10 +2,8 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define HUB_VERTICES 15 //131072
-
 template <typename T>
-class MatrixLAV
+class MatrixCSR
 {
 private:
     VNT size;
@@ -15,7 +13,7 @@ private:
     T *vals;
     VNT *col_ids;
 
-    VNT *hub_conversion_array;
+    int target_socket;
 
     void alloc(VNT _size, ENT _nz);
     void free();
@@ -24,11 +22,9 @@ private:
 
     bool is_non_zero(int _row, int _col);
     T get(int _row, int _col);
-
-    void prepare_hub_data(map<int, int> &_freqs);
 public:
-    MatrixLAV();
-    ~MatrixLAV();
+    MatrixCSR();
+    ~MatrixCSR();
 
     VNT get_size() {return size;};
     ENT get_nz() {return nz;};
@@ -36,17 +32,17 @@ public:
     ENT *get_row_ptr(){return row_ptr;};
     T *get_vals(){return vals;};
     VNT *get_col_ids(){return col_ids;};
-    VNT *get_hub_conversion_array(){return hub_conversion_array;};
 
     void resize(VNT _size, ENT _nz);
 
-    void import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
+    void import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, int _target_socket = 0);
     void print();
+
+    template<typename Y>
+    friend void SpMV(MatrixCSR<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#include "lav_matrix.hpp"
+#include "csr_matrix.hpp"
 #include "import.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

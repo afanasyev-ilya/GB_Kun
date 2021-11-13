@@ -4,10 +4,10 @@
 
 Parser::Parser()
 {
-    scale = 10;
+    scale = 14;
     avg_degree = 16;
     synthetic_graph_type = RMAT;
-    storage_format = LAV;
+    storage_format = CSR;
     no_check = false;
 }
 

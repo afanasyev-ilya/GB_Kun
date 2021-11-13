@@ -2,8 +2,10 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define HUB_VERTICES 131072
+
 template <typename T>
-class MatrixCSR
+class MatrixLAV
 {
 private:
     VNT size;
@@ -13,6 +15,8 @@ private:
     T *vals;
     VNT *col_ids;
 
+    VNT *hub_conversion_array;
+
     void alloc(VNT _size, ENT _nz);
     void free();
 
@@ -20,9 +24,11 @@ private:
 
     bool is_non_zero(int _row, int _col);
     T get(int _row, int _col);
+
+    void prepare_hub_data(map<int, int> &_freqs);
 public:
-    MatrixCSR();
-    ~MatrixCSR();
+    MatrixLAV();
+    ~MatrixLAV();
 
     VNT get_size() {return size;};
     ENT get_nz() {return nz;};
@@ -30,6 +36,7 @@ public:
     ENT *get_row_ptr(){return row_ptr;};
     T *get_vals(){return vals;};
     VNT *get_col_ids(){return col_ids;};
+    VNT *get_hub_conversion_array(){return hub_conversion_array;};
 
     void resize(VNT _size, ENT _nz);
 
@@ -39,7 +46,7 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "csr_matrix.hpp"
+#include "lav_matrix.hpp"
 #include "import.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

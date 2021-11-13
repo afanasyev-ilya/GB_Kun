@@ -74,6 +74,7 @@ void SubgraphSegment<T>::construct_csr()
 {
     nz = tmp_row_ids.size();
 
+    size = 0;
     map<VNT, VNT> conv;
     for(ENT i = 0; i < nz; i++)
     {
