@@ -18,11 +18,13 @@ void reorder(T *data, ENT *indexes, ENT size)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCOO<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, bool _optimized)
+void MatrixCOO<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz)
 {
     resize(_size, _nz);
     size = _size;
     nz = _nz;
+
+    bool _optimized = false;
 
     if(_optimized)
     {

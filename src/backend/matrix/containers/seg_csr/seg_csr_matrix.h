@@ -7,8 +7,14 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-class MatrixSegmentedCSR
+class MatrixSegmentedCSR : public MatrixContainer<T>
 {
+public:
+    MatrixSegmentedCSR();
+    ~MatrixSegmentedCSR();
+
+    void build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
+    void print() {};
 private:
     VNT size;
     ENT nz;
@@ -19,23 +25,15 @@ private:
 
     void alloc(VNT _size, ENT _nz);
     void free();
-public:
-    MatrixSegmentedCSR();
-    ~MatrixSegmentedCSR();
 
-    int get_num_segments() {return num_segments;};
-    SubgraphSegment<T> *get_segment(int _seg_id) {return &subgraphs[_seg_id];};
-
-    VNT get_size() {return size;};
-    ENT get_nz() {return nz;};
-
-    void import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
+    template<typename Y>
+    friend void SpMV(MatrixSegmentedCSR<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "seg_csr_matrix.hpp"
-#include "import.hpp"
+#include "build.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

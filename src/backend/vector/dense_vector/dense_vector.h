@@ -10,20 +10,28 @@ public:
 
     ~DenseVector();
 
-    T *get_vals() {return vals;};
-    VNT get_size() {return size;};
-
     void set_constant(T _val);
 
     void print();
+private:
+    VNT size;
+    T *vals;
 
     template<typename Y>
     friend void SpMV(MatrixCSR<Y> &_matrix,
                      DenseVector<Y> &_x,
                      DenseVector<Y> &_y);
-private:
-    VNT size;
-    T *vals;
+    template<typename Y>
+    friend void SpMV(MatrixSegmentedCSR<Y> &_A, DenseVector<Y> &_x, DenseVector<Y> &_y);
+
+    template<typename Y>
+    friend void SpMV(MatrixLAV<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+
+    template<typename Y>
+    friend void SpMV(MatrixCOO<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+
+    template<typename Y>
+    friend bool operator==(DenseVector<Y>& lhs, DenseVector<Y>& rhs);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,21 +79,21 @@ void DenseVector<T>::print()
 template <typename T>
 bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
 {
-    if(lhs.get_size() != rhs.get_size())
+    if(lhs.size != rhs.size)
         return false;
 
     VNT error_count = 0;
-    for(VNT i = 0; i < lhs.get_size(); i++)
+    for(VNT i = 0; i < lhs.size; i++)
     {
-        if(fabs(lhs.get_vals()[i] - rhs.get_vals()[i]) > 0.0001)
+        if(fabs(lhs.vals[i] - rhs.vals[i]) > 0.0001 && lhs.vals[i] < 100000)
         {
             if(error_count < 20)
-                cout << "Error in " << i << " : " << lhs.get_vals()[i] << " " << rhs.get_vals()[i] << endl;
+                cout << "Error in " << i << " : " << lhs.vals[i] << " " << rhs.vals[i] << endl;
             error_count++;
         }
     }
 
-    cout << "error_count: " << error_count << "/" << max(lhs.get_size(), rhs.get_size())  << endl;
+    cout << "error_count: " << error_count << "/" << max(lhs.size, rhs.size)  << endl;
     if(error_count == 0)
         return true;
     else

@@ -6,6 +6,12 @@ template <typename T>
 class Matrix;
 template <typename T>
 class MatrixCSR;
+template <typename T>
+class MatrixSegmentedCSR;
+template <typename T>
+class MatrixLAV;
+template <typename T>
+class MatrixCOO;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

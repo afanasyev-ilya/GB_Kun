@@ -2,10 +2,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "containers/csr/csr_matrix.h"
-#include "containers/coo/coo_matrix.h"
-#include "containers/seg_csr/seg_csr_matrix.h"
-#include "containers/lav/lav_matrix.h"
+#include "containers/matrix_container.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -13,8 +10,8 @@ template<typename T>
 class Matrix
 {
 public:
-    Matrix() {};
-    ~Matrix() {};
+    Matrix() {format = CSR;};
+    ~Matrix() {delete data;};
 
     void build(VNT *_row_indices,
                VNT *_col_indices,
@@ -24,7 +21,7 @@ public:
 
     void set_preferred_format(MatrixStorageFormat _format) {format = _format;};
 private:
-    MatrixCSR<T> csr_matrix; // for both sockets
+    MatrixContainer<T> *data;
 
     MatrixStorageFormat format;
 
@@ -43,7 +40,27 @@ void Matrix<T>::build(VNT *_row_indices,
                       const VNT _size, // todo remove
                       const ENT _nz)
 {
-    csr_matrix.import(_row_indices, _col_indices, _values, _size, _nz, 0);
+    if(format == CSR)
+    {
+        data = new MatrixCSR<T>;
+    }
+    else if(format == LAV)
+    {
+        data = new MatrixLAV<T>;
+    }
+    else if(format == COO)
+    {
+        data = new MatrixCOO<T>;
+    }
+    else if(format == CSR_SEG)
+    {
+        data = new MatrixSegmentedCSR<T>;
+    }
+    else
+    {
+        throw "Error: unsupported format in Matrix<T>::build";
+    }
+    data->build(_row_indices, _col_indices, _values, _size, _nz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

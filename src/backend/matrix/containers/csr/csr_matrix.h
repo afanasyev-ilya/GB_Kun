@@ -3,8 +3,14 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-class MatrixCSR
+class MatrixCSR : public MatrixContainer<T>
 {
+public:
+    MatrixCSR();
+    ~MatrixCSR();
+
+    void build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
+    void print();
 private:
     VNT size;
     ENT nz;
@@ -17,33 +23,19 @@ private:
 
     void alloc(VNT _size, ENT _nz);
     void free();
+    void resize(VNT _size, ENT _nz);
 
     void construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
 
     bool is_non_zero(int _row, int _col);
     T get(int _row, int _col);
-public:
-    MatrixCSR();
-    ~MatrixCSR();
-
-    VNT get_size() {return size;};
-    ENT get_nz() {return nz;};
-
-    ENT *get_row_ptr(){return row_ptr;};
-    T *get_vals(){return vals;};
-    VNT *get_col_ids(){return col_ids;};
-
-    void resize(VNT _size, ENT _nz);
-
-    void import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, int _target_socket = 0);
-    void print();
 
     template<typename Y>
     friend void SpMV(MatrixCSR<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
 };
 
 #include "csr_matrix.hpp"
-#include "import.hpp"
+#include "build.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

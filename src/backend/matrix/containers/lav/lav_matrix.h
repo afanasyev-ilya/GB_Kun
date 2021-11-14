@@ -5,8 +5,14 @@
 #define HUB_VERTICES 131072
 
 template <typename T>
-class MatrixLAV
+class MatrixLAV : public MatrixContainer<T>
 {
+public:
+    MatrixLAV();
+    ~MatrixLAV();
+
+    void build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
+    void print();
 private:
     VNT size;
     ENT nz;
@@ -19,6 +25,7 @@ private:
 
     void alloc(VNT _size, ENT _nz);
     void free();
+    void resize(VNT _size, ENT _nz);
 
     void construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
 
@@ -26,28 +33,15 @@ private:
     T get(int _row, int _col);
 
     void prepare_hub_data(map<int, int> &_freqs);
-public:
-    MatrixLAV();
-    ~MatrixLAV();
 
-    VNT get_size() {return size;};
-    ENT get_nz() {return nz;};
-
-    ENT *get_row_ptr(){return row_ptr;};
-    T *get_vals(){return vals;};
-    VNT *get_col_ids(){return col_ids;};
-    VNT *get_hub_conversion_array(){return hub_conversion_array;};
-
-    void resize(VNT _size, ENT _nz);
-
-    void import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
-    void print();
+    template<typename Y>
+    friend void SpMV(MatrixLAV<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "lav_matrix.hpp"
-#include "import.hpp"
+#include "build.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

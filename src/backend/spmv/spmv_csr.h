@@ -7,6 +7,7 @@ void SpMV(MatrixCSR<T> &_matrix,
           DenseVector<T> &_x,
           DenseVector<T> &_y)
 {
+
     #pragma omp parallel
     {
         #pragma omp for schedule(static)
@@ -18,16 +19,6 @@ void SpMV(MatrixCSR<T> &_matrix,
             }
         }
     };
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-void SpMV(Matrix<T> &_matrix,
-          Vector<T> &_x,
-          Vector<T> &_y)
-{
-    SpMV(_matrix.csr_matrix, _x.dense, _y.dense);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

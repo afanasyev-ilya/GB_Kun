@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixSegmentedCSR<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz)
+void MatrixSegmentedCSR<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz)
 {
     size = _size;
     nz = _nz;

@@ -38,7 +38,7 @@ void MatrixCSR<T>::construct_unsorted_csr(const VNT *_row_ids,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::import(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, int _target_socket)
+void MatrixCSR<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz)
 {
     resize(_size, _nz);
     construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nz);
