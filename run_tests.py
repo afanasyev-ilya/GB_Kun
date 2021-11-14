@@ -48,8 +48,8 @@ def parse_timings(output):  # collect time, perf and BW values
 
 
 def run_and_wait(cmd, options):
-    os.environ['OMP_NUM_THREADS'] = str(get_cores_count() * options.sockets)
-    print("Using " + str(get_cores_count() * int(options.sockets)) + " threads")
+    os.environ['OMP_NUM_THREADS'] = str(get_cores_count() * int(options.sockets))
+    #print("Using " + str(get_cores_count() * int(options.sockets)) + " threads")
     os.environ['OMP_PROC_BIND'] = "close"
     #print(cmd)
 

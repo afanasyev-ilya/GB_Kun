@@ -46,7 +46,7 @@ int main(int argc, char **argv)
         SpMV(matrix, x, y);
         double t2 = omp_get_wtime();
         cout << "SPMV perf: " << 2.0*el.edges_count/((t2-t1)*1e9) << " GFlop/s" << endl;
-        cout << "BW: " << (3.0*sizeof(float)+sizeof(VNT))*el.edges_count/((t2-t1)*1e9) << " GB/s" << endl;
+        cout << "BW: " << (3.0*sizeof(float)+sizeof(VNT))*el.edges_count/((t2-t1)*1e9) << endl;
 
         if(parser.check())
         {
