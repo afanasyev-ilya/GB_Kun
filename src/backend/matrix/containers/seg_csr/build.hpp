@@ -11,7 +11,7 @@ void MatrixSegmentedCSR<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _s
     //num_segments = 4;
     //VNT segment_size = size/num_segments;
 
-    //cout << "Using " << num_segments << " segments..." << endl;
+    cout << "Using " << num_segments << " segments..." << endl;
 
     subgraphs = new SubgraphSegment<T>[num_segments];
 

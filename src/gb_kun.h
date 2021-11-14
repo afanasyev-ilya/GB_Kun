@@ -17,6 +17,7 @@ using namespace std;
 
 #define VNT int
 #define ENT int
+#define CHECK_PRINT_NUM 10
 
 #include "helpers/memory_API/memory_API.h"
 #include "helpers/random_generator/random_generator.h"

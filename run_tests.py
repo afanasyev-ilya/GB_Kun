@@ -48,8 +48,8 @@ def parse_timings(output):  # collect time, perf and BW values
 
 
 def run_and_wait(cmd, options):
-    #print("Using " + str(get_cores_count()) + " threads")
-    os.environ['OMP_NUM_THREADS'] = str(get_cores_count())
+    os.environ['OMP_NUM_THREADS'] = str(get_cores_count() * options.sockets)
+    print("Using " + str(get_cores_count() * int(options.sockets)) + " threads")
     os.environ['OMP_PROC_BIND'] = "close"
     #print(cmd)
 
@@ -68,18 +68,21 @@ if __name__ == "__main__":
     # create .csv files
     # parse arguments
     parser = optparse.OptionParser()
-    parser.add_option('-f', '--first-scale',
+    parser.add_option('--first-scale',
                       action="store", dest="first_scale",
                       help="smallest scale of graph", default=16)
-    parser.add_option('-l', '--last-scale',
+    parser.add_option('--last-scale',
                       action="store", dest="last_scale",
                       help="largest scale of graph", default=22)
     parser.add_option('-g', '--graph',
                       action="store", dest="graph_type",
                       help="type of graph used (rmat, ru)", default="ru")
-    parser.add_option('-s', '--format',
+    parser.add_option('-f', '--format',
                       action="store", dest="graph_format",
                       help="graph storage format used (CSR, COO, COO_OPT, CSR_SEG)", default="CSR")
+    parser.add_option('-s', '--sockets',
+                      action="store", dest="sockets",
+                      help="number of sockets used, default is 1", default=1)
 
     options, args = parser.parse_args()
 

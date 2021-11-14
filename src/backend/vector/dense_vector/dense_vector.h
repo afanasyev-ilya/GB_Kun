@@ -93,6 +93,11 @@ bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
         }
     }
 
+    for(VNT i = 0; i < min(lhs.size, CHECK_PRINT_NUM); i++)
+    {
+        cout << "check " << i << " : " << lhs.vals[i] << " vs " << rhs.vals[i] << endl;
+    }
+
     cout << "error_count: " << error_count << "/" << max(lhs.size, rhs.size)  << endl;
     if(error_count == 0)
         return true;
