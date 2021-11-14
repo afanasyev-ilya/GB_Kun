@@ -5,9 +5,6 @@
 template <typename T>
 class DenseVector
 {
-private:
-    VNT size;
-    T *vals;
 public:
     DenseVector(int _size);
 
@@ -24,6 +21,9 @@ public:
     friend void SpMV(MatrixCSR<Y> &_matrix,
                      DenseVector<Y> &_x,
                      DenseVector<Y> &_y);
+private:
+    VNT size;
+    T *vals;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

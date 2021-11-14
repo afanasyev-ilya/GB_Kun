@@ -27,7 +27,7 @@ void SpMV(Matrix<T> &_matrix,
           Vector<T> &_x,
           Vector<T> &_y)
 {
-    SpMV(_matrix.csr_matrix[0], _x.dense, _y.dense);
+    SpMV(_matrix.csr_matrix, _x.dense, _y.dense);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -18,6 +18,8 @@ class Vector {
 public:
     Vector(int _size): dense(_size){size = _size; nz = size;};
     ~Vector(){};
+
+    void set_constant(T _val) {dense.set_constant(_val);};
 private:
     VNT size;
     VNT nz;
@@ -27,7 +29,19 @@ private:
     friend void SpMV(Matrix<Y> &_matrix,
                      Vector<Y> &_x,
                      Vector<Y> &_y);
+
+    template<typename Y>
+    friend bool operator==(Vector<Y>& lhs, Vector<Y>& rhs);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+bool operator==(Vector<T>& lhs, Vector<T>& rhs)
+{
+    return lhs.dense == rhs.dense;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 

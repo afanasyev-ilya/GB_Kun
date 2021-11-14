@@ -10,7 +10,7 @@ do
    program_args+=(${args[c]})
 done
 
-export OMP_NUM_THREADS=84
+export OMP_NUM_THREADS=96
 export OMP_PROC_BIND=close
 
 echo common launch of application ${program_name}

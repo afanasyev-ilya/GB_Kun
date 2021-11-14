@@ -48,8 +48,10 @@ def parse_timings(output):  # collect time, perf and BW values
 
 
 def run_and_wait(cmd, options):
+    #print("Using " + str(get_cores_count()) + " threads")
     os.environ['OMP_NUM_THREADS'] = str(get_cores_count())
     os.environ['OMP_PROC_BIND'] = "close"
+    #print(cmd)
 
     p = subprocess.Popen(cmd, shell=True,
                          stdin=subprocess.PIPE,
@@ -71,19 +73,19 @@ if __name__ == "__main__":
                       help="smallest scale of graph", default=16)
     parser.add_option('-l', '--last-scale',
                       action="store", dest="last_scale",
-                      help="largest scale of graph", default=16)
+                      help="largest scale of graph", default=22)
     parser.add_option('-g', '--graph',
                       action="store", dest="graph_type",
                       help="type of graph used (rmat, ru)", default="ru")
     parser.add_option('-s', '--format',
-                      action="store", dest="format",
+                      action="store", dest="graph_format",
                       help="graph storage format used (CSR, COO, COO_OPT, CSR_SEG)", default="CSR")
 
     options, args = parser.parse_args()
 
     bw_list = []
     for scale in range(int(options.first_scale), int(options.last_scale) + 1):
-        cmd = "./GB_Kun -s " + str(scale) + " -e 16 " + " -format " + options.format + " -no-check" +\
+        cmd = "./GB_Kun -s " + str(scale) + " -e 16 " + " -format " + options.graph_format + " -no-check" +\
               " -graph " + options.graph_type
         timings = run_and_wait(cmd, options)
         print("scale: " + str(scale) + ", BW: " + str(timings["BW"]) + ", " + timings["parser_stats"])
