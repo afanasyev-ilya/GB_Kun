@@ -19,8 +19,16 @@ private:
 
     template<typename Y>
     friend void SpMV(MatrixCSR<Y> &_matrix,
+                     MatrixCSR<Y> &_matrix_socket_dub,
+                     DenseVector<Y> &_x,
+                     DenseVector<Y> &_y,
+                     Descriptor &_desc);
+
+    template <typename Y>
+    friend void SpMV(MatrixCSR<Y> &_matrix,
                      DenseVector<Y> &_x,
                      DenseVector<Y> &_y);
+
     template<typename Y>
     friend void SpMV(MatrixSegmentedCSR<Y> &_A, DenseVector<Y> &_x, DenseVector<Y> &_y);
 

@@ -11,7 +11,13 @@ class Matrix
 {
 public:
     Matrix() {format = CSR;};
-    ~Matrix() {delete data;};
+    ~Matrix()
+    {
+        delete data;
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        delete data_socket_dub;
+        #endif
+    };
 
     void build(VNT *_row_indices,
                VNT *_col_indices,
@@ -22,13 +28,17 @@ public:
     void set_preferred_format(MatrixStorageFormat _format) {format = _format;};
 private:
     MatrixContainer<T> *data;
+    #ifdef __USE_SOCKET_OPTIMIZATIONS__
+    MatrixContainer<T> *data_socket_dub;
+    #endif
 
     MatrixStorageFormat format;
 
     template<typename Y>
     friend void SpMV(Matrix<Y> &_matrix,
                      Vector<Y> &_x,
-                     Vector<Y> &_y);
+                     Vector<Y> &_y,
+                     Descriptor &_desc);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,6 +53,9 @@ void Matrix<T>::build(VNT *_row_indices,
     if(format == CSR)
     {
         data = new MatrixCSR<T>;
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        data_socket_dub = new MatrixCSR<T>;
+        #endif
     }
     else if(format == LAV)
     {
@@ -60,7 +73,10 @@ void Matrix<T>::build(VNT *_row_indices,
     {
         throw "Error: unsupported format in Matrix<T>::build";
     }
-    data->build(_row_indices, _col_indices, _values, _size, _nz);
+    data->build(_row_indices, _col_indices, _values, _size, _nz, 0);
+    #ifdef __USE_SOCKET_OPTIMIZATIONS__
+    data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nz, 1);
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

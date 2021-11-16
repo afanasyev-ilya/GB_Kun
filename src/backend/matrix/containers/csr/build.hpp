@@ -38,9 +38,43 @@ void MatrixCSR<T>::construct_unsorted_csr(const VNT *_row_ids,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz)
+void MatrixCSR<T>::numa_aware_alloc()
+{
+    for(VNT i = 0; i < size + 1; i++)
+    {
+        row_ptr[i] = 0;
+    }
+    for(ENT i = 0; i < nz; i++)
+    {
+        vals[i] = 0;
+        col_ids[i] = 0;
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MatrixCSR<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, int _socket)
 {
     resize(_size, _nz);
+
+    #pragma omp parallel
+    {
+        int total_threads = omp_get_num_threads();
+        int tid = omp_get_thread_num();
+
+        if(_socket == 0)
+            if(tid == 0)
+            {
+                numa_aware_alloc();
+            }
+        if(_socket == 1)
+            if(tid == (total_threads - 1))
+            {
+                numa_aware_alloc();
+            }
+    }
+
     construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nz);
 }
 

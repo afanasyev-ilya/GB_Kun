@@ -11,7 +11,7 @@ public:
     MatrixLAV();
     ~MatrixLAV();
 
-    void build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
+    void build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, int _socket = 0);
     void print();
 private:
     VNT size;

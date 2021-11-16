@@ -26,13 +26,6 @@ void MatrixCSR<T>::alloc(VNT _size, ENT _nz)
     MemoryAPI::allocate_array(&row_ptr, this->size + 1);
     MemoryAPI::allocate_array(&col_ids, this->nz);
     MemoryAPI::allocate_array(&vals, this->nz);
-
-    #pragma omp parallel
-    {
-        int total_threads = omp_get_num_threads();
-        int tid = omp_get_thread_num();
-        //int cpu_num = sched_getcpu();
-    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

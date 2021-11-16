@@ -9,7 +9,7 @@ public:
     MatrixCSR();
     ~MatrixCSR();
 
-    void build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
+    void build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, int _socket = 0);
     void print();
 private:
     VNT size;
@@ -31,7 +31,18 @@ private:
     T get(int _row, int _col);
 
     template<typename Y>
-    friend void SpMV(MatrixCSR<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+    friend void SpMV(MatrixCSR<Y> &_matrix,
+                     MatrixCSR<Y> &_matrix_socket_dub,
+                     DenseVector<Y> &_x,
+                     DenseVector<Y> &_y,
+                     Descriptor &_desc);
+
+    template <typename Y>
+    friend void SpMV(MatrixCSR<Y> &_matrix,
+                     DenseVector<Y> &_x,
+                     DenseVector<Y> &_y);
+
+    void numa_aware_alloc();
 };
 
 #include "csr_matrix.hpp"

@@ -93,7 +93,7 @@ void MatrixLAV<T>::prepare_hub_data(map<int, int> &_freqs)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixLAV<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz)
+void MatrixLAV<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, int _socket)
 {
     resize(_size, _nz);
 

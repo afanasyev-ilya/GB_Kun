@@ -37,6 +37,13 @@ def get_sockets_count():  # returns number of sockets of target architecture
     return sockets
 
 
+def print_file(file_name):
+    f = open(file_name, 'r')
+    file_contents = f.read()
+    print(file_contents)
+    f.close()
+
+
 def parse_timings(output):  # collect time, perf and BW values
     lines = output.splitlines()
     timings = {"BW": 0, "parser_stats": 0}
@@ -47,21 +54,11 @@ def parse_timings(output):  # collect time, perf and BW values
     return timings
 
 
-def run_and_wait(cmd, options):
+def run_and_wait(params, options):
     os.environ['OMP_NUM_THREADS'] = str(get_cores_count() * int(options.sockets))
-    #print("Using " + str(get_cores_count() * int(options.sockets)) + " threads")
     os.environ['OMP_PROC_BIND'] = "close"
-    #print(cmd)
 
-    p = subprocess.Popen(cmd, shell=True,
-                         stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    output, err = p.communicate()
-    rc = p.returncode
-    p_status = p.wait()
-    string_output = output.decode("utf-8")
-    return parse_timings(string_output)
+    subprocess.run(["./GB_Kun"] + params.split(" "), check=True)
 
 
 if __name__ == "__main__":
@@ -86,14 +83,19 @@ if __name__ == "__main__":
 
     options, args = parser.parse_args()
 
-    bw_list = []
+    if os.path.exists("./output/perf.txt"):
+        os.remove("./output/perf.txt")
+    if os.path.exists("./output/bw.txt"):
+        os.remove("./output/bw.txt")
     for scale in range(int(options.first_scale), int(options.last_scale) + 1):
-        cmd = "./GB_Kun -s " + str(scale) + " -e 16 " + " -format " + options.graph_format + " -no-check" +\
+        params = "-s " + str(scale) + " -e 16 " + " -format " + options.graph_format + " -no-check" +\
               " -graph " + options.graph_type
-        timings = run_and_wait(cmd, options)
-        print("scale: " + str(scale) + ", BW: " + str(timings["BW"]) + ", " + timings["parser_stats"])
-        bw_list.append(timings["BW"])
+        run_and_wait(params, options)
 
-    for bw in bw_list:
-        print(bw)
+    print("\n")
+    print("bandwidth stats (GB/s):")
+    print_file("./output/bw.txt")
+    print("\n")
+    print("performance stats (GFLOP/s):")
+    print_file("./output/perf.txt")
 

@@ -5,6 +5,7 @@
 template <typename T>
 void SpMV(MatrixSegmentedCSR<T> &_matrix, DenseVector<T> &_x, DenseVector<T> &_y)
 {
+    //double t1 = omp_get_wtime();
     #pragma omp parallel
     {
         for(int seg_id = 0; seg_id < _matrix.num_segments; seg_id++)
@@ -26,7 +27,9 @@ void SpMV(MatrixSegmentedCSR<T> &_matrix, DenseVector<T> &_x, DenseVector<T> &_y
             }
         }
     }
+    //double t2 = omp_get_wtime();
 
+    //double t3 = omp_get_wtime();
     for(int seg_id = 0; seg_id < _matrix.num_segments; seg_id++)
     {
         SubgraphSegment<T> *segment = &(_matrix.subgraphs[seg_id]);
@@ -39,6 +42,8 @@ void SpMV(MatrixSegmentedCSR<T> &_matrix, DenseVector<T> &_x, DenseVector<T> &_y
             _y.vals[conversion_indexes[i]] += buffer[i];
         }
     }
+    //double t4 = omp_get_wtime();
+    //cout << "compare: " << (t2 - t1)*1000 << " vs " << (t4 - t3)*1000 << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

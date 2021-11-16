@@ -7,6 +7,14 @@
     cout << "BW: " << bw << endl;         \
 }
 
+void save_to_file(const string &_file_name, double _stat)
+{
+    ofstream stat_file;
+    stat_file.open(_file_name, std::ios_base::app);
+    stat_file << _stat << endl;
+    stat_file.close();
+}
+
 int main(int argc, char **argv)
 {
     try
@@ -30,6 +38,8 @@ int main(int argc, char **argv)
             cout << "Using RMAT graph" << endl;
         }
 
+        Descriptor desc(el.vertices_count);
+
         Matrix<float> matrix;
         matrix.set_preferred_format(parser.get_storage_format());
         Vector<float> x(el.vertices_count);
@@ -39,14 +49,24 @@ int main(int argc, char **argv)
 
         x.set_constant(1.0);
         y.set_constant(0.0);
-        SpMV(matrix, x, y);
+        SpMV(matrix, x, y, desc);
 
-        y.set_constant(0.0);
-        double t1 = omp_get_wtime();
-        SpMV(matrix, x, y);
-        double t2 = omp_get_wtime();
-        cout << "SPMV perf: " << 2.0*el.edges_count/((t2-t1)*1e9) << " GFlop/s" << endl;
-        cout << "BW: " << (3.0*sizeof(float)+sizeof(VNT))*el.edges_count/((t2-t1)*1e9) << endl;
+        int num_runs = 100;
+        double avg_time = 0;
+        for(int run = 0; run < num_runs; run++)
+        {
+            y.set_constant(0.0);
+            double t1 = omp_get_wtime();
+            SpMV(matrix, x, y, desc);
+            double t2 = omp_get_wtime();
+            avg_time += (t2 - t1) / num_runs;
+        }
+        double perf = 2.0*el.edges_count/(avg_time*1e9);
+        double bw = (3.0*sizeof(float)+sizeof(VNT))*el.edges_count/(avg_time*1e9);
+        cout << "SPMV perf: " << perf << " GFlop/s" << endl;
+        cout << "SPMV BW: " << bw << " GB/s" << endl;
+        save_to_file("./output/perf.txt", perf);
+        save_to_file("./output/bw.txt", bw);
 
         if(parser.check())
         {
@@ -57,7 +77,7 @@ int main(int argc, char **argv)
 
             x.set_constant(1.0);
             z.set_constant(0.0);
-            SpMV(check_matrix, x, z);
+            SpMV(check_matrix, x, z, desc);
 
             if(y == z)
             {

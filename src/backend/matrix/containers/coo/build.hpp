@@ -18,7 +18,7 @@ void reorder(T *data, ENT *indexes, ENT size)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCOO<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz)
+void MatrixCOO<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, int _socket)
 {
     resize(_size, _nz);
     size = _size;

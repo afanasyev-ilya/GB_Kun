@@ -2,19 +2,6 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-class Matrix;
-template <typename T>
-class MatrixCSR;
-template <typename T>
-class MatrixSegmentedCSR;
-template <typename T>
-class MatrixLAV;
-template <typename T>
-class MatrixCOO;
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 #include "dense_vector/dense_vector.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,7 +21,8 @@ private:
     template<typename Y>
     friend void SpMV(Matrix<Y> &_matrix,
                      Vector<Y> &_x,
-                     Vector<Y> &_y);
+                     Vector<Y> &_y,
+                     Descriptor &_desc);
 
     template<typename Y>
     friend bool operator==(Vector<Y>& lhs, Vector<Y>& rhs);

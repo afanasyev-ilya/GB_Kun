@@ -24,7 +24,6 @@ void random_shuffle_edges(EdgeListContainer<T> &_edges_container)
     {
         src_ids[i] = reorder_ids[src_ids[i]];
         dst_ids[i] = reorder_ids[dst_ids[i]];
-        vals[i] = reorder_ids[dst_ids[i]];
     }
 }
 
