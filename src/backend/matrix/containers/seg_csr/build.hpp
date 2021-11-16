@@ -21,11 +21,19 @@ void MatrixSegmentedCSR<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _s
         subgraphs[seg_id].add_edge(_row_ids[i], _col_ids[i], _vals[i]);
     }
 
+    size_t merge_block_size = 64*1024; // 64 KB
+    merge_blocks_number = (size - 1)/merge_block_size + 1;
+
     for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
     {
         subgraphs[cur_seg].sort_by_row_id();
         subgraphs[cur_seg].construct_csr();
-        cout << "size = " << subgraphs[cur_seg].size << " nz = " << subgraphs[cur_seg].nz << endl;
+        subgraphs[cur_seg].construct_blocks(merge_blocks_number, merge_block_size);
+        cout << "seg " << cur_seg << " stats || ";
+        cout << "size (vertices) = " << subgraphs[cur_seg].size << "(" <<
+                100.0*(double)subgraphs[cur_seg].size/_size << "%)" << ", nz (edges) = " << subgraphs[cur_seg].nz << " (" <<
+                       100.0*(double)subgraphs[cur_seg].nz/_nz << "%) ";
+        cout << "avg degree: " << (double)subgraphs[cur_seg].nz / subgraphs[cur_seg].size << endl;
     }
 
     cout << endl << endl;

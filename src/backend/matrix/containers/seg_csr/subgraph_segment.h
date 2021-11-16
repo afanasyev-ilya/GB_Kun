@@ -3,8 +3,20 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-struct SubgraphSegment
+class SubgraphSegment
 {
+public:
+    SubgraphSegment();
+    ~SubgraphSegment();
+
+    void add_edge(VNT _row_id, VNT _col_id, T _val);
+
+    void sort_by_row_id();
+
+    void dump();
+
+    void construct_csr();
+private:
     vector<VNT> tmp_row_ids;
     vector<VNT> tmp_col_ids;
     vector<T> tmp_vals;
@@ -19,16 +31,16 @@ struct SubgraphSegment
     T *vals;
     VNT *col_ids;
 
-    SubgraphSegment();
-    ~SubgraphSegment();
+    VNT *block_starts;
+    VNT *block_ends;
 
-    void add_edge(VNT _row_id, VNT _col_id, T _val);
+    template <typename Y>
+    friend void SpMV(MatrixSegmentedCSR<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
 
-    void sort_by_row_id();
+    template <typename Y>
+    friend class MatrixSegmentedCSR;
 
-    void dump();
-
-    void construct_csr();
+    void construct_blocks(VNT _block_number, size_t _block_size);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,20 +127,42 @@ void SubgraphSegment<T>::construct_csr()
         col_ids[i] = tmp_col_ids[i];
         vals[i] = tmp_vals[i];
     }
+}
 
-    /*cout << "size: " << size << endl;
-    cout << "nz: " << nz << endl;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+void SubgraphSegment<T>::construct_blocks(VNT _block_number, size_t _block_size)
+{
+    MemoryAPI::allocate_array(&block_starts, _block_number);
+    MemoryAPI::allocate_array(&block_ends, _block_number);
+    vector<VNT> block_nums(size);
+
     for(VNT i = 0; i < size; i++)
     {
-        cout << "[" << row_ptr[i] << " - " << row_ptr[i + 1] << "], ";
+        VNT large_graph_vertex = conversion_to_full[i];
+        block_nums[i] = large_graph_vertex / _block_size;
     }
-    cout << endl;
 
-    for(ENT i = 0; i < nz; i++)
+    block_starts[block_nums[0]] = 0;
+
+    for(VNT i = 1; i < size - 1; i++)
     {
-        cout << col_ids[i] << " ";
+        VNT prev_block = block_nums[i - 1];
+        VNT cur_block = block_nums[i];
+        VNT next_block = block_nums[i + 1];
+
+        if(cur_block != prev_block)
+            block_starts[cur_block] = i;
+
+        if(cur_block != next_block)
+            block_ends[cur_block] = i + 1;
     }
-    cout << endl;*/
+
+    block_ends[block_nums[size - 1]] = size;
+
+    for(int i = 0; i < _block_number; i++)
+        cout << "[" << block_starts[i] << " - " << block_ends[i] << "]" << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -161,6 +195,8 @@ SubgraphSegment<T>::~SubgraphSegment()
     MemoryAPI::free_array(vals);
     MemoryAPI::free_array(vertex_buffer);
     MemoryAPI::free_array(conversion_to_full);
+    MemoryAPI::free_array(block_starts);
+    MemoryAPI::free_array(block_ends);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

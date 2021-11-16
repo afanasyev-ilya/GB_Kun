@@ -19,6 +19,8 @@ private:
     VNT size;
     ENT nz;
 
+    VNT merge_blocks_number;
+
     int num_segments;
 
     SubgraphSegment<T> *subgraphs;

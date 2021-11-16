@@ -27,8 +27,8 @@ private:
 
     void construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
 
-    bool is_non_zero(int _row, int _col);
-    T get(int _row, int _col);
+    bool is_non_zero(VNT _row, VNT _col);
+    T get(VNT _row, VNT _col);
 
     template<typename Y>
     friend void SpMV(MatrixCSR<Y> &_matrix,
