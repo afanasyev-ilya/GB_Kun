@@ -163,13 +163,13 @@ void GraphGenerationAPI::R_MAT(EdgeListContainer<T> &_edges_container,
 
             src_ids[cur_edge] = from;
             dst_ids[cur_edge] = to;
-            vals[cur_edge] = rand_r(&seed) / RAND_MAX;
+            vals[cur_edge] = ((float) rand_r(&seed)) / (float) RAND_MAX;
             
             if(!_direction_type)
             {
                 src_ids[cur_edge + 1] = to;
                 dst_ids[cur_edge + 1] = from;
-                vals[cur_edge + 1] = rand_r(&seed) / RAND_MAX;
+                vals[cur_edge + 1] = vals[cur_edge];
             }
         }
     }

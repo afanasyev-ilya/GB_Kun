@@ -3,13 +3,14 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "dense_vector/dense_vector.h"
+#include "sparse_vector/sparse_vector.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
 class Vector {
 public:
-    Vector(int _size): dense(_size){size = _size; nz = size;};
+    Vector(int _size): dense(_size), sparse(_size) {size = _size; nz = size;};
     ~Vector(){};
 
     void set_constant(T _val) {dense.set_constant(_val);};
@@ -17,6 +18,7 @@ private:
     VNT size;
     VNT nz;
     DenseVector<T> dense;
+    SparseVector<T> sparse;
 
     template<typename Y>
     friend void SpMV(Matrix<Y> &_matrix,

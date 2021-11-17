@@ -17,6 +17,7 @@ public:
         #ifdef __USE_SOCKET_OPTIMIZATIONS__
         delete data_socket_dub;
         #endif
+        delete transposed_data;
     };
 
     void build(VNT *_row_indices,
@@ -31,6 +32,8 @@ private:
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
     MatrixContainer<T> *data_socket_dub;
     #endif
+
+    MatrixContainer<T> *transposed_data;
 
     MatrixStorageFormat format;
 
@@ -56,18 +59,23 @@ void Matrix<T>::build(VNT *_row_indices,
         #ifdef __USE_SOCKET_OPTIMIZATIONS__
         data_socket_dub = new MatrixCSR<T>;
         #endif
+
+        transposed_data = new MatrixCSR<T>;
     }
     else if(format == LAV)
     {
         data = new MatrixLAV<T>;
+        transposed_data = new MatrixLAV<T>;
     }
     else if(format == COO)
     {
         data = new MatrixCOO<T>;
+        transposed_data = new MatrixCOO<T>;
     }
     else if(format == CSR_SEG)
     {
         data = new MatrixSegmentedCSR<T>;
+        transposed_data = new MatrixSegmentedCSR<T>;
     }
     else
     {
@@ -77,6 +85,8 @@ void Matrix<T>::build(VNT *_row_indices,
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
     data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nz, 1);
     #endif
+
+    transposed_data->build(_col_indices, _row_indices, _values, _size, _nz, 0);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

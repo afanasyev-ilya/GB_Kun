@@ -160,9 +160,6 @@ void SubgraphSegment<T>::construct_blocks(VNT _block_number, size_t _block_size)
     }
 
     block_ends[block_nums[size - 1]] = size;
-
-    for(int i = 0; i < _block_number; i++)
-        cout << "[" << block_starts[i] << " - " << block_ends[i] << "]" << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

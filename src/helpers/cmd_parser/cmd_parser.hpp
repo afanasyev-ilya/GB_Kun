@@ -7,7 +7,7 @@ Parser::Parser()
     scale = 14;
     avg_degree = 16;
     synthetic_graph_type = RANDOM_UNIFORM;
-    storage_format = CSR_SEG;
+    storage_format = CSR;
     no_check = false;
 }
 

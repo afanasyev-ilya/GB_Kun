@@ -5,7 +5,7 @@
 template <typename T>
 void SpMV(MatrixSegmentedCSR<T> &_matrix, DenseVector<T> &_x, DenseVector<T> &_y)
 {
-    //double t1 = omp_get_wtime();
+    int cores_num = omp_get_max_threads();
     #pragma omp parallel
     {
         for(int seg_id = 0; seg_id < _matrix.num_segments; seg_id++)
@@ -27,23 +27,52 @@ void SpMV(MatrixSegmentedCSR<T> &_matrix, DenseVector<T> &_x, DenseVector<T> &_y
             }
         }
     }
-    //double t2 = omp_get_wtime();
 
-    //double t3 = omp_get_wtime();
-    for(int seg_id = 0; seg_id < _matrix.num_segments; seg_id++)
+    if(_matrix.size > pow(2.0, 22)) // cache aware merge
     {
-        SubgraphSegment<T> *segment = &(_matrix.subgraphs[seg_id]);
-        T *buffer = (T*)segment->vertex_buffer;
-        VNT *conversion_indexes = segment->conversion_to_full;
-
-        #pragma omp parallel for schedule(static)
-        for(VNT i = 0; i < segment->size; i++)
+        int outer_threads = min(_matrix.merge_blocks_number, cores_num);
+        int inner_threads = cores_num/outer_threads;
+        #pragma omp parallel num_threads(outer_threads)
         {
-            _y.vals[conversion_indexes[i]] += buffer[i];
+            #pragma omp for schedule(static)
+            for(VNT cur_block = 0; cur_block < _matrix.merge_blocks_number; cur_block++)
+            {
+                for(int seg_id = 0; seg_id < _matrix.num_segments; seg_id++)
+                {
+                    SubgraphSegment<T> *segment = &(_matrix.subgraphs[seg_id]);
+                    T *buffer = (T*)segment->vertex_buffer;
+                    VNT *conversion_indexes = segment->conversion_to_full;
+
+                    VNT block_start = segment->block_starts[cur_block];
+                    VNT block_end = segment->block_ends[cur_block];
+
+                    #pragma omp parallel for num_threads(inner_threads)
+                    for(VNT i = block_start; i < block_end; i++)
+                    {
+                        _y.vals[conversion_indexes[i]] += buffer[i];
+                    }
+                }
+            }
+        };
+        double t4 = omp_get_wtime();
+    }
+    else
+    {
+        for(int seg_id = 0; seg_id < _matrix.num_segments; seg_id++)
+        {
+            SubgraphSegment<T> *segment = &(_matrix.subgraphs[seg_id]);
+            T *buffer = (T*)segment->vertex_buffer;
+            VNT *conversion_indexes = segment->conversion_to_full;
+
+            #pragma omp parallel for schedule(static)
+            for(VNT i = 0; i < segment->size; i++)
+            {
+                _y.vals[conversion_indexes[i]] += buffer[i];
+            }
         }
     }
-    //double t4 = omp_get_wtime();
-    //cout << "compare: " << (t2 - t1)*1000 << " vs " << (t4 - t3)*1000 << endl;
+
+    //cout << "compare: " << (t2 - t1)*1000 << "(edge proc) vs " << (t4 - t3)*1000 << "(cache-aware) vs " << (t6 - t5)*1000 << "(usual merge)" << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
