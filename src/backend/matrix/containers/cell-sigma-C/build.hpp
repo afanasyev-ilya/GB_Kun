@@ -1,11 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-void MatrixCellSigmaC<T>::construct_unsorted_csr(const VNT *_row_ids,
-                                          const VNT *_col_ids,
-                                          T *_vals,
-                                          VNT _size,
-                                          ENT _nz)
+template<typename T>
+void MatrixCellSigmaC<T>::construct_unsorted_csr(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz)
 {
     vector<vector<VNT>> tmp_col_ids(_size);
     vector<vector<T>> tmp_vals(_size);
@@ -37,45 +33,32 @@ void MatrixCellSigmaC<T>::construct_unsorted_csr(const VNT *_row_ids,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-void MatrixCellSigmaC<T>::numa_aware_alloc()
+template<typename T>
+void MatrixCellSigmaC<T>::create_vertex_groups()
 {
-    for(VNT i = 0; i < size + 1; i++)
-    {
-        row_ptr[i] = 0;
-    }
-    for(ENT i = 0; i < nz; i++)
-    {
-        vals[i] = 0;
-        col_ids[i] = 0;
-    }
+    vertex_groups[0].build(this, 256, 2147483647);
+    vertex_groups[1].build(this, 128, 256);
+    vertex_groups[2].build(this, 64, 128);
+    vertex_groups[3].build(this, 32, 64);
+    vertex_groups[4].build(this, 16, 32);
+    vertex_groups[5].build(this, 0, 16);
+
+    /*cell_c_vertex_groups_num = 6;
+    cell_c_vertex_groups[0].import(this, 128, 256);
+    cell_c_vertex_groups[1].import(this, 64, 128);
+    cell_c_vertex_groups[2].import(this, 32, 64);
+    cell_c_vertex_groups[3].import(this, 16, 32);
+    cell_c_vertex_groups[4].import(this, 8, 16);
+    cell_c_vertex_groups[5].import(this, 0, 8);*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-void MatrixCellSigmaC<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, int _socket)
+template<typename T>
+void MatrixCellSigmaC<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, VNT _socket)
 {
     resize(_size, _nz);
-
-    #pragma omp parallel
-    {
-        int total_threads = omp_get_num_threads();
-        int tid = omp_get_thread_num();
-
-        if(_socket == 0)
-            if(tid == 0)
-            {
-                numa_aware_alloc();
-            }
-        if(_socket == 1)
-            if(tid == (total_threads - 1))
-            {
-                numa_aware_alloc();
-            }
-    }
-
-    construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nz);
+    create_vertex_groups();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
