@@ -43,13 +43,13 @@ void MatrixCellSigmaC<T>::create_vertex_groups()
     vertex_groups[4].build(this, 16, 32);
     vertex_groups[5].build(this, 0, 16);
 
-    /*cell_c_vertex_groups_num = 6;
-    cell_c_vertex_groups[0].import(this, 128, 256);
-    cell_c_vertex_groups[1].import(this, 64, 128);
-    cell_c_vertex_groups[2].import(this, 32, 64);
-    cell_c_vertex_groups[3].import(this, 16, 32);
-    cell_c_vertex_groups[4].import(this, 8, 16);
-    cell_c_vertex_groups[5].import(this, 0, 8);*/
+    cell_c_vertex_groups_num = 6;
+    cell_c_vertex_groups[0].build(this, 128, 256);
+    cell_c_vertex_groups[1].build(this, 64, 128);
+    cell_c_vertex_groups[2].build(this, 32, 64);
+    cell_c_vertex_groups[3].build(this, 16, 32);
+    cell_c_vertex_groups[4].build(this, 8, 16);
+    cell_c_vertex_groups[5].build(this, 0, 8);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -4,6 +4,7 @@
 #include "spmv_csr.h"
 #include "spmv_coo.h"
 #include "spmv_lav.h"
+#include "spmv_cell_sigma.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -27,6 +28,8 @@ void SpMV(Matrix<T> &_matrix,
         SpMV(*((MatrixCOO<T> *) _matrix.data), _x.dense, _y.dense);
     else if(_matrix.format == CSR_SEG)
         SpMV(*((MatrixSegmentedCSR<T> *)_matrix.data), _x.dense, _y.dense);
+    else if(_matrix.format == CELL_SIGMA_C)
+        SpMV(*((MatrixCellSigmaC<T> *)_matrix.data), _x.dense, _y.dense);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

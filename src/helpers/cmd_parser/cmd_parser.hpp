@@ -7,7 +7,7 @@ Parser::Parser()
     scale = 14;
     avg_degree = 16;
     synthetic_graph_type = RANDOM_UNIFORM;
-    storage_format = CSR;
+    storage_format = CELL_SIGMA_C;
     no_check = false;
 }
 
@@ -59,6 +59,8 @@ void Parser::parse_args(int _argc, char **_argv)
                 storage_format = CSR_SEG;
             else if(option == "LAV")
                 storage_format = LAV;
+            else if(option == "SIGMA")
+                storage_format = CELL_SIGMA_C;
         }
 
         if(option == "-no-check")

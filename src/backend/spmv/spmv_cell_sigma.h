@@ -1,22 +1,11 @@
-#pragma once
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum SyntheticGraphType
+template <typename T>
+void SpMV(MatrixCellSigmaC<T> &_matrix,
+          DenseVector<T> &_x,
+          DenseVector<T> &_y)
 {
-    RANDOM_UNIFORM = 0,
-    RMAT = 1,
-    SSCA2 = 2
-};
 
-enum MatrixStorageFormat
-{
-    CSR = 0,
-    COO = 1,
-    COO_OPT = 2,
-    CSR_SEG = 3,
-    LAV = 4,
-    CELL_SIGMA_C = 5
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

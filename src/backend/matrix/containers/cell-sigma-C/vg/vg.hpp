@@ -2,7 +2,8 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CSRVertexGroup::CSRVertexGroup()
+template <typename T>
+CSRVertexGroup<T>::CSRVertexGroup()
 {
     max_size = 1;
     size = 1;
@@ -12,7 +13,8 @@ CSRVertexGroup::CSRVertexGroup()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CSRVertexGroup::copy(CSRVertexGroup & _other_group)
+template <typename T>
+void CSRVertexGroup<T>::copy(CSRVertexGroup & _other_group)
 {
     this->size = _other_group.size;
     this->max_size = _other_group.size;
@@ -26,7 +28,8 @@ void CSRVertexGroup::copy(CSRVertexGroup & _other_group)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool CSRVertexGroup::id_in_range(VNT _src_id, VNT _nz_count)
+template <typename T>
+bool CSRVertexGroup<T>::id_in_range(VNT _src_id, VNT _nz_count)
 {
     if ((_nz_count >= min_nz) && (_nz_count < max_nz))
         return true;
@@ -36,7 +39,8 @@ bool CSRVertexGroup::id_in_range(VNT _src_id, VNT _nz_count)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CSRVertexGroup::add_vertex(VNT _src_id)
+template <typename T>
+void CSRVertexGroup<T>::add_vertex(VNT _src_id)
 {
     ids[size] = _src_id;
     size++;
@@ -44,8 +48,9 @@ void CSRVertexGroup::add_vertex(VNT _src_id)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename T>
 template<typename CopyCond>
-void CSRVertexGroup::copy_data_if(CSRVertexGroup & _full_group, CopyCond copy_cond,VNT *_buffer)
+void CSRVertexGroup<T>::copy_data_if(CSRVertexGroup<T> & _full_group, CopyCond copy_cond,VNT *_buffer)
 {
     this->size = ParallelPrimitives::copy_if_data(copy_cond, _full_group.ids, this->ids, _full_group.size,
                                                   _buffer, _full_group.size);
@@ -53,7 +58,8 @@ void CSRVertexGroup::copy_data_if(CSRVertexGroup & _full_group, CopyCond copy_co
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CSRVertexGroup::resize(VNT _new_size)
+template <typename T>
+void CSRVertexGroup<T>::resize(VNT _new_size)
 {
     max_size = _new_size;
     size = _new_size;
@@ -66,7 +72,8 @@ void CSRVertexGroup::resize(VNT _new_size)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CSRVertexGroup::prVNT()
+template <typename T>
+void CSRVertexGroup<T>::print()
 {
     cout << "vertex group info: ";
     for (VNT i = 0; i < size; i++)
@@ -76,7 +83,8 @@ void CSRVertexGroup::prVNT()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CSRVertexGroup::~CSRVertexGroup()
+template <typename T>
+CSRVertexGroup<T>::~CSRVertexGroup()
 {
     MemoryAPI::free_array(ids);
 }
@@ -84,7 +92,7 @@ CSRVertexGroup::~CSRVertexGroup()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void CSRVertexGroup::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _top)
+void CSRVertexGroup<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _top)
 {
     VNT matrix_size = _matrix->size;
 

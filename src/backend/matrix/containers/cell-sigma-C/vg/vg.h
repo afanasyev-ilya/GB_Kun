@@ -2,6 +2,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename T>
 struct CSRVertexGroup
 {
 public:
@@ -9,13 +10,7 @@ public:
     ~CSRVertexGroup();
 
     /* prVNT API */
-    void prVNT();
-
-    /* get API */
-    VNT *get_ids() {return ids;};
-    VNT get_size() const {return size;};
-    VNT get_max_size() const {return max_size;};
-    ENT get_total_nz() const {return total_nz;};
+    void print();
 
     VNT get_min_nz() const {return min_nz;};
     VNT get_max_nz() const {return max_nz;};
@@ -23,7 +18,6 @@ public:
     bool id_in_range(VNT _src_id, VNT _nz_count);
 
     /* modification API */
-    template <typename T>
     void build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _top);
     void copy(CSRVertexGroup &_other_group);
     void add_vertex(VNT _src_id);

@@ -77,6 +77,11 @@ void Matrix<T>::build(VNT *_row_indices,
         data = new MatrixSegmentedCSR<T>;
         transposed_data = new MatrixSegmentedCSR<T>;
     }
+    else if(format == CELL_SIGMA_C)
+    {
+        data = new MatrixCellSigmaC<T>;
+        transposed_data = new MatrixCellSigmaC<T>;
+    }
     else
     {
         throw "Error: unsupported format in Matrix<T>::build";

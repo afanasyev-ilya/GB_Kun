@@ -2,14 +2,16 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CSRVertexGroupCellC::CSRVertexGroupCellC()
+template <typename T>
+CSRVertexGroupCellC<T>::CSRVertexGroupCellC()
 {
     size = 1;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool CSRVertexGroupCellC::id_in_range(VNT _src_id, VNT _nz_count)
+template <typename T>
+bool CSRVertexGroupCellC<T>::id_in_range(VNT _src_id, VNT _nz_count)
 {
     if ((_nz_count >= min_nz) && (_nz_count < max_nz))
         return true;
@@ -19,7 +21,8 @@ bool CSRVertexGroupCellC::id_in_range(VNT _src_id, VNT _nz_count)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CSRVertexGroupCellC::print()
+template <typename T>
+void CSRVertexGroupCellC<T>::print()
 {
     cout << "vertex group info: ";
     for (VNT i = 0; i < size; i++)
@@ -29,19 +32,20 @@ void CSRVertexGroupCellC::print()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CSRVertexGroupCellC::~CSRVertexGroupCellC()
+template <typename T>
+CSRVertexGroupCellC<T>::~CSRVertexGroupCellC()
 {
     MemoryAPI::free_array(vertex_ids);
     MemoryAPI::free_array(vector_group_ptrs);
     MemoryAPI::free_array(vector_group_sizes);
-    MemoryAPI::free_array(vector_group_adjacent_ids);
-    MemoryAPI::free_array(old_edge_indexes);
+    MemoryAPI::free_array(vector_group_col_ids);
+    MemoryAPI::free_array(vector_group_vals);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void CSRVertexGroupCellC::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _top)
+void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _top)
 {
     VNT matrix_size = _matrix->size;
 
@@ -72,8 +76,8 @@ void CSRVertexGroupCellC::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _
         MemoryAPI::allocate_array(&vertex_ids, 1);
         MemoryAPI::allocate_array(&vector_group_ptrs, 1);
         MemoryAPI::allocate_array(&vector_group_sizes, 1);
-        MemoryAPI::allocate_array(&vector_group_adjacent_ids, 1);
-        MemoryAPI::allocate_array(&old_edge_indexes, 1);
+        MemoryAPI::allocate_array(&vector_group_col_ids, 1);
+        MemoryAPI::allocate_array(&vector_group_vals, 1);
     }
     else
     {
@@ -111,8 +115,8 @@ void CSRVertexGroupCellC::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _
         }
         MemoryAPI::allocate_array(&vector_group_ptrs, vector_segments_count);
         MemoryAPI::allocate_array(&vector_group_sizes, vector_segments_count);
-        MemoryAPI::allocate_array(&vector_group_adjacent_ids, edges_count_in_ve + VECTOR_LENGTH);
-        MemoryAPI::allocate_array(&old_edge_indexes, edges_count_in_ve + VECTOR_LENGTH);
+        MemoryAPI::allocate_array(&vector_group_col_ids, edges_count_in_ve + VECTOR_LENGTH);
+        MemoryAPI::allocate_array(&vector_group_vals, edges_count_in_ve + VECTOR_LENGTH);
 
         ENT current_edge = 0;
         for(VNT cur_vector_segment = 0; cur_vector_segment < vector_segments_count; cur_vector_segment++)
@@ -147,13 +151,15 @@ void CSRVertexGroupCellC::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _
                         VNT nz_count = _matrix->get_nz_count(src_id);
                         if((vertex_pos < size) && (edge_pos < nz_count))
                         {
-                            vector_group_adjacent_ids[current_edge + i] = _matrix->get_edge_dst(src_id, edge_pos);
-                            old_edge_indexes[current_edge + i] = _matrix->get_edges_array_index(src_id, edge_pos);
+                            VNT col_id = _matrix->col_ids[_matrix->row_ptr[src_id] + edge_pos];
+                            T val = _matrix->vals[_matrix->row_ptr[src_id] + edge_pos];
+                            vector_group_col_ids[current_edge + i] = col_id;
+                            vector_group_vals[current_edge + i] = val;
                         }
                         else
                         {
-                            vector_group_adjacent_ids[current_edge + i] = -1;
-                            old_edge_indexes[current_edge + i] = -1;
+                            vector_group_col_ids[current_edge + i] = -1;
+                            vector_group_vals[current_edge + i] = -1;
                         }
                     }
                 }
