@@ -22,7 +22,7 @@ public:
     void build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, VNT _socket = 0);
     void print();
 
-    VNT get_nz_count(VNT _row) {return row_ptr[_row + 1] - row_ptr[_row];};
+    VNT get_nz_in_row(VNT _row) {return (row_ptr[_row + 1] - row_ptr[_row]);};
 private:
     VNT size;
     ENT nz;
@@ -31,10 +31,13 @@ private:
     T *vals;
     VNT *col_ids;
 
-    CSRVertexGroup<T> vertex_groups[CSR_VERTEX_GROUPS_NUM];
+    T get(VNT _row, VNT _col);
 
-    VNT cell_c_vertex_groups_num;
-    CSRVertexGroupCellC<T> cell_c_vertex_groups[CSR_VERTEX_GROUPS_NUM];
+    int vertex_groups_num;
+    CSRVertexGroup<T> *vertex_groups;
+
+    int cell_c_vertex_groups_num;
+    CSRVertexGroupCellC<T> *cell_c_vertex_groups;
 
     void create_vertex_groups();
 
@@ -46,6 +49,9 @@ private:
 
     friend class CSRVertexGroup<T>;
     friend class CSRVertexGroupCellC<T>;
+
+    template<typename Y>
+    friend void SpMV_load_balanced(MatrixCellSigmaC<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

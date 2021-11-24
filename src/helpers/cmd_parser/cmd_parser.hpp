@@ -5,8 +5,8 @@
 Parser::Parser()
 {
     scale = 14;
-    avg_degree = 16;
-    synthetic_graph_type = RANDOM_UNIFORM;
+    avg_degree = 13;
+    synthetic_graph_type = RMAT;
     storage_format = CELL_SIGMA_C;
     no_check = false;
 }

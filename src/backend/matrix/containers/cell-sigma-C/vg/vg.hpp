@@ -104,7 +104,7 @@ void CSRVertexGroup<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _to
 
     for(VNT src_id = 0; src_id < matrix_size; src_id++)
     {
-        VNT nz_count = _matrix->get_nz_count(src_id);
+        VNT nz_count = _matrix->get_nz_in_row(src_id);
         if((nz_count >= _bottom) && (nz_count < _top))
         {
             local_group_total_nz += nz_count;
@@ -118,7 +118,7 @@ void CSRVertexGroup<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _to
     VNT vertex_pos = 0;
     for(VNT src_id = 0; src_id < matrix_size; src_id++)
     {
-        VNT nz_count = _matrix->get_nz_count(src_id);
+        VNT nz_count = _matrix->get_nz_in_row(src_id);
         if((nz_count >= _bottom) && (nz_count < _top))
         {
             this->ids[vertex_pos] = src_id;

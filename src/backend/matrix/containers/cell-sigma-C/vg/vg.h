@@ -9,7 +9,7 @@ public:
     CSRVertexGroup();
     ~CSRVertexGroup();
 
-    /* prVNT API */
+    /* print API */
     void print();
 
     VNT get_min_nz() const {return min_nz;};
@@ -34,6 +34,9 @@ private:
     ENT total_nz;
 
     VNT min_nz, max_nz;
+
+    template<typename Y>
+    friend void SpMV_load_balanced(MatrixCellSigmaC<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

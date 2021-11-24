@@ -36,6 +36,8 @@ void MatrixCellSigmaC<T>::construct_unsorted_csr(VNT *_row_ids, VNT *_col_ids, T
 template<typename T>
 void MatrixCellSigmaC<T>::create_vertex_groups()
 {
+    vertex_groups_num = 6;
+    vertex_groups = new CSRVertexGroup<T>[vertex_groups_num];
     vertex_groups[0].build(this, 256, 2147483647);
     vertex_groups[1].build(this, 128, 256);
     vertex_groups[2].build(this, 64, 128);
@@ -44,12 +46,13 @@ void MatrixCellSigmaC<T>::create_vertex_groups()
     vertex_groups[5].build(this, 0, 16);
 
     cell_c_vertex_groups_num = 6;
+    cell_c_vertex_groups = new CSRVertexGroupCellC<T>[cell_c_vertex_groups_num];
     cell_c_vertex_groups[0].build(this, 128, 256);
     cell_c_vertex_groups[1].build(this, 64, 128);
-    cell_c_vertex_groups[2].build(this, 32, 64);
-    cell_c_vertex_groups[3].build(this, 16, 32);
-    cell_c_vertex_groups[4].build(this, 8, 16);
-    cell_c_vertex_groups[5].build(this, 0, 8);
+    cell_c_vertex_groups[2].build(this, 16, 32);
+    cell_c_vertex_groups[3].build(this, 8, 16);
+    cell_c_vertex_groups[4].build(this, 4, 8);
+    cell_c_vertex_groups[5].build(this, 0, 4);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,6 +61,7 @@ template<typename T>
 void MatrixCellSigmaC<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, VNT _socket)
 {
     resize(_size, _nz);
+    construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nz);
     create_vertex_groups();
 }
 

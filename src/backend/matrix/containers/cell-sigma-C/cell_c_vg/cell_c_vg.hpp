@@ -58,7 +58,7 @@ void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VN
     // compute number of vertices and edges in vertex group
     for(VNT src_id = 0; src_id < matrix_size; src_id++)
     {
-        VNT nz_count = _matrix->get_nz_count(src_id);
+        VNT nz_count = _matrix->get_nz_in_row(src_id);
         if((nz_count >= _bottom) && (nz_count < _top))
         {
             local_group_total_nz += nz_count;
@@ -87,7 +87,7 @@ void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VN
         VNT vertex_pos = 0;
         for(VNT src_id = 0; src_id < matrix_size; src_id++)
         {
-            VNT nz_count = _matrix->get_nz_count(src_id);
+            VNT nz_count = _matrix->get_nz_in_row(src_id);
             if((nz_count >= _bottom) && (nz_count < _top))
             {
                 this->vertex_ids[vertex_pos] = src_id;
@@ -106,7 +106,7 @@ void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VN
                 if(vertex_pos < size)
                 {
                     VNT src_id = this->vertex_ids[vertex_pos];
-                    VNT nz_count = _matrix->get_nz_count(src_id);
+                    VNT nz_count = _matrix->get_nz_in_row(src_id);
                     if(cur_max_nz_count < nz_count)
                         cur_max_nz_count = nz_count;
                 }
@@ -129,7 +129,7 @@ void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VN
                 if(vertex_pos < size)
                 {
                     VNT src_id = this->vertex_ids[vertex_pos];
-                    VNT nz_count = _matrix->get_nz_count(src_id);
+                    VNT nz_count = _matrix->get_nz_in_row(src_id);
                     if(cur_max_nz_count < nz_count)
                         cur_max_nz_count = nz_count;
                 }
@@ -148,7 +148,7 @@ void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VN
                     if(vertex_pos < size)
                     {
                         VNT src_id = this->vertex_ids[vertex_pos];
-                        VNT nz_count = _matrix->get_nz_count(src_id);
+                        VNT nz_count = _matrix->get_nz_in_row(src_id);
                         if((vertex_pos < size) && (edge_pos < nz_count))
                         {
                             VNT col_id = _matrix->col_ids[_matrix->row_ptr[src_id] + edge_pos];

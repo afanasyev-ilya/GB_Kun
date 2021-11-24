@@ -13,6 +13,8 @@ template<typename T>
 MatrixCellSigmaC<T>::~MatrixCellSigmaC()
 {
     free();
+    delete []vertex_groups;
+    delete []cell_c_vertex_groups;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,6 +47,19 @@ void MatrixCellSigmaC<T>::resize(VNT _size, ENT _nz)
 {
     this->free();
     this->alloc(_size, _nz);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+T MatrixCellSigmaC<T>::get(VNT _row, VNT _col)
+{
+    for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
+    {
+        if(col_ids[i] == _col)
+            return vals[i];
+    }
+    return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

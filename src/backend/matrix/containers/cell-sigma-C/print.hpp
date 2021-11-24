@@ -5,7 +5,14 @@
 template<typename T>
 void MatrixCellSigmaC<T>::print()
 {
-
+    for(VNT row = 0; row < size; row++)
+    {
+        for(VNT col = 0; col < size; col++)
+        {
+            cout << get(row, col) << " ";
+        }
+        cout << endl;
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
