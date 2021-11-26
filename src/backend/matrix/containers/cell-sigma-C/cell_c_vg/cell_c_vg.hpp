@@ -26,7 +26,7 @@ void CSRVertexGroupCellC<T>::print()
 {
     cout << "vertex group info: ";
     for (VNT i = 0; i < size; i++)
-        cout << vertex_ids[i] << " ";
+        cout << row_ids[i] << " ";
     cout << endl;
 }
 
@@ -35,7 +35,7 @@ void CSRVertexGroupCellC<T>::print()
 template <typename T>
 CSRVertexGroupCellC<T>::~CSRVertexGroupCellC()
 {
-    MemoryAPI::free_array(vertex_ids);
+    MemoryAPI::free_array(row_ids);
     MemoryAPI::free_array(vector_group_ptrs);
     MemoryAPI::free_array(vector_group_sizes);
     MemoryAPI::free_array(vector_group_col_ids);
@@ -73,7 +73,7 @@ void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VN
     {
         vector_segments_count = 0;
         edges_count_in_ve = 0;
-        MemoryAPI::allocate_array(&vertex_ids, 1);
+        MemoryAPI::allocate_array(&row_ids, 1);
         MemoryAPI::allocate_array(&vector_group_ptrs, 1);
         MemoryAPI::allocate_array(&vector_group_sizes, 1);
         MemoryAPI::allocate_array(&vector_group_col_ids, 1);
@@ -81,7 +81,7 @@ void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VN
     }
     else
     {
-        MemoryAPI::allocate_array(&this->vertex_ids, size);
+        MemoryAPI::allocate_array(&this->row_ids, size);
 
         // generate list of vertex group ids
         VNT vertex_pos = 0;
@@ -90,7 +90,7 @@ void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VN
             VNT nz_count = _matrix->get_nz_in_row(src_id);
             if((nz_count >= _bottom) && (nz_count < _top))
             {
-                this->vertex_ids[vertex_pos] = src_id;
+                this->row_ids[vertex_pos] = src_id;
                 vertex_pos++;
             }
         }
@@ -105,7 +105,7 @@ void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VN
                 VNT vertex_pos = vec_start + i;
                 if(vertex_pos < size)
                 {
-                    VNT src_id = this->vertex_ids[vertex_pos];
+                    VNT src_id = this->row_ids[vertex_pos];
                     VNT nz_count = _matrix->get_nz_in_row(src_id);
                     if(cur_max_nz_count < nz_count)
                         cur_max_nz_count = nz_count;
@@ -128,7 +128,7 @@ void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VN
                 VNT vertex_pos = vec_start + i;
                 if(vertex_pos < size)
                 {
-                    VNT src_id = this->vertex_ids[vertex_pos];
+                    VNT src_id = this->row_ids[vertex_pos];
                     VNT nz_count = _matrix->get_nz_in_row(src_id);
                     if(cur_max_nz_count < nz_count)
                         cur_max_nz_count = nz_count;
@@ -147,7 +147,7 @@ void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VN
                     VNT vertex_pos = vec_start + i;
                     if(vertex_pos < size)
                     {
-                        VNT src_id = this->vertex_ids[vertex_pos];
+                        VNT src_id = this->row_ids[vertex_pos];
                         VNT nz_count = _matrix->get_nz_in_row(src_id);
                         if((vertex_pos < size) && (edge_pos < nz_count))
                         {

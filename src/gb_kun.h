@@ -18,7 +18,7 @@ using namespace std;
 #define VNT int
 #define ENT int
 #define CHECK_PRINT_NUM 10
-#define VECTOR_LENGTH 256
+#define VECTOR_LENGTH 4
 //#define __USE_SOCKET_OPTIMIZATIONS__
 
 #include "helpers/memory_API/memory_API.h"

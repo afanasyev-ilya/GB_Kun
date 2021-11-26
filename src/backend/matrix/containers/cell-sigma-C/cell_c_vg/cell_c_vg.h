@@ -18,7 +18,7 @@ public:
     /* import and preprocess API */
     void build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _top);
 private:
-    VNT *vertex_ids; // ids of vertices from this group
+    VNT *row_ids; // ids of vertices from this group
     VNT size; // size of this group
 
     VNT vector_segments_count; // similar to VE implementation
@@ -33,6 +33,9 @@ private:
 
     // helper functions
     bool id_in_range(VNT _src_id, VNT _nz_count);
+
+    template<typename Y>
+    friend void SpMV_vector(MatrixCellSigmaC<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

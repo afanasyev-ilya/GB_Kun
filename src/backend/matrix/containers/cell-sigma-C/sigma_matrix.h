@@ -37,6 +37,7 @@ private:
     CSRVertexGroup<T> *vertex_groups;
 
     int cell_c_vertex_groups_num;
+    int cell_c_start_group;
     CSRVertexGroupCellC<T> *cell_c_vertex_groups;
 
     void create_vertex_groups();
@@ -52,6 +53,8 @@ private:
 
     template<typename Y>
     friend void SpMV_load_balanced(MatrixCellSigmaC<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+    template<typename Y>
+    friend void SpMV_vector(MatrixCellSigmaC<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
