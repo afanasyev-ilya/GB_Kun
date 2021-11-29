@@ -1,19 +1,6 @@
 #include "src/gb_kun.h"
 
-#define NUM_ITERS 3
-
-#define REPORT_STATS( CallInstruction ) { \
-    double bw = CallInstruction;          \
-    cout << "BW: " << bw << endl;         \
-}
-
-void save_to_file(const string &_file_name, double _stat)
-{
-    ofstream stat_file;
-    stat_file.open(_file_name, std::ios_base::app);
-    stat_file << _stat << endl;
-    stat_file.close();
-}
+#include "algorithms/bfs.hpp"
 
 int main(int argc, char **argv) {
     try
@@ -47,9 +34,16 @@ int main(int argc, char **argv) {
 
         matrix.set_preferred_matrix_format(parser.get_storage_format());
         LA_Info info = matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
+        lablas::Vector<float> levels(el.vertices_count);
+
+        w.fill(0.0);
+        u.fill(1.0);
 
         // TODO BFS
         cout << "doing BFS..." << endl;
+
+        VNT source_vertex = 0;
+        bfs(&levels, &matrix, source_vertex, &desc);
     }
     catch (string error)
     {

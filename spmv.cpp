@@ -1,12 +1,5 @@
 #include "src/gb_kun.h"
 
-#define NUM_ITERS 3
-
-#define REPORT_STATS( CallInstruction ) { \
-double bw = CallInstruction;          \
-cout << "BW: " << bw << endl;         \
-}
-
 void save_to_file(const string &_file_name, double _stat)
 {
     ofstream stat_file;
