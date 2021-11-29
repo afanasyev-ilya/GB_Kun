@@ -2,21 +2,17 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum SyntheticGraphType
+template<typename T>
+void MatrixCellSigmaC<T>::print()
 {
-    RANDOM_UNIFORM = 0,
-    RMAT = 1,
-    SSCA2 = 2
-};
-
-enum MatrixStorageFormat
-{
-    CSR = 0,
-    COO = 1,
-    COO_OPT = 2,
-    CSR_SEG = 3,
-    LAV = 4,
-    CELL_SIGMA_C = 5
-};
+    for(VNT row = 0; row < size; row++)
+    {
+        for(VNT col = 0; col < size; col++)
+        {
+            cout << get(row, col) << " ";
+        }
+        cout << endl;
+    }
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

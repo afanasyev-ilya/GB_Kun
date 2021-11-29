@@ -110,6 +110,9 @@ void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
         row_freqs[row_id]++;
     }
 
+    cout << "freqs done " << endl;
+    cout << "_nz: " << _nz << endl;
+
     prepare_hub_data(col_freqs);
 
     for(ENT i = 0; i < _nz; i++)

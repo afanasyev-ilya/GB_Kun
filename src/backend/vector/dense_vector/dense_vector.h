@@ -55,6 +55,11 @@ private:
 //    friend void SpMV(MatrixCOO<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
 
     template<typename Y>
+    friend void SpMV_load_balanced(MatrixCellSigmaC<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+    template<typename Y>
+    friend void SpMV_vector(MatrixCellSigmaC<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+
+    template<typename Y>
     friend bool operator==(DenseVector<Y>& lhs, DenseVector<Y>& rhs);
 };
 
