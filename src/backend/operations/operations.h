@@ -2,7 +2,7 @@
 #define GB_KUN_OPERATIONS_H
 
 
-#include "../../common/types.hpp"
+#include "../../cpp_graphblas/types.hpp"
 #include "../helpers/cmd_parser/parser_options.h"
 #include "../la_backend.h"
 #include "../matrix/matrix.h"

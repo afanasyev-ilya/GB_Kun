@@ -36,8 +36,8 @@ class DenseVector;
 #include "backend/matrix/matrix.h"
 #include "backend/spmv/spmv.h"
 
-#include "common/matrix.hpp"
-#include "common/vector.hpp"
-#include "common/descriptor.hpp"
-#include "common/operations.hpp"
+#include "cpp_graphblas/matrix.hpp"
+#include "cpp_graphblas/vector.hpp"
+#include "cpp_graphblas/descriptor.hpp"
+#include "cpp_graphblas/operations.hpp"
 

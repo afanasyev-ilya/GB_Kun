@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "containers/matrix_container.h"
-#include "../../common/types.hpp"
+#include "../../cpp_graphblas/types.hpp"
 #include "../../helpers/cmd_parser/parser_options.h"
 #include "../la_backend.h"
 

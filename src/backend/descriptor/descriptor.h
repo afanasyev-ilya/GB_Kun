@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../common/types.hpp"
+#include "../../cpp_graphblas/types.hpp"
 #include "../la_backend.h"
 #include "../../helpers/memory_API/memory_API.h"
 

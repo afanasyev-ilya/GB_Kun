@@ -57,8 +57,8 @@ def parse_timings(output):  # collect time, perf and BW values
 def run_and_wait(params, options):
     os.environ['OMP_NUM_THREADS'] = str(get_cores_count() * int(options.sockets))
     os.environ['OMP_PROC_BIND'] = "close"
-    print("Running ./GB_Kun " + params)
-    subprocess.run(["./GB_Kun"] + params.split(" "), check=True)
+    print("Running ./spmv " + params)
+    subprocess.run(["./spmv"] + params.split(" "), check=True)
 
 
 if __name__ == "__main__":

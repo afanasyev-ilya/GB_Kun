@@ -15,7 +15,7 @@ set(operations_dir ${kun_backend_dir}/operations/)
 set(vector_dir ${kun_backend_dir}/vector/)
 set(spmv_dir ${kun_backend_dir}/spmv/)
 
-set(interface_dir src/common)
+set(interface_dir src/cpp_graphblas)
 
 add_executable(bfs bfs.cpp ${spmv_dir}/spmv.h ${vector_dir}/vector.h ${matrix_dir}/matrix.h ${desc_dir}/descriptor.h ${operations_dir}/operations.h)
 target_include_directories(bfs PRIVATE ${desc_dir} ${matrix_dir} ${operations_dir} ${vector_dir} ${spmv_dir})

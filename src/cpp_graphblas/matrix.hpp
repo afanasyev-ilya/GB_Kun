@@ -15,7 +15,6 @@ public:
     Matrix() : _matrix() {};
     Matrix(Index nrows, Index ncols) : _matrix(nrows, ncols) {}
 
-
     backend::Matrix<T>* get_matrix() {
         return &_matrix;
     }
@@ -38,7 +37,8 @@ public:
                    const std::vector<T>*     values,
                    Index                     nvals,
                    BinaryOpT                 dup,
-                   char*                     dat_name = nullptr) {
+                   char*                     dat_name = nullptr)
+    {
         if (row_indices == nullptr || col_indices == nullptr || values == nullptr) {
             return GrB_NULL_POINTER;
         }
