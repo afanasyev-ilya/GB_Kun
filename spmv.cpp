@@ -48,22 +48,22 @@ int main(int argc, char **argv) {
         matrix.set_preferred_matrix_format(parser.get_storage_format());
         LA_Info info = matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
 
+        lablas::Vector<float> w(el.vertices_count);
+        lablas::Vector<float> u(el.vertices_count);
 
-        lablas::Vector<float> x(el.vertices_count);
-        lablas::Vector<float> y(el.vertices_count);
+        w.fill(0.0);
+        u.fill(1.0);
 
-        x.fill(1.0);
-        y.fill(0.0);
-
-        lablas::mxv<float, float, float, float>(&x,NULL, lablas::PlusMonoid<float>(), lablas::PlusMonoid<float>(),&matrix, &y, &desc);
+        lablas::mxv<float, float, float, float>(&w,NULL, lablas::PlusMonoid<float>(), lablas::PlusMonoid<float>(),&matrix, &u, &desc);
 
         int num_runs = 100;
         double avg_time = 0;
         for(int run = 0; run < num_runs; run++)
         {
-            y.fill(0.0);
+            w.fill(0.0);
+            u.fill(1.0);
             double t1 = omp_get_wtime();
-            lablas::mxv<float, float, float, float>(&x,NULL, lablas::PlusMonoid<float>(), lablas::PlusMonoid<float>(),&matrix, &y, &desc);
+            lablas::mxv<float, float, float, float>(&w,NULL, lablas::PlusMonoid<float>(), lablas::PlusMonoid<float>(),&matrix, &u, &desc);
             double t2 = omp_get_wtime();
             avg_time += (t2 - t1) / num_runs;
         }
@@ -74,6 +74,27 @@ int main(int argc, char **argv) {
         cout << "SPMV BW: " << bw << " GB/s" << endl;
         save_to_file("./output/perf.txt", perf);
         save_to_file("./output/bw.txt", bw);
+
+        if(parser.check())
+        {
+            lablas::Matrix<float> check_matrix;
+            check_matrix.set_preferred_matrix_format(CSR);
+            check_matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
+            lablas::Vector<float> w_check(el.vertices_count);
+
+            u.fill(1.0);
+            w_check.fill(0.0);
+            lablas::mxv<float, float, float, float>(&w_check,NULL, lablas::PlusMonoid<float>(), lablas::PlusMonoid<float>(),&matrix, &u, &desc);
+
+            if(w == w_check)
+            {
+                cout << "Vectors are equal" << endl;
+            }
+            else
+            {
+                cout << "Vectors are NOT equal" << endl;
+            }
+        }
 
     }
     catch (string error)

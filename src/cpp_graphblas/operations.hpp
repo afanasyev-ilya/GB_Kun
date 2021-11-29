@@ -29,7 +29,7 @@ LA_Info mxv (Vector<W>*       w,
         return GrB_UNINITIALIZED_OBJECT;
     }
 
-    backend::SpMV(A->get_matrix(),  u->get_vector(), w->get_vector(), desc->get_descriptor());
+    backend::SpMV(A->get_matrix(), u->get_vector(), w->get_vector(), NULL);
     return GrB_SUCCESS;
 }
 

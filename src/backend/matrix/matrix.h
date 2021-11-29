@@ -62,6 +62,11 @@ public:
         return data;
     }
 
+    void print()
+    {
+        data->print();
+    }
+
 private:
     MatrixContainer<T> *data;
     #ifdef __USE_SOCKET_OPTIMIZATIONS__

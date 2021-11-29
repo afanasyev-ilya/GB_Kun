@@ -8,6 +8,7 @@
 #include "../matrix/matrix.h"
 #include "../vector/vector.h"
 #include "../spmv/spmv.h"
+
 namespace lablas{
 namespace backend{
 

@@ -55,7 +55,10 @@ public:
         return GrB_SUCCESS;
     }
 
-
+    void print()
+    {
+        _matrix.print();
+    }
 
 private:
     backend::Matrix<T> _matrix;

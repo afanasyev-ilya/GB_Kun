@@ -1,5 +1,4 @@
-#ifndef GB_KUN_LA_BACKEND_H
-#define GB_KUN_LA_BACKEND_H
+#pragma once
 
 #define VNT int
 #define ENT int
@@ -9,4 +8,3 @@
 #define HUB_VERTICES 131072
 #define CSR_VERTEX_GROUPS_NUM 6
 
-#endif //GB_KUN_LA_BACKEND_H

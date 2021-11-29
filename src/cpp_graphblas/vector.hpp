@@ -67,9 +67,18 @@ public:
     //    Info build(T*    values,
     //               Index nvals);
 
-
 private:
     backend::Vector<T> _vector;
+
+    template<typename Y>
+    friend bool operator==(Vector<Y>& lhs, Vector<Y>& rhs);
 };
+
+template <typename T>
+bool operator==(Vector<T>& lhs, Vector<T>& rhs)
+{
+    return lhs._vector == rhs._vector;
+}
+
 }
 #endif //GB_KUN_VECTOR_HPP
