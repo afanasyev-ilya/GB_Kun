@@ -1,6 +1,8 @@
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace lablas {
+namespace backend {
 
 template <typename T>
 class MatrixCSR : public MatrixContainer<T>
@@ -70,16 +72,20 @@ private:
 //                     DenseVector<Y> &_y,
 //                     Descriptor &_desc);
 //
-//    template <typename Y>
-//    friend void SpMV(MatrixCSR<Y> &_matrix,
-//                     DenseVector<Y> &_x,
-//                     DenseVector<Y> &_y);
+
+    template<typename Y>
+    friend void SpMV(const MatrixCSR<T> *_matrix,
+                     const DenseVector<T> *_x,
+                     DenseVector<T> *_y);
 
     void numa_aware_alloc();
 };
 
 #include "csr_matrix.hpp"
 #include "build.hpp"
+
+}
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

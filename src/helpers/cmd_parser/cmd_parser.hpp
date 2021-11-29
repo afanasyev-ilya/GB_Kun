@@ -7,7 +7,7 @@ Parser::Parser()
     scale = 15;
     avg_degree = 16;
     synthetic_graph_type = RMAT;
-    storage_format = CELL_SIGMA_C;
+    storage_format = CSR;
     no_check = false;
 }
 

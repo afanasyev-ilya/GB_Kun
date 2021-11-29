@@ -46,8 +46,8 @@ class DenseVector;
 
 #include "backend/vector/vector.h"
 #include "backend/matrix/matrix.h"
-
 #include "backend/spmv/spmv.h"
+
 #include "common/matrix.hpp"
 #include "common/vector.hpp"
 #include "common/descriptor.hpp"
