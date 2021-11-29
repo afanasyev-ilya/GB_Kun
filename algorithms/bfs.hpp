@@ -29,25 +29,11 @@ void bfs(Vector<float>*       v,
     float iter;
     float succ = 0.f;
     Index unvisited = A_nrows;
-    backend::GpuTimer gpu_tight;
-    float gpu_tight_time = 0.f;
-    gpu_tight.Start();
 
     for (iter = 1; iter <= desc->descriptor_.max_niter_; ++iter) {
-        if (desc->descriptor_.debug()) {
-            std::cout << "=====BFS Iteration " << iter - 1 << "=====\n";
-            v->print();
-            f1.print();
-        }
-        gpu_tight.Stop();
         if (iter > 1) {
             std::string vxm_mode = (desc->descriptor_.lastmxv_ == GrB_PUSHONLY) ?
                                    "push" : "pull";
-            if (desc->descriptor_.timing_ == 1)
-                std::cout << iter - 1 << ", " << succ << "/" << A_nrows << ", "
-                          << unvisited << ", " << vxm_mode << ", "
-                          << gpu_tight.ElapsedMillis() << "\n";
-            gpu_tight_time += gpu_tight.ElapsedMillis();
         }
         unvisited -= static_cast<int>(succ);
         gpu_tight.Start();
@@ -67,12 +53,6 @@ void bfs(Vector<float>*       v,
         if (succ == 0)
             break;
     }
-    gpu_tight.Stop();
     std::string vxm_mode = (desc->descriptor_.lastmxv_ == GrB_PUSHONLY) ?
                            "push" : "pull";
-    if (desc->descriptor_.timing_ == 1)
-        std::cout << iter << ", " << succ << "/" << A_nrows << ", "
-                  << unvisited << ", " << vxm_mode << ", "
-                  << gpu_tight.ElapsedMillis() << "\n";
-    gpu_tight_time += gpu_tight.ElapsedMillis();
 }
