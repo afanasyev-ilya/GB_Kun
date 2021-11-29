@@ -17,7 +17,8 @@ void SpMV(Matrix<T> &_matrix,
     if(_matrix.format == CSR)
     {
         #ifdef __USE_SOCKET_OPTIMIZATIONS__
-        SpMV(*((MatrixCSR<T> *) _matrix.data), *((MatrixCSR<T> *) _matrix.data_socket_dub), _x.dense, _y.dense, _desc);
+        //SpMV(*((MatrixCSR<T> *) _matrix.data), *((MatrixCSR<T> *) _matrix.data_socket_dub), _x.dense, _y.dense, _desc);
+        SpMV(*((MatrixCSR<T> *) _matrix.data), _x.dense, _y.dense);
         #else
         SpMV(*((MatrixCSR<T> *) _matrix.data), _x.dense, _y.dense);
         #endif

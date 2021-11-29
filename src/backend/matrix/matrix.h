@@ -61,26 +61,47 @@ void Matrix<T>::build(VNT *_row_indices,
         #endif
 
         transposed_data = new MatrixCSR<T>;
+        cout << "Using CSR matrix" << endl;
     }
     else if(format == LAV)
     {
         data = new MatrixLAV<T>;
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        data_socket_dub = new MatrixLAV<T>;
+        #endif
+
         transposed_data = new MatrixLAV<T>;
+        cout << "Using LAV matrix" << endl;
     }
     else if(format == COO)
     {
         data = new MatrixCOO<T>;
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        data_socket_dub = new MatrixCOO<T>;
+        #endif
+
         transposed_data = new MatrixCOO<T>;
+        cout << "Using COO matrix" << endl;
     }
     else if(format == CSR_SEG)
     {
         data = new MatrixSegmentedCSR<T>;
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        data_socket_dub = new MatrixSegmentedCSR<T>;
+        #endif
+
         transposed_data = new MatrixSegmentedCSR<T>;
+        cout << "Using CSR_SEG matrix" << endl;
     }
     else if(format == CELL_SIGMA_C)
     {
         data = new MatrixCellSigmaC<T>;
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        data_socket_dub = new MatrixCellSigmaC<T>;
+        #endif
+
         transposed_data = new MatrixCellSigmaC<T>;
+        cout << "Using CELL_SIGMA_C matrix" << endl;
     }
     else
     {

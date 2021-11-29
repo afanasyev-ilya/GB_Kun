@@ -19,6 +19,7 @@ int main(int argc, char **argv)
 {
     try
     {
+        print_omp_stats();
         Parser parser;
         parser.parse_args(argc, argv);
         VNT scale = parser.get_scale();
