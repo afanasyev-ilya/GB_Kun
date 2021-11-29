@@ -35,7 +35,7 @@ private:
     bool id_in_range(VNT _src_id, VNT _nz_count);
 
     template<typename Y>
-    friend void SpMV_vector(MatrixCellSigmaC<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+    friend void SpMV_vector(const MatrixCellSigmaC<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -39,9 +39,9 @@ private:
     VNT min_nz, max_nz;
 
     template<typename Y>
-    friend void SpMV_load_balanced(MatrixCellSigmaC<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+    friend void SpMV_load_balanced(const MatrixCellSigmaC<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
     template<typename Y>
-    friend void SpMV_vector(MatrixCellSigmaC<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+    friend void SpMV_vector(const MatrixCellSigmaC<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
