@@ -2,7 +2,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace lablas{
-    namespace backend {
+namespace backend {
 
 
 template <typename T>
@@ -87,7 +87,8 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
 
     //cout << "compare: " << (t2 - t1)*1000 << "(edge proc) vs " << (t4 - t3)*1000 << "(cache-aware) vs " << (t6 - t5)*1000 << "(usual merge)" << endl;
 }
-    }
+
+}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

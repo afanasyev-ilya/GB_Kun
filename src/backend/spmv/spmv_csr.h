@@ -2,7 +2,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace lablas{
-    namespace backend{
+namespace backend{
 
 
 //    template <typename T>
@@ -48,26 +48,26 @@ namespace lablas{
 
                   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-          template <typename T>
-          void SpMV(const MatrixCSR<T> *_matrix,
-                    const DenseVector<T> *_x,
-                    DenseVector<T> *_y)
-                    {
+template <typename T>
+void SpMV(const MatrixCSR<T> *_matrix,
+        const DenseVector<T> *_x,
+        DenseVector<T> *_y)
+        {
 
-              VNT size;
-              _matrix->get_size(&size);
+  VNT size;
+  _matrix->get_size(&size);
 #pragma omp parallel
-              {
+  {
 #pragma omp for schedule(static)
-                  for(VNT i = 0; i < size; i++)
-                  {
-                      for(ENT j = _matrix->get_row()[i]; j < _matrix->get_row()[i + 1]; j++)
-                      {
-                          _y->get_vals()[i] += _matrix->get_vals()[j] * _x->get_vals()[_matrix->get_col()[j]];
-                      }
-                  }
-              };
-                    }
+      for(VNT i = 0; i < size; i++)
+      {
+          for(ENT j = _matrix->get_row()[i]; j < _matrix->get_row()[i + 1]; j++)
+          {
+              _y->get_vals()[i] += _matrix->get_vals()[j] * _x->get_vals()[_matrix->get_col()[j]];
+          }
+      }
+  };
+        }
 
 }
 }
