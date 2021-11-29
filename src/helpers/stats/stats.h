@@ -10,7 +10,7 @@ void print_omp_stats()
     #pragma omp parallel
     {
         int thread_num = omp_get_thread_num();
-        int cpu_num = sched_getcpu();
+        int cpu_num = 0;//sched_getcpu();
         #pragma omp critical
         {
             if(cpu_num > max_core)
