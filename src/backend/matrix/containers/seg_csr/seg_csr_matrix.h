@@ -18,26 +18,6 @@ public:
     MatrixSegmentedCSR();
     ~MatrixSegmentedCSR();
 
-    void get_size(VNT *_nz) const {
-        *_nz = size;
-    }
-    void get_nz(ENT *_nz) const {
-        *_nz = nz;
-    }
-    void get_segments(int *_nm) const {
-        *_nm = num_segments;
-    }
-
-    void get_blocks(VNT *_nm) const {
-        *_nm = merge_blocks_number;
-    }
-    SubgraphSegment<T> * get_segment(){
-        return subgraphs;
-    }
-    const SubgraphSegment<T> * get_segment() const{
-        return subgraphs;
-    }
-
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket = 0);
     void print() {};
 private:
