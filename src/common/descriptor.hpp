@@ -11,18 +11,17 @@ namespace lablas {
         ~Descriptor(){}
 
         LA_Info set(Desc_field field, Desc_value value) {
-            return descriptor_.set(field, value);
+            return _descriptor.set(field, value);
         }
         LA_Info get(Desc_field field, Desc_value value) {
-            return descriptor_.set(field, value);
+            return _descriptor.set(field, value);
         }
-        backend::Descriptor& get_descriptor() {
-            return _descriptor;
+        backend::Descriptor* get_descriptor() {
+            return &_descriptor;
         }
 
     private:
         backend::Descriptor _descriptor;
-
     };
 
 }

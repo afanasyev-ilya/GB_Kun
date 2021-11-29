@@ -15,7 +15,7 @@ void save_to_file(const string &_file_name, double _stat)
     stat_file.close();
 }
 
-int main(int argc, char **argv, <unknown> ) {
+int main(int argc, char **argv) {
     try
     {
         Parser parser;
@@ -43,7 +43,7 @@ int main(int argc, char **argv, <unknown> ) {
         /* TODO clearance of ELC vectors in order to free storage */
         const std::vector<VNT> src_ids(el.src_ids);
         const std::vector<VNT> dst_ids(el.dst_ids);
-        const std::vector<float> edge_vals(el.edge_vals);
+        std::vector<float> edge_vals(el.edge_vals);
         LA_Info info = matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
 
 
@@ -65,7 +65,7 @@ int main(int argc, char **argv, <unknown> ) {
 //const Matrix<a>* A,
 //const Vector<U>* u,
 //Descriptor*      desc
-        lablas::mxv<float, float, float, float>(&x,NULL, NULL, NULL,&matrix, &y, &desc);
+        lablas::mxv<float, float, float, float>(&x,NULL, lablas::PlusMonoid<float>(), lablas::PlusMonoid<float>(),&matrix, &y, &desc);
 //        SpMV(matrix, x, y, desc);
 
         int num_runs = 100;
@@ -74,7 +74,7 @@ int main(int argc, char **argv, <unknown> ) {
         {
             y.fill(0.0);
             double t1 = omp_get_wtime();
-            lablas::mxv<float, float, float, float>(&x,NULL, NULL, NULL,&matrix, &y, &desc);
+            lablas::mxv<float, float, float, float>(&x,NULL, lablas::PlusMonoid<float>(), lablas::PlusMonoid<float>(),&matrix, &y, &desc);
             double t2 = omp_get_wtime();
             avg_time += (t2 - t1) / num_runs;
         }
@@ -88,7 +88,7 @@ int main(int argc, char **argv, <unknown> ) {
 
 //        if(parser.check())
 //        {
-//            Matrix<float> check_matrix;
+//            lablas::Matrix<float> check_matrix;
 //            matrix.set_preferred_format(CSR);
 //            lablas::Vector<float> z(el.vertices_count);
 //            //Vector<float> z(el.vertices_count);

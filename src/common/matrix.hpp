@@ -16,8 +16,12 @@ public:
     Matrix(Index nrows, Index ncols) : _matrix(nrows, ncols) {}
 
 
-    backend::Matrix<T>& get_matrix() {
-        return _matrix;
+    backend::Matrix<T>* get_matrix() {
+        return &_matrix;
+    }
+
+    const backend::Matrix<T>* get_matrix() const {
+        return &_matrix;
     }
 
     LA_Info getStorage(Storage* mat_type) const {

@@ -2,7 +2,7 @@
 
 #include "../../common/types.hpp"
 #include "../la_backend.h"
-#include "../helpers/memory_API/memory_API.h"
+#include "../../helpers/memory_API/memory_API.h"
 
 #define _matrix_size 100
 
@@ -33,16 +33,13 @@ public:
         return GrB_SUCCESS;
     }
 
+    double* get_buffer() {
+        return tmp_buffer;
+    }
+
 private:
     double *tmp_buffer;
     Desc_value desc_[GrB_NDESCFIELD];
-
-    template <typename T>
-    friend void SpMV(MatrixCSR<T> &_matrix,
-                     MatrixCSR<T> &_matrix_socket_dub,
-                     DenseVector<T> &_x,
-                     DenseVector<T> &_y,
-                     Descriptor &_desc);
 };
 
 }

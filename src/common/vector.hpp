@@ -42,7 +42,17 @@ public:
 
     LA_Info fill(T val) {
         _vector.set_constant(val);
+        return GrB_SUCCESS;
     }
+
+    backend::Vector<T>* get_vector() {
+        return &_vector;
+    }
+
+    const backend::Vector<T>* get_vector() const {
+        return &_vector;
+    }
+
 
     //    template <typename BinaryOpT>
     //    Info build(const std::vector<Index>* indices,

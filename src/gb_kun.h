@@ -37,14 +37,14 @@ using namespace std;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "src/backend/descriptor/descriptor.h"
+#include "backend/descriptor/descriptor.h"
 
-#include "src/backend/vector/vector.h"
-#include "src/backend/matrix/matrix.h"
+#include "backend/vector/vector.h"
+#include "backend/matrix/matrix.h"
 
-#include "src/backend/spmv/spmv.h"
-#include "src/common/matrix.hpp"
-#include "src/common/vector.hpp"
-#include "src/common/descriptor.hpp"
-#include "src/common/operations.hpp"
+#include "backend/spmv/spmv.h"
+#include "common/matrix.hpp"
+#include "common/vector.hpp"
+#include "common/descriptor.hpp"
+#include "common/operations.hpp"
 

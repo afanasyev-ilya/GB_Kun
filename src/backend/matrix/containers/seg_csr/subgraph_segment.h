@@ -1,6 +1,9 @@
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace lablas{
+    namespace backend {
+
 
 template <typename T>
 class SubgraphSegment
@@ -16,6 +19,71 @@ public:
     void dump();
 
     void construct_csr();
+
+    void get_size(VNT* _size) const{
+        *_size = size;
+    }
+    void get_nz(VNT* _nz) const{
+        *_nz = nz;
+    }
+    ENT* get_row() {
+        return row_ptr;
+    };
+
+    const ENT* get_row() const {
+        return row_ptr;
+    };
+
+    VNT* get_col() {
+        return col_ids;
+    };
+
+    const VNT* get_col() const {
+        return col_ids;
+    };
+
+    T* get_vals() {
+        return vals;
+    };
+
+    const T* get_vals() const {
+        return vals;
+    };
+
+    VNT* get_block_start() {
+        return block_starts;
+    };
+
+    const VNT* get_block_start() const {
+        return block_starts;
+    };
+
+    VNT* get_block_end() {
+        return block_ends;
+    };
+
+    const VNT* get_block_end() const {
+        return block_ends;
+    };
+
+    double* get_vbuffer() {
+        return vertex_buffer;
+    };
+
+    const double* get_vbuffer() const {
+        return vertex_buffer;
+    };
+
+    VNT* get_conversion() {
+        return conversion_to_full;
+    };
+
+    const VNT* get_conversion() const {
+        return conversion_to_full;
+    };
+
+    void construct_blocks(VNT _block_number, size_t _block_size);
+
 private:
     vector<VNT> tmp_row_ids;
     vector<VNT> tmp_col_ids;
@@ -34,13 +102,9 @@ private:
     VNT *block_starts;
     VNT *block_ends;
 
-    template <typename Y>
-    friend void SpMV(MatrixSegmentedCSR<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+//    template <typename Y>
+//    friend void SpMV(MatrixSegmentedCSR<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
 
-    template <typename Y>
-    friend class MatrixSegmentedCSR;
-
-    void construct_blocks(VNT _block_number, size_t _block_size);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -194,6 +258,8 @@ SubgraphSegment<T>::~SubgraphSegment()
     MemoryAPI::free_array(conversion_to_full);
     MemoryAPI::free_array(block_starts);
     MemoryAPI::free_array(block_ends);
+}
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

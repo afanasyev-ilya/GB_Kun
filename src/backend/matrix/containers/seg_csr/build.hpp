@@ -1,7 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace lablas{
+    namespace backend{
+
 
 template <typename T>
-void MatrixSegmentedCSR<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, int _socket)
+void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
 {
     size = _size;
     nz = _nz;
@@ -30,13 +33,18 @@ void MatrixSegmentedCSR<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _s
         subgraphs[cur_seg].construct_csr();
         subgraphs[cur_seg].construct_blocks(merge_blocks_number, merge_block_size);
         cout << "seg " << cur_seg << " stats || ";
-        cout << "size (vertices) = " << subgraphs[cur_seg].size << "(" <<
-                100.0*(double)subgraphs[cur_seg].size/_size << "%)" << ", nz (edges) = " << subgraphs[cur_seg].nz << " (" <<
-                       100.0*(double)subgraphs[cur_seg].nz/_nz << "%) ";
-        cout << "avg degree: " << (double)subgraphs[cur_seg].nz / subgraphs[cur_seg].size << endl;
+        int seg_size;
+        subgraphs[cur_seg].get_size(&seg_size);
+        int seg_nz;
+        subgraphs[cur_seg].get_nz(&seg_nz);
+        cout << "size (vertices) = " << seg_size << "(" <<
+                100.0*(double)seg_size/_size << "%)" << ", nz (edges) = " << seg_nz << " (" <<
+                       100.0*(double)seg_nz/_nz << "%) ";
+        cout << "avg degree: " << (double)seg_nz / seg_size << endl;
     }
 
     cout << endl << endl;
 }
-
+    }
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

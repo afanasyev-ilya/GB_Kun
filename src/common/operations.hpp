@@ -4,6 +4,7 @@
 #include "vector.hpp"
 #include "matrix.hpp"
 #include "descriptor.hpp"
+#include "../backend/spmv/spmv.h"
 
 namespace lablas {
 
@@ -28,9 +29,10 @@ namespace lablas {
                     return GrB_UNINITIALIZED_OBJECT;
                 }
 
-                backend::Descriptor& _desc= desc->get_descriptor();
-                backend::Matrix<a>& _matrix = A->get_matrix();
+                backend::SpMV(A->get_matrix(),  u->get_vector(), w->get_vector(), desc->get_descriptor());
+                return GrB_SUCCESS;
             }
+
 }
 
 

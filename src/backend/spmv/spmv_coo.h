@@ -2,18 +2,26 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-void SpMV(MatrixCOO<T> &_matrix, DenseVector<T> &_x, DenseVector<T> &_y)
-{
-    #pragma omp parallel for schedule(static)
-    for(ENT i = 0; i < _matrix.nz; i++)
-    {
-        VNT row = _matrix.row_ids[i];
-        VNT col = _matrix.col_ids[i];
-        T val = _matrix.vals[i];
+namespace lablas{
+namespace backend{
+
+        template <typename T>
+        void SpMV(const MatrixCOO<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> *_y)
+        {
+            ENT _nz;
+            _matrix->get_nz(&_nz);
+#pragma omp parallel for schedule(static)
+            for(ENT i = 0; i < _nz; i++)
+            {
+                VNT row = _matrix->get_row()[i];
+                VNT col = _matrix->get_col()[i];
+                T val = _matrix->get_vals()[i];
         #pragma omp atomic
-        _y.vals[row] += val * _x.vals[col];
-    }
+                _y->get_vals()[row] += val * _x->get_vals()[col];
+            }
+        }
+
+}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,6 @@
 #ifndef GB_KUN_TYPES_HPP
 #define GB_KUN_TYPES_HPP
+    #include <cstddef>
 
     typedef size_t Index;
 
@@ -79,5 +80,36 @@
     LA_Info;
 
 
+//template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+//        struct plus {
+//            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+//                return lhs + rhs;
+//            }
+//        };
+namespace lablas{
+template <typename T_out>
+        struct plus {
+            inline T_out operator()(T_out lhs, T_out rhs) {
+                return lhs + rhs;
+            }
+        };
+
+// Monoid generator macro provided by Scott McMillan.
+#define REGISTER_MONOID(M_NAME, BINARYOP, IDENTITY)                          \
+template <typename T_out>                                                    \
+struct M_NAME                                                                \
+{                                                                            \
+inline T_out identity() const                                              \
+    {                                                                          \
+        return static_cast<T_out>(IDENTITY);                                     \
+    }                                                                          \
+inline T_out operator()(T_out lhs, T_out rhs) const    \
+    {                                                                          \
+        return BINARYOP<T_out>()(lhs, rhs);                                      \
+    }                                                                          \
+};
+
+REGISTER_MONOID(PlusMonoid, plus, 0)
+}
 
 #endif //GB_KUN_TYPES_HPP

@@ -18,13 +18,17 @@ void reorder(T *data, ENT *indexes, ENT size)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCOO<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, int _socket)
+void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
 {
     resize(_size, _nz);
     size = _size;
     nz = _nz;
 
     bool _optimized = false;
+
+    VNT* col_ids_new = *(&col_ids);
+    VNT* row_ids_new = *(&col_ids);
+    VNT* val_ids_new = *(&col_ids);
 
     if(_optimized)
     {
@@ -46,9 +50,12 @@ void MatrixCOO<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT 
                               return _row_ids[index1] / seg_size < _row_ids[index2] / seg_size;
                   });
 
-        reorder(_row_ids, sort_indexes, _nz);
-        reorder(_col_ids, sort_indexes, _nz);
-        reorder(_vals, sort_indexes, _nz);
+//        reorder(_row_ids, sort_indexes, _nz);
+//        reorder(_col_ids, sort_indexes, _nz);
+//        reorder(_vals, sort_indexes, _nz);
+        reorder(row_ids_new, sort_indexes, _nz);
+        reorder(col_ids_new, sort_indexes, _nz);
+        reorder(val_ids_new, sort_indexes, _nz);
 
         MemoryAPI::free_array(sort_indexes);
     }

@@ -56,7 +56,7 @@ void MemoryAPI::free_host_array(T *_ptr)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MemoryAPI::copy(T *_dst, T *_src, size_t _size)
+void MemoryAPI::copy(T *_dst, const T *_src, size_t _size)
 {
     #pragma _NEC ivdep
     #pragma omp parallel

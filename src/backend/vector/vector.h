@@ -16,17 +16,25 @@ namespace backend {
         ~Vector(){};
 
         void set_constant(T _val) {dense.set_constant(_val);};
+
+        DenseVector<T>* getDense() {
+            return &dense;
+        }
+        SparseVector<T>* getSparse() {
+            return &sparse;
+        }
+        const DenseVector<T>* getDense() const {
+            return &dense;
+        }
+        const SparseVector<T>* getSparse() const {
+            return &sparse;
+        }
+
     private:
         VNT size;
         VNT nz;
         DenseVector<T> dense;
         SparseVector<T> sparse;
-
-        template<typename Y>
-        friend void SpMV(Matrix<Y> &_matrix,
-                         Vector<Y> &_x,
-                         Vector<Y> &_y,
-                         Descriptor &_desc);
 
         template<typename Y>
         friend bool operator==(Vector<Y>& lhs, Vector<Y>& rhs);
