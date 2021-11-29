@@ -74,9 +74,9 @@ private:
 //
 
     template<typename Y>
-    friend void SpMV(const MatrixCSR<T> *_matrix,
-                     const DenseVector<T> *_x,
-                     DenseVector<T> *_y);
+    friend void SpMV(const MatrixCSR<Y> *_matrix,
+                     const DenseVector<Y> *_x,
+                     DenseVector<Y> *_y);
 
     void numa_aware_alloc();
 };
