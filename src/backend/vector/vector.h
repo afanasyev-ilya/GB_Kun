@@ -13,7 +13,10 @@ public:
     Vector(int _size): dense(_size), sparse(_size) {size = _size; nz = size;};
     ~Vector(){};
 
-    void set_constant(T _val) {dense.set_constant(_val);};
+    void set_constant(T _val) {
+        dense.set_constant(_val);
+        sparse.set_constant(_val);
+    };
 private:
     VNT size;
     VNT nz;
