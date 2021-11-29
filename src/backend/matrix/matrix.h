@@ -28,7 +28,7 @@ public:
     void build(const VNT *_row_indices,
                const VNT *_col_indices,
                const T *_values,
-               const VNT _size, // todo remove
+               const VNT _size,
                const ENT _nz);
 
     /* CSR, COO...*/
