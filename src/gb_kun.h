@@ -26,18 +26,6 @@ using namespace std;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-class Matrix;
-template <typename T>
-class MatrixCSR;
-template <typename T>
-class MatrixSegmentedCSR;
-template <typename T>
-class MatrixLAV;
-template <typename T>
-class MatrixCOO;
-template <typename T>
-class MatrixCellSigmaC;
-template <typename T>
 class DenseVector;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

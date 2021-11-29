@@ -1,9 +1,9 @@
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace lablas{
 namespace backend {
-
 
 template <typename T>
 void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> *_y)
@@ -13,12 +13,11 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
     _matrix->get_segments(&num_segments);
     #pragma omp parallel
     {
-        for(int seg_id = 0; seg_id < num_segments; seg_id++)
+        for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
         {
             const SubgraphSegment<T> *segment = &(_matrix->get_segment()[seg_id]);
             T *buffer = (T*)segment->get_vbuffer();
-            VNT seg_size;
-            segment->get_size(&seg_size);
+            VNT seg_size = segment->size;
 
             #pragma omp for schedule(static)
             for(VNT i = 0; i < seg_size; i++)

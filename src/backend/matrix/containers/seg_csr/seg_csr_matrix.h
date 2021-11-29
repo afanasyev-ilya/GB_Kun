@@ -9,6 +9,9 @@ namespace lablas{
 namespace backend {
 
 template <typename T>
+class MatrixSegmentedCSR;
+
+template <typename T>
 class MatrixSegmentedCSR : public MatrixContainer<T>
 {
 public:
@@ -50,7 +53,12 @@ private:
     void alloc(VNT _size, ENT _nz);
     void free();
 
+    template<typename Y>
+    friend void SpMV(const MatrixSegmentedCSR<Y> *_matrix,
+                     const DenseVector<Y> *_x,
+                     DenseVector<Y> *_y);
 };
+
 }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,9 +1,12 @@
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace lablas{
 namespace backend {
 
+template <typename T>
+    class MatrixSegmentedCSR;
 
 template <typename T>
 class SubgraphSegment
@@ -102,9 +105,13 @@ private:
     VNT *block_starts;
     VNT *block_ends;
 
-//    template <typename Y>
-//    friend void SpMV(MatrixSegmentedCSR<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+    template<typename Y>
+    friend void SpMV(const MatrixSegmentedCSR<Y> *_matrix,
+                     const DenseVector<Y> *_x,
+                     DenseVector<Y> *_y);
 
+    template <typename Y>
+    friend class MatrixSegmentedCSR;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
