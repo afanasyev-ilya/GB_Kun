@@ -8,16 +8,17 @@ namespace backend{
 template <typename T>
 void SpMV(const MatrixCOO<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> *_y)
 {
-    ENT _nz;
-    _matrix->get_nz(&_nz);
-#pragma omp parallel for schedule(static)
-    for(ENT i = 0; i < _nz; i++)
+    const T *x_vals = _x->get_vals();
+    T *y_vals = _y->get_vals();
+
+    #pragma omp parallel for schedule(static)
+    for(ENT i = 0; i < _matrix->nz; i++)
     {
-        VNT row = _matrix->get_row()[i];
-        VNT col = _matrix->get_col()[i];
-        T val = _matrix->get_vals()[i];
-#pragma omp atomic
-        _y->get_vals()[row] += val * _x->get_vals()[col];
+        VNT row = _matrix->row_ids[i];
+        VNT col = _matrix->col_ids[i];
+        T val = _matrix->vals[i];
+        #pragma omp atomic
+        y_vals[row] += val * x_vals[col];
     }
 }
 
