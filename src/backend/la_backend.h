@@ -5,5 +5,6 @@
 #define ENT int
 #define CHECK_PRINT_NUM 10
 //#define __USE_SOCKET_OPTIMIZATIONS__
+#define VECTOR_LENGTH 8
 
 #endif //GB_KUN_LA_BACKEND_H

@@ -23,11 +23,11 @@ void SpMV(const Matrix<T> *_matrix,
     _matrix->get_format(&format);
     if(format == CSR)
     {
-#ifdef __USE_SOCKET_OPTIMIZATIONS__
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
         SpMV(*((MatrixCSR<T> *) _matrix.data), *((MatrixCSR<T> *) _matrix.data_socket_dub), _x.dense, _y.dense, _desc);
-#else
+        #else
         SpMV(((MatrixCSR<T> *) _matrix->get_Data()), _x->getDense(), _y->getDense());
-#endif
+        #endif
     }
     else if(format == LAV)
         SpMV(((MatrixLAV<T> *) _matrix->get_Data()), _x->getDense(), _y->getDense());

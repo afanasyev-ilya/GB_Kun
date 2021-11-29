@@ -19,7 +19,7 @@ public:
 
     ~MatrixCellSigmaC();
 
-    void build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, VNT _socket = 0);
+    void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket = 0);
     void print();
 
     VNT get_nz_in_row(VNT _row) {return (row_ptr[_row + 1] - row_ptr[_row]);};
@@ -46,7 +46,7 @@ private:
     void free();
     void resize(VNT _size, ENT _nz);
 
-    void construct_unsorted_csr(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
+    void construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz);
 
     friend class CSRVertexGroup<T>;
     friend class CSRVertexGroupCellC<T>;

@@ -24,8 +24,12 @@ public:
         return &_matrix;
     }
 
-    LA_Info getStorage(Storage* mat_type) const {
-        return _matrix.getStorage(mat_type);
+    LA_Info get_storage(Storage* _mat_type) const {
+        return _matrix.get_storage(_mat_type);
+    }
+
+    LA_Info set_preferred_matrix_format(const MatrixStorageFormat _format) {
+        return _matrix.set_preferred_matrix_format(_format);
     }
 
     template <typename BinaryOpT>

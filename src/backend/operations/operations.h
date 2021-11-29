@@ -24,7 +24,7 @@ namespace backend{
                 Storage matrix_storage;
                 Storage vector_storage;
                 //TODO same for vector
-                A->getStorage(&matrix_storage);
+                A->get_storage(&matrix_storage);
 
 
                 //TODO check vector type

@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixCellSigmaC<T>::construct_unsorted_csr(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz)
+void MatrixCellSigmaC<T>::construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz)
 {
     vector<vector<VNT>> tmp_col_ids(_size);
     vector<vector<T>> tmp_vals(_size);
@@ -59,7 +59,7 @@ void MatrixCellSigmaC<T>::create_vertex_groups()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixCellSigmaC<T>::build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, VNT _socket)
+void MatrixCellSigmaC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
 {
     resize(_size, _nz);
     construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nz);
