@@ -1,6 +1,9 @@
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace lablas{
+namespace backend{
+
 
 template <typename T>
 class DenseVector
@@ -13,30 +16,43 @@ public:
     void set_constant(T _val);
 
     void print();
+
+    void get_size (VNT* _size) const {
+        *_size = size;
+    }
+
+    T* get_vals () {
+        return vals;
+    }
+
+    const T* get_vals () const {
+        return vals;
+    }
+
 private:
     VNT size;
     T *vals;
 
-    template<typename Y>
-    friend void SpMV(MatrixCSR<Y> &_matrix,
-                     MatrixCSR<Y> &_matrix_socket_dub,
-                     DenseVector<Y> &_x,
-                     DenseVector<Y> &_y,
-                     Descriptor &_desc);
-
-    template <typename Y>
-    friend void SpMV(MatrixCSR<Y> &_matrix,
-                     DenseVector<Y> &_x,
-                     DenseVector<Y> &_y);
-
-    template<typename Y>
-    friend void SpMV(MatrixSegmentedCSR<Y> &_A, DenseVector<Y> &_x, DenseVector<Y> &_y);
-
-    template<typename Y>
-    friend void SpMV(MatrixLAV<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
-
-    template<typename Y>
-    friend void SpMV(MatrixCOO<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+//    template<typename Y>
+//    friend void SpMV(MatrixCSR<Y> &_matrix,
+//                     MatrixCSR<Y> &_matrix_socket_dub,
+//                     DenseVector<Y> &_x,
+//                     DenseVector<Y> &_y,
+//                     Descriptor &_desc);
+//
+//    template <typename Y>
+//    friend void SpMV(MatrixCSR<Y> &_matrix,
+//                     DenseVector<Y> &_x,
+//                     DenseVector<Y> &_y);
+//
+//    template<typename Y>
+//    friend void SpMV(MatrixSegmentedCSR<Y> &_A, DenseVector<Y> &_x, DenseVector<Y> &_y);
+//
+//    template<typename Y>
+//    friend void SpMV(MatrixLAV<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+//
+//    template<typename Y>
+//    friend void SpMV(MatrixCOO<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
 
     template<typename Y>
     friend bool operator==(DenseVector<Y>& lhs, DenseVector<Y>& rhs);
@@ -112,5 +128,6 @@ bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
     else
         return false;
 }
-
+}
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

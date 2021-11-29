@@ -22,7 +22,7 @@ public:
     static void free_host_array(T *_ptr);
 
     template <typename T>
-    static void copy(T *_dst, T *_src, size_t _size);
+    static void copy(T *_dst, const T *_src, size_t _size);
 
     template <typename T>
     static void set(T *_data, T val, size_t _size);

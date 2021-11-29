@@ -1,55 +1,66 @@
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace lablas{
+namespace backend {
+
 
 template <typename T>
-void SpMV(MatrixSegmentedCSR<T> &_matrix, DenseVector<T> &_x, DenseVector<T> &_y)
+void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> *_y)
 {
     int cores_num = omp_get_max_threads();
+    int num_segments;
+    _matrix->get_segments(&num_segments);
     #pragma omp parallel
     {
-        for(int seg_id = 0; seg_id < _matrix.num_segments; seg_id++)
+        for(int seg_id = 0; seg_id < num_segments; seg_id++)
         {
-            SubgraphSegment<T> *segment = &(_matrix.subgraphs[seg_id]);
-            T *buffer = (T*)segment->vertex_buffer;
+            const SubgraphSegment<T> *segment = &(_matrix->get_segment()[seg_id]);
+            T *buffer = (T*)segment->get_vbuffer();
+            VNT seg_size;
+            segment->get_size(&seg_size);
 
             #pragma omp for schedule(static)
-            for(VNT i = 0; i < segment->size; i++)
+            for(VNT i = 0; i < seg_size; i++)
                 buffer[i] = 0;
 
             #pragma omp for schedule(guided, 1024)
-            for(VNT i = 0; i < segment->size; i++)
+            for(VNT i = 0; i < seg_size; i++)
             {
-                for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
+                for(ENT j = segment->get_row()[i]; j < segment->get_row()[i + 1]; j++)
                 {
-                    buffer[i] += segment->vals[j] * _x.vals[segment->col_ids[j]];
+                    buffer[i] += segment->get_vals()[j] * _x->get_vals()[segment->get_col()[j]];
                 }
             }
         }
     }
+    int matrix_size;
+    _matrix->get_size(&matrix_size);
 
-    if(_matrix.size > pow(2.0, 22)) // cache aware merge
+    if(matrix_size > pow(2.0, 22)) // cache aware merge
     {
-        int outer_threads = min(_matrix.merge_blocks_number, cores_num);
+        int matrix_blocks;
+        _matrix->get_blocks(&matrix_blocks);
+        int outer_threads = min(matrix_blocks, cores_num);
         int inner_threads = cores_num/outer_threads;
         #pragma omp parallel num_threads(outer_threads)
         {
             #pragma omp for schedule(static)
-            for(VNT cur_block = 0; cur_block < _matrix.merge_blocks_number; cur_block++)
+            for(VNT cur_block = 0; cur_block < matrix_blocks; cur_block++)
             {
-                for(int seg_id = 0; seg_id < _matrix.num_segments; seg_id++)
+                for(int seg_id = 0; seg_id < num_segments; seg_id++)
                 {
-                    SubgraphSegment<T> *segment = &(_matrix.subgraphs[seg_id]);
-                    T *buffer = (T*)segment->vertex_buffer;
-                    VNT *conversion_indexes = segment->conversion_to_full;
+                    const SubgraphSegment<T> *segment = &(_matrix->get_segment()[seg_id]);
+                    T *buffer = (T*)segment->get_vbuffer();
+                    const VNT *conversion_indexes = segment->get_conversion();
 
-                    VNT block_start = segment->block_starts[cur_block];
-                    VNT block_end = segment->block_ends[cur_block];
+                    VNT block_start = segment->get_block_start()[cur_block];
+                    VNT block_end = segment->get_block_end()[cur_block];
 
                     #pragma omp parallel for num_threads(inner_threads)
                     for(VNT i = block_start; i < block_end; i++)
                     {
-                        _y.vals[conversion_indexes[i]] += buffer[i];
+                        _y->get_vals()[conversion_indexes[i]] += buffer[i];
                     }
                 }
             }
@@ -58,16 +69,18 @@ void SpMV(MatrixSegmentedCSR<T> &_matrix, DenseVector<T> &_x, DenseVector<T> &_y
     }
     else
     {
-        for(int seg_id = 0; seg_id < _matrix.num_segments; seg_id++)
+        for(int seg_id = 0; seg_id < num_segments; seg_id++)
         {
-            SubgraphSegment<T> *segment = &(_matrix.subgraphs[seg_id]);
-            T *buffer = (T*)segment->vertex_buffer;
-            VNT *conversion_indexes = segment->conversion_to_full;
+            const SubgraphSegment<T> *segment = &(_matrix->get_segment()[seg_id]);
+            T *buffer = (T*)segment->get_vbuffer();
+            const VNT *conversion_indexes = segment->get_conversion();
+            VNT seg_size;
+            segment->get_size(&seg_size);
 
             #pragma omp parallel for schedule(static)
-            for(VNT i = 0; i < segment->size; i++)
+            for(VNT i = 0; i < seg_size; i++)
             {
-                _y.vals[conversion_indexes[i]] += buffer[i];
+                _y->get_vals()[conversion_indexes[i]] += buffer[i];
             }
         }
     }
@@ -75,5 +88,7 @@ void SpMV(MatrixSegmentedCSR<T> &_matrix, DenseVector<T> &_x, DenseVector<T> &_y
     //cout << "compare: " << (t2 - t1)*1000 << "(edge proc) vs " << (t4 - t3)*1000 << "(cache-aware) vs " << (t6 - t5)*1000 << "(usual merge)" << endl;
 }
 
+}
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
