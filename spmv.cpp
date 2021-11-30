@@ -77,7 +77,7 @@ void test_spmv(int argc, char **argv)
 
         u.fill(1.0);
         w_check.fill(0.0);
-        lablas::mxv<T, T, T, T>(&w_check,NULL, lablas::PlusMonoid<T>(), lablas::PlusMonoid<T>(),&matrix, &u, &desc);
+        lablas::mxv<T, T, T, T>(&w_check,NULL, lablas::PlusMonoid<T>(), lablas::PlusMonoid<T>(),&check_matrix, &u, &desc);
 
         if(w == w_check)
         {

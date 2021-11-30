@@ -23,6 +23,7 @@ g++ --version
 which g++
 
 cmake -D CMAKE_C_COMPILER=/home/z44377r/ARM/gcc_latest/bin/gcc -D CMAKE_CXX_COMPILER=/home/z44377r/ARM/gcc_latest/bin/g++ .
+make clean
 make
 
 export OMP_NUM_THREADS=48
