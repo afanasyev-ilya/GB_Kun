@@ -13,6 +13,8 @@
 
 #include <omp.h>
 
+typedef size_t Index;
+
 using namespace std;
 
 #include "backend/la_backend.h"

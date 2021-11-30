@@ -2,7 +2,6 @@
 #define GB_KUN_TYPES_HPP
     #include <cstddef>
 
-    typedef size_t Index;
 
     enum Storage {GrB_UNKNOWN,
             GrB_SPARSE,

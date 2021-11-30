@@ -54,7 +54,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void SubgraphSegment<T>::add_edge(int _row_id, int _col_id, T _val)
+void SubgraphSegment<T>::add_edge(VNT _row_id, VNT _col_id, T _val)
 {
     tmp_row_ids.push_back(_row_id);
     tmp_col_ids.push_back(_col_id);

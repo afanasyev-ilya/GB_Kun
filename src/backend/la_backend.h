@@ -1,7 +1,7 @@
 #pragma once
 
-#define VNT int
-#define ENT int
+#define VNT Index
+#define ENT Index
 #define CHECK_PRINT_NUM 10
 //#define __USE_SOCKET_OPTIMIZATIONS__
 #define VECTOR_LENGTH 32
