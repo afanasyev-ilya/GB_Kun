@@ -36,14 +36,15 @@ int main(int argc, char **argv) {
         LA_Info info = matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
         lablas::Vector<float> levels(el.vertices_count);
 
-        w.fill(0.0);
+        cout << "doing BFS..." << endl;
+
+        /*w.fill(0.0);
         u.fill(1.0);
 
         // TODO BFS
-        cout << "doing BFS..." << endl;
 
         VNT source_vertex = 0;
-        bfs(&levels, &matrix, source_vertex, &desc);
+        bfs(&levels, &matrix, source_vertex, &desc);*/
     }
     catch (string error)
     {

@@ -1,6 +1,6 @@
 #pragma once
 
-void bfs(Vector<float>*       v,
+/*void bfs(Vector<float>*       v,
          const Matrix<float>* A,
          Index                s,
          Descriptor*          desc)
@@ -55,4 +55,4 @@ void bfs(Vector<float>*       v,
     }
     std::string vxm_mode = (desc->descriptor_.lastmxv_ == GrB_PUSHONLY) ?
                            "push" : "pull";
-}
+}*/
