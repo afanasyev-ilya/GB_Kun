@@ -22,9 +22,10 @@ export LD_LIBRARY_PATH=/home/z44377r/ARM/gcc_latest/lib64:$LD_LIBRARY_PATH
 g++ --version
 which g++
 
+cmake -D CMAKE_C_COMPILER=/home/z44377r/ARM/gcc_latest/bin/gcc -D CMAKE_CXX_COMPILER=/home/z44377r/ARM/gcc_latest/bin/g++ .
 make
 
 export OMP_NUM_THREADS=48
 export OMP_PROC_BIND=close
 
-./spmv -s 19 -e 32 -type ru -format CSR
+./spmv -s 19 -e 32 -type ru -format SIGMA

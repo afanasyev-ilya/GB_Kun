@@ -11,7 +11,7 @@ void save_to_file(const string &_file_name, double _stat)
 template<typename T>
 void test_spmv(int argc, char **argv)
 {
-    //print_omp_stats();
+    print_omp_stats();
     Parser parser;
     parser.parse_args(argc, argv);
     VNT scale = parser.get_scale();

@@ -1,5 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef __ARM_FEATURE_SVE
+#include <arm_sve.h>
+#endif /* __ARM_FEATURE_SVE */
+
 namespace lablas{
 namespace backend{
 
@@ -31,6 +35,15 @@ void SpMV_load_balanced(const MatrixCellSigmaC<T> *_matrix,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef __ARM_FEATURE_SVE
+template <typename T>
+void SpMV_vector(const MatrixCellSigmaC<T> *_matrix,
+                 const DenseVector<T> *_x,
+                 DenseVector<T> *_y)
+{
+    cout << "in opt SVE" << endl;
+}
+#else
 template <typename T>
 void SpMV_vector(const MatrixCellSigmaC<T> *_matrix,
                  const DenseVector<T> *_x,
@@ -96,6 +109,7 @@ void SpMV_vector(const MatrixCellSigmaC<T> *_matrix,
         }
     }
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
