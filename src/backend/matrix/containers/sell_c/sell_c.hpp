@@ -2,6 +2,11 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+namespace lablas {
+namespace backend {
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T> void sort_perm(T *arr, int *perm, int len, bool rev=false)
 {
     if(rev == false) {
@@ -26,7 +31,7 @@ template <typename T> void sort_perm_v(T *arr, int *perm, int len, bool rev=fals
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-MatrixSellC<T>::MatrixSellC():size(0), nz(0), val(NULL), rowPtr(NULL), col(NULL), chunkLen(NULL), chunkPtr(NULL), colSellC(NULL), valSellC(NULL), unrollFac(1), C(1)
+MatrixSellC<T>::MatrixSellC():size(0), nz(0), vals(NULL), row_ptr(NULL), col_ids(NULL), chunkLen(NULL), chunkPtr(NULL), colSellC(NULL), valSellC(NULL), unrollFac(1), C(1)
 {
     #pragma omp parallel
     {
@@ -34,7 +39,7 @@ MatrixSellC<T>::MatrixSellC():size(0), nz(0), val(NULL), rowPtr(NULL), col(NULL)
     }
     rcmPerm = NULL;
     rcmInvPerm = NULL;
-    nnzPerRow = NULL;
+    nz_per_row = NULL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,14 +47,14 @@ MatrixSellC<T>::MatrixSellC():size(0), nz(0), val(NULL), rowPtr(NULL), col(NULL)
 template <typename T>
 MatrixSellC<T>::~MatrixSellC()
 {
-    if(val)
-        delete[] val;
+    if(vals)
+        delete[] vals;
 
-    if(rowPtr)
-        delete[] rowPtr;
+    if(row_ptr)
+        delete[] row_ptr;
 
-    if(col)
-        delete[] col;
+    if(col_ids)
+        delete[] col_ids;
 
     if(chunkLen)
         delete[] chunkLen;
@@ -63,219 +68,41 @@ MatrixSellC<T>::~MatrixSellC()
     if(valSellC)
         delete[] valSellC;
 
-    if(nnzPerRow)
+    if(nz_per_row)
     {
-        delete[] nnzPerRow;
+        delete[] nz_per_row;
     }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template<typename T>
-void MatrixSellC<T>::constructSellCSigma(int chunkHeight, int sigma, int pad)
+template <typename T>
+T MatrixSellC<T>::get(VNT _row, VNT _col)
 {
-    /*C = chunkHeight;
-    P = pad;
-
-    int nSigmaChunks = (int)(size/(T)sigma);
-    if(sigma > 1)
+    for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
     {
-        int *sigmaPerm = new int[size];
-        for(int i=0; i<size; ++i)
-        {
-            sigmaPerm[i] = i;
-        }
-
-        for(int sigmaChunk=0; sigmaChunk<nSigmaChunks; ++sigmaChunk)
-        {
-            int *perm_begin = &(sigmaPerm[sigmaChunk*sigma]);
-            sort_perm(nnzPerRow, perm_begin, sigma);
-        }
-
-        int restSigmaChunk = size%sigma;
-        if(restSigmaChunk > C)
-        {
-            int *perm_begin = &(sigmaPerm[nSigmaChunks*sigma]);
-            sort_perm(nnzPerRow, perm_begin, restSigmaChunk);
-        }
-
-        int *sigmaInvPerm = new int[size];
-
-        for(int i=0; i<size; ++i)
-        {
-            sigmaInvPerm[sigmaPerm[i]] = i;
-        }
-
-        permute(sigmaPerm, sigmaInvPerm);
-
-        delete[] sigmaPerm;
-        delete[] sigmaInvPerm;
+        if(col_ids[i] == _col)
+            return vals[i];
     }
-
-    nchunks = (int)(size/(double)C);
-    if(size%C > 0)
-    {
-        nchunks += 1;
-    }
-
-    chunkLen = new int[nchunks];
-    chunkPtr = new int[nchunks+1];
-
-    #pragma omp parallel for schedule(static)
-    for(int i=0; i<nchunks; ++i)
-    {
-        chunkLen[i] = 0;
-        chunkPtr[i] = 0;
-    }
-
-    nnzSellC = 0;
-    //find chunkLen
-    for(int chunk=0; chunk<nchunks; ++chunk)
-    {
-        int maxRowLen = 0;
-        for(int rowInChunk=0; rowInChunk<C; ++rowInChunk)
-        {
-            int row = chunk*C + rowInChunk;
-            if(row<size)
-            {
-                maxRowLen = std::max(maxRowLen, rowPtr[row+1]-rowPtr[row]);
-            }
-        }
-        //pad it to be multiple of P
-        if((maxRowLen%P) != 0)
-        {
-            maxRowLen = ((int)(maxRowLen/(double)P)+1)*P;
-        }
-        chunkLen[chunk] = maxRowLen;
-        nnzSellC += maxRowLen*C;
-    }
-
-    colSellC = new int[nnzSellC];
-    valSellC = new double[nnzSellC];
-
-
-    #pragma omp parallel for schedule(static)
-    for(int i=0; i<=(nchunks); ++i)
-    {
-        chunkPtr[i] = 0;
-    }
-
-    for(int i=0; i<(nchunks); ++i)
-    {
-        chunkPtr[i+1] = chunkPtr[i] + C*chunkLen[i];
-    }
-
-
-    #pragma omp parallel for schedule(static)
-    for(int chunk=0; chunk<nchunks; ++chunk)
-    {
-        for(int rowInChunk=0; rowInChunk<C; ++rowInChunk)
-        {
-            for(int idx=0; idx<chunkLen[chunk]; ++idx)
-            {
-                if(C == size)
-                {
-                    colSellC[chunkPtr[chunk]+idx*C+rowInChunk] = chunk*C + rowInChunk;//ELLPACK of Fujitsu needs it this way (the rowIndex)
-                }
-                else
-                {
-                    colSellC[chunkPtr[chunk]+idx*C+rowInChunk] = 0;
-                }
-                valSellC[chunkPtr[chunk]+idx*C+rowInChunk] = 0;
-            }
-        }
-    }
-
-
-    for(int chunk=0; chunk<nchunks; ++chunk)
-    {
-        for(int rowInChunk=0; rowInChunk<C; ++rowInChunk)
-        {
-            int row = chunk*C + rowInChunk;
-            if(row<size)
-            {
-                for(int idx=rowPtr[row],j=0; idx<rowPtr[row+1]; ++idx,++j)
-                {
-                    valSellC[chunkPtr[chunk]+j*C+rowInChunk] = val[idx];
-                    colSellC[chunkPtr[chunk]+j*C+rowInChunk] = col[idx];
-                }
-            }
-        }
-    }
-
-    std::vector<double> strideAvg(nchunks*C, 0);
-    double strideAvg_total = 0;
-    for(int chunk=0; chunk<nchunks; ++chunk)
-    {
-        for(int rowInChunk=0; rowInChunk<C; ++rowInChunk)
-        {
-            for(int idx=1; idx<chunkLen[chunk]; ++idx)
-            {
-                strideAvg[chunk*C+rowInChunk] += std::abs(colSellC[chunkPtr[chunk]+idx*C+rowInChunk] - colSellC[chunkPtr[chunk]+(idx-1)*C+rowInChunk]);
-            }
-
-            strideAvg[chunk*C+rowInChunk] = strideAvg[chunk*C+rowInChunk]/(double)chunkLen[chunk];
-            strideAvg_total += strideAvg[chunk*C+rowInChunk];
-        }
-    }
-    strideAvg_total = strideAvg_total/((double)nchunks*C);
-
-    printf("Average stride length = %f\n", strideAvg_total);*/
+    return 0;
 }
 
-template<typename T>
-void MatrixSellC<T>::permute(int *perm, int*  invPerm)
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MatrixSellC<T>::print()
 {
-    double* newVal = new double[nz];
-    int* newRowPtr = new int[size+1];
-    int* newCol = new int[nz];
-
-    newRowPtr[0] = 0;
-
-    //NUMA init
-    #pragma omp parallel for schedule(static)
-    for(int row=0; row<size; ++row)
+    for(VNT row = 0; row < size; row++)
     {
-        newRowPtr[row+1] = 0;
-    }
-
-    //first find newRowPtr; therefore we can do proper NUMA init
-    int permIdx=0;
-    printf("size = %d\n", size);
-    for(int row=0; row<size; ++row)
-    {
-        //row permutation
-        int permRow = perm[row];
-        nnzPerRow[row] = (rowPtr[permRow+1]-rowPtr[permRow]);
-        for(int idx=rowPtr[permRow]; idx<rowPtr[permRow+1]; ++idx)
+        for(VNT col = 0; col < size; col++)
         {
-            ++permIdx;
+            cout << get(row, col) << " ";
         }
-        newRowPtr[row+1] = permIdx;
+        cout << endl;
     }
-
-    //with NUMA init
-    #pragma omp parallel for schedule(static)
-    for(int row=0; row<size; ++row)
-    {
-        //row permutation
-        int permRow = perm[row];
-        for(int permIdx=newRowPtr[row],idx=rowPtr[permRow]; permIdx<newRowPtr[row+1]; ++idx,++permIdx)
-        {
-            //permute column-wise also
-            newVal[permIdx] = val[idx];
-            newCol[permIdx] = invPerm[col[idx]];
-        }
-    }
-
-    //free old permutations
-    delete[] val;
-    delete[] rowPtr;
-    delete[] col;
-
-    val = newVal;
-    rowPtr = newRowPtr;
-    col = newCol;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+}
+}

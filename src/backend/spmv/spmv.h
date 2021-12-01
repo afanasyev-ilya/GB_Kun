@@ -4,6 +4,7 @@
 #include "spmv_csr.h"
 #include "spmv_coo.h"
 #include "spmv_lav.h"
+#include "spmv_sell_c.h"
 #include "spmv_vect_csr.h"
 #include "../matrix/matrix.h"
 #include "../vector/vector.h"
@@ -33,6 +34,8 @@ void SpMV(const Matrix<T> *_matrix,
         SpMV(((MatrixSegmentedCSR<T> *)_matrix->get_Data()), _x->getDense(), _y->getDense());
     else if(format == VECT_GROUP_CSR)
         SpMV(((MatrixVectGroupCSR<T> *)_matrix->get_Data()), _x->getDense(), _y->getDense());
+    else if(format == SELL_C)
+        SpMV(((MatrixSellC<T> *)_matrix->get_Data()), _x->getDense(), _y->getDense());
 }
 
 
