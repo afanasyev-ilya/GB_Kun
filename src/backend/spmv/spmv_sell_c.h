@@ -88,32 +88,39 @@ void SpMV(const MatrixSellC<T> *_matrix,
     const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();
 
-    const int C = _matrix->C;
-    const int  P = _matrix->P;
+    const VNT C = _matrix->C;
+    const VNT P = _matrix->P;
+
+    ENT cnt = 0;
+
+    //cout << "chunks: " << _matrix->nchunks << " * " << C << " = " << _matrix->size << endl;
 
     #pragma omp parallel for schedule(static)
-    for(int chunk=0; chunk<_matrix->nchunks; ++chunk)
+    for(VNT chunk=0; chunk<_matrix->nchunks; ++chunk)
     {
-        for(int rowInChunk=0; rowInChunk < C; ++rowInChunk)
+        for(VNT rowInChunk=0; rowInChunk < C; ++rowInChunk)
         {
             if((chunk*C+rowInChunk) < _matrix->size)
                 y_vals[chunk*C+rowInChunk] = 0;
         }
 
-        for(int j=0; j<_matrix->chunkLen[chunk]; j=j+P)
+        for(VNT j=0; j<_matrix->chunkLen[chunk]; j=j+P)
         {
-            int idx = _matrix->chunkPtr[chunk]+j*C;
-            for(int rowInChunk=0; rowInChunk<C; ++rowInChunk)
+            ENT idx = _matrix->chunkPtr[chunk]+j*C;
+            for(VNT rowInChunk=0; rowInChunk<C; ++rowInChunk)
             {
                 if((chunk*C+rowInChunk) < _matrix->size)
                 {
-                    T mat_val = _matrix_valsSellC[idx+rowInChunk];
+                    T mat_val = _matrix->valSellC[idx+rowInChunk];
                     VNT col_id = _matrix->colSellC[idx+rowInChunk];
                     y_vals[chunk*C+rowInChunk] += mat_val * x_vals[col_id];
+                    cnt++;
                 }
             }
         }
     }
+
+    //cout << "cnt: " << cnt << " vs " << _matrix->nz << " " << (double) cnt / _matrix->nz << endl;
 }
 #endif
 

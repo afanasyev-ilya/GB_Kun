@@ -60,7 +60,7 @@ void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_v
 
     NUMA_init();
 
-    construct_sell_c_sigma(32, 1);
+    construct_sell_c_sigma(VECTOR_LENGTH, 1);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +106,7 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad)
     C = chunkHeight;
     P = pad;
 
-    VNT nSigmaChunks = (int)(size/(double)sigma);
+    VNT nSigmaChunks = (VNT)(size/(double)sigma);
     if(sigma > 1)
     {
         VNT *sigmaPerm = new VNT[size];
