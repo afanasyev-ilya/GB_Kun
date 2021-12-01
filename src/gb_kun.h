@@ -13,7 +13,7 @@
 
 #include <omp.h>
 
-typedef size_t Index;
+typedef int Index;
 
 using namespace std;
 

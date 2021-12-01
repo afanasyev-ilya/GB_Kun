@@ -158,8 +158,8 @@ void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VN
                         }
                         else
                         {
-                            vector_group_col_ids[current_edge + i] = -1;
-                            vector_group_vals[current_edge + i] = -1;
+                            vector_group_col_ids[current_edge + i] = 0;//-1;
+                            vector_group_vals[current_edge + i] = 0;//-1;
                         }
                     }
                 }
