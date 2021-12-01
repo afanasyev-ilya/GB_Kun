@@ -60,13 +60,7 @@ void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_v
 
     NUMA_init();
 
-    cout << "build done" << endl;
-
-    print();
-
     construct_sell_c_sigma(32, 1);
-
-    cout << "sell-c consruct done";
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

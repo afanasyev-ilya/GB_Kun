@@ -4,9 +4,9 @@
 
 Parser::Parser()
 {
-    scale = 4;
-    avg_degree = 3;
-    synthetic_graph_type = RMAT;
+    scale = 15;
+    avg_degree = 16;
+    synthetic_graph_type = RANDOM_UNIFORM;
     storage_format = SELL_C;
     no_check = false;
 }
