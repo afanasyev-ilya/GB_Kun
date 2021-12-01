@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void VectGroupCSR<T>::construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz)
+void MatrixVectGroupCSR<T>::construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz)
 {
     vector<vector<VNT>> tmp_col_ids(_size);
     vector<vector<T>> tmp_vals(_size);
@@ -34,7 +34,7 @@ void VectGroupCSR<T>::construct_unsorted_csr(const VNT *_row_ids, const VNT *_co
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void VectGroupCSR<T>::create_vertex_groups()
+void MatrixVectGroupCSR<T>::create_vertex_groups()
 {
     vertex_groups_num = 6;
     vertex_groups = new CSRVertexGroup<T>[vertex_groups_num];
@@ -48,10 +48,10 @@ void VectGroupCSR<T>::create_vertex_groups()
     if(VECTOR_LENGTH == 32)
         cell_c_start_group = 1;
     else
-        throw "Error: incorrect VECTOR_LENGTH in VectGroupCSR<T>::create_vertex_groups";
+        throw "Error: incorrect VECTOR_LENGTH in MatrixVectGroupCSR<T>::create_vertex_groups";
 
     cell_c_vertex_groups_num = 6;
-    cell_c_vertex_groups = new CSRVertexGroupCellC<T>[cell_c_vertex_groups_num];
+    cell_c_vertex_groups = new CSRVertexGroupSellC<T>[cell_c_vertex_groups_num];
     cell_c_vertex_groups[0].build(this, 256, 512);
     cell_c_vertex_groups[1].build(this, 128, 256);
     cell_c_vertex_groups[2].build(this, 64, 128);
@@ -63,7 +63,7 @@ void VectGroupCSR<T>::create_vertex_groups()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void VectGroupCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
+void MatrixVectGroupCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
 {
     resize(_size, _nz);
     construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nz);

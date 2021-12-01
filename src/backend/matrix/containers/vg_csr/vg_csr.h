@@ -9,12 +9,12 @@ namespace backend {
 #include "cell_c_vg/cell_c_vg.h"
 
 template <typename T>
-class VectGroupCSR : public MatrixContainer<T>
+class MatrixVectGroupCSR : public MatrixContainer<T>
 {
 public:
-    VectGroupCSR();
+    MatrixVectGroupCSR();
 
-    ~VectGroupCSR();
+    ~MatrixVectGroupCSR();
 
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket = 0);
     void print();
@@ -35,7 +35,7 @@ private:
 
     int cell_c_vertex_groups_num;
     int cell_c_start_group;
-    CSRVertexGroupCellC<T> *cell_c_vertex_groups;
+    CSRVertexGroupSellC<T> *cell_c_vertex_groups;
 
     void create_vertex_groups();
 
@@ -46,12 +46,12 @@ private:
     void construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz);
 
     friend class CSRVertexGroup<T>;
-    friend class CSRVertexGroupCellC<T>;
+    friend class CSRVertexGroupSellC<T>;
 
     template<typename Y>
-    friend void SpMV_load_balanced(const VectGroupCSR<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
+    friend void SpMV_load_balanced(const MatrixVectGroupCSR<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
     template<typename Y>
-    friend void SpMV_vector(const VectGroupCSR<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
+    friend void SpMV_vector(const MatrixVectGroupCSR<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
 };
 
 #include "vg_csr.hpp"

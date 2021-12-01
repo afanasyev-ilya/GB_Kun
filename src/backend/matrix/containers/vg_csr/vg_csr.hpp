@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-VectGroupCSR<T>::VectGroupCSR()
+MatrixVectGroupCSR<T>::MatrixVectGroupCSR()
 {
     alloc(1, 1);
 }
@@ -10,7 +10,7 @@ VectGroupCSR<T>::VectGroupCSR()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-VectGroupCSR<T>::~VectGroupCSR()
+MatrixVectGroupCSR<T>::~MatrixVectGroupCSR()
 {
     free();
     delete []vertex_groups;
@@ -20,7 +20,7 @@ VectGroupCSR<T>::~VectGroupCSR()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void VectGroupCSR<T>::alloc(VNT _size, ENT _nz)
+void MatrixVectGroupCSR<T>::alloc(VNT _size, ENT _nz)
 {
     size = _size;
     nz = _nz;
@@ -33,7 +33,7 @@ void VectGroupCSR<T>::alloc(VNT _size, ENT _nz)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void VectGroupCSR<T>::free()
+void MatrixVectGroupCSR<T>::free()
 {
     MemoryAPI::free_array(row_ptr);
     MemoryAPI::free_array(col_ids);
@@ -43,7 +43,7 @@ void VectGroupCSR<T>::free()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void VectGroupCSR<T>::resize(VNT _size, ENT _nz)
+void MatrixVectGroupCSR<T>::resize(VNT _size, ENT _nz)
 {
     this->free();
     this->alloc(_size, _nz);
@@ -52,7 +52,7 @@ void VectGroupCSR<T>::resize(VNT _size, ENT _nz)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-T VectGroupCSR<T>::get(VNT _row, VNT _col)
+T MatrixVectGroupCSR<T>::get(VNT _row, VNT _col)
 {
     for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
     {

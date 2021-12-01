@@ -7,7 +7,7 @@ Parser::Parser()
     scale = 15;
     avg_degree = 16;
     synthetic_graph_type = RMAT;
-    storage_format = VECT_GROUP_CSR;
+    storage_format = SELL_C;
     no_check = false;
 }
 
@@ -61,6 +61,8 @@ void Parser::parse_args(int _argc, char **_argv)
                 storage_format = LAV;
             else if(option == "VG_CSR" || option == "vg_csr")
                 storage_format = VECT_GROUP_CSR;
+            else if(option == "SELL_C" || option == "SIGMA")
+                storage_format = SELL_C;
         }
 
         if(option == "-no-check")

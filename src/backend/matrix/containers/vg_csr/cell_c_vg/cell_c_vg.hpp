@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-CSRVertexGroupCellC<T>::CSRVertexGroupCellC()
+CSRVertexGroupSellC<T>::CSRVertexGroupSellC()
 {
     size = 1;
 }
@@ -11,7 +11,7 @@ CSRVertexGroupCellC<T>::CSRVertexGroupCellC()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool CSRVertexGroupCellC<T>::id_in_range(VNT _src_id, VNT _nz_count)
+bool CSRVertexGroupSellC<T>::id_in_range(VNT _src_id, VNT _nz_count)
 {
     if ((_nz_count >= min_nz) && (_nz_count < max_nz))
         return true;
@@ -22,7 +22,7 @@ bool CSRVertexGroupCellC<T>::id_in_range(VNT _src_id, VNT _nz_count)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void CSRVertexGroupCellC<T>::print()
+void CSRVertexGroupSellC<T>::print()
 {
     cout << "vertex group info: ";
     for (VNT i = 0; i < size; i++)
@@ -33,7 +33,7 @@ void CSRVertexGroupCellC<T>::print()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-CSRVertexGroupCellC<T>::~CSRVertexGroupCellC()
+CSRVertexGroupSellC<T>::~CSRVertexGroupSellC()
 {
     MemoryAPI::free_array(row_ids);
     MemoryAPI::free_array(vector_group_ptrs);
@@ -45,7 +45,7 @@ CSRVertexGroupCellC<T>::~CSRVertexGroupCellC()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void CSRVertexGroupCellC<T>::build(VectGroupCSR<T> *_matrix, VNT _bottom, VNT _top)
+void CSRVertexGroupSellC<T>::build(MatrixVectGroupCSR<T> *_matrix, VNT _bottom, VNT _top)
 {
     VNT matrix_size = _matrix->size;
 
