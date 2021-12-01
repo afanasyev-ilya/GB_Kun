@@ -31,8 +31,8 @@ void SpMV(const Matrix<T> *_matrix,
         SpMV(((MatrixCOO<T> *) _matrix->get_Data()), _x->getDense(), _y->getDense());
     else if(format == CSR_SEG)
         SpMV(((MatrixSegmentedCSR<T> *)_matrix->get_Data()), _x->getDense(), _y->getDense());
-    else if(format == CELL_SIGMA_C)
-        SpMV(((MatrixCellSigmaC<T> *)_matrix->get_Data()), _x->getDense(), _y->getDense());
+    else if(format == VECT_GROUP_CSR)
+        SpMV(((VectGroupCSR<T> *)_matrix->get_Data()), _x->getDense(), _y->getDense());
 }
 
 

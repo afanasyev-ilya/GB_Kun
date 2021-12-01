@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-class MatrixCellSigmaC;
+class VectGroupCSR;
 
 template <typename T>
 struct CSRVertexGroup
@@ -21,7 +21,7 @@ public:
     bool id_in_range(VNT _src_id, VNT _nz_count);
 
     /* modification API */
-    void build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _top);
+    void build(VectGroupCSR<T> *_matrix, VNT _bottom, VNT _top);
     void copy(CSRVertexGroup &_other_group);
     void add_vertex(VNT _src_id);
     void clear() {size = 0;};
@@ -39,9 +39,9 @@ private:
     VNT min_nz, max_nz;
 
     template<typename Y>
-    friend void SpMV_load_balanced(const MatrixCellSigmaC<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
+    friend void SpMV_load_balanced(const VectGroupCSR<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
     template<typename Y>
-    friend void SpMV_vector(const MatrixCellSigmaC<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
+    friend void SpMV_vector(const VectGroupCSR<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

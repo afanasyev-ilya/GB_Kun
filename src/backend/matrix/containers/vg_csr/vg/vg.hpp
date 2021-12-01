@@ -92,7 +92,7 @@ CSRVertexGroup<T>::~CSRVertexGroup()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void CSRVertexGroup<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _top)
+void CSRVertexGroup<T>::build(VectGroupCSR<T> *_matrix, VNT _bottom, VNT _top)
 {
     VNT matrix_size = _matrix->size;
 

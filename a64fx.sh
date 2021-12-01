@@ -29,4 +29,4 @@ make
 export OMP_NUM_THREADS=48
 export OMP_PROC_BIND=close
 
-./spmv -s 19 -e 32 -type ru -format SIGMA
+./spmv -s 19 -e 32 -type ru -format VG_CSR

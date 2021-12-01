@@ -16,7 +16,7 @@ public:
     void print();
 
     /* import and preprocess API */
-    void build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _top);
+    void build(VectGroupCSR<T> *_matrix, VNT _bottom, VNT _top);
 private:
     VNT *row_ids; // ids of vertices from this group
     VNT size; // size of this group
@@ -35,7 +35,7 @@ private:
     bool id_in_range(VNT _src_id, VNT _nz_count);
 
     template<typename Y>
-    friend void SpMV_vector(const MatrixCellSigmaC<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
+    friend void SpMV_vector(const VectGroupCSR<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

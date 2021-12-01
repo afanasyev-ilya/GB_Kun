@@ -16,6 +16,6 @@ public:
 #include "coo/coo_matrix.h"
 #include "seg_csr/seg_csr_matrix.h"
 #include "lav/lav_matrix.h"
-#include "cell-sigma-C/sigma_matrix.h"
+#include "vg_csr/vg_csr.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

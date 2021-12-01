@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-MatrixCellSigmaC<T>::MatrixCellSigmaC()
+VectGroupCSR<T>::VectGroupCSR()
 {
     alloc(1, 1);
 }
@@ -10,7 +10,7 @@ MatrixCellSigmaC<T>::MatrixCellSigmaC()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-MatrixCellSigmaC<T>::~MatrixCellSigmaC()
+VectGroupCSR<T>::~VectGroupCSR()
 {
     free();
     delete []vertex_groups;
@@ -20,7 +20,7 @@ MatrixCellSigmaC<T>::~MatrixCellSigmaC()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixCellSigmaC<T>::alloc(VNT _size, ENT _nz)
+void VectGroupCSR<T>::alloc(VNT _size, ENT _nz)
 {
     size = _size;
     nz = _nz;
@@ -33,7 +33,7 @@ void MatrixCellSigmaC<T>::alloc(VNT _size, ENT _nz)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixCellSigmaC<T>::free()
+void VectGroupCSR<T>::free()
 {
     MemoryAPI::free_array(row_ptr);
     MemoryAPI::free_array(col_ids);
@@ -43,7 +43,7 @@ void MatrixCellSigmaC<T>::free()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixCellSigmaC<T>::resize(VNT _size, ENT _nz)
+void VectGroupCSR<T>::resize(VNT _size, ENT _nz)
 {
     this->free();
     this->alloc(_size, _nz);
@@ -52,7 +52,7 @@ void MatrixCellSigmaC<T>::resize(VNT _size, ENT _nz)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-T MatrixCellSigmaC<T>::get(VNT _row, VNT _col)
+T VectGroupCSR<T>::get(VNT _row, VNT _col)
 {
     for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
     {

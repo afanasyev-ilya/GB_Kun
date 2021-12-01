@@ -9,12 +9,12 @@ namespace backend {
 #include "cell_c_vg/cell_c_vg.h"
 
 template <typename T>
-class MatrixCellSigmaC : public MatrixContainer<T>
+class VectGroupCSR : public MatrixContainer<T>
 {
 public:
-    MatrixCellSigmaC();
+    VectGroupCSR();
 
-    ~MatrixCellSigmaC();
+    ~VectGroupCSR();
 
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket = 0);
     void print();
@@ -49,12 +49,12 @@ private:
     friend class CSRVertexGroupCellC<T>;
 
     template<typename Y>
-    friend void SpMV_load_balanced(const MatrixCellSigmaC<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
+    friend void SpMV_load_balanced(const VectGroupCSR<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
     template<typename Y>
-    friend void SpMV_vector(const MatrixCellSigmaC<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
+    friend void SpMV_vector(const VectGroupCSR<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
 };
 
-#include "sigma_matrix.hpp"
+#include "vg_csr.hpp"
 #include "build.hpp"
 #include "print.hpp"
 #include "vg/vg.hpp"

@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixCellSigmaC<T>::construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz)
+void VectGroupCSR<T>::construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz)
 {
     vector<vector<VNT>> tmp_col_ids(_size);
     vector<vector<T>> tmp_vals(_size);
@@ -34,7 +34,7 @@ void MatrixCellSigmaC<T>::construct_unsorted_csr(const VNT *_row_ids, const VNT 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixCellSigmaC<T>::create_vertex_groups()
+void VectGroupCSR<T>::create_vertex_groups()
 {
     vertex_groups_num = 6;
     vertex_groups = new CSRVertexGroup<T>[vertex_groups_num];
@@ -48,7 +48,7 @@ void MatrixCellSigmaC<T>::create_vertex_groups()
     if(VECTOR_LENGTH == 32)
         cell_c_start_group = 1;
     else
-        throw "Error: incorrect VECTOR_LENGTH in MatrixCellSigmaC<T>::create_vertex_groups";
+        throw "Error: incorrect VECTOR_LENGTH in VectGroupCSR<T>::create_vertex_groups";
 
     cell_c_vertex_groups_num = 6;
     cell_c_vertex_groups = new CSRVertexGroupCellC<T>[cell_c_vertex_groups_num];
@@ -63,7 +63,7 @@ void MatrixCellSigmaC<T>::create_vertex_groups()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixCellSigmaC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
+void VectGroupCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
 {
     resize(_size, _nz);
     construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nz);

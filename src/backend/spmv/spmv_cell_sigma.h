@@ -8,7 +8,7 @@ namespace lablas{
 namespace backend{
 
 template <typename T>
-void SpMV_load_balanced(const MatrixCellSigmaC<T> *_matrix,
+void SpMV_load_balanced(const VectGroupCSR<T> *_matrix,
                         const DenseVector<T> *_x,
                         DenseVector<T> *_y)
 {
@@ -37,7 +37,7 @@ void SpMV_load_balanced(const MatrixCellSigmaC<T> *_matrix,
 
 #ifdef __ARM_FEATURE_SVE
 template <typename T>
-void SpMV_vector(const MatrixCellSigmaC<T> *_matrix,
+void SpMV_vector(const VectGroupCSR<T> *_matrix,
                  const DenseVector<T> *_x,
                  DenseVector<T> *_y)
 {
@@ -141,7 +141,7 @@ void SpMV_vector(const MatrixCellSigmaC<T> *_matrix,
 }
 #else
 template <typename T>
-void SpMV_vector(const MatrixCellSigmaC<T> *_matrix,
+void SpMV_vector(const VectGroupCSR<T> *_matrix,
                  const DenseVector<T> *_x,
                  DenseVector<T> *_y)
 {
@@ -210,7 +210,7 @@ void SpMV_vector(const MatrixCellSigmaC<T> *_matrix,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void SpMV(const MatrixCellSigmaC<T> *_matrix,
+void SpMV(const VectGroupCSR<T> *_matrix,
           const DenseVector<T> *_x,
           DenseVector<T> *_y)
 {

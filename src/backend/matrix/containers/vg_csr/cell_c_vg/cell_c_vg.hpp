@@ -45,7 +45,7 @@ CSRVertexGroupCellC<T>::~CSRVertexGroupCellC()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void CSRVertexGroupCellC<T>::build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _top)
+void CSRVertexGroupCellC<T>::build(VectGroupCSR<T> *_matrix, VNT _bottom, VNT _top)
 {
     VNT matrix_size = _matrix->size;
 
