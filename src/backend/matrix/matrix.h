@@ -67,6 +67,8 @@ public:
         data->print();
     }
 
+    ENT get_nnz() {return data->get_nnz();};
+
 private:
     MatrixContainer<T> *data;
     #ifdef __USE_SOCKET_OPTIMIZATIONS__

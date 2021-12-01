@@ -17,6 +17,8 @@ void SpMV(const MatrixSellC<T> *_matrix,
           const DenseVector<T> *_x,
           DenseVector<T> *_y)
 {
+    cout << "using opt SVE version" << endl;
+
     const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();
 
@@ -91,8 +93,6 @@ void SpMV(const MatrixSellC<T> *_matrix,
     const VNT C = _matrix->C;
     const VNT P = _matrix->P;
 
-    ENT cnt = 0;
-
     //cout << "chunks: " << _matrix->nchunks << " * " << C << " = " << _matrix->size << endl;
 
     #pragma omp parallel for schedule(static)
@@ -114,7 +114,6 @@ void SpMV(const MatrixSellC<T> *_matrix,
                     T mat_val = _matrix->valSellC[idx+rowInChunk];
                     VNT col_id = _matrix->colSellC[idx+rowInChunk];
                     y_vals[chunk*C+rowInChunk] += mat_val * x_vals[col_id];
-                    cnt++;
                 }
             }
         }

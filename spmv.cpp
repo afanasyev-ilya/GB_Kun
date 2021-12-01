@@ -61,8 +61,8 @@ void test_spmv(int argc, char **argv)
         avg_time += (t2 - t1) / num_runs;
     }
 
-    double perf = 2.0*el.edges_count/(avg_time*1e9);
-    double bw = (3.0*sizeof(T)+sizeof(VNT))*el.edges_count/(avg_time*1e9);
+    double perf = 2.0*matrix.get_nnz()/(avg_time*1e9);
+    double bw = (3.0*sizeof(T)+sizeof(VNT))*matrix.get_nnz()/(avg_time*1e9);
     cout << "SPMV perf: " << perf << " GFlop/s" << endl;
     cout << "SPMV BW: " << bw << " GB/s" << endl;
     save_to_file("./output/perf.txt", perf);
