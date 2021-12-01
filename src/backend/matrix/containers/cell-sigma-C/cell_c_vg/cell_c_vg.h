@@ -17,6 +17,9 @@ public:
 
     /* import and preprocess API */
     void build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _top);
+    void get_size(VNT* _size) {
+        *_size = size;
+    }
 private:
     VNT *row_ids; // ids of vertices from this group
     VNT size; // size of this group

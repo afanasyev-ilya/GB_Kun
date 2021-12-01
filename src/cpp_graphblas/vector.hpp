@@ -16,32 +16,29 @@ public:
 
     ~Vector() {}
 
+    LA_Info build(const std::vector<Index>* indices,
+                  const std::vector<T>*     values,
+               Index  nvals) {
 
-    //    template <typename BinaryOpT>
-    //    LA_Info build (const std::vector<VNT>*   row_indices,
-    //                   const std::vector<VNT>*   col_indices,
-    //                   const std::vector<T>*     values,
-    //                   Index                     nvals,
-    //                   BinaryOpT                 dup,
-    //                   char*                     dat_name = nullptr) {
-    //        if (row_indices == nullptr || col_indices == nullptr || values == nullptr) {
-    //            return GrB_NULL_POINTER;
-    //        }
-    //        if (row_indices->empty() && col_indices->empty() && values->empty()) {
-    //            return GrB_NO_VALUE;
-    //        }
-    //        if (row_indices->size() != col_indices ->size()) {
-    //            return GrB_DIMENSION_MISMATCH;
-    //        }
-    //        /* doubling nvlas because _nz = nvals in implementation - TODO remove*/
-    //        if (!row_indices->empty()) {
-    //            _matrix.build(row_indices->data(), col_indices->data(), values->data(), nvals, nvals);
-    //        }
-    //        return GrB_SUCCESS;
-    //    }
+        if (indices == NULL || values == NULL) return GrB_NULL_POINTER;
+        if (nvals == 0) return GrB_INVALID_VALUE;
+        return _vector.build(indices->data(), values->data(), nvals);
+    }
+
+    LA_Info build(const std::vector<T>*     values,
+                          Index  nvals) {
+        if (values == NULL) return GrB_NULL_POINTER;
+        if (nvals == 0) return GrB_INVALID_VALUE;
+        return _vector.build(values->data(), nvals);
+    }
 
     LA_Info fill(T val) {
         _vector.set_constant(val);
+        return GrB_SUCCESS;
+    }
+
+    LA_Info set_element(T val, VNT pos) {
+        _vector.set_element(val, pos);
         return GrB_SUCCESS;
     }
 

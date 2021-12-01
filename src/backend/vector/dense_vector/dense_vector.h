@@ -29,6 +29,17 @@ public:
         return vals;
     }
 
+    LA_Info build(const T* values,
+                  Index                 nvals) {
+        if (nvals > size){
+            return GrB_INDEX_OUT_OF_BOUNDS;
+        }
+        for (Index i = 0; i < nvals; i++) {
+            vals[i] = (*values)[i];
+        }
+        return GrB_SUCCESS;
+    }
+
 private:
     VNT size;
     T *vals;

@@ -30,6 +30,7 @@ public:
     void copy_data_if(CSRVertexGroup &_full_group, CopyCond copy_cond, VNT *_buffer);
 
     void resize(VNT _new_size);
+
 private:
     VNT *ids;
     VNT size;

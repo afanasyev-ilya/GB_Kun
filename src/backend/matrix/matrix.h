@@ -62,6 +62,12 @@ public:
         return data;
     }
 
+    void get_nrows(VNT* _size) const {
+        if (_format == CSR) {
+            data->get_size(_size);
+        }
+    }
+
     void print()
     {
         data->print();

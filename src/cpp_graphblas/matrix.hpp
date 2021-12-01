@@ -31,6 +31,10 @@ public:
         return _matrix.set_preferred_matrix_format(_format);
     }
 
+    LA_Info get_nrows(VNT* size) const{
+        _matrix.get_nrows(size);
+    }
+
     template <typename BinaryOpT>
     LA_Info build (const std::vector<VNT>*   row_indices,
                    const std::vector<VNT>*   col_indices,

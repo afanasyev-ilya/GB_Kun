@@ -14,7 +14,7 @@ class Descriptor
 public:
     explicit Descriptor() : desc_{ GrB_DEFAULT, GrB_DEFAULT, GrB_DEFAULT, GrB_DEFAULT,
                                           GrB_FIXEDROW, GrB_32, GrB_32, GrB_128, GrB_PUSHPULL,
-                                          GrB_16, GrB_CUDA}, tmp_buffer(nullptr)
+                                          GrB_16, GrB_CUDA}, tmp_buffer(nullptr), debug_flag(false)
     {
         MemoryAPI::allocate_array(&tmp_buffer, _matrix_size);
     }
@@ -37,9 +37,14 @@ public:
         return tmp_buffer;
     }
 
+    bool debug() const{
+        return debug_flag;
+    }
+
 private:
     double *tmp_buffer;
     Desc_value desc_[GrB_NDESCFIELD];
+    bool debug_flag;
 };
 
 }
