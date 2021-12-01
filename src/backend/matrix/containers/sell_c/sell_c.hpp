@@ -1,3 +1,5 @@
+#pragma once
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T> void sort_perm(T *arr, int *perm, int len, bool rev=false)
@@ -24,7 +26,7 @@ template <typename T> void sort_perm_v(T *arr, int *perm, int len, bool rev=fals
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-MatrixSellC<T>::MatrixSellC():nrows(0), nnz(0), val(NULL), rowPtr(NULL), col(NULL), chunkLen(NULL), chunkPtr(NULL), colSellC(NULL), valSellC(NULL), unrollFac(1), C(1)
+MatrixSellC<T>::MatrixSellC():size(0), nz(0), val(NULL), rowPtr(NULL), col(NULL), chunkLen(NULL), chunkPtr(NULL), colSellC(NULL), valSellC(NULL), unrollFac(1), C(1)
 {
     #pragma omp parallel
     {
@@ -69,75 +71,17 @@ MatrixSellC<T>::~MatrixSellC()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
-{
-    cout << "in build" << endl;
-
-    int ncols;
-    int *row;
-    int *col_unsorted;
-    double *val_unsorted;
-
-    //permute the col and val according to row
-    int* perm = new int[nnz];
-    for(int idx=0; idx<nnz; ++idx)
-    {
-        perm[idx] = idx;
-    }
-
-    sort_perm(row, perm, nnz);
-
-    col = new int[nnz];
-    val = new double[nnz];
-
-    for(int idx=0; idx<nnz; ++idx)
-    {
-        col[idx] = col_unsorted[perm[idx]];
-        val[idx] = val_unsorted[perm[idx]];
-    }
-
-    delete[] col_unsorted;
-    delete[] val_unsorted;
-
-
-    rowPtr = new int[nrows+1];
-
-    nnzPerRow = new int[nrows];
-    for(int i=0; i<nrows; ++i)
-    {
-        nnzPerRow[i] = 0;
-    }
-
-    //count nnz per row
-    for(int i=0; i<nnz; ++i)
-    {
-        ++nnzPerRow[row[i]];
-    }
-
-    rowPtr[0] = 0;
-    for(int i=0; i<nrows; ++i)
-    {
-        rowPtr[i+1] = rowPtr[i]+nnzPerRow[i];
-    }
-
-    delete[] row;
-    delete[] perm;
-
-    NUMA_init();
-}
-
 template<typename T>
 void MatrixSellC<T>::constructSellCSigma(int chunkHeight, int sigma, int pad)
 {
-    C = chunkHeight;
+    /*C = chunkHeight;
     P = pad;
 
-    int nSigmaChunks = (int)(nrows/(double)sigma);
+    int nSigmaChunks = (int)(size/(T)sigma);
     if(sigma > 1)
     {
-        int *sigmaPerm = new int[nrows];
-        for(int i=0; i<nrows; ++i)
+        int *sigmaPerm = new int[size];
+        for(int i=0; i<size; ++i)
         {
             sigmaPerm[i] = i;
         }
@@ -148,16 +92,16 @@ void MatrixSellC<T>::constructSellCSigma(int chunkHeight, int sigma, int pad)
             sort_perm(nnzPerRow, perm_begin, sigma);
         }
 
-        int restSigmaChunk = nrows%sigma;
+        int restSigmaChunk = size%sigma;
         if(restSigmaChunk > C)
         {
             int *perm_begin = &(sigmaPerm[nSigmaChunks*sigma]);
             sort_perm(nnzPerRow, perm_begin, restSigmaChunk);
         }
 
-        int *sigmaInvPerm = new int[nrows];
+        int *sigmaInvPerm = new int[size];
 
-        for(int i=0; i<nrows; ++i)
+        for(int i=0; i<size; ++i)
         {
             sigmaInvPerm[sigmaPerm[i]] = i;
         }
@@ -168,8 +112,8 @@ void MatrixSellC<T>::constructSellCSigma(int chunkHeight, int sigma, int pad)
         delete[] sigmaInvPerm;
     }
 
-    nchunks = (int)(nrows/(double)C);
-    if(nrows%C > 0)
+    nchunks = (int)(size/(double)C);
+    if(size%C > 0)
     {
         nchunks += 1;
     }
@@ -192,7 +136,7 @@ void MatrixSellC<T>::constructSellCSigma(int chunkHeight, int sigma, int pad)
         for(int rowInChunk=0; rowInChunk<C; ++rowInChunk)
         {
             int row = chunk*C + rowInChunk;
-            if(row<nrows)
+            if(row<size)
             {
                 maxRowLen = std::max(maxRowLen, rowPtr[row+1]-rowPtr[row]);
             }
@@ -229,7 +173,7 @@ void MatrixSellC<T>::constructSellCSigma(int chunkHeight, int sigma, int pad)
         {
             for(int idx=0; idx<chunkLen[chunk]; ++idx)
             {
-                if(C == nrows)
+                if(C == size)
                 {
                     colSellC[chunkPtr[chunk]+idx*C+rowInChunk] = chunk*C + rowInChunk;//ELLPACK of Fujitsu needs it this way (the rowIndex)
                 }
@@ -248,7 +192,7 @@ void MatrixSellC<T>::constructSellCSigma(int chunkHeight, int sigma, int pad)
         for(int rowInChunk=0; rowInChunk<C; ++rowInChunk)
         {
             int row = chunk*C + rowInChunk;
-            if(row<nrows)
+            if(row<size)
             {
                 for(int idx=rowPtr[row],j=0; idx<rowPtr[row+1]; ++idx,++j)
                 {
@@ -276,29 +220,29 @@ void MatrixSellC<T>::constructSellCSigma(int chunkHeight, int sigma, int pad)
     }
     strideAvg_total = strideAvg_total/((double)nchunks*C);
 
-    printf("Average stride length = %f\n", strideAvg_total);
+    printf("Average stride length = %f\n", strideAvg_total);*/
 }
 
 template<typename T>
 void MatrixSellC<T>::permute(int *perm, int*  invPerm)
 {
-    double* newVal = new double[nnz];
-    int* newRowPtr = new int[nrows+1];
-    int* newCol = new int[nnz];
+    double* newVal = new double[nz];
+    int* newRowPtr = new int[size+1];
+    int* newCol = new int[nz];
 
     newRowPtr[0] = 0;
 
     //NUMA init
     #pragma omp parallel for schedule(static)
-    for(int row=0; row<nrows; ++row)
+    for(int row=0; row<size; ++row)
     {
         newRowPtr[row+1] = 0;
     }
 
     //first find newRowPtr; therefore we can do proper NUMA init
     int permIdx=0;
-    printf("nrows = %d\n", nrows);
-    for(int row=0; row<nrows; ++row)
+    printf("size = %d\n", size);
+    for(int row=0; row<size; ++row)
     {
         //row permutation
         int permRow = perm[row];
@@ -312,7 +256,7 @@ void MatrixSellC<T>::permute(int *perm, int*  invPerm)
 
     //with NUMA init
     #pragma omp parallel for schedule(static)
-    for(int row=0; row<nrows; ++row)
+    for(int row=0; row<size; ++row)
     {
         //row permutation
         int permRow = perm[row];
@@ -334,43 +278,4 @@ void MatrixSellC<T>::permute(int *perm, int*  invPerm)
     col = newCol;
 }
 
-template<typename T>
-void MatrixSellC<T>::NUMA_init()
-{
-    double* newVal = new double[nnz];
-    int* newCol = new int[nnz];
-    int* newRowPtr = new int[nrows+1];
 
-    /*
-       double *newVal = (double*) allocate(1024, sizeof(double)*nnz);
-       int *newCol = (int*) allocate(1024, sizeof(int)*nnz);
-       int *newRowPtr = (int*) allocate(1024, sizeof(int)*(nrows+1));
-       */
-
-    //NUMA init
-    #pragma omp parallel for schedule(static)
-    for(int row=0; row<nrows+1; ++row)
-    {
-        newRowPtr[row] = rowPtr[row];
-    }
-    #pragma omp parallel for schedule(static)
-    for(int row=0; row<nrows; ++row)
-    {
-        for(int idx=newRowPtr[row]; idx<newRowPtr[row+1]; ++idx)
-        {
-            //newVal[idx] = val[idx];
-            newCol[idx] = col[idx];
-            newVal[idx] = val[idx];
-        }
-    }
-
-
-    //free old _perm_utations
-    delete[] val;
-    delete[] rowPtr;
-    delete[] col;
-
-    val = newVal;
-    rowPtr = newRowPtr;
-    col = newCol;
-}

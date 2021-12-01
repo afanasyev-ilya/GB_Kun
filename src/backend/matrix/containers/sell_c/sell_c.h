@@ -12,11 +12,10 @@ public:
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket = 0);
     void print() {};
 private:
-    int nrows, nnz;
+    int size, nz;
 
-    //interface to coloring engine
     int *rowPtr, *col, *nnzPerRow;
-    double *val;
+    T *val;
     int *rcmPerm, *rcmInvPerm;
 
     int C;
@@ -40,5 +39,6 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "sell_c.hpp"
+#include "build.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
