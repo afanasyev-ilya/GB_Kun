@@ -10,9 +10,7 @@ namespace backend {
 template <typename T>
 void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
 {
-    cout << "in build" << endl;
-
-    nz = _nz;
+    /*nz = _nz;
     size = _size;
 
     int *col_unsorted;
@@ -56,7 +54,9 @@ void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_v
         row_ptr[i+1] = row_ptr[i]+nz_per_row[i];
     }
 
-    delete[] perm;
+    delete[] perm;*/
+
+    generateHPCG(128, 128, 128);
 
     NUMA_init();
 
