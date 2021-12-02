@@ -22,7 +22,7 @@ export LD_LIBRARY_PATH=/home/z44377r/ARM/gcc_latest/lib64:$LD_LIBRARY_PATH
 g++ --version
 which g++
 
-cmake -D CMAKE_C_COMPILER=/home/z44377r/ARM/gcc_latest/bin/gcc -D CMAKE_CXX_COMPILER=/home/z44377r/ARM/gcc_latest/bin/g++ .
+cmake -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ .
 make clean
 make
 

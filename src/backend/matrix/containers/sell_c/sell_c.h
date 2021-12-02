@@ -46,8 +46,6 @@ private:
 
     template <typename Y>
     friend void SpMV(const MatrixSellC<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
-
-    void generateHPCG(int _nx, int _ny, int _nz);
 };
 
 }
