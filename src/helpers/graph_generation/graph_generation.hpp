@@ -210,8 +210,11 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
                                VNT _nx, VNT _ny, VNT _nz, ENT _edge_factor)
 {
     cout << "Creating HPCG matrix" << endl;
-    int numberOfNonzerosPerRow = _edge_factor; // We are approximating a 27-point finite element/volume/difference 3D stencil
+    int numberOfNonzerosPerRow = 27; // We are approximating a 27-point finite element/volume/difference 3D stencil
     int numberOfRows = _nx*_ny*_nz;
+
+    int size = numberOfRows;
+    int nz = numberOfRows * numberOfNonzerosPerRow;
 
     // Allocate arrays that are of length localNumberOfRows
     int * nonzerosInRow = new int[numberOfRows];
@@ -366,10 +369,13 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
     }
 
     _edges_container.vertices_count = numberOfRows;
-    _edges_container.edges_count = numberOfRows * numberOfNonzerosPerRow;
-    _edges_container.src_ids.resize(numberOfRows * numberOfNonzerosPerRow);
-    _edges_container.dst_ids.resize(numberOfRows * numberOfNonzerosPerRow);
-    _edges_container.edge_vals.resize(numberOfRows * numberOfNonzerosPerRow);
+    _edges_container.edges_count = numberOfNonzeros;
+    _edges_container.src_ids.resize(numberOfNonzeros);
+    _edges_container.dst_ids.resize(numberOfNonzeros);
+    _edges_container.edge_vals.resize(numberOfNonzeros);
+
+    cout << size << " vs " << _edges_container.vertices_count << endl;
+    cout << nz << " vs " << _edges_container.edges_count << endl;
 
     // get pointers
     VNT *src_ids = _edges_container.src_ids.data();

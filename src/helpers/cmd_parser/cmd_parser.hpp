@@ -6,7 +6,7 @@ Parser::Parser()
 {
     scale = 16;
     avg_degree = 27;
-    synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
+    synthetic_graph_type = HPCG_GRAPH;
     storage_format = SELL_C;
     no_check = false;
 }
