@@ -56,6 +56,8 @@ void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_v
 
     delete[] perm;
 
+    //generateHPCG(128, 128, 128);
+
     NUMA_init();
 
     construct_sell_c_sigma(VECTOR_LENGTH, 1);
