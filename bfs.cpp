@@ -11,18 +11,7 @@ int main(int argc, char **argv) {
         VNT avg_deg = parser.get_avg_degree();
 
         EdgeListContainer<float> el;
-        if(parser.get_synthetic_graph_type() == RANDOM_UNIFORM)
-        {
-            GraphGenerationAPI::random_uniform(el,
-                                               pow(2.0, scale),
-                                               avg_deg * pow(2.0, scale));
-            cout << "Using UNIFORM graph" << endl;
-        }
-        else if(parser.get_synthetic_graph_type() == RMAT)
-        {
-            GraphGenerationAPI::R_MAT(el, pow(2.0, scale), avg_deg * pow(2.0, scale), 57, 19, 19, 5);
-            cout << "Using RMAT graph" << endl;
-        }
+        GraphGenerationAPI::generate_synthetic_graph(el, parser);
 
         lablas::Descriptor desc;
 

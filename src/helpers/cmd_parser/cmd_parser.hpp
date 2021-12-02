@@ -5,8 +5,8 @@
 Parser::Parser()
 {
     scale = 16;
-    avg_degree = 16;
-    synthetic_graph_type = RANDOM_UNIFORM;
+    avg_degree = 27;
+    synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
     storage_format = SELL_C;
     no_check = false;
 }
@@ -31,12 +31,17 @@ void Parser::parse_args(int _argc, char **_argv)
 
             if ((option == "random_uniform") || (option == "ru") || (option == "RU"))
             {
-                synthetic_graph_type = RANDOM_UNIFORM;
+                synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
             }
 
             if ((option == "rmat") || (option == "RMAT"))
             {
-                synthetic_graph_type = RMAT;
+                synthetic_graph_type = RMAT_GRAPH;
+            }
+
+            if ((option == "hpcg") || (option == "HPCG"))
+            {
+                synthetic_graph_type = HPCG_GRAPH;
             }
         }
 

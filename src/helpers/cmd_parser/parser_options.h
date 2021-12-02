@@ -4,9 +4,10 @@
 
 enum SyntheticGraphType
 {
-    RANDOM_UNIFORM = 0,
-    RMAT = 1,
-    SSCA2 = 2
+    RANDOM_UNIFORM_GRAPH = 0,
+    RMAT_GRAPH = 1,
+    SSCA2_GRAPH = 2,
+    HPCG_GRAPH = 3
 };
 
 enum MatrixStorageFormat

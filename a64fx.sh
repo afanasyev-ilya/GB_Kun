@@ -29,4 +29,4 @@ make
 export OMP_NUM_THREADS=48
 export OMP_PROC_BIND=close
 
-./spmv -s 20 -e 32 -type rmat -format SELL_C
+./spmv -s 128 -e 27 -type HPCG -format SELL_C

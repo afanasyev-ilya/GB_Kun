@@ -42,10 +42,10 @@ private:
 
     T get(VNT _row, VNT _col);
 
+    void print_stats();
+
     template <typename Y>
     friend void SpMV(const MatrixSellC<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
-
-    void generateHPCG(int nx, int ny, int nz);
 };
 
 }
@@ -55,6 +55,5 @@ private:
 
 #include "sell_c.hpp"
 #include "build.hpp"
-#include "hpcg.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

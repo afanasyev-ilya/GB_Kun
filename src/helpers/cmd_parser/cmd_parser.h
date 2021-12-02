@@ -9,8 +9,8 @@
 class Parser
 {
 private:
-    int scale;
-    int avg_degree;
+    VNT scale;
+    VNT avg_degree;
     SyntheticGraphType synthetic_graph_type;
     MatrixStorageFormat storage_format;
 
@@ -18,8 +18,8 @@ private:
 public:
     Parser();
     
-    int get_scale() { return scale; };
-    int get_avg_degree() { return avg_degree; };
+    VNT get_scale() { return scale; };
+    VNT get_avg_degree() { return avg_degree; };
     bool check() { return !no_check; };
 
     SyntheticGraphType get_synthetic_graph_type() {return synthetic_graph_type;};

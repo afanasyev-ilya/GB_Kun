@@ -38,14 +38,20 @@ public:
                                DirectionType _direction_type = DIRECTED_GRAPH);
 
     template <typename T>
-    static void R_MAT(EdgeListContainer<T> &_edges_container,
-                      int _vertices_count,
-                      long long _edges_count,
-                      int _a_prob,
-                      int _b_prob,
-                      int _c_prob,
-                      int _d_prob,
-                      DirectionType _direction_type = DIRECTED_GRAPH);
+    static void RMAT(EdgeListContainer<T> &_edges_container,
+                     VNT _vertices_count,
+                     ENT _edges_count,
+                     int _a_prob,
+                     int _b_prob,
+                     int _c_prob,
+                     int _d_prob,
+                     DirectionType _direction_type = DIRECTED_GRAPH);
+
+    template <typename T>
+    static void HPCG(EdgeListContainer<T> &_edges_container, VNT _nx, VNT _ny, VNT _nz, ENT _edge_factor);
+
+    template <typename T>
+    static void generate_synthetic_graph(EdgeListContainer<T> &_edges_container, Parser &_parser);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

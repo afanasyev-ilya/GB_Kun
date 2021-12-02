@@ -104,5 +104,25 @@ void MatrixSellC<T>::print()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename T>
+void MatrixSellC<T>::print_stats()
+{
+    ENT cell_c_nz = 0;
+    for(VNT chunk=0; chunk<nchunks; ++chunk)
+    {
+        cell_c_nz += chunkLen[chunk]*C;
+    }
+
+    cout << endl << " -------------------- " << endl;
+    cout << "SellC matrix stats" << endl;
+    cout << "Num rows: " << size << " (vertices)" << endl;
+    cout << "nz: " << nz << " (edges)" << endl;
+    cout << "SellC nz: " << cell_c_nz << ", growing factor - " << (double)cell_c_nz/nz << endl;
+    cout << "Cache size: " << size * sizeof(T) / 1e6 << " MB indirectly array" << endl;
+    cout << " -------------------- " << endl << endl;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 }
 }
