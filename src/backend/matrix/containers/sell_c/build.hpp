@@ -61,6 +61,16 @@ void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_v
     NUMA_init();
 
     construct_sell_c_sigma(VECTOR_LENGTH, 1);
+
+    cout << "matrix stats: " << size << " vertices" << endl;
+    cout << "nz: " << nz << " edges" << endl;
+    cout << "cache: " << size * sizeof(float) / 1e6 << " MB indirectly array" << endl;
+    ENT cell_c_nz = 0;
+    for(VNT chunk=0; chunk<nchunks; ++chunk)
+    {
+        cell_c_nz += chunkLen[chunk]*C;
+    }
+    cout << "cellc nz: " << cell_c_nz << " " << (double)cell_c_nz/nz << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
