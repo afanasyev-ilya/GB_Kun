@@ -6,9 +6,10 @@ Parser::Parser()
 {
     scale = 15;
     avg_degree = 27;
-    synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
-    storage_format = SELL_C;
+    synthetic_graph_type = REAL_WORLD_GRAPH;
+    storage_format = CSR;
     no_check = false;
+    file_name = "lj.mtx";
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,6 +43,13 @@ void Parser::parse_args(int _argc, char **_argv)
             if ((option == "hpcg") || (option == "HPCG"))
             {
                 synthetic_graph_type = HPCG_GRAPH;
+            }
+
+            if ((option == "real_world") || (option == "RW"))
+            {
+                synthetic_graph_type = REAL_WORLD_GRAPH;
+                option = _argv[++i];
+                file_name = string(option);
             }
         }
 

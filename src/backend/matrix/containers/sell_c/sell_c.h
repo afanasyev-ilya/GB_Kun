@@ -43,6 +43,7 @@ private:
     T get(VNT _row, VNT _col);
 
     void print_stats();
+    void print_connections(VNT _row);
 
     template <typename Y>
     friend void SpMV(const MatrixSellC<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);

@@ -8,6 +8,21 @@ namespace backend {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
+void MatrixSellC<T>::print_connections(VNT _row)
+{
+    VNT max_dif = 0;
+    cout << "vert " << _row << " is connected to : ";
+    for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
+    {
+        if(abs(i - col_ids[i]) > max_dif)
+            max_dif = abs(i - col_ids[i]);
+        cout << col_ids[i] << " ";
+    }
+    cout << endl;
+    cout << "max diff: " << max_dif << ", " << (double)max_dif/size << endl;
+}
+
+template <typename T>
 void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
 {
     nz = _nz;
@@ -51,7 +66,7 @@ void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_v
     row_ptr[0] = 0;
     for(VNT i = 0; i < size; ++i)
     {
-        row_ptr[i+1] = row_ptr[i]+nz_per_row[i];
+        row_ptr[i+1] = row_ptr[i] + nz_per_row[i];
     }
 
     delete[] perm;

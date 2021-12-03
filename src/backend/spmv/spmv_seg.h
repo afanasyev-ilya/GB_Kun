@@ -14,16 +14,15 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
     int cores_num = omp_get_max_threads();
     #pragma omp parallel
     {
+        #pragma omp for schedule(static)
         for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
         {
             SubgraphSegment<T> *segment = &(_matrix->subgraphs[seg_id]);
             T *buffer = (T*)segment->vertex_buffer;
 
-            #pragma omp for schedule(static)
             for(VNT i = 0; i < segment->size; i++)
                 buffer[i] = 0;
 
-            #pragma omp for schedule(guided, 1024)
             for(VNT i = 0; i < segment->size; i++)
             {
                 for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)

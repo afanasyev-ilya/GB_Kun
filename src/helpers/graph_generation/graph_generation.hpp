@@ -22,6 +22,10 @@ void GraphGenerationAPI::generate_synthetic_graph(EdgeListContainer<T> &_edges_c
     {
         GraphGenerationAPI::HPCG(_edges_container, scale, scale, scale, avg_deg);
     }
+    else if(_parser.get_synthetic_graph_type() == REAL_WORLD_GRAPH)
+    {
+        GraphGenerationAPI::init_from_txt_file(_edges_container, _parser.get_file_name(), DIRECTED_GRAPH);
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -374,9 +378,6 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
     _edges_container.dst_ids.resize(numberOfNonzeros);
     _edges_container.edge_vals.resize(numberOfNonzeros);
 
-    cout << size << " vs " << _edges_container.vertices_count << endl;
-    cout << nz << " vs " << _edges_container.edges_count << endl;
-
     // get pointers
     VNT *src_ids = _edges_container.src_ids.data();
     VNT *dst_ids = _edges_container.dst_ids.data();
@@ -402,6 +403,96 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
     delete [] nonzerosInRow;
 }
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename T>
+void GraphGenerationAPI::init_from_txt_file(EdgeListContainer<T> &_edges_container, string _txt_file_name,
+                                            DirectionType _direction_type)
+{
+    ifstream infile(_txt_file_name.c_str());
+    if (!infile.is_open())
+        throw "can't open file during convert";
+
+    int vertices_count = 0;
+    long long edges_count = 0;
+    string line;
+    getline(infile, line); // read first line
+
+    for(int i = 0; i < 5;i++)
+        getline(infile, line);
+
+    vector<int>tmp_src_ids;
+    vector<int>tmp_dst_ids;
+
+    long long i = 0;
+    while (getline(infile, line))
+    {
+        istringstream iss(line);
+        int src_id = 0, dst_id = 0;
+        if (!(iss >> src_id >> dst_id))
+        {
+            continue;
+        }
+
+        if(src_id >= vertices_count)
+            vertices_count = src_id + 1;
+
+        if(dst_id >= vertices_count)
+            vertices_count = dst_id + 1;
+
+        tmp_src_ids.push_back(src_id);
+        tmp_dst_ids.push_back(dst_id);
+        i++;
+
+        if(_direction_type == UNDIRECTED_GRAPH)
+        {
+            tmp_src_ids.push_back(dst_id);
+            tmp_dst_ids.push_back(src_id);
+            i++;
+        }
+    }
+
+    cout << "direction type: " << _direction_type << endl;
+    cout << "loaded " << vertices_count << " vertices_count" << endl;
+    if(_direction_type == DIRECTED_GRAPH)
+        cout << "loaded " << i << " edges" << endl;
+    else
+        cout << "loaded " << i << " directed edges, " << i/2 << " undirected" << endl;
+
+    edges_count = i;
+
+    _edges_container.vertices_count = vertices_count;
+    _edges_container.edges_count = edges_count;
+    _edges_container.src_ids.resize(edges_count);
+    _edges_container.dst_ids.resize(edges_count);
+    _edges_container.edge_vals.resize(edges_count);
+
+    unsigned int seed = int(time(NULL));
+    for(i = 0; i < edges_count; i++)
+    {
+        _edges_container.src_ids[i] = tmp_src_ids[i];
+        _edges_container.dst_ids[i] = tmp_dst_ids[i];
+        _edges_container.edge_vals[i] = ((float) rand_r(&seed)) / (float) RAND_MAX;
+    }
+
+    // validate
+    for(i = 0; i < edges_count; i++)
+    {
+        int src_id = _edges_container.src_ids[i];
+        int dst_id = _edges_container.dst_ids[i];
+        if((src_id >= vertices_count) || (src_id < 0))
+        {
+            cout << "error src: " << src_id << endl;
+            throw "Error: incorrect src id on conversion";
+        }
+        if((dst_id >= vertices_count) || (dst_id < 0))
+        {
+            cout << "error dst: " << dst_id << endl;
+            throw "Error: incorrect dst id on conversion";
+        }
+    }
+
+    infile.close();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

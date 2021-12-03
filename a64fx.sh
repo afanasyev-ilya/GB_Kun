@@ -29,6 +29,8 @@ make
 export OMP_NUM_THREADS=48
 export OMP_PROC_BIND=close
 
-./spmv -s 128 -e 27 -type HPCG -format SELL_C
+./spmv -s 20 -e 32 -type RU -format CSR
 echo "######################################################"
-./spmv -s 20 -e 27 -type RU -format SELL_C
+./spmv -s 20 -e 32 -type RU -format CSR_SEG
+echo "######################################################"
+./spmv -s 20 -e 32 -type RU -format SIGMA

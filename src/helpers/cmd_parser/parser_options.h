@@ -7,7 +7,8 @@ enum SyntheticGraphType
     RANDOM_UNIFORM_GRAPH = 0,
     RMAT_GRAPH = 1,
     SSCA2_GRAPH = 2,
-    HPCG_GRAPH = 3
+    HPCG_GRAPH = 3,
+    REAL_WORLD_GRAPH = 4
 };
 
 enum MatrixStorageFormat

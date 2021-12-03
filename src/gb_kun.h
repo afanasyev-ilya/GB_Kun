@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <climits>
 #include <map>
+#include <sstream>
+#include <string>
 
 #include <omp.h>
 

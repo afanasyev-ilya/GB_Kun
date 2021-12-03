@@ -26,9 +26,11 @@ cmake -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ .
 make clean
 make
 
-export OMP_NUM_THREADS=48
+export OMP_NUM_THREADS=64
 export OMP_PROC_BIND=close
 
-./spmv -s 128 -e 27 -type HPCG -format SELL_C
-echo "######################################################"
-./spmv -s 20 -e 27 -type RU -format SELL_C
+./spmv -graph RW ./lj.mtx -format CSR
+
+#./spmv -s 20 -e 32 -type RU -format CSR_SEG
+
+#./spmv -s 21 -e 27 -type RU -format CSR_SEG
