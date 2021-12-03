@@ -12,7 +12,7 @@ public:
 
     void set_constant(T _val) {};
 
-    void print() {
+    void print() const {
         for(VNT i = 0; i < nz; i++)
         {
             cout << "( "<< ids[i]<< " , "  << vals[i] << ") ";

@@ -11,7 +11,7 @@ void bfs(Vector<float>*       v,
          const Matrix<float>* A,
          Index                s,
          Descriptor*          desc)
-         {
+{
 
     VNT A_nrows;
     A->get_nrows(&A_nrows);
@@ -66,11 +66,14 @@ void bfs(Vector<float>*       v,
 
     }
 
+    v->print();
+
     //    std::string vxm_mode = (desc->descriptor_.lastmxv_ == GrB_PUSHONLY) ?
     //            "push" : "pull";
     //         }
 
-         }
-    }
+}
+
+}
 }
 #endif //GB_KUN_BFS_HPP

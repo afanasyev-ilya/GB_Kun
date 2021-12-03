@@ -20,20 +20,43 @@ template <typename T, typename SemiringT>
 void SpMV(const Matrix<T> *_matrix,
           const Vector<T> *_x,
           Vector<T> *_y,
-          Descriptor *_desc, SemiringT        op)
+          Descriptor *_desc, 
+          SemiringT _op)
 {
     MatrixStorageFormat format;
     _matrix->get_format(&format);
     if(format == CSR)
-        SpMV(((MatrixCSR<T> *) _matrix->get_Data()), _x->getDense(), _y->getDense(), op);
+        SpMV(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
     else if(format == LAV)
-        SpMV(((MatrixLAV<T> *) _matrix->get_Data()), _x->getDense(), _y->getDense(), op);
+        SpMV(((MatrixLAV<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
     else if(format == COO)
-        SpMV(((MatrixCOO<T> *) _matrix->get_Data()), _x->getDense(), _y->getDense(), op);
+        SpMV(((MatrixCOO<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
     else if(format == CSR_SEG)
-        SpMV(((MatrixSegmentedCSR<T> *)_matrix->get_Data()), _x->getDense(), _y->getDense(), op);
+        SpMV(((MatrixSegmentedCSR<T> *)_matrix->get_data()), _x->getDense(), _y->getDense(), _op);
     else if(format == SELL_C)
-        SpMV(((MatrixSellC<T> *)_matrix->get_Data()), _x->getDense(), _y->getDense(), op);
+        SpMV(((MatrixSellC<T> *)_matrix->get_data()), _x->getDense(), _y->getDense(), _op);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename SemiringT>
+void VSpM(const Matrix<T> *_matrix,
+          const Vector<T> *_x,
+          Vector<T> *_y,
+          Descriptor *_desc, SemiringT _op)
+{
+    MatrixStorageFormat format;
+    _matrix->get_format(&format);
+    if(format == CSR)
+        SpMV(((MatrixCSR<T> *) _matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op);
+    else if(format == LAV)
+        SpMV(((MatrixLAV<T> *) _matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op);
+    else if(format == COO)
+        SpMV(((MatrixCOO<T> *) _matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op);
+    else if(format == CSR_SEG)
+        SpMV(((MatrixSegmentedCSR<T> *)_matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op);
+    else if(format == SELL_C)
+        SpMV(((MatrixSellC<T> *)_matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op);
 }
 
 }

@@ -10,8 +10,7 @@ void bfs_td(Vector<float>*       v,
          const Matrix<float>* A,
          Index                s,
          Descriptor*          desc)
-         {
-
+{
     VNT A_nrows;
     A->get_nrows(&A_nrows);
 
@@ -61,11 +60,9 @@ void bfs_td(Vector<float>*       v,
 
     }
 
-    //    std::string vxm_mode = (desc->descriptor_.lastmxv_ == GrB_PUSHONLY) ?
-    //            "push" : "pull";
-    //         }
-
-         }
+    cout << "TOP DOWN BFS" << endl;
+    v->print();
+}
 
 }
 }

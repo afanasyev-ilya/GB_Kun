@@ -54,12 +54,20 @@ public:
         return GrB_SUCCESS;
     };
 
-    MatrixContainer<T>* get_Data() {
+    MatrixContainer<T>* get_data() {
         return data;
     }
 
-    const MatrixContainer<T>* get_Data() const {
+    const MatrixContainer<T>* get_data() const {
         return data;
+    }
+
+    MatrixContainer<T>* get_transposed_data() {
+        return transposed_data;
+    }
+
+    const MatrixContainer<T>* get_transposed_data() const {
+        return transposed_data;
     }
 
     void get_nrows(VNT* _size) const {

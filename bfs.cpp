@@ -1,6 +1,7 @@
 #include "src/gb_kun.h"
 
 #include "algorithms/bfs.hpp"
+#include "algorithms/bfs_td.hpp"
 
 int main(int argc, char **argv) {
     try
@@ -29,7 +30,7 @@ int main(int argc, char **argv) {
 
         VNT source_vertex = 0;
 
-        lablas::algorithm::bfs(&levels, &matrix, source_vertex, &desc);
+        lablas::algorithm::bfs_td(&levels, &matrix, source_vertex, &desc);
     }
     catch (string error)
     {

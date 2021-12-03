@@ -49,7 +49,7 @@ template <typename W, typename M, typename a, typename U,
             return GrB_UNINITIALIZED_OBJECT;
         }
 
-        backend::SpMV(A->get_matrix(), u->get_vector(), w->get_vector(), NULL,  op);
+        backend::VSpM(A->get_matrix(), u->get_vector(), w->get_vector(), NULL,  op);
         return GrB_SUCCESS;
     }
 
