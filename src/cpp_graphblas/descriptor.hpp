@@ -13,8 +13,8 @@ public:
     LA_Info set(Desc_field field, Desc_value value) {
         return _descriptor.set(field, value);
     }
-    LA_Info get(Desc_field field, Desc_value value) {
-        return _descriptor.set(field, value);
+    LA_Info get(Desc_field field, Desc_value* value) {
+        return _descriptor.get(field, value);
     }
     backend::Descriptor* get_descriptor() {
         return &_descriptor;

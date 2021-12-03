@@ -4,8 +4,8 @@
 namespace lablas{
 namespace backend {
 
-template <typename T>
-void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> *_y)
+template <typename T, typename SemiringT>
+void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> *_y, SemiringT op)
 {
     const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();

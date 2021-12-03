@@ -57,6 +57,15 @@ public:
         return dense.build(values, nvals);
     }
 
+    void print() const {
+        if (storage == GrB_DENSE) {
+            return dense.print();
+        }
+        if (storage == GrB_SPARSE) {
+            return sparse.print();
+        }
+    }
+
 private:
     VNT size;
     VNT nz;

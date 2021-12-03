@@ -15,7 +15,7 @@ public:
 
     void set_constant(T _val);
 
-    void print();
+    void print() const;
 
     void get_size (VNT* _size) const {
         *_size = size;
@@ -79,7 +79,7 @@ void DenseVector<T>::set_constant(T _val)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void DenseVector<T>::print()
+void DenseVector<T>::print() const
 {
     for(VNT i = 0; i < size; i++)
     {

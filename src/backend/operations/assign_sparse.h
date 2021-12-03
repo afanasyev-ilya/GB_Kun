@@ -20,17 +20,19 @@ template <typename W, typename T, typename M, typename I,
                          const Vector<I>* indices,
                          Index            nindices,
                          Descriptor*      desc) {
-        VNT vec_nz;
-        w->get_nz(&vec_nz);
-
-        /* Let us assume mask is dense */
-
-        for (int i = 0; i < vec_nz; i++) {
-            VNT idx = w->get_ids()[i];
-            if (mask->getDense()[i] != 0) {
-                w->get_vals()[idx] = val;
+        VNT vec_size;
+        w->get_nz(&vec_size);
+        std::string accum_type = typeid(accum).name();
+        for (int i = 0; i < vec_size; i++) {
+            if (mask->getDense()->get_vals()[i] != 0) {
+                if (accum_type.size() <= 1) {
+                    w->get_vals()[i] = val;
+                } else {
+                    w->get_vals()[i] = val;
+                }
             }
         }
+        return GrB_SUCCESS;
     }
 
 }

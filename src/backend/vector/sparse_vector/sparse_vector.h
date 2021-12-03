@@ -12,11 +12,23 @@ public:
 
     void set_constant(T _val) {};
 
-    void print() {};
+    void print() {
+        for(VNT i = 0; i < nz; i++)
+        {
+            cout << "( "<< ids[i]<< " , "  << vals[i] << ") ";
+        }
+        cout << endl;
 
-    void get_nz(VNT* _nz) {
+    };
+
+    void get_nz(VNT* _nz) const {
         *_nz = nz;
     }
+
+    void get_size(VNT* _size) const {
+        *_size = size;
+    }
+
     T* get_vals () {
         return vals;
     }
@@ -46,6 +58,7 @@ public:
         }
         return GrB_SUCCESS;
     }
+
 private:
     VNT size;
     VNT nz;

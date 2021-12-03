@@ -33,6 +33,7 @@ public:
 
     LA_Info get_nrows(VNT* size) const{
         _matrix.get_nrows(size);
+        return GrB_SUCCESS;
     }
 
     template <typename BinaryOpT>

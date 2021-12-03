@@ -93,6 +93,19 @@ template <typename T_out>
                 return lhs + rhs;
             }
         };
+template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct multiplies {
+            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+                return lhs * rhs;
+            }
+        };
+
+template <typename T_in1 = bool, typename T_in2 = bool, typename T_out = bool>
+        struct logical_and {
+            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+                return lhs && rhs;
+            }
+        };
 
 // Monoid generator macro provided by Scott McMillan.
 #define REGISTER_MONOID(M_NAME, BINARYOP, IDENTITY)                          \
@@ -110,6 +123,106 @@ inline T_out operator()(T_out lhs, T_out rhs) const    \
 };
 
 REGISTER_MONOID(PlusMonoid, plus, 0)
+REGISTER_MONOID(LogicalOrMonoid, logical_or, false)
+
+
+// Semiring generator macro provided by Scott McMillan
+#define REGISTER_SEMIRING(SR_NAME, ADD_MONOID, MULT_BINARYOP)             \
+template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1> \
+struct SR_NAME                                                            \
+{                                                                         \
+typedef T_out result_type;                                              \
+typedef T_out T_out_type;                                               \
+\
+inline T_out identity() const                                           \
+{ return ADD_MONOID<T_out>().identity(); }                              \
+\
+inline  T_out add_op(T_out lhs, T_out rhs)           \
+{ return ADD_MONOID<T_out>()(lhs, rhs); }                               \
+\
+inline  T_out mul_op(T_in1 lhs, T_in2 rhs)           \
+{ return MULT_BINARYOP<T_in1, T_in2, T_out>()(lhs, rhs); }                \
+};
+
+
+REGISTER_SEMIRING(PlusMultipliesSemiring, PlusMonoid, multiplies)
+REGISTER_SEMIRING(LogicalOrAndSemiring, LogicalOrMonoid, logical_and)
+
+template <typename SemiringT>
+struct AdditiveMonoidFromSemiring {
+public:
+    typedef typename SemiringT::T_out_type T_out_type;
+    typedef typename SemiringT::T_out_type result_type;
+
+    typedef typename SemiringT::T_out_type first_argument_type;
+    typedef typename SemiringT::T_out_type second_argument_type;
+
+    AdditiveMonoidFromSemiring() : sr() {}
+    explicit AdditiveMonoidFromSemiring(SemiringT const &sr) : sr(sr) {}
+
+    inline T_out_type identity() const {
+        return sr.identity();
+    }
+
+    template <typename T_in1, typename T_in2>
+    inline T_out_type operator()(T_in1 lhs, T_in2 rhs) {
+        return sr.add_op(lhs, rhs);
+    }
+
+private:
+    SemiringT sr;
+};
+
+template <typename SemiringT>
+struct MultiplicativeMonoidFromSemiring {
+public:
+    typedef typename SemiringT::T_out_type T_out_type;
+    typedef typename SemiringT::T_out_type result_type;
+
+    typedef typename SemiringT::T_out_type first_argument_type;
+    typedef typename SemiringT::T_out_type second_argument_type;
+
+    MultiplicativeMonoidFromSemiring() : sr() {}
+    explicit MultiplicativeMonoidFromSemiring(SemiringT const &sr) : sr(sr) {}
+
+    inline T_out_type identity() const {
+        return sr.identity();
+    }
+
+    template <typename T_in1, typename T_in2>
+    inline T_out_type operator()(T_in1 lhs, T_in2 rhs) {
+        return sr.mul_op(lhs, rhs);
+    }
+
+private:
+    SemiringT sr;
+};
+
+template <typename SemiringT>
+AdditiveMonoidFromSemiring<SemiringT>
+extractAdd(SemiringT const &sr) {
+    return AdditiveMonoidFromSemiring<SemiringT>(sr);
+}
+
+template <typename SemiringT>
+MultiplicativeMonoidFromSemiring<SemiringT>
+extractMul(SemiringT const &sr) {
+    return MultiplicativeMonoidFromSemiring<SemiringT>(sr);
+}
+
+template <typename T_in1, typename T_out = T_in1>
+        struct set_random {
+        set_random() : seed_(0) {
+
+            srand(seed_);
+        }
+
+        inline T_out operator()(T_in1 lhs) {
+            return rand();
+        }
+
+        int seed_;
+    };
 }
 
 #endif //GB_KUN_TYPES_HPP

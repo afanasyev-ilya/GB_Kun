@@ -50,19 +50,9 @@ public:
         return &_vector;
     }
 
-
-    //    template <typename BinaryOpT>
-    //    Info build(const std::vector<Index>* indices,
-    //               const std::vector<T>*     values,
-    //               Index                     nvals,
-    //               BinaryOpT                 dup);
-    //    Info build(const std::vector<T>* values,
-    //               Index                 nvals);
-    //    Info build(Index* indices,
-    //               T*     values,
-    //               Index  nvals);
-    //    Info build(T*    values,
-    //               Index nvals);
+    void print() const {
+        return _vector.print();
+    }
 
 private:
     backend::Vector<T> _vector;

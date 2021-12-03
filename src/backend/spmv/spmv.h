@@ -15,26 +15,25 @@
 namespace lablas{
 namespace backend{
 
-template <typename T>
+template <typename T, typename SemiringT>
 void SpMV(const Matrix<T> *_matrix,
           const Vector<T> *_x,
           Vector<T> *_y,
-          Descriptor *_desc)
+          Descriptor *_desc, SemiringT        op)
 {
     MatrixStorageFormat format;
     _matrix->get_format(&format);
     if(format == CSR)
-        SpMV(((MatrixCSR<T> *) _matrix->get_Data()), _x->getDense(), _y->getDense());
+        SpMV(((MatrixCSR<T> *) _matrix->get_Data()), _x->getDense(), _y->getDense(), op);
     else if(format == LAV)
-        SpMV(((MatrixLAV<T> *) _matrix->get_Data()), _x->getDense(), _y->getDense());
+        SpMV(((MatrixLAV<T> *) _matrix->get_Data()), _x->getDense(), _y->getDense(), op);
     else if(format == COO)
-        SpMV(((MatrixCOO<T> *) _matrix->get_Data()), _x->getDense(), _y->getDense());
+        SpMV(((MatrixCOO<T> *) _matrix->get_Data()), _x->getDense(), _y->getDense(), op);
     else if(format == CSR_SEG)
-        SpMV(((MatrixSegmentedCSR<T> *)_matrix->get_Data()), _x->getDense(), _y->getDense());
+        SpMV(((MatrixSegmentedCSR<T> *)_matrix->get_Data()), _x->getDense(), _y->getDense(), op);
     else if(format == CELL_SIGMA_C)
-        SpMV(((MatrixCellSigmaC<T> *)_matrix->get_Data()), _x->getDense(), _y->getDense());
+        SpMV(((MatrixCellSigmaC<T> *)_matrix->get_Data()), _x->getDense(), _y->getDense(), op);
 }
-
 
 }
 }

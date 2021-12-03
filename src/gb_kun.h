@@ -39,5 +39,8 @@ class DenseVector;
 #include "cpp_graphblas/matrix.hpp"
 #include "cpp_graphblas/vector.hpp"
 #include "cpp_graphblas/descriptor.hpp"
+#include "cpp_graphblas/types.hpp"
+#include "cpp_graphblas/dimensions.hpp"
 #include "cpp_graphblas/operations.hpp"
+
 

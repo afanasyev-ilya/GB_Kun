@@ -38,10 +38,10 @@ private:
 
     void prepare_hub_data(map<int, int> &_freqs);
 
-    template<typename Y>
+    template<typename Y, typename SemiringT>
     friend void SpMV(const MatrixLAV<Y> *_matrix,
                      const DenseVector<Y> *_x,
-                     DenseVector<Y> *_y);
+                     DenseVector<Y> *_y, SemiringT op);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

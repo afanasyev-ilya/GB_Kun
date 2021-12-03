@@ -3,7 +3,7 @@
 namespace lablas{
 namespace backend{
 
-template <typename T>
+template <typename T, typename SemiringT>
 void SpMV_load_balanced(const MatrixCellSigmaC<T> *_matrix,
                         const DenseVector<T> *_x,
                         DenseVector<T> *_y)
@@ -99,10 +99,10 @@ void SpMV_vector(const MatrixCellSigmaC<T> *_matrix,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
+template <typename T, typename SemiringT>
 void SpMV(const MatrixCellSigmaC<T> *_matrix,
           const DenseVector<T> *_x,
-          DenseVector<T> *_y)
+          DenseVector<T> *_y, SemiringT op)
 {
     //SpMV_load_balanced(_matrix, _x, _y);
     SpMV_vector(_matrix, _x, _y);

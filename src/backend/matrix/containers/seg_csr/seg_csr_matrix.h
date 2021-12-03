@@ -36,10 +36,10 @@ private:
     void alloc(VNT _size, ENT _nz);
     void free();
 
-    template<typename Y>
+    template<typename Y, typename SemiringT>
     friend void SpMV(const MatrixSegmentedCSR<Y> *_matrix,
                      const DenseVector<Y> *_x,
-                     DenseVector<Y> *_y);
+                     DenseVector<Y> *_y, SemiringT op);
 };
 
 }
