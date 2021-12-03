@@ -5,10 +5,11 @@
 Parser::Parser()
 {
     scale = 15;
-    avg_degree = 16;
-    synthetic_graph_type = RMAT;
+    avg_degree = 27;
+    synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
     storage_format = CSR;
     no_check = false;
+    file_name = "lj.mtx";
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,12 +32,24 @@ void Parser::parse_args(int _argc, char **_argv)
 
             if ((option == "random_uniform") || (option == "ru") || (option == "RU"))
             {
-                synthetic_graph_type = RANDOM_UNIFORM;
+                synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
             }
 
             if ((option == "rmat") || (option == "RMAT"))
             {
-                synthetic_graph_type = RMAT;
+                synthetic_graph_type = RMAT_GRAPH;
+            }
+
+            if ((option == "hpcg") || (option == "HPCG"))
+            {
+                synthetic_graph_type = HPCG_GRAPH;
+            }
+
+            if ((option == "real_world") || (option == "RW"))
+            {
+                synthetic_graph_type = REAL_WORLD_GRAPH;
+                option = _argv[++i];
+                file_name = string(option);
             }
         }
 
@@ -59,8 +72,10 @@ void Parser::parse_args(int _argc, char **_argv)
                 storage_format = CSR_SEG;
             else if(option == "LAV")
                 storage_format = LAV;
-            else if(option == "SIGMA")
-                storage_format = CELL_SIGMA_C;
+            else if(option == "VG_CSR" || option == "vg_csr")
+                storage_format = VECT_GROUP_CSR;
+            else if(option == "SELL_C" || option == "SIGMA")
+                storage_format = SELL_C;
         }
 
         if(option == "-no-check")

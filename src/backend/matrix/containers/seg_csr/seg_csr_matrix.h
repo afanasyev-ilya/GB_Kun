@@ -23,6 +23,8 @@ public:
     void get_size(VNT* _size) {
         *_size = size;
     }
+
+    ENT get_nnz() {return nz;};
 private:
     VNT size;
     ENT nz;

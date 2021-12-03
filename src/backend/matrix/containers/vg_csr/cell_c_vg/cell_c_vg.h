@@ -3,12 +3,12 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-struct CSRVertexGroupCellC
+struct CSRVertexGroupSellC
 {
 public:
     // init functions
-    CSRVertexGroupCellC();
-    ~CSRVertexGroupCellC();
+    CSRVertexGroupSellC();
+    ~CSRVertexGroupSellC();
 
     VNT get_min_nz() const {return min_nz;};
     VNT get_max_nz() const {return max_nz;};
@@ -16,7 +16,7 @@ public:
     void print();
 
     /* import and preprocess API */
-    void build(MatrixCellSigmaC<T> *_matrix, VNT _bottom, VNT _top);
+    void build(MatrixVectGroupCSR<T> *_matrix, VNT _bottom, VNT _top);
     void get_size(VNT* _size) {
         *_size = size;
     }
@@ -38,7 +38,7 @@ private:
     bool id_in_range(VNT _src_id, VNT _nz_count);
 
     template<typename Y>
-    friend void SpMV_vector(const MatrixCellSigmaC<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
+    friend void SpMV_vector(const MatrixVectGroupCSR<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

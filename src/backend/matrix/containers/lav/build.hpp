@@ -46,7 +46,7 @@ bool cmp(pair<VNT, ENT>& a,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixLAV<T>::prepare_hub_data(map<int, int> &_freqs)
+void MatrixLAV<T>::prepare_hub_data(map<VNT, ENT> &_freqs)
 {
     vector<pair<VNT, ENT> > sorted_accesses;
 

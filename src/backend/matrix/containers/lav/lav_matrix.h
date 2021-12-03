@@ -17,6 +17,8 @@ public:
     void get_size(VNT* _size) {
         *_size = size;
     }
+
+    ENT get_nnz() {return nz;};
 private:
     VNT size;
     ENT nz;
@@ -36,7 +38,7 @@ private:
     bool is_non_zero(VNT _row, VNT _col);
     T get(VNT _row, VNT _col);
 
-    void prepare_hub_data(map<int, int> &_freqs);
+    void prepare_hub_data(map<VNT, ENT> &_freqs);
 
     template<typename Y, typename SemiringT>
     friend void SpMV(const MatrixLAV<Y> *_matrix,

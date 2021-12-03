@@ -73,6 +73,8 @@ public:
         data->print();
     }
 
+    ENT get_nnz() {return data->get_nnz();};
+
 private:
     MatrixContainer<T> *data;
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
@@ -114,12 +116,16 @@ void Matrix<T>::build(const VNT *_row_indices,
         data = new MatrixSegmentedCSR<T>;
         transposed_data = new MatrixSegmentedCSR<T>;
         cout << "Using CSR_SEG matrix format" << endl;
-    } else if (_format == CELL_SIGMA_C) {
-        data = new MatrixCellSigmaC<T>;
-        transposed_data = new MatrixCellSigmaC<T>;
-        cout << "Using CellSigmaC matrix format" << endl;
-
-    } else {
+    } else if (_format == VECT_GROUP_CSR) {
+        data = new MatrixVectGroupCSR<T>;
+        transposed_data = new MatrixVectGroupCSR<T>;
+        cout << "Using MatrixVectGroupCSR matrix format" << endl;
+    } else if (_format == SELL_C) {
+        data = new MatrixSellC<T>;
+        transposed_data = new MatrixSellC<T>;
+        cout << "Using SellC matrix format" << endl;
+    }
+    else {
         throw "Error: unsupported format in Matrix<T>::build";
     }
     data->build(_row_indices, _col_indices, _values, _size, _nz, 0);
