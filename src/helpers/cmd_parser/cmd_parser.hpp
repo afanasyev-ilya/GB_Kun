@@ -6,7 +6,7 @@ Parser::Parser()
 {
     scale = 15;
     avg_degree = 27;
-    synthetic_graph_type = REAL_WORLD_GRAPH;
+    synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
     storage_format = CSR;
     no_check = false;
     file_name = "lj.mtx";

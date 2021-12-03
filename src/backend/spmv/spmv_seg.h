@@ -23,7 +23,7 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
             for(VNT i = 0; i < segment->size; i++)
                 buffer[i] = 0;
 
-            #pragma omp for schedule(static)
+            #pragma omp for schedule(dynamic)
             for(VNT i = 0; i < segment->size; i++)
             {
                 for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
