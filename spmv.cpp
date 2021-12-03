@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
         w.fill(0.0);
         u.fill(1.0);
 
-        lablas::mxv<float, float, float, float>(&w,NULL, lablas::PlusMonoid<float>(), lablas::PlusMonoid<float>(),&matrix, &u, &desc);
+        lablas::mxv<float, float, float, float>(&w,NULL, nullptr, lablas::PlusMultipliesSemiring<float>(),&matrix, &u, &desc);
 
         int num_runs = 100;
         double avg_time = 0;
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
             w.fill(0.0);
             u.fill(1.0);
             double t1 = omp_get_wtime();
-            lablas::mxv<float, float, float, float>(&w,NULL, lablas::PlusMonoid<float>(), lablas::PlusMonoid<float>(),&matrix, &u, &desc);
+            lablas::mxv<float, float, float, float>(&w,NULL, nullptr, lablas::PlusMultipliesSemiring<float>(),&matrix, &u, &desc);
             double t2 = omp_get_wtime();
             avg_time += (t2 - t1) / num_runs;
         }
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
 
             u.fill(1.0);
             w_check.fill(0.0);
-            lablas::mxv<float, float, float, float>(&w_check,NULL, lablas::PlusMonoid<float>(), lablas::PlusMonoid<float>(),&matrix, &u, &desc);
+            lablas::mxv<float, float, float, float>(&w_check,NULL, nullptr, lablas::PlusMultipliesSemiring<float>(),&matrix, &u, &desc);
 
             if(w == w_check)
             {

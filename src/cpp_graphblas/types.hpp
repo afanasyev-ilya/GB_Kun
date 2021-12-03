@@ -87,6 +87,11 @@
 //            }
 //        };
 namespace lablas{
+
+template <typename D1, typename D2 = D1>
+        struct Identity {
+            inline D2 operator()(D1 input) const { return input; }
+        };
 template <typename T_out>
         struct plus {
             inline T_out operator()(T_out lhs, T_out rhs) {
@@ -97,6 +102,24 @@ template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct multiplies {
             inline T_out operator()(T_in1 lhs, T_in2 rhs) {
                 return lhs * rhs;
+            }
+        };
+
+template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct first {
+            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+                return lhs;
+            }
+        };
+
+template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct minimum {
+            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+                if (lhs < rhs){
+                    return lhs;
+                } else {
+                    return rhs;
+                }
             }
         };
 
@@ -125,6 +148,10 @@ inline T_out operator()(T_out lhs, T_out rhs) const    \
 REGISTER_MONOID(PlusMonoid, plus, 0)
 REGISTER_MONOID(LogicalOrMonoid, logical_or, false)
 
+REGISTER_MONOID(FirstWinsMonoid, first, 0)
+
+REGISTER_MONOID(FirstMin, minimum, 0)
+
 
 // Semiring generator macro provided by Scott McMillan
 #define REGISTER_SEMIRING(SR_NAME, ADD_MONOID, MULT_BINARYOP)             \
@@ -147,6 +174,8 @@ inline  T_out mul_op(T_in1 lhs, T_in2 rhs)           \
 
 REGISTER_SEMIRING(PlusMultipliesSemiring, PlusMonoid, multiplies)
 REGISTER_SEMIRING(LogicalOrAndSemiring, LogicalOrMonoid, logical_and)
+REGISTER_SEMIRING(FirstWinsSemiring, FirstWinsMonoid, multiplies)
+REGISTER_SEMIRING(FirstMinSemiring, FirstMin, multiplies)
 
 template <typename SemiringT>
 struct AdditiveMonoidFromSemiring {

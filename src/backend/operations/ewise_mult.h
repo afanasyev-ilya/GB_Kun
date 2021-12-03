@@ -49,17 +49,11 @@ template <typename W, typename U, typename V, typename M,
         desc->get(GrB_NT, &nt_mode);
         const int nt = static_cast<int>(nt_mode);
 
-        // Get number of elements
-        Index u_nvals;
-        u->nvals(&u_nvals);
 
         DenseVector<U>* u_t = const_cast<DenseVector<U>*>(u);
         DenseVector<V>* v_t = const_cast<DenseVector<V>*>(v);
 
         Storage mask_type;
-        CHECK(mask->getStorage(&mask_type));
-        if (mask_type != GrB_DENSE)
-            return GrB_INVALID_OBJECT;
 
         const DenseVector<M>* mask_dense = mask->getDense();
         int u_size;

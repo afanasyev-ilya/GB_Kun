@@ -35,6 +35,24 @@ template <typename W, typename M, typename a, typename U,
         return GrB_SUCCESS;
     }
 
+    template <typename W, typename M, typename a, typename U,
+            typename BinaryOpT, typename SemiringT>
+    LA_Info vxm (Vector<W>*       w,
+                 const Vector<M>* mask,
+                 BinaryOpT        accum,
+                 SemiringT        op,
+                 const Matrix<a>* A,
+                 const Vector<U>* u,
+                 Descriptor*      desc) {
+
+        if (w == NULL || u == NULL || A == NULL || desc == NULL) {
+            return GrB_UNINITIALIZED_OBJECT;
+        }
+
+        backend::SpMV(A->get_matrix(), u->get_vector(), w->get_vector(), NULL,  op);
+        return GrB_SUCCESS;
+    }
+
 
     /*!
      * Assign constant to vector subset
@@ -44,7 +62,7 @@ template <typename W, typename M, typename a, typename U,
 template <typename W, typename M, typename T, typename I,
     typename BinaryOpT>
     LA_Info assign(Vector<W>*       w,
-                Vector<M>*       mask,
+                const Vector<M>*       mask,
                 BinaryOpT        accum,
                 T                val,
                 const Vector<I>* indices,

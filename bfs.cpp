@@ -42,9 +42,9 @@ int main(int argc, char **argv) {
         u.fill(1.0);
 
         // TODO BFS
-
+        */
         VNT source_vertex = 0;
-        bfs(&levels, &matrix, source_vertex, &desc);*/
+        lablas::algorithm::bfs(&levels, &matrix, source_vertex, &desc);
     }
     catch (string error)
     {

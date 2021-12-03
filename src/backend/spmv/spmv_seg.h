@@ -36,7 +36,7 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
 
     if(_matrix->size > pow(2.0, 22)) // cache aware merge
     {
-        int outer_threads = min(_matrix->merge_blocks_number, cores_num);
+        int outer_threads = std::min(_matrix->merge_blocks_number, cores_num);
         int inner_threads = cores_num/outer_threads;
         #pragma omp parallel num_threads(outer_threads)
         {

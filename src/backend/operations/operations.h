@@ -19,7 +19,7 @@ namespace backend{
 template <typename W, typename T, typename M,
     typename BinaryOpT>
     LA_Info assign(Vector<W>*           w,
-                Vector<M>*           mask,
+                const Vector<M>*           mask,
                 BinaryOpT            accum,
                 T                    val,
                 const Vector<Index>* indices,
@@ -173,8 +173,8 @@ template <typename W, typename U, typename V, typename M,
                 mask->getStorage(&mask_type);
                 if (mask_type == GrB_DENSE) {
                     w->setStorage(GrB_DENSE);
-                    eWiseMultInner(&w->dense_, mask, accum, op, &u->dense_,
-                                         &v->dense_, desc);
+                    eWiseMultInner(w->getDense(), mask, accum, op, u->getDense(),
+                                         v->getDense(), desc);
                 } else if (mask_type == GrB_SPARSE) {
 //                    w->setStorage(GrB_SPARSE);
 //                    eWiseMultInner(&w->sparse_, &mask->sparse_, accum, op,
@@ -184,8 +184,8 @@ template <typename W, typename U, typename V, typename M,
                 }
             } else {
                 w->setStorage(GrB_DENSE);
-                eWiseMultInner(&w->dense_, mask, accum, op, &u->dense_,
-                                     &v->dense_, desc);
+                eWiseMultInner(w->getDense(), mask, accum, op, u->getDense(),
+                                     v->getDense(), desc);
             }
         } else if (u_vec_type == GrB_SPARSE && v_vec_type == GrB_DENSE) {
             // The boolean here keeps track of whether operators have been reversed.

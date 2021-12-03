@@ -13,7 +13,7 @@ namespace backend {
 template <typename W, typename T, typename M, typename I,
     typename BinaryOpT>
     LA_Info assignDense(DenseVector<W>*  w,
-                        Vector<M>*       mask,
+                        const Vector<M>*       mask,
                         BinaryOpT        accum,
                         T                val,
                         const Vector<I>* indices,
