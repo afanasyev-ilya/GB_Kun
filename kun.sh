@@ -28,8 +28,10 @@ make
 
 export OMP_NUM_THREADS=64
 export OMP_PROC_BIND=close
+export OMP_PLACES=cores
 
-./spmv -graph RW ./lj.mtx -format CSR
+./spmv -s 20 -e 32 -type RU -format CSR
+#./spmv -graph RW ./lj.mtx -format CSR
 #./spmv -graph RW ./lj.mtx -format CSR_SEG
 #./spmv -graph RW ./lj.mtx -format SIGMA
 

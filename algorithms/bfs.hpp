@@ -35,9 +35,11 @@ void bfs(Vector<float>*       v,
 
     A->print();
 
-    for (iter = 1; iter <= max_iter; ++iter) {
+    for (iter = 1; iter <= 3; ++iter) {
         unvisited -= static_cast<int>(succ);
 
+        cout << "v bef:" << endl;
+        v->print();
         assign<float, float, float, Index>(v, &f1, nullptr, iter, NULL, A_nrows,
                                            desc);
         cout << "------" << endl;
@@ -58,7 +60,7 @@ void bfs(Vector<float>*       v,
         f2.swap(&f1);
 
         reduce<float, float>(&succ, nullptr, PlusMonoid<float>(), &f1, desc);
-
+        cout << "suc: " << succ << endl;
         if (succ == 0)
             break;
     }

@@ -60,12 +60,13 @@ void SpMV(const MatrixCSR<T> *_matrix,
 
     #pragma omp parallel
     {
-        #pragma omp for schedule(dynamic)
+        #pragma omp for schedule(static)
         for(VNT i = 0; i < _matrix->size; i++)
         {
             for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
             {
                 y_vals[i] = add_op(y_vals[i], mul_op(_matrix->vals[j], x_vals[_matrix->col_ids[j]])) ;
+                //y_vals[i] += _matrix->vals[j] * x_vals[_matrix->col_ids[j]];
             }
         }
     }
