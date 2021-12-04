@@ -142,7 +142,7 @@ int main(void)
         cout << current_radius * sizeof(int) / (1024) << "KB " << large_size * sizeof(int) * 3.0 / ((t2 - t1)*1e9) << " GB/s (copy data)" << endl;
 
         int threads = omp_get_max_threads();
-        int seg_size = 64*1024;
+        int seg_size = 32*1024/sizeof(float);
         std::sort(indexes, indexes + large_size,
                   [seg_size](int a, int b) {return a/seg_size > b/seg_size; });
 
