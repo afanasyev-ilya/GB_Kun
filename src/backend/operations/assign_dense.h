@@ -22,13 +22,23 @@ template <typename W, typename T, typename M, typename I,
         VNT vec_size;
         w->get_size(&vec_size);
         std::string accum_type = typeid(accum).name();
-        for (int i = 0; i < vec_size; i++) {
-            if (mask->getDense()->get_vals()[i] != 0) {
-                if (accum_type.size() <= 1) {
-                    w->get_vals()[i] = val;
-                } else {
-                    w->get_vals()[i] =  val;
+        if (mask != NULL) {
+            for (int i = 0; i < vec_size; i++) {
+                if (mask->getDense()->get_vals()[i] != 0) {
+                    if (accum_type.size() <= 1) {
+                        w->get_vals()[i] = val;
+                    } else {
+                        w->get_vals()[i] =  val;
+                    }
                 }
+            }
+        } else {
+            for (int i = 0; i < vec_size; i++) {
+                    if (accum_type.size() <= 1) {
+                        w->get_vals()[i] = val;
+                    } else {
+                        w->get_vals()[i] =  val;
+                    }
             }
         }
         return GrB_SUCCESS;
