@@ -36,6 +36,12 @@ public:
         return GrB_SUCCESS;
     }
 
+    VNT nrows() const{
+        VNT size = 0;
+        _matrix.get_nrows(size);
+        return size;
+    }
+
     template <typename BinaryOpT>
     LA_Info build (const std::vector<VNT>*   row_indices,
                    const std::vector<VNT>*   col_indices,
@@ -60,7 +66,7 @@ public:
         return GrB_SUCCESS;
     }
 
-    void print()
+    void print() const
     {
         _matrix.print();
     }

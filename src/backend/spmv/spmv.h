@@ -43,7 +43,8 @@ template <typename T, typename SemiringT>
 void VSpM(const Matrix<T> *_matrix,
           const Vector<T> *_x,
           Vector<T> *_y,
-          Descriptor *_desc, SemiringT _op)
+          Descriptor *_desc,
+          SemiringT _op)
 {
     MatrixStorageFormat format;
     _matrix->get_format(&format);

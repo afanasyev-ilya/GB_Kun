@@ -26,11 +26,8 @@ int main(int argc, char **argv) {
         LA_Info info = matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
         lablas::Vector<float> levels(el.vertices_count);
 
-        cout << "doing BFS..." << endl;
-
         VNT source_vertex = 0;
-
-        lablas::algorithm::bfs_td(&levels, &matrix, source_vertex, &desc);
+        lablas::algorithm::bfs(&levels, &matrix, source_vertex, &desc);
     }
     catch (string error)
     {

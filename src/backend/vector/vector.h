@@ -66,6 +66,7 @@ public:
         }
     }
 
+    VNT nvals() {return nz;};
 private:
     VNT size;
     VNT nz;
