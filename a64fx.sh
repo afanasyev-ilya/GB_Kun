@@ -34,7 +34,7 @@ export OMP_PLACES=cores
 
 #./saxpy.bin
 
-./spmv -s 20 -e 32 -type RU -format CSR_SEG
+./spmv -s 20 -e 32 -type rmat -format CSR_SEG
 #echo "######################################################"
 #./spmv -s 20 -e 32 -type RU -format CSR_SEG
 #echo "######################################################"
