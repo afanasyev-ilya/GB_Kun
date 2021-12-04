@@ -44,6 +44,8 @@ void bfs(Vector<float>*       v,
         vxm<float, float, float, float>(&f2, v, nullptr,
                                         LogicalOrAndSemiring<float>(), A, &f1, desc);
 
+        v->print();
+
         cout << "after step" << endl;
         f2.print();
         f2.swap(&f1);

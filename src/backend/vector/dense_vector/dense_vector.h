@@ -21,6 +21,10 @@ public:
         *_size = size;
     }
 
+    VNT get_size () const {
+        return size;
+    }
+
     T* get_vals () {
         return vals;
     }

@@ -31,7 +31,10 @@ template <typename W, typename M, typename a, typename U,
             return GrB_UNINITIALIZED_OBJECT;
         }
 
-        backend::SpMV(A->get_matrix(), u->get_vector(), w->get_vector(), NULL,  op);
+        if(mask != NULL)
+            backend::SpMV(A->get_matrix(), u->get_vector(), w->get_vector(), NULL, op, mask->get_vector());
+        else
+            backend::SpMV<W, M, SemiringT>(A->get_matrix(), u->get_vector(), w->get_vector(), NULL, op, NULL);
         return GrB_SUCCESS;
     }
 
@@ -49,7 +52,10 @@ template <typename W, typename M, typename a, typename U,
             return GrB_UNINITIALIZED_OBJECT;
         }
 
-        backend::VSpM(A->get_matrix(), u->get_vector(), w->get_vector(), NULL,  op);
+        if(mask != NULL)
+            backend::VSpM(A->get_matrix(), u->get_vector(), w->get_vector(), NULL,  op, mask->get_vector());
+        else
+            backend::VSpM<W, M, SemiringT>(A->get_matrix(), u->get_vector(), w->get_vector(), NULL, op, NULL);
         return GrB_SUCCESS;
     }
 

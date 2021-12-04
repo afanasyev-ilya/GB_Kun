@@ -92,6 +92,9 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
     rng_api.generate_array_of_random_values<VNT>(dst_ids, directed_edges_count, max_id_val);
     rng_api.generate_array_of_random_values<T>(vals, directed_edges_count, 1.0);
 
+    for(ENT i = 0; i < edges_count; i++)
+        vals[i] = 1;
+
     double t2 = omp_get_wtime();
 
     if(!_direction_type)
