@@ -1,6 +1,4 @@
-#ifndef GB_KUN_DESCRIPTOR_HPP
-#define GB_KUN_DESCRIPTOR_HPP
-
+#pragma once
 
 #include "../backend/descriptor/descriptor.h"
 namespace lablas {
@@ -25,7 +23,3 @@ private:
 };
 
 }
-
-
-
-#endif //GB_KUN_DESCRIPTOR_HPP

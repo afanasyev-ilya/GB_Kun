@@ -54,6 +54,7 @@ public:
         return _vector.print();
     }
 
+    Index nvals() const { return _vector.nvals();};
 private:
     backend::Vector<T> _vector;
 
