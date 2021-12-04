@@ -66,6 +66,15 @@ public:
         }
     }
 
+    void swap(Vector* rhs) {
+        if (storage == GrB_DENSE) {
+           dense.swap(rhs->getDense());
+        }
+        if (storage == GrB_SPARSE) {
+            sparse.swap(rhs->getSparse());
+        }
+    }
+
     VNT nvals() {return nz;};
 private:
     VNT size;

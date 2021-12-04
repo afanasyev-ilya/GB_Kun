@@ -54,6 +54,10 @@ public:
         return _vector.print();
     }
 
+    void swap(Vector* rhs) {
+        return _vector.swap(rhs->get_vector());
+    }
+
     Index nvals() const { return _vector.nvals();};
 private:
     backend::Vector<T> _vector;
