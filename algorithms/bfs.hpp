@@ -17,16 +17,16 @@ void bfs(Vector<float>*       v,
     A->get_nrows(&A_nrows);
 
     // Visited vector (use float for now)
-    v->fill(0.f);
+    v->fill(0);
 
     // Frontier vectors (use float for now)
     Vector<float> f1(A_nrows);
     Vector<float> f2(A_nrows);
     const Vector<float> f3(A_nrows);
 
-    f1.fill(0.f);
+    f1.fill(0);
+    f2.fill(0);
     f1.set_element(1.f, source);
-    f1.print();
 
     float iter;
     float succ = 0.f;
@@ -40,14 +40,21 @@ void bfs(Vector<float>*       v,
 
         assign<float, float, float, Index>(v, &f1, nullptr, iter, NULL, A_nrows,
                                            desc);
+        cout << "------" << endl;
+        cout << "v:" << endl;
+        v->print();
+        cout << "f1" << endl;
+        f1.print();
+        cout << "f2:" << endl;
+        f2.print();
+        cout << "------" << endl;
 
         vxm<float, float, float, float>(&f2, v, nullptr,
                                         LogicalOrAndSemiring<float>(), A, &f1, desc);
 
-        v->print();
-
-        cout << "after step" << endl;
+        cout << "spmv res:" << endl;
         f2.print();
+
         f2.swap(&f1);
 
         reduce<float, float>(&succ, nullptr, PlusMonoid<float>(), &f1, desc);
