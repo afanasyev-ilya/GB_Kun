@@ -29,6 +29,14 @@ public:
         *_size = size;
     }
 
+    void set_nz(VNT _nz) const {
+        nz = _nz;
+    }
+
+    void set_size(VNT _size) const {
+        size = _size;
+    }
+
     T* get_vals () {
         return vals;
     }
@@ -45,6 +53,14 @@ public:
         return ids;
     }
 
+    void set_ids(VNT *_ids) const {
+       ids = _ids;
+    }
+
+    void set_vals(T* _vals) const {
+        vals = _vals;
+    }
+
     /* TODO implement constructor and build for sparse */
 
     LA_Info build(const Index* indices, const T *values, Index nvals) {
@@ -59,12 +75,29 @@ public:
         return GrB_SUCCESS;
     }
 
-private:
-    VNT size;
-    VNT nz;
+    void swap(SparseVector* rhs) const {
+        VNT tmp_size = size;
+        VNT tmp_nz = nz;
+        T* tmp_vals = vals;
+        VNT* tmp_ids = ids;
 
-    T *vals;
-    VNT *ids;
+        rhs->get_size(&size);
+        rhs->get_nz(&nz);
+        vals = rhs->get_vals();
+        ids = rhs->get_ids();
+
+        rhs->set_nz(tmp_nz);
+        rhs->set_size(tmp_size);
+        rhs->set_ids(tmp_ids);
+        rhs->set_vals(tmp_vals);
+    }
+
+private:
+    mutable VNT size;
+    mutable VNT nz;
+
+    mutable T *vals;
+    mutable VNT *ids;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

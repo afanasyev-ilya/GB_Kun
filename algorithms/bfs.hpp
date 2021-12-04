@@ -46,6 +46,7 @@ void bfs(Vector<float>*       v,
 
         cout << "after step" << endl;
         f2.print();
+        f2.swap(&f1);
 
         reduce<float, float>(&succ, nullptr, PlusMonoid<float>(), &f1, desc);
 

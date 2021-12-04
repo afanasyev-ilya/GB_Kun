@@ -29,6 +29,14 @@ public:
         return vals;
     }
 
+    void set_size(VNT _size) const {
+        size = _size;
+    }
+
+    void set_vals(T* _vals) const {
+        vals = _vals;
+    }
+
     LA_Info build(const T* values,
                   Index                 nvals) {
         if (nvals > size){
@@ -40,9 +48,20 @@ public:
         return GrB_SUCCESS;
     }
 
+    void swap(DenseVector* rhs) const {
+        VNT tmp_size = size;
+        T* tmp_vals = vals;
+
+        rhs->get_size(&size);
+        vals = rhs->get_vals();
+
+        rhs->set_size(tmp_size);
+        rhs->set_vals(tmp_vals);
+    }
+
 private:
-    VNT size;
-    T *vals;
+    mutable VNT size;
+    mutable T *vals;
 
     template<typename Y>
     friend bool operator==(DenseVector<Y>& lhs, DenseVector<Y>& rhs);
