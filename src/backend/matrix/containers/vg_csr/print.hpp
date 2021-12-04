@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixVectGroupCSR<T>::print()
+void MatrixVectGroupCSR<T>::print() const
 {
     for(VNT row = 0; row < size; row++)
     {

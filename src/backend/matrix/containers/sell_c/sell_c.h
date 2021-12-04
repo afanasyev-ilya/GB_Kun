@@ -13,9 +13,9 @@ public:
     ~MatrixSellC();
 
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket = 0);
-    void print();
-    ENT get_nnz() {return nz;};
-    void get_size(VNT* _size) { *_size = size; };
+    void print() const;
+    ENT get_nnz() const {return nz;};
+    void get_size(VNT* _size) const { *_size = size; };
 private:
     int size, nz;
 
@@ -41,7 +41,7 @@ private:
     void construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad = 1);
     void permute(VNT *perm, VNT* invPerm);
 
-    T get(VNT _row, VNT _col);
+    T get(VNT _row, VNT _col) const;
 
     void print_stats();
     void print_connections(VNT _row);

@@ -76,12 +76,12 @@ public:
         }
     }
 
-    void print()
+    void print() const
     {
         data->print();
     }
 
-    ENT get_nnz() {return data->get_nnz();};
+    ENT get_nnz() const {return data->get_nnz();};
 
 private:
     MatrixContainer<T> *data;

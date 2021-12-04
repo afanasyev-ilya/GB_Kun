@@ -71,7 +71,7 @@ public:
         _matrix.print();
     }
 
-    Index get_nnz() {return _matrix.get_nnz();};
+    Index get_nnz() const {return _matrix.get_nnz();};
 
 private:
     backend::Matrix<T> _matrix;

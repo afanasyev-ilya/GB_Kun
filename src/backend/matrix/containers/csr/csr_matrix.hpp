@@ -63,7 +63,7 @@ bool MatrixCSR<T>::is_non_zero(VNT _row, VNT _col)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-T MatrixCSR<T>::get(VNT _row, VNT _col)
+T MatrixCSR<T>::get(VNT _row, VNT _col) const
 {
     for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
     {
@@ -76,7 +76,7 @@ T MatrixCSR<T>::get(VNT _row, VNT _col)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::print()
+void MatrixCSR<T>::print() const
 {
     for(VNT row = 0; row < size; row++)
     {

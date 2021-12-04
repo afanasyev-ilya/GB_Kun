@@ -205,6 +205,7 @@ void GraphGenerationAPI::RMAT(EdgeListContainer<T> &_edges_container,
     }
 
     random_shuffle_edges(_edges_container);
+    //save_to_file(_edges_container);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -493,6 +494,22 @@ void GraphGenerationAPI::init_from_txt_file(EdgeListContainer<T> &_edges_contain
     }
 
     infile.close();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void GraphGenerationAPI::save_to_file(EdgeListContainer<T> &_edges_container)
+{
+    ofstream matrix_file;
+    matrix_file.open ("export_file.txt");
+    matrix_file << "%%MatrixMarket matrix coordinate pattern general" << endl;
+    matrix_file << _edges_container.vertices_count << " " << _edges_container.edges_count << endl;
+    for(ENT i = 0; i < _edges_container.edges_count; i++)
+    {
+        matrix_file << _edges_container.src_ids[i] << " " << _edges_container.dst_ids[i] << endl;
+    }
+    matrix_file.close();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

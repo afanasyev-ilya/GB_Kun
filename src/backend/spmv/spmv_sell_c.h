@@ -17,7 +17,7 @@ void SpMV(const MatrixSellC<T> *_matrix,
           const DenseVector<T> *_x,
           DenseVector<T> *_y, SemiringT op)
 {
-    const T *x_vals = _x->get_vals();
+    /*const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();
 
     const uint64_t C_value = 32;
@@ -77,7 +77,7 @@ void SpMV(const MatrixSellC<T> *_matrix,
         svst1(svptrue_b64(), &(y_vals[C_value*chunk+1*svcntd()]), tmp1);
         svst1(svptrue_b64(), &(y_vals[C_value*chunk+2*svcntd()]), tmp2);
         svst1(svptrue_b64(), &(y_vals[C_value*chunk+3*svcntd()]), tmp3);
-    }
+    }*/
 }
 #else
 template <typename T, typename SemiringT>

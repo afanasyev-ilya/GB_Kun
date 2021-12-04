@@ -77,7 +77,7 @@ MatrixSellC<T>::~MatrixSellC()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-T MatrixSellC<T>::get(VNT _row, VNT _col)
+T MatrixSellC<T>::get(VNT _row, VNT _col) const
 {
     for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
     {
@@ -90,7 +90,7 @@ T MatrixSellC<T>::get(VNT _row, VNT _col)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixSellC<T>::print()
+void MatrixSellC<T>::print() const
 {
     for(VNT row = 0; row < size; row++)
     {
