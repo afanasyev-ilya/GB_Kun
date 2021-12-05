@@ -85,17 +85,11 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
     #pragma omp parallel
     {};
 
-    double t1 = omp_get_wtime();
     RandomGenerator rng_api;
     int max_id_val = vertices_count;
     rng_api.generate_array_of_random_values<VNT>(src_ids, directed_edges_count, max_id_val);
     rng_api.generate_array_of_random_values<VNT>(dst_ids, directed_edges_count, max_id_val);
     rng_api.generate_array_of_random_values<T>(vals, directed_edges_count, 1.0);
-
-    for(ENT i = 0; i < edges_count; i++)
-        vals[i] = 1;
-
-    double t2 = omp_get_wtime();
 
     if(!_direction_type)
     {
@@ -497,22 +491,6 @@ void GraphGenerationAPI::init_from_txt_file(EdgeListContainer<T> &_edges_contain
     }
 
     infile.close();
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-void GraphGenerationAPI::save_to_file(EdgeListContainer<T> &_edges_container)
-{
-    ofstream matrix_file;
-    matrix_file.open ("export_file.txt");
-    matrix_file << "%%MatrixMarket matrix coordinate pattern general" << endl;
-    matrix_file << _edges_container.vertices_count << " " << _edges_container.edges_count << endl;
-    for(ENT i = 0; i < _edges_container.edges_count; i++)
-    {
-        matrix_file << _edges_container.src_ids[i] << " " << _edges_container.dst_ids[i] << endl;
-    }
-    matrix_file.close();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

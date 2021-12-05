@@ -32,6 +32,51 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
     VNT* row_ids_new = *(&col_ids);
     T* vals_new = *(&vals);
 
+    bool save_to_file = true;
+    if(save_to_file)
+    {
+        MemoryAPI::copy(row_ids_new, _row_ids, _nz);
+        MemoryAPI::copy(col_ids_new, _col_ids, _nz);
+        MemoryAPI::copy(vals_new, _vals, _nz);
+
+        ENT *sort_indexes;
+        MemoryAPI::allocate_array(&sort_indexes, _nz);
+
+        #pragma omp parallel for
+        for(ENT i = 0; i < _nz; i++)
+            sort_indexes[i] = i;
+
+        std::sort(sort_indexes, sort_indexes + _nz,
+                  [_row_ids, _col_ids](int index1, int index2)
+                  {
+                      if(_row_ids[index1] == _row_ids[index2])
+                          return _col_ids[index1] < _col_ids[index2];
+                      else
+                          return _row_ids[index1] < _row_ids[index2];
+                  });
+        reorder(row_ids_new, sort_indexes, _nz);
+        reorder(col_ids_new, sort_indexes, _nz);
+        reorder(vals_new, sort_indexes, _nz);
+
+        MemoryAPI::free_array(sort_indexes);
+
+        ENT unique_edges = 0;
+        for(ENT i = 1; i < _nz; i++)
+            if((row_ids[i] != row_ids[i - 1]) && (col_ids[i] != col_ids[i - 1]) && (col_ids[i] != row_ids[i]))
+                unique_edges++;
+
+        ofstream matrix_file;
+        matrix_file.open ("last_synth_graph.mtx");
+        matrix_file << "%%MatrixMarket matrix coordinate pattern general" << endl;
+        matrix_file << size << " " << size << " " << unique_edges << endl;
+        for(ENT i = 1; i < _nz; i++)
+        {
+            if((row_ids[i] != row_ids[i - 1]) && (col_ids[i] != col_ids[i - 1]) && (col_ids[i] != row_ids[i]))
+                matrix_file << row_ids[i] + 1 << " " << col_ids[i] + 1 << endl;
+        }
+        matrix_file.close();
+    }
+
     MemoryAPI::copy(row_ids_new, _row_ids, _nz);
     MemoryAPI::copy(col_ids_new, _col_ids, _nz);
     MemoryAPI::copy(vals_new, _vals, _nz);
@@ -62,6 +107,8 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
 
         MemoryAPI::free_array(sort_indexes);
     }
+
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

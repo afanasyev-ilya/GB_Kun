@@ -30,9 +30,6 @@ struct EdgeListContainer
 
 class GraphGenerationAPI
 {
-private:
-    template <typename T>
-    static void save_to_file(EdgeListContainer<T> &_edges_container);
 public:
     template <typename T>
     static void random_uniform(EdgeListContainer<T> &_edges_container,
