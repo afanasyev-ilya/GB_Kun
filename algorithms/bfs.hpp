@@ -64,6 +64,8 @@ void bfs(Vector<float>*       v,
         if (succ == 0)
             break;
     }
+
+    v->print();
 }
 
 }

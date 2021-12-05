@@ -76,7 +76,7 @@ if __name__ == "__main__":
                       help="type of graph used (rmat, ru)", default="ru")
     parser.add_option('-f', '--format',
                       action="store", dest="graph_format",
-                      help="graph storage format used (CSR, COO, COO_OPT, CSR_SEG)", default="CSR")
+                      help="graph storage format used (CSR, COO, CSR_SEG, SIGMA, LAV)", default="CSR")
     parser.add_option('-s', '--sockets',
                       action="store", dest="sockets",
                       help="number of sockets used, default is 1", default=1)

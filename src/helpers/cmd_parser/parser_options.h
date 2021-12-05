@@ -15,7 +15,6 @@ enum MatrixStorageFormat
 {
     CSR = 0,
     COO = 1,
-    COO_OPT = 2,
     CSR_SEG = 3,
     LAV = 4,
     VECT_GROUP_CSR = 5,

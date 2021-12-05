@@ -6,9 +6,11 @@ void reorder(T *data, ENT *indexes, ENT size)
     T *tmp;
     MemoryAPI::allocate_array(&tmp, size);
 
+    #pragma omp parallel for
     for(ENT i = 0; i < size; i++)
         tmp[i] = data[indexes[i]];
 
+    #pragma omp parallel for
     for(ENT i = 0; i < size; i++)
         data[i] = tmp[i];
 
@@ -24,21 +26,26 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
     size = _size;
     nz = _nz;
 
-    bool _optimized = false;
+    bool _optimized = true;
 
-    VNT* col_ids_new = *(&col_ids);
+    VNT* col_ids_new = *(&row_ids);
     VNT* row_ids_new = *(&col_ids);
-    VNT* val_ids_new = *(&col_ids);
+    T* vals_new = *(&vals);
+
+    MemoryAPI::copy(row_ids_new, _row_ids, _nz);
+    MemoryAPI::copy(col_ids_new, _col_ids, _nz);
+    MemoryAPI::copy(vals_new, _vals, _nz);
 
     if(_optimized)
     {
         ENT *sort_indexes;
         MemoryAPI::allocate_array(&sort_indexes, _nz);
+
+        #pragma omp parallel for
         for(ENT i = 0; i < _nz; i++)
             sort_indexes[i] = i;
 
-        int seg_size = 1024*1024 / sizeof(int);
-
+        int seg_size = 512*1024 / sizeof(float);
         cout << "num segments: " << (size - 1)/seg_size + 1 << endl;
 
         std::sort(sort_indexes, sort_indexes + _nz,
@@ -49,20 +56,12 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
                           else
                               return _row_ids[index1] / seg_size < _row_ids[index2] / seg_size;
                   });
-
-//        reorder(_row_ids, sort_indexes, _nz);
-//        reorder(_col_ids, sort_indexes, _nz);
-//        reorder(_vals, sort_indexes, _nz);
         reorder(row_ids_new, sort_indexes, _nz);
         reorder(col_ids_new, sort_indexes, _nz);
-        reorder(val_ids_new, sort_indexes, _nz);
+        reorder(vals_new, sort_indexes, _nz);
 
         MemoryAPI::free_array(sort_indexes);
     }
-
-    MemoryAPI::copy(row_ids, _row_ids, _nz);
-    MemoryAPI::copy(col_ids, _col_ids, _nz);
-    MemoryAPI::copy(vals, _vals, _nz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
