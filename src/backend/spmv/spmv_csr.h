@@ -48,10 +48,10 @@ void SpMV(MatrixCSR<T> &_matrix,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename SemiringT>
+template <bool CMP, typename T, typename Y, typename SemiringT>
 void SpMV(const MatrixCSR<T> *_matrix,
           const DenseVector<T> *_x,
-          DenseVector<T> *_y, SemiringT op)
+          DenseVector<T> *_y, SemiringT op, const Vector<Y> *_mask)
 {
     const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();
@@ -63,9 +63,12 @@ void SpMV(const MatrixCSR<T> *_matrix,
         #pragma omp for schedule(dynamic)
         for(VNT i = 0; i < _matrix->size; i++)
         {
-            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
-            {
-                y_vals[i] = add_op(y_vals[i], mul_op(_matrix->vals[j], x_vals[_matrix->col_ids[j]])) ;
+            bool mask_val = (bool)_mask->getDense()->get_vals()[i];
+            if (mask_val && !CMP) {
+                for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
+                {
+                    y_vals[i] = add_op(y_vals[i], mul_op(_matrix->vals[j], x_vals[_matrix->col_ids[j]])) ;
+                }
             }
         }
     }

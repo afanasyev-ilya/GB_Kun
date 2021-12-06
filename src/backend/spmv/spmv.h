@@ -26,8 +26,24 @@ void SpMV(const Matrix<T> *_matrix,
 {
     MatrixStorageFormat format;
     _matrix->get_format(&format);
-    if(format == CSR)
-        SpMV(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
+    Desc_value mask_field;
+    if (_mask != NULL) {
+        _desc->get(GrB_MASK, &mask_field);
+    }
+    bool use_cmp;
+    if (mask_field == GrB_SCMP) {
+        use_cmp = true;
+    } else {
+        use_cmp = false;
+    }
+
+    if(format == CSR) {
+        if (use_cmp) {
+            SpMV<true>(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op, _mask);
+        } else {
+            SpMV<false>(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op, _mask);
+        }
+    }
     else if(format == LAV)
         SpMV(((MatrixLAV<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
     else if(format == COO)
@@ -37,15 +53,15 @@ void SpMV(const Matrix<T> *_matrix,
     else if(format == SELL_C)
         SpMV(((MatrixSellC<T> *)_matrix->get_data()), _x->getDense(), _y->getDense(), _op);
 
-    T *result_vals = _mask->getDense()->get_vals();
-    const Y *mask_vals = _mask->getDense()->get_vals();
-    VNT mask_size = _mask->getDense()->get_size();
-    #pragma omp parallel for
-    for(VNT i = 0; i < mask_size; i++)
-    {
-        if(mask_vals[i] == 0)
-            result_vals[i] = 0;
-    }
+//    T *result_vals = _mask->getDense()->get_vals();
+//    const Y *mask_vals = _mask->getDense()->get_vals();
+//    VNT mask_size = _mask->getDense()->get_size();
+//    #pragma omp parallel for
+//    for(VNT i = 0; i < mask_size; i++)
+//    {
+//        if(mask_vals[i] == 0)
+//            result_vals[i] = 0;
+//    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,9 +76,27 @@ void VSpM(const Matrix<T> *_matrix,
 {
     MatrixStorageFormat format;
     _matrix->get_format(&format);
-    if(format == CSR)
-        SpMV(((MatrixCSR<T> *) _matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op);
-    else if(format == LAV)
+
+    Desc_value mask_field;
+    if (_mask != NULL) {
+        _desc->get(GrB_MASK, &mask_field);
+    }
+    bool use_cmp;
+    if (mask_field == GrB_SCMP) {
+        use_cmp = true;
+    } else {
+        use_cmp = false;
+    }
+
+
+    if(format == CSR){
+        if (use_cmp) {
+            SpMV<true>(((MatrixCSR<T> *) _matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op, _mask);
+        } else {
+            SpMV<false>(((MatrixCSR<T> *) _matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op, _mask);
+        }
+        //SpMV(((MatrixCSR<T> *) _matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op, _mask);
+    }else if(format == LAV)
         SpMV(((MatrixLAV<T> *) _matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op);
     else if(format == COO)
         SpMV(((MatrixCOO<T> *) _matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op);
@@ -71,15 +105,15 @@ void VSpM(const Matrix<T> *_matrix,
     else if(format == SELL_C)
         SpMV(((MatrixSellC<T> *)_matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op);
 
-    T *result_vals = _mask->getDense()->get_vals();
-    const Y *mask_vals = _mask->getDense()->get_vals();
-    VNT mask_size = _mask->getDense()->get_size();
-    #pragma omp parallel for
-    for(VNT i = 0; i < mask_size; i++)
-    {
-        if(mask_vals[i] == 0)
-            result_vals[i] = 0;
-    }
+//    T *result_vals = _mask->getDense()->get_vals();
+//    const Y *mask_vals = _mask->getDense()->get_vals();
+//    VNT mask_size = _mask->getDense()->get_size();
+//    #pragma omp parallel for
+//    for(VNT i = 0; i < mask_size; i++)
+//    {
+//        if(mask_vals[i] == 0)
+//            result_vals[i] = 0;
+//    }
 }
 
 }
