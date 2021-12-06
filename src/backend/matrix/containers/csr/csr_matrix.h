@@ -36,10 +36,10 @@ private:
     bool is_non_zero(VNT _row, VNT _col);
     T get(VNT _row, VNT _col) const;
 
-    template<typename Y, typename SemiringT>
-    friend void SpMV(const MatrixCSR<Y> *_matrix,
-                     const DenseVector<Y> *_x,
-                     DenseVector<Y> *_y, SemiringT op);
+    template <bool CMP, typename N, typename Y, typename SemiringT>
+    friend void SpMV(const MatrixCSR<N> *_matrix,
+              const DenseVector<N> *_x,
+              DenseVector<N> *_y, SemiringT op, const Vector<Y> *_mask);
 
     void numa_aware_alloc();
 };

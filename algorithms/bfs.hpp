@@ -51,6 +51,8 @@ void bfs(Vector<float>*       v,
         f2.print();
         cout << "------" << endl;
 
+        desc->set(GrB_MASK, GrB_SCMP);
+
         vxm<float, float, float, float>(&f2, v, nullptr,
                                         LogicalOrAndSemiring<float>(), A, &f1, desc);
 
