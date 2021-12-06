@@ -490,6 +490,8 @@ void GraphGenerationAPI::init_from_txt_file(EdgeListContainer<T> &_edges_contain
         }
     }
 
+    random_shuffle_edges(_edges_container);
+
     infile.close();
 }
 

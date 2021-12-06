@@ -30,7 +30,12 @@ export OMP_NUM_THREADS=64
 export OMP_PROC_BIND=close
 export OMP_PLACES=cores
 
-./spmv -s $1 -e 32 -type $2 -format $3
+#./spmv -s $1 -e 32 -type $2 -format $3
+
+./spmv -s 21 -e 32 -type RU -format CSR
+./spmv -s 21 -e 32 -type RMAT -format CSR
+./spmv -graph RW ./lj.mtx -format CSR
+
 #./spmv -s 20 -e 32 -type RU -format CSR
 #./spmv -graph RW ./lj.mtx -format CSR
 #./spmv -graph RW ./lj.mtx -format CSR_SEG

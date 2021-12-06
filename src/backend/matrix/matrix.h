@@ -117,8 +117,8 @@ void Matrix<T>::build(const VNT *_row_indices,
         transposed_data = new MatrixLAV<T>;
         cout << "Using LAV matrix format" << endl;
     } else if (_format == COO) {
-        data = new MatrixCOO<T>;
         transposed_data = new MatrixCOO<T>;
+        data = new MatrixCOO<T>;
         cout << "Using COO matrix format" << endl;
     } else if (_format == CSR_SEG) {
         data = new MatrixSegmentedCSR<T>;
