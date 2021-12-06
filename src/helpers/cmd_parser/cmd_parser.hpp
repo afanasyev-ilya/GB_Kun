@@ -7,7 +7,7 @@ Parser::Parser()
     scale = 3;
     avg_degree = 3;
     synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
-    storage_format = COO;
+    storage_format = CSR;
     no_check = false;
     file_name = "lj.mtx";
 }
