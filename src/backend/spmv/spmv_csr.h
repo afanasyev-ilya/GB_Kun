@@ -87,11 +87,13 @@ void SpMV(const MatrixCSR<T> *_matrix,
     #pragma omp parallel
     {
         #pragma omp for schedule(static)
-        for(VNT i = 0; i < _matrix->size; i++)
+        for(VNT row = 0; row < _matrix->size; row++)
         {
-            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
-                y_vals[i] = add_op(y_vals[i], mul_op(_matrix->vals[j], x_vals[_matrix->col_ids[j]])) ;
+                VNT col = _matrix->col_ids[j];
+                T val = _matrix->vals[j];
+                y_vals[row] = add_op(y_vals[row], mul_op(val, x_vals[col])) ;
             }
         }
     }

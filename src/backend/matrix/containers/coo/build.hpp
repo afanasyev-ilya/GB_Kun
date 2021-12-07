@@ -26,8 +26,8 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
     size = _size;
     nz = _nz;
 
-    VNT* col_ids_new = *(&row_ids);
-    VNT* row_ids_new = *(&col_ids);
+    VNT* col_ids_new = *(&col_ids);
+    VNT* row_ids_new = *(&row_ids);
     T* vals_new = *(&vals);
 
     bool save_to_file = false;
@@ -79,7 +79,7 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
     MemoryAPI::copy(col_ids_new, _col_ids, _nz);
     MemoryAPI::copy(vals_new, _vals, _nz);
 
-    bool _optimized = false;
+    bool _optimized = true;
     if(_optimized)
     {
         ENT *sort_indexes;
@@ -89,7 +89,7 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
         for(ENT i = 0; i < _nz; i++)
             sort_indexes[i] = i;
 
-        int seg_size = 512*1024 / sizeof(float);
+        int seg_size = 512*1024 / sizeof(double);
         cout << "num segments: " << (size - 1)/seg_size + 1 << endl;
 
         std::sort(sort_indexes, sort_indexes + _nz,
