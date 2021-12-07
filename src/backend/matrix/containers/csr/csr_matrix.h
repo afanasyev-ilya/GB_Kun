@@ -17,6 +17,10 @@ public:
 
     ENT get_nnz() const {return nz;};
     void get_size(VNT* _size) const {*_size = size;};
+
+    ENT *get_row_ptr() {return row_ptr;};
+    T *get_vals() {return vals;};
+    VNT *get_col_ids() {return col_ids;};
 private:
     VNT size;
     ENT nz;

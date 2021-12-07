@@ -2,7 +2,7 @@
 #define GB_KUN_BFS_HPP
 
 #pragma once
-#include "../src/gb_kun.h"
+#include "../../src/gb_kun.h"
 namespace lablas {
 namespace algorithm {
 
@@ -33,23 +33,11 @@ void bfs(Vector<float>*       v,
     Index unvisited = A_nrows;
     float max_iter = 10.0;
 
-    A->print();
-
-    for (iter = 1; iter <= 3; ++iter) {
+    for (iter = 1; iter <= 100; ++iter) {
         unvisited -= static_cast<int>(succ);
 
-        cout << "v bef:" << endl;
-        v->print();
         assign<float, float, float, Index>(v, &f1, nullptr, iter, NULL, A_nrows,
                                            desc);
-        cout << "------" << endl;
-        cout << "v:" << endl;
-        v->print();
-        cout << "f1" << endl;
-        f1.print();
-        cout << "f2:" << endl;
-        f2.print();
-        cout << "------" << endl;
 
         /* GrB_DEFAULT for straight mask, GrB_SCMP for complementary */
         desc->set(GrB_MASK, GrB_DEFAULT);
@@ -57,18 +45,12 @@ void bfs(Vector<float>*       v,
         vxm<float, float, float, float>(&f2, v, nullptr,
                                         LogicalOrAndSemiring<float>(), A, &f1, desc);
 
-        cout << "spmv res:" << endl;
-        f2.print();
-
         f2.swap(&f1);
 
         reduce<float, float>(&succ, nullptr, PlusMonoid<float>(), &f1, desc);
-        cout << "suc: " << succ << endl;
         if (succ == 0)
             break;
     }
-
-    v->print();
 }
 
 }

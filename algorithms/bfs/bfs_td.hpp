@@ -1,6 +1,6 @@
 #ifndef GB_KUN_BFS_TD_HPP
 #define GB_KUN_BFS_TD_HPP
-#include "../src/gb_kun.h"
+#include "../../src/gb_kun.h"
 
 namespace lablas {
 namespace algorithm {
