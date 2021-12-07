@@ -5,9 +5,12 @@
 #include <stdlib.h>
 #include <malloc.h>
 
-#define CMG_SIZE 12
+//#define CMG_SIZE 12
+//#define MAX_CORES 48
+//#define CMG_NUM 4
+
 #define MAX_CORES 48
-#define CMG_NUM 4
+#define CMG_SIZE (MAX_CORES/CMG_NUM)
 
 //#include "fj_tool/fipp.h"
 
@@ -42,6 +45,8 @@ void gather_local_copy(const float *__restrict copy_data, const int * __restrict
 
 int main(void)
 {
+    cout << "CMG NUM: " << CMG_NUM << endl;
+
     size_t size = 1610612736; // 6.4 GB each
     float *x, *y, *z;
     x = (float*)memalign(0x200, size *sizeof(float));
@@ -62,7 +67,7 @@ int main(void)
         saxpy(2.0f, z, x, y, size);
         //fipp_stop();
         double t2 = omp_get_wtime();
-        cout << size * sizeof(float) * 3.0 / ((t2 - t1)*1e9) << " GB/s" << endl;
+        //cout << size * sizeof(float) * 3.0 / ((t2 - t1)*1e9) << " GB/s" << endl;
     }
     free(x);
     free(y);
@@ -92,12 +97,12 @@ int main(void)
         }
     }
     const int num_tests = 6;
-    int rads[num_tests] = {16*1024/sizeof(float),
-                   32*1024/sizeof(float),
-                   64*1024/sizeof(float),
-                   256*1024/sizeof(float),
-                   512*1024/sizeof(float),
-                   1024*1024/sizeof(float)};
+    int rads[num_tests] = {1024*1024/sizeof(float),
+                   2*1024*1024/sizeof(float),
+                   4*1024*1024/sizeof(float),
+                   8*1024*1024/sizeof(float),
+                   16*1024*1024/sizeof(float),
+                   32*1024*1024/sizeof(float)};
 
     cout << "large size is " << large_size * sizeof(int) / (1024*1024) << " MB" << endl;
     for(int idx = 0; idx < num_tests; idx ++)
@@ -141,7 +146,7 @@ int main(void)
         t2 = omp_get_wtime();
         cout << current_radius * sizeof(int) / (1024) << "KB " << large_size * sizeof(int) * 3.0 / ((t2 - t1)*1e9) << " GB/s (copy data)" << endl;
 
-        int threads = omp_get_max_threads();
+        /*int threads = omp_get_max_threads();
         int seg_size = 32*1024/sizeof(float);
         std::sort(indexes, indexes + large_size,
                   [seg_size](int a, int b) {return a/seg_size > b/seg_size; });
@@ -150,7 +155,7 @@ int main(void)
         gather_local_copy(copy_data, indexes, result, large_size, current_radius);
         t2 = omp_get_wtime();
         cout << current_radius * sizeof(int) / (1024) << "KB " << large_size * sizeof(int) * 3.0 / ((t2 - t1)*1e9) << " GB/s (copy data, sorted)" << endl;
-        cout << endl;
+        cout << endl;*/
 
         free(copy_data);
     }

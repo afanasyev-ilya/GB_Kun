@@ -11,19 +11,20 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
     const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();
 
+    double t1 = omp_get_wtime();
+
     int cores_num = omp_get_max_threads();
     #pragma omp parallel
     {
+        #pragma omp for schedule(dynamic)
         for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
         {
             SubgraphSegment<T> *segment = &(_matrix->subgraphs[seg_id]);
             T *buffer = (T*)segment->vertex_buffer;
 
-            #pragma omp for schedule(static)
             for(VNT i = 0; i < segment->size; i++)
                 buffer[i] = 0;
 
-            #pragma omp for schedule(dynamic)
             for(VNT i = 0; i < segment->size; i++)
             {
                 for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
@@ -33,6 +34,8 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
             }
         }
     }
+    double t2 = omp_get_wtime();
+    cout << "inner BW: " << _matrix->nz * (3.0*sizeof(T) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
     if(_matrix->size > pow(2.0, 22)) // cache aware merge
     {

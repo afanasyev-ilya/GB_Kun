@@ -17,12 +17,12 @@ public:
     ~MatrixVectGroupCSR();
 
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket = 0);
-    void print();
-    void get_size(VNT* _size) {
+    void print() const;
+    void get_size(VNT* _size) const {
         *_size = size;
     }
 
-    ENT get_nnz() {return nz;};
+    ENT get_nnz() const {return nz;};
 
     VNT get_nz_in_row(VNT _row) {return (row_ptr[_row + 1] - row_ptr[_row]);};
 private:
@@ -33,7 +33,7 @@ private:
     T *vals;
     VNT *col_ids;
 
-    T get(VNT _row, VNT _col);
+    T get(VNT _row, VNT _col) const;
 
     int vertex_groups_num;
     CSRVertexGroup<T> *vertex_groups;

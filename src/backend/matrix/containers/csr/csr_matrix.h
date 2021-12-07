@@ -13,13 +13,14 @@ public:
     ~MatrixCSR();
 
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket = 0);
-    void print();
+    void print() const;
 
-    ENT get_nnz() {return nz;};
-    void get_size(VNT* _size) {
-        *_size = size;
-    }
+    ENT get_nnz() const {return nz;};
+    void get_size(VNT* _size) const {*_size = size;};
 
+    ENT *get_row_ptr() {return row_ptr;};
+    T *get_vals() {return vals;};
+    VNT *get_col_ids() {return col_ids;};
 private:
     VNT size;
     ENT nz;
@@ -37,12 +38,12 @@ private:
     void construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz);
 
     bool is_non_zero(VNT _row, VNT _col);
-    T get(VNT _row, VNT _col);
+    T get(VNT _row, VNT _col) const;
 
-    template<typename Y, typename SemiringT>
-    friend void SpMV(const MatrixCSR<Y> *_matrix,
-                     const DenseVector<Y> *_x,
-                     DenseVector<Y> *_y, SemiringT op);
+    template <typename N, typename SemiringT>
+    friend void SpMV(const MatrixCSR<N> *_matrix,
+              const DenseVector<N> *_x,
+              DenseVector<N> *_y, SemiringT op);
 
     void numa_aware_alloc();
 };

@@ -31,20 +31,26 @@ public:
         return _matrix.set_preferred_matrix_format(_format);
     }
 
-    LA_Info get_nrows(VNT* size) const{
+    LA_Info get_nrows(Index* size) const{
         _matrix.get_nrows(size);
         return GrB_SUCCESS;
     }
 
-    VNT nrows() const{
-        VNT size = 0;
-        _matrix.get_nrows(size);
+    Index get_nrows() const{
+        Index size = 0;
+        _matrix.get_nrows(&size);
+        return size;
+    }
+
+    Index nrows() const{
+        Index size = 0;
+        _matrix.get_nrows(&size);
         return size;
     }
 
     template <typename BinaryOpT>
-    LA_Info build (const std::vector<VNT>*   row_indices,
-                   const std::vector<VNT>*   col_indices,
+    LA_Info build (const std::vector<Index>*   row_indices,
+                   const std::vector<Index>*   col_indices,
                    const std::vector<T>*     values,
                    Index                     nvals,
                    BinaryOpT                 dup,
@@ -71,7 +77,7 @@ public:
         _matrix.print();
     }
 
-    Index get_nnz() {return _matrix.get_nnz();};
+    Index get_nnz() const {return _matrix.get_nnz();};
 
 private:
     backend::Matrix<T> _matrix;

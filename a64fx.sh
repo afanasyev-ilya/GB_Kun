@@ -22,23 +22,19 @@ export LD_LIBRARY_PATH=/home/z44377r/ARM/gcc_latest/lib64:$LD_LIBRARY_PATH
 g++ --version
 which g++
 
-#cmake -D CMAKE_C_COMPILER=/home/z44377r/ARM/gcc_latest/bin/gcc -D CMAKE_CXX_COMPILER=/home/z44377r/ARM/gcc_latest/bin/g++ .
-#make clean
-#make
+cmake -D CMAKE_C_COMPILER=/home/z44377r/ARM/gcc_latest/bin/gcc -D CMAKE_CXX_COMPILER=/home/z44377r/ARM/gcc_latest/bin/g++ .
+make clean
+make
+
+# FCCpx -Kfast,openmp -Nfjomplib -mcmodel=large -Koptmsg=2 -D_A64FX -Kzfill saxpy.cpp -o saxpy.bin
 
 export OMP_NUM_THREADS=48
 export OMP_PROC_BIND=close
 export OMP_PLACES=cores
 
-./saxpy.bin
+#./saxpy.bin
 
-export OMP_NUM_THREADS=12
-export OMP_PROC_BIND=close
-export OMP_PLACES=cores
-
-./saxpy.bin
-
-#./spmv -s 20 -e 32 -type RU -format CSR
+./spmv -s 20 -e 32 -type rmat -format CSR_SEG
 #echo "######################################################"
 #./spmv -s 20 -e 32 -type RU -format CSR_SEG
 #echo "######################################################"

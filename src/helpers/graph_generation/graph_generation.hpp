@@ -85,14 +85,11 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
     #pragma omp parallel
     {};
 
-    double t1 = omp_get_wtime();
     RandomGenerator rng_api;
     int max_id_val = vertices_count;
     rng_api.generate_array_of_random_values<VNT>(src_ids, directed_edges_count, max_id_val);
     rng_api.generate_array_of_random_values<VNT>(dst_ids, directed_edges_count, max_id_val);
     rng_api.generate_array_of_random_values<T>(vals, directed_edges_count, 1.0);
-
-    double t2 = omp_get_wtime();
 
     if(!_direction_type)
     {
@@ -205,6 +202,7 @@ void GraphGenerationAPI::RMAT(EdgeListContainer<T> &_edges_container,
     }
 
     random_shuffle_edges(_edges_container);
+    //save_to_file(_edges_container);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -491,6 +489,8 @@ void GraphGenerationAPI::init_from_txt_file(EdgeListContainer<T> &_edges_contain
             throw "Error: incorrect dst id on conversion";
         }
     }
+
+    random_shuffle_edges(_edges_container);
 
     infile.close();
 }

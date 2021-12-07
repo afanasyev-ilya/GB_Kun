@@ -4,9 +4,9 @@
 
 Parser::Parser()
 {
-    scale = 4;
-    avg_degree = 3;
-    synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
+    scale = 10;
+    avg_degree = 8;
+    synthetic_graph_type = RMAT_GRAPH;
     storage_format = CSR;
     no_check = false;
     file_name = "lj.mtx";
@@ -66,8 +66,6 @@ void Parser::parse_args(int _argc, char **_argv)
                 storage_format = CSR;
             else if(option == "COO")
                 storage_format = COO;
-            else if(option == "COO_OPT")
-                storage_format = COO_OPT;
             else if(option == "CSR_SEG")
                 storage_format = CSR_SEG;
             else if(option == "LAV")

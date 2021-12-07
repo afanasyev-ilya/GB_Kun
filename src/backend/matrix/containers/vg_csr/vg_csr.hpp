@@ -52,7 +52,7 @@ void MatrixVectGroupCSR<T>::resize(VNT _size, ENT _nz)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-T MatrixVectGroupCSR<T>::get(VNT _row, VNT _col)
+T MatrixVectGroupCSR<T>::get(VNT _row, VNT _col) const
 {
     for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
     {

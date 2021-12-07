@@ -19,22 +19,37 @@ export PATH=/home/z44377r/ARM/gcc_latest/bin:$PATH
 export INCLUDE=/home/z44377r/ARM/gcc_latest/include:$INCLUDE
 export LD_LIBRARY_PATH=/home/z44377r/ARM/gcc_latest/lib64:$LD_LIBRARY_PATH
 
-g++ --version
-which g++
 
-cmake -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ .
-make clean
-make
-
-export OMP_NUM_THREADS=64
+export OMP_NUM_THREADS=48
 export OMP_PROC_BIND=close
 export OMP_PLACES=cores
 
+g++ -O3 -std=c++14 -fopenmp -D CMG_NUM=1 -fpermissive saxpy.cpp
+./a.out
+
+g++ -O3 -std=c++14 -fopenmp -D CMG_NUM=2 -fpermissive saxpy.cpp
+./a.out
+
+g++ -O3 -std=c++14 -fopenmp -D CMG_NUM=4 -fpermissive saxpy.cpp
+./a.out
+
+g++ -O3 -std=c++14 -fopenmp -D CMG_NUM=8 -fpermissive saxpy.cpp
+./a.out
+
+g++ -O3 -std=c++14 -fopenmp -D CMG_NUM=16 -fpermissive saxpy.cpp
+./a.out
+
+g++ -O3 -std=c++14 -fopenmp -D CMG_NUM=32 -fpermissive saxpy.cpp
+./a.out
+
+g++ -O3 -std=c++14 -fopenmp -D CMG_NUM=64 -fpermissive saxpy.cpp
+./a.out
+
 #./spmv -s $1 -e 32 -type $2 -format $3
 
-./spmv -s 21 -e 32 -type RU -format CSR
-./spmv -s 21 -e 32 -type RMAT -format CSR
-./spmv -graph RW ./lj.mtx -format CSR
+#./spmv -s 21 -e 32 -type RU -format CSR
+#./spmv -s 21 -e 32 -type RMAT -format CSR
+#./spmv -graph RW ./lj.mtx -format CSR
 
 #./spmv -s 20 -e 32 -type RU -format CSR
 #./spmv -graph RW ./lj.mtx -format CSR

@@ -12,12 +12,10 @@ public:
     ~MatrixCOO();
 
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket = 0);
-    void print();
-    void get_size(VNT* _size) {
-        *_size = size;
-    }
+    void print() const;
+    void get_size(VNT* _size) const {*_size = size;}
 
-    ENT get_nnz() {return nz;};
+    ENT get_nnz() const {return nz;};
 private:
     VNT size;
     ENT nz;
