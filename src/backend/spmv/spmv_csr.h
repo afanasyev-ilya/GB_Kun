@@ -86,7 +86,7 @@ void SpMV(const MatrixCSR<T> *_matrix,
 
     #pragma omp parallel
     {
-        #pragma omp for schedule(static)
+        #pragma omp for schedule(guided, 1024)
         for(VNT row = 0; row < _matrix->size; row++)
         {
             for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
