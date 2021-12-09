@@ -112,6 +112,13 @@ template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         };
 
 template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct second {
+            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+                return lhs;
+            }
+        };
+
+template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct minimum {
             inline T_out operator()(T_in1 lhs, T_in2 rhs) {
                 if (lhs < rhs){
@@ -148,6 +155,7 @@ REGISTER_MONOID(PlusMonoid, plus, 0)
 REGISTER_MONOID(LogicalOrMonoid, logical_or, false)
 
 REGISTER_MONOID(FirstWinsMonoid, first, 0)
+REGISTER_MONOID(SecondWinsMonoid, second, 0)
 
 REGISTER_MONOID(FirstMin, minimum, 0)
 
@@ -175,6 +183,7 @@ REGISTER_SEMIRING(PlusMultipliesSemiring, PlusMonoid, multiplies)
 REGISTER_SEMIRING(LogicalOrAndSemiring, LogicalOrMonoid, logical_and)
 REGISTER_SEMIRING(FirstWinsSemiring, FirstWinsMonoid, multiplies)
 REGISTER_SEMIRING(FirstMinSemiring, FirstMin, multiplies)
+REGISTER_SEMIRING(PlusSecondSemiring, PlusMonoid, second)
 
 template <typename SemiringT>
 struct AdditiveMonoidFromSemiring {
