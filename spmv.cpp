@@ -36,7 +36,7 @@ void test_spmv(int argc, char **argv)
 
     lablas::mxv<T, T, T, T>(&w, NULL, nullptr, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
 
-    int num_runs = 100;
+    int num_runs = 1;
     double avg_time = 0;
     for(int run = 0; run < num_runs; run++)
     {
@@ -48,8 +48,6 @@ void test_spmv(int argc, char **argv)
         double t2 = omp_get_wtime();
         avg_time += (t2 - t1) / num_runs;
     }
-
-    print_omp_stats();
 
     double perf = 2.0*matrix.get_nnz()/(avg_time*1e9);
     double bw = (3.0*sizeof(T)+sizeof(VNT))*matrix.get_nnz()/(avg_time*1e9);
