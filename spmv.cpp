@@ -11,7 +11,7 @@ void save_to_file(const string &_file_name, double _stat)
 template<typename T>
 void test_spmv(int argc, char **argv)
 {
-    //print_omp_stats();
+    print_omp_stats();
     Parser parser;
     parser.parse_args(argc, argv);
 
@@ -48,6 +48,8 @@ void test_spmv(int argc, char **argv)
         double t2 = omp_get_wtime();
         avg_time += (t2 - t1) / num_runs;
     }
+
+    print_omp_stats();
 
     double perf = 2.0*matrix.get_nnz()/(avg_time*1e9);
     double bw = (3.0*sizeof(T)+sizeof(VNT))*matrix.get_nnz()/(avg_time*1e9);
