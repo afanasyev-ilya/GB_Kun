@@ -31,9 +31,10 @@ void print_omp_stats()
     cout << "Largest core used: " << max_core + 1 << " cores" << endl;*/
 
     size_t size = 1024*1024*128*8;
-    vector<double> a(size);
-    vector<double> b(size);
-    vector<double> c(size);
+    double *a, *b, *c;
+    MemoryAPI::allocate_array(&a, size);
+    MemoryAPI::allocate_array(&b, size);
+    MemoryAPI::allocate_array(&c, size);
 
     #pragma omp parallel for
     for(size_t i = 0; i < size; i++)
@@ -52,4 +53,8 @@ void print_omp_stats()
         a[i] = b[i] + c[i];
     t2 = omp_get_wtime();
     cout << "Second linear BW: " << (size * sizeof(double) * 3)/((t2 - t1) * 1e9) << " GB/s" << endl;
+
+    MemoryAPI::free_array(a);
+    MemoryAPI::free_array(b);
+    MemoryAPI::free_array(c);
 }
