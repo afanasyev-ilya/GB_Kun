@@ -21,9 +21,20 @@ void reorder(T *data, ENT *indexes, ENT size)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+inline bool ends_with(std::string const & value, std::string const & ending)
+{
+    if (ending.size() > value.size()) return false;
+    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
 void EdgeListContainer<T>::save_as_mtx(string _file_name)
 {
+    if(!ends_with(_file_name, ".mtx"))
+        _file_name += ".mtx";
+
     VNT* src_ids_new = &src_ids[0];
     VNT* dst_ids_new = &dst_ids[0];
     T* vals_new = &edge_vals[0];
@@ -50,9 +61,15 @@ void EdgeListContainer<T>::save_as_mtx(string _file_name)
     MemoryAPI::free_array(sort_indexes);
 
     ENT unique_edges = 0;
-    for(ENT i = 1; i < edges_count; i++)
-        if((src_ids_new[i] != src_ids_new[i - 1]) && (dst_ids_new[i] != dst_ids_new[i - 1]) && (dst_ids_new[i] != src_ids_new[i]))
-            unique_edges++;
+    for(ENT i = 1; i < edges_count; i++) {
+        if ((src_ids_new[i] == src_ids_new[i - 1]) && (dst_ids_new[i] == dst_ids_new[i - 1]))
+            continue;
+
+        if(dst_ids_new[i] == src_ids_new[i])
+            continue;
+
+        unique_edges++;
+    }
 
     ofstream matrix_file;
     matrix_file.open (_file_name);
@@ -60,8 +77,13 @@ void EdgeListContainer<T>::save_as_mtx(string _file_name)
     matrix_file << vertices_count << " " << vertices_count << " " << unique_edges << endl;
     for(ENT i = 1; i < edges_count; i++)
     {
-        if((src_ids_new[i] != src_ids_new[i - 1]) && (dst_ids_new[i] != dst_ids_new[i - 1]) && (src_ids_new[i] != dst_ids_new[i]))
-            matrix_file << src_ids_new[i] + 1 << " " << dst_ids_new[i] + 1 << endl;
+        if ((src_ids_new[i] == src_ids_new[i - 1]) && (dst_ids_new[i] == dst_ids_new[i - 1]))
+            continue;
+
+        if(dst_ids_new[i] == src_ids_new[i])
+            continue;
+
+        matrix_file << src_ids_new[i] + 1 << " " << dst_ids_new[i] + 1 << endl;
     }
     matrix_file.close();
 }
