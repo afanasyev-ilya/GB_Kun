@@ -73,11 +73,6 @@ void MatrixLAV<T>::prepare_hub_data(map<VNT, ENT> &_freqs)
         hub_positions[sorted_accesses[i].first] = i;
     }
 
-    for (VNT i = 0; i < HUB_VERTICES; i++)
-    {
-        cout << "hub: " << i << " " << hub_conversion_array[i] << endl;
-    }
-
     for(ENT i = 0; i < nz; i++)
     {
         VNT vertex = col_ids[i];
@@ -114,11 +109,5 @@ void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
     cout << "_nz: " << _nz << endl;
 
     prepare_hub_data(col_freqs);
-
-    for(ENT i = 0; i < _nz; i++)
-    {
-        cout << col_ids[i] << " ";
-    }
-    cout << endl;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

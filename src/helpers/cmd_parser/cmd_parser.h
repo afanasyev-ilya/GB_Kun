@@ -14,6 +14,7 @@ private:
     SyntheticGraphType synthetic_graph_type;
     MatrixStorageFormat storage_format;
     string file_name;
+    string out_file_name;
 
     bool no_check;
 public:
@@ -23,6 +24,7 @@ public:
     VNT get_avg_degree() { return avg_degree; };
     bool check() { return !no_check; };
     string get_file_name(){return file_name;};
+    string get_out_file_name() {return out_file_name;};
 
     SyntheticGraphType get_synthetic_graph_type() {return synthetic_graph_type;};
     MatrixStorageFormat get_storage_format() {return storage_format;};

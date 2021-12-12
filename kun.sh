@@ -24,7 +24,7 @@ export OMP_PLACES=cores
 
 #./spmv -s 19 -e 32 -type RU -format CSR
 #./spmv -s 18 -e 32 -type RMAT -format CSR
-./spmv -graph RW ./lj.mtx -format CSR
+./spmv -graph RW ./lj.mtx -format CSR_SEG
 
 #./spmv -s 20 -e 32 -type RU -format CSR
 #./spmv -graph RW ./lj.mtx -format CSR
