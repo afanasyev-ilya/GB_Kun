@@ -58,6 +58,17 @@ public:
         return data;
     }
 
+    #ifdef __USE_SOCKET_OPTIMIZATIONS__
+    MatrixContainer<T>* get_data_dub() {
+        return data_socket_dub;
+    }
+
+    MatrixContainer<T>* get_data_dub() const {
+        return data_socket_dub;
+    }
+    #endif
+
+
     const MatrixContainer<T>* get_data() const {
         return data;
     }

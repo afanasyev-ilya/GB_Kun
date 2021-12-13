@@ -32,7 +32,12 @@ void SpMV(const Matrix<T> *_matrix,
     }
 
     if(format == CSR)
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        SpMV(((MatrixCSR<T> *) _matrix->get_data()), ((MatrixCSR<T> *) _matrix->get_data_dub()),
+             _x->getDense(), _y->getDense(), _op);
+        #else
         SpMV(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
+        #endif
     else if(format == LAV)
         SpMV(((MatrixLAV<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
     else if(format == COO)

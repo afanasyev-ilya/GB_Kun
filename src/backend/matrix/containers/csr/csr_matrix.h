@@ -29,6 +29,8 @@ private:
     T *vals;
     VNT *col_ids;
 
+    double *tmp_buffer;
+
     int target_socket;
 
     void alloc(VNT _size, ENT _nz);
@@ -44,6 +46,13 @@ private:
     friend void SpMV(const MatrixCSR<N> *_matrix,
               const DenseVector<N> *_x,
               DenseVector<N> *_y, SemiringT op);
+
+    template <typename N, typename SemiringT>
+    friend void SpMV(MatrixCSR<N> *_matrix,
+                     MatrixCSR<N> *_matrix_socket_dub,
+                     const DenseVector<N> *_x,
+                     DenseVector<N> *_y,
+                     SemiringT op);
 
     void numa_aware_alloc();
 };

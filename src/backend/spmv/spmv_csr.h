@@ -5,13 +5,18 @@
 namespace lablas {
 namespace backend {
 
-/*template <typename T>
+template <typename T, typename SemiringT>
 void SpMV(MatrixCSR<T> *_matrix,
           MatrixCSR<T> *_matrix_socket_dub,
-          DenseVector<T> &_x,
-          DenseVector<T> &_y,
-          Descriptor &_desc)
+          const DenseVector<T> *_x,
+          DenseVector<T> *_y,
+          SemiringT op)
 {
+    const T *x_vals = _x->get_vals();
+    T *y_vals = _y->get_vals();
+    auto add_op = extractAdd(op);
+    auto mul_op = extractMul(op);
+
     #pragma omp parallel
     {
         int total_threads = omp_get_num_threads();
@@ -19,34 +24,37 @@ void SpMV(MatrixCSR<T> *_matrix,
         int socket = tid/(total_threads/2);
         int tid_s = omp_get_thread_num() % (total_threads/2);
 
-        T* local_buffer = (T*)_desc->tmp_buffer;
-
+        T *local_x_vals;
         MatrixCSR<T> *local_matrix;
         if(socket == 0)
         {
             local_matrix = _matrix;
-            local_buffer = _x->vals;
+            local_x_vals = x_vals;
         }
         else if(socket == 1)
         {
             local_matrix = _matrix_socket_dub;
+            local_x_vals = (T*)_matrix->tmp_buffer;
         }
 
-        for(VNT i = tid_s; i < _matrix->size; i += total_threads/2)
-            local_buffer[i] = _x->vals[i];
-
-        #pragma omp for schedule(static)
-        for(VNT i = 0; i < local_matrix->size; i++)
+        #pragma omp for
+        for(VNT row = 0; row < local_matrix->size; row++)
         {
-            T res = 0;
-            for(ENT j = local_matrix->row_ptr[i]; j < local_matrix->row_ptr[i + 1]; j++)
+            local_x_vals[row] = x_vals[row];
+        }
+
+        #pragma omp for schedule(guided, 1024)
+        for(VNT row = 0; row < local_matrix->size; row++)
+        {
+            for(ENT j = local_matrix->row_ptr[row]; j < local_matrix->row_ptr[row + 1]; j++)
             {
-                res += local_matrix->vals[j] * _x->vals[local_matrix->col_ids[j]];
+                VNT col = local_matrix->col_ids[j];
+                T val = local_matrix->vals[j];
+                y_vals[row] = add_op(y_vals[row], mul_op(val, local_x_vals[col])) ;
             }
-            _y->vals[i] = res;
         }
     };
-}*/
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

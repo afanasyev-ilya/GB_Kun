@@ -46,7 +46,7 @@ public:
         if (nvals > size){
             return GrB_INDEX_OUT_OF_BOUNDS;
         }
-        #pragma omp parallel for schedule(static)
+        //#pragma omp parallel for schedule(static)
         for (Index i = 0; i < nvals; i++) {
             vals[i] = (*values)[i];
         }
@@ -79,7 +79,7 @@ DenseVector<T>::DenseVector(int _size)
 {
     size = _size;
     MemoryAPI::allocate_array(&vals, size);
-    #pragma omp parallel for schedule(static)
+    //#pragma omp parallel for schedule(static)
     for (Index i = 0; i < size; i++)
     {
         vals[i] = 0;

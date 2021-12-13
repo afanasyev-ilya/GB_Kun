@@ -26,6 +26,7 @@ void MatrixCSR<T>::alloc(VNT _size, ENT _nz)
     MemoryAPI::allocate_array(&row_ptr, this->size + 1);
     MemoryAPI::allocate_array(&col_ids, this->nz);
     MemoryAPI::allocate_array(&vals, this->nz);
+    MemoryAPI::allocate_array(&tmp_buffer, this->size);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,6 +37,7 @@ void MatrixCSR<T>::free()
     MemoryAPI::free_array(row_ptr);
     MemoryAPI::free_array(col_ids);
     MemoryAPI::free_array(vals);
+    MemoryAPI::free_array(tmp_buffer);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
