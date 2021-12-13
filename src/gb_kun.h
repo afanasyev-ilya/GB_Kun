@@ -16,7 +16,7 @@
 
 #include <omp.h>
 
-typedef int Index;
+typedef long long Index;
 
 using namespace std;
 

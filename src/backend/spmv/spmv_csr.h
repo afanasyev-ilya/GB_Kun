@@ -6,8 +6,8 @@ namespace lablas {
 namespace backend {
 
 /*template <typename T>
-void SpMV(MatrixCSR<T> &_matrix,
-          MatrixCSR<T> &_matrix_socket_dub,
+void SpMV(MatrixCSR<T> *_matrix,
+          MatrixCSR<T> *_matrix_socket_dub,
           DenseVector<T> &_x,
           DenseVector<T> &_y,
           Descriptor &_desc)
@@ -21,7 +21,7 @@ void SpMV(MatrixCSR<T> &_matrix,
 
         T* local_buffer = (T*)_desc->tmp_buffer;
 
-        MatrixCSR<T> &local_matrix = _matrix;
+        MatrixCSR<T> *local_matrix;
         if(socket == 0)
         {
             local_matrix = _matrix;
@@ -38,10 +38,12 @@ void SpMV(MatrixCSR<T> &_matrix,
         #pragma omp for schedule(static)
         for(VNT i = 0; i < local_matrix->size; i++)
         {
+            T res = 0;
             for(ENT j = local_matrix->row_ptr[i]; j < local_matrix->row_ptr[i + 1]; j++)
             {
-                _y->vals[i] += local_matrix->vals[j] * _x->vals[local_matrix->col_ids[j]];
+                res += local_matrix->vals[j] * _x->vals[local_matrix->col_ids[j]];
             }
+            _y->vals[i] = res;
         }
     };
 }*/
@@ -86,6 +88,7 @@ void SpMV(const MatrixCSR<T> *_matrix,
 
     #pragma omp parallel
     {
+        //ENT cnt = 0;
         #pragma omp for schedule(guided, 1024)
         for(VNT row = 0; row < _matrix->size; row++)
         {
@@ -94,8 +97,11 @@ void SpMV(const MatrixCSR<T> *_matrix,
                 VNT col = _matrix->col_ids[j];
                 T val = _matrix->vals[j];
                 y_vals[row] = add_op(y_vals[row], mul_op(val, x_vals[col])) ;
+                //cnt++;
             }
         }
+        //#pragma omp critical
+        //cout << "cnt: " << 100.0*(double)cnt/_matrix->nz << endl;
     }
 }
 

@@ -176,7 +176,7 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad)
     //find chunkLen
     for(VNT chunk = 0; chunk < nchunks; ++chunk)
     {
-        int maxRowLen = 0;
+        ENT maxRowLen = 0;
         for(VNT rowInChunk = 0; rowInChunk < C; ++rowInChunk)
         {
             VNT row = chunk*C + rowInChunk;

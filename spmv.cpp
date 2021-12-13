@@ -36,7 +36,7 @@ void test_spmv(int argc, char **argv)
 
     lablas::mxv<T, T, T, T>(&w, NULL, nullptr, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
 
-    int num_runs = 1;
+    int num_runs = 100;
     double avg_time = 0;
     for(int run = 0; run < num_runs; run++)
     {
@@ -50,7 +50,7 @@ void test_spmv(int argc, char **argv)
     }
 
     double perf = 2.0*matrix.get_nnz()/(avg_time*1e9);
-    double bw = (3.0*sizeof(T)+sizeof(VNT))*matrix.get_nnz()/(avg_time*1e9);
+    double bw = (2.0*sizeof(T)+sizeof(Index))*matrix.get_nnz()/(avg_time*1e9);
     cout << "SPMV time: " << avg_time*1000 << " ms" << endl;
     cout << "SPMV perf: " << perf << " GFlop/s" << endl;
     cout << "SPMV BW: " << bw << " GB/s" << endl;
@@ -82,7 +82,7 @@ void test_spmv(int argc, char **argv)
 int main(int argc, char **argv) {
     try
     {
-        test_spmv<double>(argc, argv);
+        test_spmv<float>(argc, argv);
     }
     catch (string error)
     {

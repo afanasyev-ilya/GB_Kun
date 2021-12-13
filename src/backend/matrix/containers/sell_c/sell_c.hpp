@@ -7,12 +7,12 @@ namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T> void sort_perm(T *arr, int *perm, int len, bool rev=false)
+template <typename T> void sort_perm(T *arr, ENT *perm, ENT len, bool rev=false)
 {
     if(rev == false) {
-        std::stable_sort(perm+0, perm+len, [&](const int& a, const int& b) {return (arr[a] < arr[b]);});
+        std::stable_sort(perm+0, perm+len, [&](const ENT& a, const ENT& b) {return (arr[a] < arr[b]);});
     } else {
-        std::stable_sort(perm+0, perm+len, [&](const int& a, const int& b) {return (arr[a] > arr[b]); });
+        std::stable_sort(perm+0, perm+len, [&](const ENT& a, const ENT& b) {return (arr[a] > arr[b]); });
     }
 }
 
