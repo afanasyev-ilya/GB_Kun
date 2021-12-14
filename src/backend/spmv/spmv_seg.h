@@ -10,6 +10,9 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
 {
     const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();
+    auto add_op = extractAdd(op);
+    auto mul_op = extractMul(op);
+    auto identity_val = op.identity();
 
     double t1 = omp_get_wtime();
 
@@ -21,22 +24,21 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
             SubgraphSegment<T> *segment = &(_matrix->subgraphs[seg_id]);
             T *buffer = (T*)segment->vertex_buffer;
 
-            #pragma omp for schedule(static)
-            for(VNT i = 0; i < segment->size; i++)
-                buffer[i] = 0;
-
-            #pragma omp for schedule(static)
+            #pragma omp for nowait schedule(guided, 1)
             for(VNT i = 0; i < segment->size; i++)
             {
+                T res = identity_val;
                 for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
                 {
-                    buffer[i] += segment->vals[j] * x_vals[segment->col_ids[j]];
+                    res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
                 }
+                buffer[i] = res;
             }
         }
     }
     double t2 = omp_get_wtime();
-    cout << "inner BW: " << _matrix->nz * (3.0*sizeof(T) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    cout << "inner time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "inner BW: " << _matrix->nz * (2.0*sizeof(T) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
     if(_matrix->size > pow(2.0, 22)) // cache aware merge
     {
@@ -59,7 +61,7 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
                     #pragma omp parallel for num_threads(inner_threads)
                     for(VNT i = block_start; i < block_end; i++)
                     {
-                        y_vals[conversion_indexes[i]] += buffer[i];
+                        y_vals[conversion_indexes[i]] = buffer[i];
                     }
                 }
             }

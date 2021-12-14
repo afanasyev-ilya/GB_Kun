@@ -12,6 +12,10 @@ void MemoryAPI::allocate_array(T **_ptr, size_t _size)
     #else
     *_ptr = (T*)malloc(_size*sizeof(T));
     #endif
+
+    /*#pragma omp parallel for schedule(static)
+    for(size_t i = 0; i < _size; i++)
+        (*_ptr)[i] = 0;*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

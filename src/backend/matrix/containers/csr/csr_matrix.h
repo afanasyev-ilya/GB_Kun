@@ -5,6 +5,35 @@
 namespace lablas {
 namespace backend {
 
+
+struct VertexGroup
+{
+    bool in_range(ENT _connections_num)
+    {
+        if(_connections_num >= min_threshold && _connections_num < max_threshold)
+            return true;
+        else
+            return false;
+    }
+
+    void set_thresholds(ENT _min_threshold, ENT _max_threshold)
+    {
+        min_threshold = _min_threshold;
+        max_threshold = _max_threshold;
+        data.clear();
+    }
+
+    void push_back(VNT _row)
+    {
+        data.push_back(_row);
+    }
+
+    ENT min_threshold;
+    ENT max_threshold;
+
+    std::vector<VNT> data;
+};
+
 template <typename T>
 class MatrixCSR : public MatrixContainer<T>
 {
@@ -28,6 +57,9 @@ private:
     ENT *row_ptr;
     T *vals;
     VNT *col_ids;
+
+    static const int vg_num = 8; // 9 is best currently
+    VertexGroup vertex_groups[vg_num];
 
     double *tmp_buffer;
 
@@ -55,6 +87,7 @@ private:
                      SemiringT op);
 
     void numa_aware_alloc();
+    void prepare_vg_lists();
 };
 
 #include "csr_matrix.hpp"

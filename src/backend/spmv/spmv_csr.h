@@ -37,11 +37,11 @@ void SpMV(MatrixCSR<T> *_matrix,
             local_x_vals = (T*)_matrix->tmp_buffer;
         }
 
-        #pragma omp for
-        for(VNT row = 0; row < local_matrix->size; row++)
-        {
-            local_x_vals[row] = x_vals[row];
-        }
+        if(socket == 1)
+            for(VNT row = tid_s; row < local_matrix->size; row += total_threads/2)
+            {
+                local_x_vals[row] = x_vals[row];
+            }
 
         #pragma omp for schedule(guided, 1024)
         for(VNT row = 0; row < local_matrix->size; row++)
@@ -93,8 +93,9 @@ void SpMV(const MatrixCSR<T> *_matrix,
     T *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);
+    auto identity_val = op.identity();
 
-    #pragma omp parallel
+    /*#pragma omp parallel
     {
         //ENT cnt = 0;
         #pragma omp for schedule(guided, 1024)
@@ -110,7 +111,54 @@ void SpMV(const MatrixCSR<T> *_matrix,
         }
         //#pragma omp critical
         //cout << "cnt: " << 100.0*(double)cnt/_matrix->nz << endl;
+    }*/
+
+    #pragma omp parallel
+    {
+        for(int vg = 0; vg < _matrix->vg_num; vg++)
+        {
+            const VNT *vertices = &(_matrix->vertex_groups[vg].data[0]);
+            VNT vertex_group_size = _matrix->vertex_groups[vg].data.size();
+
+            #pragma omp for nowait schedule(guided, 1)
+            for(VNT idx = 0; idx < vertex_group_size; idx++)
+            {
+                VNT row = vertices[idx];
+                T res = identity_val;
+                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                {
+                    VNT col = _matrix->col_ids[j];
+                    T val = _matrix->vals[j];
+                    res = add_op(res, mul_op(val, x_vals[col]));
+                }
+                y_vals[row] = res;
+            }
+        }
     }
+
+    /*#pragma omp parallel num_threads(6)
+    {
+        #pragma omp for schedule (static)
+        for(int vg = 0; vg < _matrix->vg_num; vg++)
+        {
+            const VNT *vertices = &(_matrix->vertex_groups[vg].data[0]);
+            VNT vertex_group_size = _matrix->vertex_groups[vg].data.size();
+
+            #pragma omp parallel for schedule(guided, 1) num_threads(8)
+            for(VNT idx = 0; idx < vertex_group_size; idx++)
+            {
+                VNT row = vertices[idx];
+                T res = 0;
+                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                {
+                    VNT col = _matrix->col_ids[j];
+                    T val = _matrix->vals[j];
+                    res = add_op(res, mul_op(val, x_vals[col]));
+                }
+                y_vals[row] = res;
+            }
+        }
+    }*/
 }
 
 }
