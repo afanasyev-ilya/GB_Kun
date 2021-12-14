@@ -24,7 +24,7 @@ void GraphGenerationAPI::generate_synthetic_graph(EdgeListContainer<T> &_edges_c
     }
     else if(_parser.get_synthetic_graph_type() == REAL_WORLD_GRAPH)
     {
-        GraphGenerationAPI::init_from_txt_file(_edges_container, _parser.get_file_name(), DIRECTED_GRAPH);
+        GraphGenerationAPI::init_from_mtx_file(_edges_container, _parser.get_file_name());
     }
 }
 
@@ -492,5 +492,60 @@ void GraphGenerationAPI::init_from_txt_file(EdgeListContainer<T> &_edges_contain
 
     infile.close();
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_container, string _mtx_file_name)
+{
+    cout << "reading from mtx file" << endl;
+    ifstream infile(_mtx_file_name.c_str());
+    if (!infile.is_open())
+        throw "can't open file during convert";
+
+    VNT vertices_count = 0;
+    ENT edges_count = 0;
+    string line;
+    getline(infile, line); // read first line
+
+    if (line.find("%%MatrixMarket matrix coordinate pattern general") == std::string::npos)
+    {
+        throw "Error: is not a mtx file";
+    }
+
+    getline(infile, line);
+
+    istringstream iss(line);
+    VNT rows = 0; VNT cols = 0; ENT nnz = 0;
+    iss >> rows >> cols >> nnz;
+
+    if(rows != cols)
+    {
+        throw "Error: is not a square matrix";
+    }
+
+    _edges_container.vertices_count = rows;
+    _edges_container.edges_count = nnz;
+    _edges_container.src_ids.resize(nnz);
+    _edges_container.dst_ids.resize(nnz);
+    _edges_container.edge_vals.resize(nnz);
+
+    ENT i = 0;
+    unsigned int seed = int(time(NULL));
+    while (getline(infile, line))
+    {
+        istringstream iss(line);
+        VNT src_id = 0, dst_id = 0;
+        iss >> src_id >> dst_id;
+
+        _edges_container.src_ids[i] = src_id - 1;
+        _edges_container.dst_ids[i] = dst_id - 1;
+        _edges_container.edge_vals[i] = ((float) rand_r(&seed)) / (float) RAND_MAX;
+        i++;
+    }
+
+    infile.close();
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

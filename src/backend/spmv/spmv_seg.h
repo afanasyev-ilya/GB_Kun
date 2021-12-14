@@ -24,7 +24,7 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
             SubgraphSegment<T> *segment = &(_matrix->subgraphs[seg_id]);
             T *buffer = (T*)segment->vertex_buffer;
 
-            #pragma omp for nowait schedule(guided, 1)
+            #pragma omp for nowait schedule(static)
             for(VNT i = 0; i < segment->size; i++)
             {
                 T res = identity_val;
@@ -66,7 +66,6 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
                 }
             }
         };
-        double t4 = omp_get_wtime();
     }
     else
     {
