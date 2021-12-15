@@ -27,13 +27,48 @@ set(spmv_dir ${kun_backend_dir}/spmv/)
 
 set(interface_dir src/cpp_graphblas)
 
+# scan all dirs recuresivly
+
+MACRO(HEADER_DIRECTORIES return_list)
+    FILE(GLOB_RECURSE new_list *.h*)
+    SET(dir_list "")
+    FOREACH(file_path ${new_list})
+        GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+        SET(dir_list ${dir_list} ${dir_path})
+    ENDFOREACH()
+    LIST(REMOVE_DUPLICATES dir_list)
+    SET(${return_list} ${dir_list})
+ENDMACRO()
+
+MACRO(HEADER_FILES return_list)
+    FILE(GLOB_RECURSE new_list *.h*)
+    SET(dir_list "")
+    FOREACH(file_path ${new_list})
+        SET(dir_list ${dir_list} ${file_path})
+    ENDFOREACH()
+    LIST(REMOVE_DUPLICATES dir_list)
+    SET(${return_list} ${dir_list})
+ENDMACRO()
+
+HEADER_DIRECTORIES(header_dir_list)
+HEADER_FILES(headers_list)
+
+list(LENGTH header_dir_list header_dir_list_count)
+message(STATUS "[INFO] Found ${header_dir_list_count} header directories.")
+message(STATUS "[INFO] header dir list: ${header_dir_list}")
+
+list(LENGTH headers_list headers_list_count)
+message(STATUS "[INFO] Found ${headers_list_count} headers.")
+message(STATUS "[INFO] header siles list: ${headers_list}")
+#
+
 file(MAKE_DIRECTORY scripts)
 
 add_executable(bfs bfs.cpp ${spmv_dir}/spmv.h ${vector_dir}/vector.h ${matrix_dir}/matrix.h ${desc_dir}/descriptor.h ${operations_dir}/operations.h src/cpp_graphblas/dimensions.hpp src/backend/operations/operations.h src/backend/operations/assign_sparse.h src/backend/operations/assign_dense.h src/backend/operations/scatter.h src/backend/operations/reduce.h algorithms/bfs/bfs.hpp src/backend/operations/apply_sparse.h src/backend/operations/apply_dense.h src/backend/operations/ewise_mult.h)
 target_include_directories(bfs PRIVATE ${desc_dir} ${matrix_dir} ${operations_dir} ${vector_dir} ${spmv_dir})
 
-add_executable(spmv spmv.cpp ${spmv_dir}/spmv.h ${vector_dir}/vector.h ${matrix_dir}/matrix.h ${desc_dir}/descriptor.h ${operations_dir}/operations.h spmv.cpp src/cpp_graphblas/dimensions.hpp src/backend/operations/operations.h src/backend/operations/assign_sparse.h src/backend/operations/scatter.h src/backend/operations/reduce.h algorithms/bfs/bfs.hpp src/backend/operations/apply_sparse.h src/backend/operations/apply_dense.h src/backend/operations/ewise_mult.h)
-target_include_directories(spmv PRIVATE ${desc_dir} ${matrix_dir} ${operations_dir} ${vector_dir} ${spmv_dir})
+add_executable(spmv spmv.cpp ${headers_list})
+target_include_directories(spmv PRIVATE ${header_dir_list})
 
 add_executable(gen gen.cpp ${vector_dir}/vector.h ${matrix_dir}/matrix.h ${desc_dir}/descriptor.h ${operations_dir}/operations.h src/cpp_graphblas/dimensions.hpp src/backend/operations/operations.h src/backend/operations/assign_sparse.h src/backend/operations/scatter.h src/backend/operations/reduce.h algorithms/bfs/bfs.hpp src/backend/operations/apply_sparse.h src/backend/operations/apply_dense.h src/backend/operations/ewise_mult.h)
 target_include_directories(gen PRIVATE ${desc_dir} ${matrix_dir} ${operations_dir} ${vector_dir})

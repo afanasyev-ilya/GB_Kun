@@ -18,7 +18,7 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
     MemoryAPI::copy(vals_new, _vals, _nnz);
 
     bool use_cache_blocking = true;
-    if(use_cache_blocking)
+    if(use_cache_blocking) // do cache blocking optimization with block size equal to L1 or LLC partition
     {
         ENT *sort_indexes;
         MemoryAPI::allocate_array(&sort_indexes, _nnz);
@@ -45,10 +45,39 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
         MemoryAPI::free_array(sort_indexes);
     }
 
-    /*for(ENT i = 0; i < nnz; i++)
-    {
+    int num_threads = omp_get_max_threads();
+    ENT *thread_bottom_border = new ENT[num_threads];
+    ENT *thread_top_border = new ENT[num_threads];
 
-    }*/
+    #pragma omp parallel
+    {
+        int tid = omp_get_thread_num();
+        ENT thread_work_size = nnz - 1/num_threads + 1;
+        thread_bottom_border[tid] = thread_work_size * tid;
+        thread_top_border[tid] = thread_work_size * (tid + 1);
+        ENT i = thread_top_border[tid];
+
+        if(tid != (num_threads - 1)) // if not last thread since it does not need to move its top border
+        {
+            for (ENT i = thread_top_border[tid]; i < nnz - 1; i++)
+            {
+                if (row_ids[i] != row_ids[i + 1]) // if border on different rows, fix it
+                {
+                    thread_top_border[tid] = i;
+                    thread_top_border[tid + 1] = i;
+                }
+            }
+        }
+    }
+
+    for(int tid = 0; tid < num_threads; tid++)
+    {
+        cout << "tid " << tid << ") " << thread_bottom_border[tid] << " - " <<  thread_top_border[tid] <<
+        "(" << 100.0*(double(thread_top_border[tid] - thread_bottom_border[tid])/nnz) << "%)" << endl;
+    }
+
+    cout << "hehehe" << endl;
+    cout << "hahoooaassaaaaaa" << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
