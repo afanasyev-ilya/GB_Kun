@@ -24,6 +24,9 @@ private:
     VNT *col_ids;
     T *vals;
 
+    ENT *thread_bottom_border;
+    ENT *thread_top_border;
+
     void alloc(VNT _size, ENT _nnz);
     void free();
 

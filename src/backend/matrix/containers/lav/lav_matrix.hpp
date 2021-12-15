@@ -21,10 +21,6 @@ void MatrixLAV<T>::alloc(VNT _size, ENT _nnz)
 {
     this->size = _size;
     this->nnz = _nnz;
-
-    MemoryAPI::allocate_array(&row_ptr, this->size + 1);
-    MemoryAPI::allocate_array(&col_ids, this->nnz);
-    MemoryAPI::allocate_array(&vals, this->nnz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,9 +28,18 @@ void MatrixLAV<T>::alloc(VNT _size, ENT _nnz)
 template <typename T>
 void MatrixLAV<T>::free()
 {
-    MemoryAPI::free_array(row_ptr);
-    MemoryAPI::free_array(col_ids);
-    MemoryAPI::free_array(vals);
+    for(VNT i = 0; i < dense_segments; i++)
+    {
+        MemoryAPI::free_array(dense_row_ptr[i]);
+        MemoryAPI::free_array(dense_col_ids[i]);
+        MemoryAPI::free_array(dense_vals[i]);
+    }
+    MemoryAPI::free_array(sparse_row_ptr);
+    MemoryAPI::free_array(sparse_col_ids);
+    MemoryAPI::free_array(sparse_vals);
+    delete []dense_row_ptr;
+    delete []dense_col_ids;
+    delete []dense_vals;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,11 +56,6 @@ void MatrixLAV<T>::resize(VNT _size, ENT _nnz)
 template <typename T>
 bool MatrixLAV<T>::is_non_zero(VNT _row, VNT _col)
 {
-    for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
-    {
-        if(col_ids[i] == _col)
-            return true;
-    }
     return false;
 }
 
@@ -64,11 +64,6 @@ bool MatrixLAV<T>::is_non_zero(VNT _row, VNT _col)
 template <typename T>
 T MatrixLAV<T>::get(VNT _row, VNT _col) const
 {
-    for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
-    {
-        if(col_ids[i] == _col)
-            return vals[i];
-    }
     return 0;
 }
 
@@ -77,14 +72,7 @@ T MatrixLAV<T>::get(VNT _row, VNT _col) const
 template <typename T>
 void MatrixLAV<T>::print() const
 {
-    for(VNT row = 0; row < size; row++)
-    {
-        for(VNT col = 0; col < size; col++)
-        {
-            cout << get(row, col) << " ";
-        }
-        cout << endl;
-    }
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
