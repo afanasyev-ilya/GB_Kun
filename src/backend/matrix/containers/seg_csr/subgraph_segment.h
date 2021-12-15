@@ -111,6 +111,10 @@ void SubgraphSegment<T>::construct_csr()
     MemoryAPI::allocate_array(&conversion_to_full, size);
     MemoryAPI::allocate_array(&vertex_buffer, size);
 
+    #pragma omp parallel for schedule(static) // cache-aware alloc
+    for(VNT i = 0; i < size; i++)
+        vertex_buffer[i] = 0;
+
     for(VNT i = 0; i < size + 1; i++)
         row_ptr[i] = 0;
 

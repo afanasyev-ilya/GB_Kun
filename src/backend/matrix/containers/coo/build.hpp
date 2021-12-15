@@ -17,8 +17,8 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
     MemoryAPI::copy(col_ids_new, _col_ids, _nz);
     MemoryAPI::copy(vals_new, _vals, _nz);
 
-    bool _optimized = true;
-    if(_optimized)
+    bool use_cache_blocking = true;
+    if(use_cache_blocking)
     {
         ENT *sort_indexes;
         MemoryAPI::allocate_array(&sort_indexes, _nz);
@@ -27,7 +27,7 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
         for(ENT i = 0; i < _nz; i++)
             sort_indexes[i] = i;
 
-        int seg_size = 512*1024 / sizeof(double);
+        int seg_size = 64*1024 / sizeof(T);
         cout << "num segments: " << (size - 1)/seg_size + 1 << endl;
 
         std::sort(sort_indexes, sort_indexes + _nz,
@@ -44,6 +44,11 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
 
         MemoryAPI::free_array(sort_indexes);
     }
+
+    /*for(ENT i = 0; i < nz; i++)
+    {
+
+    }*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

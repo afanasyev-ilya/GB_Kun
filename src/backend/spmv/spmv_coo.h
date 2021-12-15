@@ -19,9 +19,9 @@ void SpMV(const MatrixCOO<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
         VNT row = _matrix->row_ids[i];
         VNT col = _matrix->col_ids[i];
         T val = _matrix->vals[i];
-        #pragma omp atomic
-        y_vals[row] += val * x_vals[col];
-        //y_vals[row] = add_op(y_vals[row], mul_op(val, x_vals[col])) ;
+        //#pragma omp atomic
+        //y_vals[row] += val * x_vals[col];
+        y_vals[row] = add_op(y_vals[row], mul_op(val, x_vals[col])) ;
     }
 }
 
