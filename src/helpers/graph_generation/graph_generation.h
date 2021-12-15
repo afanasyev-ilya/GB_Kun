@@ -52,7 +52,7 @@ public:
                      DirectionType _direction_type = DIRECTED_GRAPH);
 
     template <typename T>
-    static void HPCG(EdgeListContainer<T> &_edges_container, VNT _nx, VNT _ny, VNT _nz, ENT _edge_factor);
+    static void HPCG(EdgeListContainer<T> &_edges_container, VNT _nx, VNT _ny, VNT _nnz, ENT _edge_factor);
 
     template <typename T>
     static void init_from_txt_file(EdgeListContainer<T> &_edges_container, string _txt_file_name,

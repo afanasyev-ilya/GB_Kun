@@ -10,8 +10,8 @@ public:
     CSRVertexGroupSellC();
     ~CSRVertexGroupSellC();
 
-    VNT get_min_nz() const {return min_nz;};
-    VNT get_max_nz() const {return max_nz;};
+    VNT get_min_nnz() const {return min_nnz;};
+    VNT get_max_nnz() const {return max_nnz;};
 
     void print();
 
@@ -32,10 +32,10 @@ private:
     VNT *vector_group_col_ids;
     T *vector_group_vals;
 
-    VNT min_nz, max_nz;
+    VNT min_nnz, max_nnz;
 
     // helper functions
-    bool id_in_range(VNT _src_id, VNT _nz_count);
+    bool id_in_range(VNT _src_id, VNT _nnz_count);
 
     template<typename Y>
     friend void SpMV_vector(const MatrixVectGroupCSR<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);

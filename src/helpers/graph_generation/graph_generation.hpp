@@ -209,26 +209,26 @@ void GraphGenerationAPI::RMAT(EdgeListContainer<T> &_edges_container,
 
 template <typename T>
 void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
-                               VNT _nx, VNT _ny, VNT _nz, ENT _edge_factor)
+                               VNT _nx, VNT _ny, VNT _nnz, ENT _edge_factor)
 {
     cout << "Creating HPCG matrix" << endl;
-    int numberOfNonzerosPerRow = 27; // We are approximating a 27-point finite element/volume/difference 3D stencil
-    int numberOfRows = _nx*_ny*_nz;
+    int numberOfNonnzerosPerRow = 27; // We are approximating a 27-point finite element/volume/difference 3D stencil
+    int numberOfRows = _nx*_ny*_nnz;
 
     int size = numberOfRows;
-    int nz = numberOfRows * numberOfNonzerosPerRow;
+    int nnz = numberOfRows * numberOfNonnzerosPerRow;
 
     // Allocate arrays that are of length localNumberOfRows
-    int * nonzerosInRow = new int[numberOfRows];
+    int * nonnzerosInRow = new int[numberOfRows];
     int ** mtxInd = new int*[numberOfRows];
     T ** matrixValues = new T*[numberOfRows];
 
-    int *col_ = new int[numberOfNonzerosPerRow*numberOfRows];
-    T *val_ = new T[sizeof(T)*numberOfNonzerosPerRow*numberOfRows];
+    int *col_ = new int[numberOfNonnzerosPerRow*numberOfRows];
+    T *val_ = new T[sizeof(T)*numberOfNonnzerosPerRow*numberOfRows];
 
-    int* boundaryRows = new int[_nx*_ny*_nz - (_nx-2)*(_ny-2)*(_nz-2)];
+    int* boundaryRows = new int[_nx*_ny*_nnz - (_nx-2)*(_ny-2)*(_nnz-2)];
 
-    if ( col_ == NULL || val_ == NULL || nonzerosInRow == NULL || boundaryRows == NULL
+    if ( col_ == NULL || val_ == NULL || nonnzerosInRow == NULL || boundaryRows == NULL
          || mtxInd == NULL || matrixValues == NULL)
     {
         return;
@@ -246,7 +246,7 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
         }
 
         #pragma omp for nowait
-        for (int z = 1; z < _nz - 1; z++) {
+        for (int z = 1; z < _nnz - 1; z++) {
             for (int x = 0; x < _nx; x++) {
                 boundaryRows[_ny*_nx + 2*(z-1)*(_nx+_ny-2) + x ] = z*_ny*_nx + x;
                 numOfBoundaryRows++;
@@ -266,20 +266,20 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
         #pragma omp for nowait
         for (int y = 0; y < _ny; y++) {
             for (int x = 0; x < _nx; x++) {
-                boundaryRows[_ny*_nx + 2*(_nz-2)*(_nx+_ny-2) + y*_nx + x] = ((_nz - 1)*_ny + y)*_nx + x;
+                boundaryRows[_ny*_nx + 2*(_nnz-2)*(_nx+_ny-2) + y*_nx + x] = ((_nnz - 1)*_ny + y)*_nx + x;
                 numOfBoundaryRows++;
             }
         }
     }
 
-    int numberOfNonzeros = 0;
+    int numberOfNonnzeros = 0;
 
-    #pragma omp parallel reduction(+:numberOfNonzeros)
+    #pragma omp parallel reduction(+:numberOfNonnzeros)
     {
         int ithr = omp_get_thread_num();
         int nthr = omp_get_num_threads();
 
-        int works = (_nz - 2)*(_ny - 2);
+        int works = (_nnz - 2)*(_ny - 2);
         int begin = ((ithr  )*works)/nthr;
         int end   = ((ithr+1)*works)/nthr;
         for (int i = begin; i < end; i++)
@@ -290,9 +290,9 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
             for (int ix=1; ix<_nx-1; ix++)
             {
                 int currentLocalRow = iz*_nx*_ny+iy*_nx+ix;
-                mtxInd[currentLocalRow]      = col_ + currentLocalRow*numberOfNonzerosPerRow;
-                matrixValues[currentLocalRow] = val_ + currentLocalRow*numberOfNonzerosPerRow;
-                char numberOfNonzerosInRow = 0;
+                mtxInd[currentLocalRow]      = col_ + currentLocalRow*numberOfNonnzerosPerRow;
+                matrixValues[currentLocalRow] = val_ + currentLocalRow*numberOfNonnzerosPerRow;
+                char numberOfNonnzerosInRow = 0;
                 T * currentValuePointer = matrixValues[currentLocalRow]; // Pointer to current value in current row
                 int  * currentIndexPointerL = mtxInd[currentLocalRow]; // Pointer to current index in current row
                 for (int sz=-1; sz<=1; sz++) {
@@ -322,9 +322,9 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
                     currentIndexPointerL += 9;
                 } // end sz loop
                 *(currentValuePointer - 14) = 26.0;
-                numberOfNonzerosInRow += 27;
-                nonzerosInRow[currentLocalRow] = numberOfNonzerosInRow;
-                numberOfNonzeros += numberOfNonzerosInRow; // Protect this with an atomic
+                numberOfNonnzerosInRow += 27;
+                nonnzerosInRow[currentLocalRow] = numberOfNonnzerosInRow;
+                numberOfNonnzeros += numberOfNonnzerosInRow; // Protect this with an atomic
             } // end ix loop
         }
 
@@ -337,7 +337,7 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
             int ix = currentLocalRow%_nx;
 
             int sz_begin = std::max<int>(-1, -iz);
-            int sz_end = std::min<int>(1, _nz - iz - 1);
+            int sz_end = std::min<int>(1, _nnz - iz - 1);
 
             int sy_begin = std::max<int>(-1, -iy);
             int sy_end = std::min<int>(1, _ny - iy - 1);
@@ -346,9 +346,9 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
             int sx_end = std::min<int>(1, _nx - ix - 1);
 
 
-            mtxInd[currentLocalRow]      = col_ + currentLocalRow*numberOfNonzerosPerRow;
-            matrixValues[currentLocalRow] = val_ + currentLocalRow*numberOfNonzerosPerRow;
-            char numberOfNonzerosInRow = 0;
+            mtxInd[currentLocalRow]      = col_ + currentLocalRow*numberOfNonnzerosPerRow;
+            matrixValues[currentLocalRow] = val_ + currentLocalRow*numberOfNonnzerosPerRow;
+            char numberOfNonnzerosInRow = 0;
             T * currentValuePointer = matrixValues[currentLocalRow]; // Pointer to current value in current row
             int  * currentIndexPointerL = mtxInd[currentLocalRow];
             for (int sz=sz_begin; sz<=sz_end; sz++) {
@@ -361,20 +361,20 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
                             *currentValuePointer++ = -1.0;
                         }
                         *currentIndexPointerL++ = col;
-                        numberOfNonzerosInRow++;
+                        numberOfNonnzerosInRow++;
                     } // end sx loop
                 } // end sy loop
             } // end sz loop
-            nonzerosInRow[currentLocalRow] = numberOfNonzerosInRow;
-            numberOfNonzeros += numberOfNonzerosInRow; // Protect this with an atomic
+            nonnzerosInRow[currentLocalRow] = numberOfNonnzerosInRow;
+            numberOfNonnzeros += numberOfNonnzerosInRow; // Protect this with an atomic
         }
     }
 
     _edges_container.vertices_count = numberOfRows;
-    _edges_container.edges_count = numberOfNonzeros;
-    _edges_container.src_ids.resize(numberOfNonzeros);
-    _edges_container.dst_ids.resize(numberOfNonzeros);
-    _edges_container.edge_vals.resize(numberOfNonzeros);
+    _edges_container.edges_count = numberOfNonnzeros;
+    _edges_container.src_ids.resize(numberOfNonnzeros);
+    _edges_container.dst_ids.resize(numberOfNonnzeros);
+    _edges_container.edge_vals.resize(numberOfNonnzeros);
 
     // get pointers
     VNT *src_ids = _edges_container.src_ids.data();
@@ -384,7 +384,7 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
     long long k = 0;
     for(int i=0; i<numberOfRows; ++i)
     {
-        for(int j=0; j<nonzerosInRow[i];++j)
+        for(int j=0; j<nonnzerosInRow[i];++j)
         {
             src_ids[k] = i;
             dst_ids[k] = (mtxInd[i])[j];
@@ -398,7 +398,7 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
     delete [] val_;
     delete [] mtxInd;
     delete [] matrixValues;
-    delete [] nonzerosInRow;
+    delete [] nonnzerosInRow;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

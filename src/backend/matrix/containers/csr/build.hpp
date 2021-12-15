@@ -5,12 +5,12 @@ void MatrixCSR<T>::construct_unsorted_csr(const VNT *_row_ids,
                                           const VNT *_col_ids,
                                           const T *_vals,
                                           VNT _size,
-                                          ENT _nz)
+                                          ENT _nnz)
 {
     vector<vector<VNT>> tmp_col_ids(_size);
     vector<vector<T>> tmp_vals(_size);
 
-    for(ENT i = 0; i < _nz; i++)
+    for(ENT i = 0; i < _nnz; i++)
     {
         VNT row = _row_ids[i];
         VNT col = _col_ids[i];
@@ -19,7 +19,7 @@ void MatrixCSR<T>::construct_unsorted_csr(const VNT *_row_ids,
         tmp_vals[row].push_back(val);
     }
 
-    resize(_size, _nz);
+    resize(_size, _nnz);
 
     ENT cur_pos = 0;
     for(VNT i = 0; i < size; i++)
@@ -44,7 +44,7 @@ void MatrixCSR<T>::numa_aware_alloc()
     {
         row_ptr[i] = 0;
     }
-    for(ENT i = 0; i < nz; i++)
+    for(ENT i = 0; i < nnz; i++)
     {
         vals[i] = 0;
         col_ids[i] = 0;
@@ -95,9 +95,9 @@ void MatrixCSR<T>::prepare_vg_lists()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
+void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket)
 {
-    resize(_size, _nz);
+    resize(_size, _nnz);
 
     #pragma omp parallel
     {
@@ -116,7 +116,7 @@ void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
             }
     }
 
-    construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nz);
+    construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nnz);
 
     prepare_vg_lists();
 }

@@ -29,7 +29,7 @@ public:
                const VNT *_col_indices,
                const T *_values,
                const VNT _size,
-               const ENT _nz);
+               const ENT _nnz);
 
     /* CSR, COO...*/
     LA_Info set_preferred_matrix_format(MatrixStorageFormat format) {
@@ -114,7 +114,7 @@ void Matrix<T>::build(const VNT *_row_indices,
                       const VNT *_col_indices,
                       const T *_values,
                       const VNT _size, // todo remove
-                      const ENT _nz) {
+                      const ENT _nnz) {
     if (_format == CSR) {
         data = new MatrixCSR<T>;
         #ifdef __USE_SOCKET_OPTIMIZATIONS__
@@ -147,12 +147,12 @@ void Matrix<T>::build(const VNT *_row_indices,
     else {
         throw "Error: unsupported format in Matrix<T>::build";
     }
-    data->build(_row_indices, _col_indices, _values, _size, _nz, 0);
+    data->build(_row_indices, _col_indices, _values, _size, _nnz, 0);
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nz, 1);
+    data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nnz, 1);
     #endif
 
-    transposed_data->build(_col_indices, _row_indices, _values, _size, _nz, 0);
+    transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
 }
 }
 }

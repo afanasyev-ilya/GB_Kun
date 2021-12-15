@@ -5,12 +5,12 @@ void MatrixLAV<T>::construct_unsorted_csr(const VNT *_row_ids,
                                           const VNT *_col_ids,
                                           const T *_vals,
                                           VNT _size,
-                                          ENT _nz)
+                                          ENT _nnz)
 {
     vector<vector<VNT>> tmp_col_ids(_size);
     vector<vector<T>> tmp_vals(_size);
 
-    for(ENT i = 0; i < _nz; i++)
+    for(ENT i = 0; i < _nnz; i++)
     {
         VNT row = _row_ids[i];
         VNT col = _col_ids[i];
@@ -19,7 +19,7 @@ void MatrixLAV<T>::construct_unsorted_csr(const VNT *_row_ids,
         tmp_vals[row].push_back(val);
     }
 
-    resize(_size, _nz);
+    resize(_size, _nnz);
 
     ENT cur_pos = 0;
     for(VNT i = 0; i < size; i++)
@@ -73,7 +73,7 @@ void MatrixLAV<T>::prepare_hub_data(map<VNT, ENT> &_freqs)
         hub_positions[sorted_accesses[i].first] = i;
     }
 
-    for(ENT i = 0; i < nz; i++)
+    for(ENT i = 0; i < nnz; i++)
     {
         VNT vertex = col_ids[i];
         if(hub_positions[vertex] >= 0)
@@ -88,16 +88,16 @@ void MatrixLAV<T>::prepare_hub_data(map<VNT, ENT> &_freqs)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
+void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket)
 {
-    resize(_size, _nz);
+    resize(_size, _nnz);
 
-    construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nz);
+    construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nnz);
 
     map<VNT, ENT> col_freqs;
     map<VNT, ENT> row_freqs;
 
-    for(ENT i = 0; i < _nz; i++)
+    for(ENT i = 0; i < _nnz; i++)
     {
         VNT row_id = _row_ids[i];
         VNT col_id = _col_ids[i];
@@ -106,7 +106,7 @@ void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
     }
 
     cout << "freqs done " << endl;
-    cout << "_nz: " << _nz << endl;
+    cout << "_nnz: " << _nnz << endl;
 
     prepare_hub_data(col_freqs);
 }

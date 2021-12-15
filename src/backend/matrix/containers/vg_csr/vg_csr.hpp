@@ -20,14 +20,14 @@ MatrixVectGroupCSR<T>::~MatrixVectGroupCSR()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixVectGroupCSR<T>::alloc(VNT _size, ENT _nz)
+void MatrixVectGroupCSR<T>::alloc(VNT _size, ENT _nnz)
 {
     size = _size;
-    nz = _nz;
+    nnz = _nnz;
 
     MemoryAPI::allocate_array(&row_ptr, size + 1);
-    MemoryAPI::allocate_array(&col_ids, nz);
-    MemoryAPI::allocate_array(&vals, nz);
+    MemoryAPI::allocate_array(&col_ids, nnz);
+    MemoryAPI::allocate_array(&vals, nnz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,10 +43,10 @@ void MatrixVectGroupCSR<T>::free()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixVectGroupCSR<T>::resize(VNT _size, ENT _nz)
+void MatrixVectGroupCSR<T>::resize(VNT _size, ENT _nnz)
 {
     this->free();
-    this->alloc(_size, _nz);
+    this->alloc(_size, _nnz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

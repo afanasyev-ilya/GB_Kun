@@ -65,7 +65,7 @@ public:
         if (row_indices->size() != col_indices ->size()) {
             return GrB_DIMENSION_MISMATCH;
         }
-        /* doubling nvlas because _nz = nvals in implementation - TODO remove*/
+        /* doubling nvlas because _nnz = nvals in implementation - TODO remove*/
         if (!row_indices->empty()) {
             _matrix.build(row_indices->data(), col_indices->data(), values->data(), nvals, row_indices->size());
         }

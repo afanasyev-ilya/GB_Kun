@@ -12,7 +12,7 @@ namespace backend {
 template<typename T>
 class Vector {
 public:
-    Vector(int _size): dense(_size), sparse(_size), storage(GrB_DENSE) {size = _size; nz = size;};
+    Vector(int _size): dense(_size), sparse(_size), storage(GrB_DENSE) {size = _size; nnz = size;};
     ~Vector(){};
 
     void set_constant(T _val) {dense.set_constant(_val);};
@@ -75,10 +75,10 @@ public:
         }
     }
 
-    VNT nvals() {return nz;};
+    VNT nvals() {return nnz;};
 private:
     VNT size;
-    VNT nz;
+    VNT nnz;
     DenseVector<T> dense;
     SparseVector<T> sparse;
     Storage storage;

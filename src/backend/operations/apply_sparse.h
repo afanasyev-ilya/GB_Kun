@@ -18,7 +18,7 @@ namespace backend {
                          SparseVector<U>* u,
                          Descriptor*      desc) {
             VNT vec_size;
-            u->get_nz(&vec_size);
+            u->get_nnz(&vec_size);
             std::string accum_type = typeid(accum).name();
             bool use_accum = accum_type.size() > 1;
 

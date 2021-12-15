@@ -41,10 +41,10 @@ public:
     MatrixCSR();
     ~MatrixCSR();
 
-    void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket = 0);
+    void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket = 0);
     void print() const;
 
-    ENT get_nnz() const {return nz;};
+    ENT get_nnz() const {return nnz;};
     void get_size(VNT* _size) const {*_size = size;};
 
     ENT *get_row_ptr() {return row_ptr;};
@@ -52,7 +52,7 @@ public:
     VNT *get_col_ids() {return col_ids;};
 private:
     VNT size;
-    ENT nz;
+    ENT nnz;
 
     ENT *row_ptr;
     T *vals;
@@ -65,11 +65,11 @@ private:
 
     int target_socket;
 
-    void alloc(VNT _size, ENT _nz);
+    void alloc(VNT _size, ENT _nnz);
     void free();
-    void resize(VNT _size, ENT _nz);
+    void resize(VNT _size, ENT _nnz);
 
-    void construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz);
+    void construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz);
 
     bool is_non_zero(VNT _row, VNT _col);
     T get(VNT _row, VNT _col) const;

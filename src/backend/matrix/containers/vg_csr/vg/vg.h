@@ -15,10 +15,10 @@ public:
     /* print API */
     void print();
 
-    VNT get_min_nz() const {return min_nz;};
-    VNT get_max_nz() const {return max_nz;};
+    VNT get_min_nnz() const {return min_nnz;};
+    VNT get_max_nnz() const {return max_nnz;};
 
-    bool id_in_range(VNT _src_id, VNT _nz_count);
+    bool id_in_range(VNT _src_id, VNT _nnz_count);
 
     /* modification API */
     void build(MatrixVectGroupCSR<T> *_matrix, VNT _bottom, VNT _top);
@@ -35,9 +35,9 @@ private:
     VNT *ids;
     VNT size;
     VNT max_size;
-    ENT total_nz;
+    ENT total_nnz;
 
-    VNT min_nz, max_nz;
+    VNT min_nnz, max_nnz;
 
     template<typename Y>
     friend void SpMV_load_balanced(const MatrixVectGroupCSR<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y);

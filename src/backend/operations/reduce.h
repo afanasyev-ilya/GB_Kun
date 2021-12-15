@@ -62,7 +62,7 @@ template <typename T, typename U,
         std::string op_type =    typeid(op).name();
 
         VNT vec_size;
-        u->get_nz(&vec_size);
+        u->get_nnz(&vec_size);
         const U* sparse_pointer = u->get_vals();
 
 #pragma om parallel for

@@ -17,14 +17,14 @@ MatrixLAV<T>::~MatrixLAV()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixLAV<T>::alloc(VNT _size, ENT _nz)
+void MatrixLAV<T>::alloc(VNT _size, ENT _nnz)
 {
     this->size = _size;
-    this->nz = _nz;
+    this->nnz = _nnz;
 
     MemoryAPI::allocate_array(&row_ptr, this->size + 1);
-    MemoryAPI::allocate_array(&col_ids, this->nz);
-    MemoryAPI::allocate_array(&vals, this->nz);
+    MemoryAPI::allocate_array(&col_ids, this->nnz);
+    MemoryAPI::allocate_array(&vals, this->nnz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,10 +40,10 @@ void MatrixLAV<T>::free()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixLAV<T>::resize(VNT _size, ENT _nz)
+void MatrixLAV<T>::resize(VNT _size, ENT _nnz)
 {
     this->free();
-    this->alloc(_size, _nz);
+    this->alloc(_size, _nnz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

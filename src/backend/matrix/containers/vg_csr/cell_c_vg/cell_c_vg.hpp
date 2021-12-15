@@ -11,9 +11,9 @@ CSRVertexGroupSellC<T>::CSRVertexGroupSellC()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool CSRVertexGroupSellC<T>::id_in_range(VNT _src_id, VNT _nz_count)
+bool CSRVertexGroupSellC<T>::id_in_range(VNT _src_id, VNT _nnz_count)
 {
-    if ((_nz_count >= min_nz) && (_nz_count < max_nz))
+    if ((_nnz_count >= min_nnz) && (_nnz_count < max_nnz))
         return true;
     else
         return false;
@@ -50,18 +50,18 @@ void CSRVertexGroupSellC<T>::build(MatrixVectGroupCSR<T> *_matrix, VNT _bottom, 
     VNT matrix_size = _matrix->size;
 
     VNT local_group_size = 0;
-    ENT local_group_total_nz = 0;
+    ENT local_group_total_nnz = 0;
 
-    min_nz = _bottom;
-    max_nz = _top;
+    min_nnz = _bottom;
+    max_nnz = _top;
 
     // compute number of vertices and edges in vertex group
     for(VNT src_id = 0; src_id < matrix_size; src_id++)
     {
-        VNT nz_count = _matrix->get_nz_in_row(src_id);
-        if((nz_count >= _bottom) && (nz_count < _top))
+        VNT nnz_count = _matrix->get_nnz_in_row(src_id);
+        if((nnz_count >= _bottom) && (nnz_count < _top))
         {
-            local_group_total_nz += nz_count;
+            local_group_total_nnz += nnz_count;
             local_group_size++;
         }
     }
@@ -87,8 +87,8 @@ void CSRVertexGroupSellC<T>::build(MatrixVectGroupCSR<T> *_matrix, VNT _bottom, 
         VNT vertex_pos = 0;
         for(VNT src_id = 0; src_id < matrix_size; src_id++)
         {
-            VNT nz_count = _matrix->get_nz_in_row(src_id);
-            if((nz_count >= _bottom) && (nz_count < _top))
+            VNT nnz_count = _matrix->get_nnz_in_row(src_id);
+            if((nnz_count >= _bottom) && (nnz_count < _top))
             {
                 this->row_ids[vertex_pos] = src_id;
                 vertex_pos++;
@@ -99,19 +99,19 @@ void CSRVertexGroupSellC<T>::build(MatrixVectGroupCSR<T> *_matrix, VNT _bottom, 
         for(VNT cur_vector_segment = 0; cur_vector_segment < vector_segments_count; cur_vector_segment++)
         {
             VNT vec_start = cur_vector_segment * VECTOR_LENGTH;
-            VNT cur_max_nz_count = 0;
+            VNT cur_max_nnz_count = 0;
             for(VNT i = 0; i < VECTOR_LENGTH; i++)
             {
                 VNT vertex_pos = vec_start + i;
                 if(vertex_pos < size)
                 {
                     VNT src_id = this->row_ids[vertex_pos];
-                    VNT nz_count = _matrix->get_nz_in_row(src_id);
-                    if(cur_max_nz_count < nz_count)
-                        cur_max_nz_count = nz_count;
+                    VNT nnz_count = _matrix->get_nnz_in_row(src_id);
+                    if(cur_max_nnz_count < nnz_count)
+                        cur_max_nnz_count = nnz_count;
                 }
             }
-            edges_count_in_ve += cur_max_nz_count * VECTOR_LENGTH;
+            edges_count_in_ve += cur_max_nnz_count * VECTOR_LENGTH;
         }
         MemoryAPI::allocate_array(&vector_group_ptrs, vector_segments_count);
         MemoryAPI::allocate_array(&vector_group_sizes, vector_segments_count);
@@ -122,23 +122,23 @@ void CSRVertexGroupSellC<T>::build(MatrixVectGroupCSR<T> *_matrix, VNT _bottom, 
         for(VNT cur_vector_segment = 0; cur_vector_segment < vector_segments_count; cur_vector_segment++)
         {
             VNT vec_start = cur_vector_segment * VECTOR_LENGTH;
-            VNT cur_max_nz_count = 0;
+            VNT cur_max_nnz_count = 0;
             for(VNT i = 0; i < VECTOR_LENGTH; i++)
             {
                 VNT vertex_pos = vec_start + i;
                 if(vertex_pos < size)
                 {
                     VNT src_id = this->row_ids[vertex_pos];
-                    VNT nz_count = _matrix->get_nz_in_row(src_id);
-                    if(cur_max_nz_count < nz_count)
-                        cur_max_nz_count = nz_count;
+                    VNT nnz_count = _matrix->get_nnz_in_row(src_id);
+                    if(cur_max_nnz_count < nnz_count)
+                        cur_max_nnz_count = nnz_count;
                 }
             }
 
             vector_group_ptrs[cur_vector_segment] = current_edge;
-            vector_group_sizes[cur_vector_segment] = cur_max_nz_count;
+            vector_group_sizes[cur_vector_segment] = cur_max_nnz_count;
 
-            for(VNT edge_pos = 0; edge_pos < cur_max_nz_count; edge_pos++)
+            for(VNT edge_pos = 0; edge_pos < cur_max_nnz_count; edge_pos++)
             {
                 #pragma _NEC ivdep
                 #pragma _NEC vector
@@ -148,8 +148,8 @@ void CSRVertexGroupSellC<T>::build(MatrixVectGroupCSR<T> *_matrix, VNT _bottom, 
                     if(vertex_pos < size)
                     {
                         VNT src_id = this->row_ids[vertex_pos];
-                        VNT nz_count = _matrix->get_nz_in_row(src_id);
-                        if((vertex_pos < size) && (edge_pos < nz_count))
+                        VNT nnz_count = _matrix->get_nnz_in_row(src_id);
+                        if((vertex_pos < size) && (edge_pos < nnz_count))
                         {
                             VNT col_id = _matrix->col_ids[_matrix->row_ptr[src_id] + edge_pos];
                             T val = _matrix->vals[_matrix->row_ptr[src_id] + edge_pos];

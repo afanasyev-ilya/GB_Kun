@@ -110,7 +110,7 @@ void SpMV(const MatrixCSR<T> *_matrix,
             }
         }
         //#pragma omp critical
-        //cout << "cnt: " << 100.0*(double)cnt/_matrix->nz << endl;
+        //cout << "cnt: " << 100.0*(double)cnt/_matrix->nnz << endl;
     }*/
 
     #pragma omp parallel

@@ -13,7 +13,7 @@ public:
     void set_constant(T _val) {};
 
     void print() const {
-        for(VNT i = 0; i < nz; i++)
+        for(VNT i = 0; i < nnz; i++)
         {
             cout << "( "<< ids[i]<< " , "  << vals[i] << ") ";
         }
@@ -21,16 +21,16 @@ public:
 
     };
 
-    void get_nz(VNT* _nz) const {
-        *_nz = nz;
+    void get_nnz(VNT* _nnz) const {
+        *_nnz = nnz;
     }
 
     void get_size(VNT* _size) const {
         *_size = size;
     }
 
-    void set_nz(VNT _nz) const {
-        nz = _nz;
+    void set_nnz(VNT _nnz) const {
+        nnz = _nnz;
     }
 
     void set_size(VNT _size) const {
@@ -77,16 +77,16 @@ public:
 
     void swap(SparseVector* rhs) const {
         VNT tmp_size = size;
-        VNT tmp_nz = nz;
+        VNT tmp_nnz = nnz;
         T* tmp_vals = vals;
         VNT* tmp_ids = ids;
 
         rhs->get_size(&size);
-        rhs->get_nz(&nz);
+        rhs->get_nnz(&nnz);
         vals = rhs->get_vals();
         ids = rhs->get_ids();
 
-        rhs->set_nz(tmp_nz);
+        rhs->set_nnz(tmp_nnz);
         rhs->set_size(tmp_size);
         rhs->set_ids(tmp_ids);
         rhs->set_vals(tmp_vals);
@@ -94,7 +94,7 @@ public:
 
 private:
     mutable VNT size;
-    mutable VNT nz;
+    mutable VNT nnz;
 
     mutable T *vals;
     mutable VNT *ids;

@@ -21,7 +21,7 @@ template <typename W, typename T, typename M, typename I,
                          Index            nindices,
                          Descriptor*      desc) {
         VNT vec_size;
-        w->get_nz(&vec_size);
+        w->get_nnz(&vec_size);
         std::string accum_type = typeid(accum).name();
         if (mask != NULL) {
             for (int i = 0; i < vec_size; i++) {

@@ -4,10 +4,10 @@ namespace backend{
 
 
 template <typename T>
-void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
+void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket)
 {
     size = _size;
-    nz = _nz;
+    nnz = _nnz;
 
     cout << size << endl;
     VNT segment_size = 512 * 1024 / sizeof(T);
@@ -21,7 +21,7 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
 
     subgraphs = new SubgraphSegment<T>[num_segments];
 
-    for(ENT i = 0; i < _nz; i++)
+    for(ENT i = 0; i < _nnz; i++)
     {
         int seg_id = _col_ids[i]/segment_size;
         subgraphs[seg_id].add_edge(_row_ids[i], _col_ids[i], _vals[i]);
@@ -37,9 +37,9 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
         subgraphs[cur_seg].construct_blocks(merge_blocks_number, merge_block_size);
         cout << "seg " << cur_seg << " stats || ";
         cout << "size (vertices) = " << subgraphs[cur_seg].size << "(" <<
-             100.0*(double)subgraphs[cur_seg].size/_size << "%)" << ", nz (edges) = " << subgraphs[cur_seg].nz << " (" <<
-             100.0*(double)subgraphs[cur_seg].nz/_nz << "%) ";
-        cout << "avg degree: " << (double)subgraphs[cur_seg].nz / subgraphs[cur_seg].size << endl;
+             100.0*(double)subgraphs[cur_seg].size/_size << "%)" << ", nnz (edges) = " << subgraphs[cur_seg].nnz << " (" <<
+             100.0*(double)subgraphs[cur_seg].nnz/_nnz << "%) ";
+        cout << "avg degree: " << (double)subgraphs[cur_seg].nnz / subgraphs[cur_seg].size << endl;
     }
 
     cout << endl << endl;

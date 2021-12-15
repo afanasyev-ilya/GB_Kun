@@ -20,10 +20,10 @@ MatrixSegmentedCSR<T>::~MatrixSegmentedCSR()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixSegmentedCSR<T>::alloc(VNT _size, ENT _nz)
+void MatrixSegmentedCSR<T>::alloc(VNT _size, ENT _nnz)
 {
     this->size = _size;
-    this->nz = _nz;
+    this->nnz = _nnz;
 
     // TODO
 }

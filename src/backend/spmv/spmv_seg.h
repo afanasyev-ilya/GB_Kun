@@ -38,7 +38,7 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
     }
     double t2 = omp_get_wtime();
     cout << "inner time: " << (t2 - t1)*1000 << " ms" << endl;
-    cout << "inner BW: " << _matrix->nz * (2.0*sizeof(T) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    cout << "inner BW: " << _matrix->nnz * (2.0*sizeof(T) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
     t1 = omp_get_wtime();
     if(_matrix->size > pow(2.0, 23)) // cache aware merge
