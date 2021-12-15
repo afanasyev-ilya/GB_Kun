@@ -40,9 +40,9 @@ private:
 
     void construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
                                 vector<vector<T>> &_tmp_vals,
-                                ENT *local_row_ptr,
-                                VNT *local_col_ids,
-                                T *local_vals);
+                                ENT **local_row_ptr,
+                                VNT **local_col_ids,
+                                T **local_vals);
 
     bool is_non_zero(VNT _row, VNT _col);
     T get(VNT _row, VNT _col) const;
