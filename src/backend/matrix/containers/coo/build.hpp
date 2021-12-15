@@ -77,7 +77,7 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
     }
 
     cout << "hehehe" << endl;
-    cout << "hahoooaassaaaaaa" << endl;
+    cout << "hahoooaassaaaaaaсссssss" << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -53,22 +53,27 @@ ENDMACRO()
 HEADER_DIRECTORIES(header_dir_list)
 HEADER_FILES(headers_list)
 
+message(Working in ${PROJECT_SOURCE_DIR})
 list(LENGTH header_dir_list header_dir_list_count)
 message(STATUS "[INFO] Found ${header_dir_list_count} header directories.")
+STRING(REPLACE ";" " " header_dir_list "${header_dir_list}")
+STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" header_dir_list "${header_dir_list}")
 message(STATUS "[INFO] header dir list: ${header_dir_list}")
 
 list(LENGTH headers_list headers_list_count)
 message(STATUS "[INFO] Found ${headers_list_count} headers.")
-message(STATUS "[INFO] header siles list: ${headers_list}")
+STRING(REPLACE ";" " " headers_list "${headers_list}")
+STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" headers_list "${headers_list}")
+message(STATUS "[INFO] header files list: ${headers_list}")
 #
 
 file(MAKE_DIRECTORY scripts)
 
-add_executable(bfs bfs.cpp ${spmv_dir}/spmv.h ${vector_dir}/vector.h ${matrix_dir}/matrix.h ${desc_dir}/descriptor.h ${operations_dir}/operations.h src/cpp_graphblas/dimensions.hpp src/backend/operations/operations.h src/backend/operations/assign_sparse.h src/backend/operations/assign_dense.h src/backend/operations/scatter.h src/backend/operations/reduce.h algorithms/bfs/bfs.hpp src/backend/operations/apply_sparse.h src/backend/operations/apply_dense.h src/backend/operations/ewise_mult.h)
-target_include_directories(bfs PRIVATE ${desc_dir} ${matrix_dir} ${operations_dir} ${vector_dir} ${spmv_dir})
+add_executable(bfs bfs.cpp)
+target_include_directories(bfs PRIVATE ${header_dir_list})
 
-add_executable(spmv spmv.cpp ${headers_list})
+add_executable(spmv spmv.cpp)
 target_include_directories(spmv PRIVATE ${header_dir_list})
 
-add_executable(gen gen.cpp ${vector_dir}/vector.h ${matrix_dir}/matrix.h ${desc_dir}/descriptor.h ${operations_dir}/operations.h src/cpp_graphblas/dimensions.hpp src/backend/operations/operations.h src/backend/operations/assign_sparse.h src/backend/operations/scatter.h src/backend/operations/reduce.h algorithms/bfs/bfs.hpp src/backend/operations/apply_sparse.h src/backend/operations/apply_dense.h src/backend/operations/ewise_mult.h)
-target_include_directories(gen PRIVATE ${desc_dir} ${matrix_dir} ${operations_dir} ${vector_dir})
+add_executable(gen gen.cpp)
+target_include_directories(gen PRIVATE ${header_dir_list})
