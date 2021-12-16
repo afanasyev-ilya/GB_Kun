@@ -10,7 +10,7 @@ void SpMSpV(Matrix<T> &_matrix,
           Vector<T> &_y,
           Descriptor &_desc)
 {
-    if(_matrix.format == CSR)
+    if(_matrix.format == CSR) // CSR format (CSC format is inside CSR)
     {
         SpMV(*((MatrixCSR<T> *) _matrix.data), _x.sparse, _y.sparse);
     }
