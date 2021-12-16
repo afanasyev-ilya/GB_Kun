@@ -57,6 +57,13 @@ void Parser::parse_args(int _argc, char **_argv)
                 option = _argv[++i];
                 file_name = string(option);
             }
+
+            if ((option == "mtx") || (option == "MTX"))
+            {
+                synthetic_graph_type = MTX_GRAPH;
+                option = _argv[++i];
+                file_name = string(option);
+            }
         }
 
         if ((option == "-edges") || (option == "-e"))

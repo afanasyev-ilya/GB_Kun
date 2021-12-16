@@ -22,9 +22,13 @@ void GraphGenerationAPI::generate_synthetic_graph(EdgeListContainer<T> &_edges_c
     {
         GraphGenerationAPI::HPCG(_edges_container, scale, scale, scale, avg_deg);
     }
-    else if(_parser.get_synthetic_graph_type() == REAL_WORLD_GRAPH)
+    else if(_parser.get_synthetic_graph_type() == MTX_GRAPH)
     {
         GraphGenerationAPI::init_from_mtx_file(_edges_container, _parser.get_file_name());
+    }
+    else if(_parser.get_synthetic_graph_type() == REAL_WORLD_GRAPH)
+    {
+        GraphGenerationAPI::init_from_txt_file(_edges_container, _parser.get_file_name(), DIRECTED_GRAPH);
     }
 }
 
