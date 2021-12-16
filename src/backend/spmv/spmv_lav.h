@@ -19,10 +19,13 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
     {
         for(VNT cur_seg = 0; cur_seg < dense_segments; cur_seg++)
         {
-            VNT num_rows = _matrix->size;
-            #pragma omp for schedule(static)
-            for(VNT row = 0; row < num_rows; row++)
+            const VNT *row_ids = _matrix->dense_vertex_groups[cur_seg].ptr();
+            const VNT nnz_num_rows = _matrix->dense_vertex_groups[cur_seg].size();
+
+            #pragma omp for schedule(guided, 1)
+            for(VNT idx = 0; idx < nnz_num_rows; idx++)
             {
+                VNT row = row_ids[idx];
                 T res = identity_val;
                 for(ENT j = _matrix->dense_row_ptr[cur_seg][row]; j < _matrix->dense_row_ptr[cur_seg][row + 1]; j++)
                 {
@@ -34,9 +37,13 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
             }
         }
 
-        #pragma omp for schedule(static)
-        for(VNT row = 0; row < num_rows; row++)
+        const VNT *row_ids = _matrix->sparse_vertex_group.ptr();
+        const VNT nnz_num_rows = _matrix->sparse_vertex_group.size();
+
+        #pragma omp for schedule(guided, 1)
+        for(VNT idx = 0; idx < nnz_num_rows; idx++)
         {
+            VNT row = row_ids[idx];
             T res = identity_val;
             for(ENT j = _matrix->sparse_row_ptr[row]; j < _matrix->sparse_row_ptr[row + 1]; j++)
             {

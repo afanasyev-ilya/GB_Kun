@@ -28,6 +28,21 @@ struct VertexGroup
         data.push_back(_row);
     }
 
+    VNT size() const
+    {
+        return data.size();
+    }
+
+    VNT size()
+    {
+        return data.size();
+    }
+
+    VNT *ptr()
+    {
+        return data.data();
+    }
+
     ENT min_threshold;
     ENT max_threshold;
 

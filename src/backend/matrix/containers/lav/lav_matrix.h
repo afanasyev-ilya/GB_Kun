@@ -27,10 +27,12 @@ private:
     ENT **dense_row_ptr;
     VNT **dense_col_ids;
     T **dense_vals;
+    VertexGroup *dense_vertex_groups;
 
     ENT *sparse_row_ptr;
     VNT *sparse_col_ids;
     T *sparse_vals;
+    VertexGroup sparse_vertex_group;
 
     VNT *old_to_new;
     VNT *new_to_old;
@@ -43,7 +45,8 @@ private:
                                 vector<vector<T>> &_tmp_vals,
                                 ENT **local_row_ptr,
                                 VNT **local_col_ids,
-                                T **local_vals);
+                                T **local_vals,
+                                VertexGroup *_vertex_group);
 
     bool is_non_zero(VNT _row, VNT _col);
     T get(VNT _row, VNT _col) const;

@@ -5,13 +5,25 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
                                           vector<vector<T>> &_tmp_vals,
                                           ENT **local_row_ptr,
                                           VNT **local_col_ids,
-                                          T **local_vals)
+                                          T **local_vals,
+                                          VertexGroup *_vertex_group)
 {
     ENT local_size = _tmp_col_ids.size();
     ENT local_nnz = 0;
+    #pragma omp parallel for reduction(+: local_nnz)
     for(VNT i = 0; i < local_size; i++)
+    {
         local_nnz += _tmp_col_ids[i].size();
+    }
     cout << "local nnz: " << local_nnz << endl;
+    cout << "average degree: " << ((double)local_nnz / local_size) << endl;
+
+    _vertex_group->set_thresholds(0, INT_MAX);
+    for(VNT row = 0; row < local_size; row++)
+    {
+        if(_tmp_col_ids[row].size() > 0)
+            _vertex_group->push_back(row);
+    }
 
     MemoryAPI::allocate_array(local_row_ptr, local_size + 1);
     MemoryAPI::allocate_array(local_col_ids, local_nnz);
@@ -137,6 +149,7 @@ void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
     dense_row_ptr = new ENT*[dense_segments];
     dense_col_ids = new VNT*[dense_segments];
     dense_vals = new T*[dense_segments];
+    dense_vertex_groups = new VertexGroup[dense_segments];
 
     for(VNT seg = 0; seg < dense_segments; seg++)
     {
@@ -144,11 +157,11 @@ void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
         vec_dense_vals[seg].resize(_size);
 
         construct_unsorted_csr(vec_dense_col_ids[seg], vec_dense_vals[seg], &(dense_row_ptr[seg]), &(dense_col_ids[seg]),
-                               &(dense_vals[seg]));
+                               &(dense_vals[seg]), &(dense_vertex_groups[seg]));
     }
 
     construct_unsorted_csr(vec_sparse_col_ids, vec_sparse_vals, &sparse_row_ptr, &sparse_col_ids,
-                           &sparse_vals);
+                           &sparse_vals, &sparse_vertex_group);
 
     cout << "all csrs constructed" << endl;
 
