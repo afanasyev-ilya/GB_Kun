@@ -79,7 +79,7 @@ DenseVector<T>::DenseVector(int _size)
 {
     size = _size;
     MemoryAPI::allocate_array(&vals, size);
-    //#pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(static)
     for (Index i = 0; i < size; i++)
     {
         vals[i] = 0;
@@ -130,7 +130,7 @@ bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
     {
         if(fabs(lhs.vals[i] - rhs.vals[i]) > 0.0001 && lhs.vals[i] < 100000)
         {
-            if(error_count < 20)
+            if(error_count < 10)
                 cout << "Error in " << i << " : " << lhs.vals[i] << " " << rhs.vals[i] << endl;
             error_count++;
         }

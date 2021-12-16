@@ -37,6 +37,8 @@ void MatrixLAV<T>::free()
     MemoryAPI::free_array(sparse_row_ptr);
     MemoryAPI::free_array(sparse_col_ids);
     MemoryAPI::free_array(sparse_vals);
+    MemoryAPI::free_array(new_to_old);
+    MemoryAPI::free_array(old_to_new);
     delete []dense_row_ptr;
     delete []dense_col_ids;
     delete []dense_vals;

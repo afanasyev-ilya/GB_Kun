@@ -62,7 +62,6 @@ void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
 
     cout << "freqs calculated" << endl;
 
-    VNT *new_to_old, *old_to_new;
     VNT *cols_frequencies;
     MemoryAPI::allocate_array(&new_to_old, _size);
     MemoryAPI::allocate_array(&old_to_new, _size);
@@ -155,5 +154,7 @@ void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
 
     //construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nnz);
     //prepare_hub_data(col_freqs);
+
+    MemoryAPI::free_array(cols_frequencies);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

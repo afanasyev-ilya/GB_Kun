@@ -32,7 +32,8 @@ private:
     VNT *sparse_col_ids;
     T *sparse_vals;
 
-    VNT *hub_conversion_array;
+    VNT *old_to_new;
+    VNT *new_to_old;
 
     void alloc(VNT _size, ENT _nnz);
     void free();
