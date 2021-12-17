@@ -39,22 +39,32 @@ void SpMSpV(MatrixCSR<T> &matrix_csr,
           int number_of_buckets)
 {
     vector<vector<int>> Boffset = estimate_buckets(matrix, x, number_of_buckets);
+    // The point of function estimate_buckets is to fill the matrix Boffset in which
+    // Boffset[i][j] means how many insertions the i-th thread will make in the j-th bucket
+
+    // We need to fill the matrix Boffset in order to make synchronization free insertions in step 1
 
     MatrixCSR<T> matrix = matrix_csr.transposed_data;
 
     // Step 1. Filling buckets.
     // Every bucket gets it's own set of rows
-    #pragma omp parallel for schedule(static)
+
     vector<vector<bucket>> buckets(number_of_buckets);
+
+    #pragma omp parallel for schedule(static)
     for (int i = 0; i < x.nz; i++) { // Going through all non-zero elements of vector x
-        // We only need matrix's columns which numbers are equal to indexes of non-zero elements of the vector
-        int vector_index = x.ids[i]; // Index of non-zero element
-        for (int j = matrix.col_indx[vector_index]; j < matrix.col_indx[vector_index]; j++) {
-            // Going through the column with index equal to vector_index
+        // We only need matrix's columns which numbers are equal to indexes of non-zero elements of the vector x
+        int vector_index = x.ids[i]; // Index of non-zero element in vector x
+        for (int j = matrix.col_indx[vector_index]; j < matrix.col_indx[vector_index + 1]; j++) {
+            // Going through all the elements of the vector_index-th column
             int mul = matrix.vals[j] * x.vals[vector_index]; // mul - is a product of matrix and vector non-zero elements.
             // Essentially we are doing multiplication here
             int bucket_index = (matrix.rows[j] * number_of_buckets) / matrix.size;
             // bucket's index depends on the row number
+
+            // Implementing synchronization free insertion below
+            int thread_number = omp_get_thread_num();
+            // Boffset[i][j] - amount, i - thread, j - bucket
             buckets[bucket_index].push_back({matrix.rows[j], mul}); // Adding row number and product of elements in the becket
         }
     }
