@@ -7,23 +7,28 @@ struct bucket {
 
 #define INF 1000000000
 
-#include <vector>
+template <typename T>
+bool check(MatrixCSR<T> &matrix_csr, SparseVector<T> &x, SparseVector<T> &y)
+{
 
+}
 
 // nt - number of threads
 // nb - number of buskets
 template <typename T>
 vector<vector<int>> estimate_buckets(MatrixCSR<T> &matrix, SparseVector<T> &x, int nb, int nt)
 {
+    // This function is essential in implementing synchronization free insertion
     int nz = x.nz;
-    vector<vector<int>> Boffset(nt, vector<int>(nb));
+    vector<vector<int>> Boffset(nt, vector<int>(nb)); // Boffset is described in the SpmSpv function
     #pragma omp parallel for schedule(static)
     for (int t = 0; t < nt; t++) {
         int offset = t * nz / nt; // Every thread has it's own piece of vector x
         for (int j = offset; j < offset + nt && j < nz; j++) {
             int vector_index = x.ids[j]; // index of j-th non-zero element in vector x
-            for (int i = matrix.col_indx[vector_index]; i < matrix.col_indx[vector_index] < matrix.nx && matrix.col_indx[vector_index + 1]; i++) {
-                int bucket_index = i * nb / matrix.size;
+            for (int i = matrix.col_indx[vector_index]; i < matrix.col_indx[vector_index + 1]; i++) {
+                // bucket index depends on the row of an element
+                int bucket_index = matrix.rows[i] * nb / matrix.size;
                 Boffset[t][bucket_index] += 1;
             }
         }
@@ -121,14 +126,15 @@ void SpMSpV(MatrixCSR<T> &matrix_csr,
         if (number_of_bucket) // if not the first bucket
             offset[number_of_bucket] += offset[number_of_bucket - 1];
         // offset is needed to properly fill the final vector
-        for (int i = 0; i < uind.size(); i++) { // filling the finel vector
+
+        // !CHECK!
+        for (int i = 0; i < uind.size(); i++) { // filling the final vector
             int ind = uind[i];
             y.vals[offset[k] + i] = SPA[ind];
             y.ids[offset[k] + i] = ind;
         }
-        // Now we have the final vector but it's dense
+        // !CHECK!
     }
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
