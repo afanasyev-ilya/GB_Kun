@@ -69,7 +69,7 @@ void SpMSpV(MatrixCSR<T> &matrix_csr,
         int number_of_insertions = 0;
         #pragma omp for schedule(static)
         for (int i = 0; i < x.nz; i++) { // Going through all non-zero elements of vector x
-            // We only need matrix's columns which numbers are equal to indexes of non-zero elements of the vector x
+            // We only need matrix's columns which numbers are equal to indices of non-zero elements of the vector x
             int vector_index = x.ids[i]; // Index of non-zero element in vector x
             for (int j = matrix.col_indx[vector_index]; j < matrix.col_indx[vector_index + 1]; j++) {
                 // Going through all the elements of the vector_index-th column
@@ -86,26 +86,31 @@ void SpMSpV(MatrixCSR<T> &matrix_csr,
                 for (int thread_number = 0; thread_number < i; thread_number++) {
                     offset += Boffset[thread_number][bucket_index];
                 }
-                buckets[offset + (number_of_insertions++)] = {matrix.rows[j], mul};
+                // offset - how many elements have been inserted in the bucket by other threads
+                buckets[offset + (number_of_insertions++)] = {matrix.rows[j], mul}; // insertion
             }
         }
     }
 
 
-    vector<int> SPA(matrix.size);
+    vector<int> SPA(matrix.size); // SPA -  a sparse accumulator
+    // The SPA vector is essentially a final vector-answer, but it is dense and we will have to transform it in sparse vector
     vector<int> offset(number_of_buckets);
 
     #pragma omp parallel for schedule(static)
-    for (int k = 0; k < number_of_buckets; k++) {
-        vector<int> uind;
-        // Step 2. Merging entries in each bucket
-        for (int i = 0; i < buckets[k].size(); i++) {
-            int row = buckets[k][i].row;
-            SPA[row] = INF;
+    for (int number_of_bucket = 0; number_of_bucket < number_of_buckets; number_of_bucket++) { // Going through all buckets
+        vector<int> uind; // uing - unique indices in the number_of_bucket-th bucket
+
+        // Step 2. Merging entries in each bucket.
+        for (int i = 0; i < buckets[number_of_bucket].size(); i++) {
+            int row = buckets[number_of_bucket][i].row;
+            SPA[row] = INF; // Initializing with a value of INF
+            // in order to know whether a row have been to the uind vector or not
         }
-        for (int i = 0; i < buckets[k].size(); i++) {
-            int row = buckets[k][i].row;
-            int val = buckets[k][i].val;
+        // Accumulating values in a row and getting unique indices
+        for (int i = 0; i < buckets[number_of_bucket].size(); i++) {
+            int row = buckets[number_of_bucket][i].row;
+            int val = buckets[number_of_bucket][i].val;
             if (SPA[row] == INF) {
                 uind.push_back(row);
                 SPA[row] = val;
@@ -113,13 +118,15 @@ void SpMSpV(MatrixCSR<T> &matrix_csr,
                 SPA[row] += val;
             }
         }
-        if (k)
-            offset[k] += offset[k - 1];
-        for (int i = 0; i < uind.size(); i++) {
+        if (number_of_bucket) // if not the first bucket
+            offset[number_of_bucket] += offset[number_of_bucket - 1];
+        // offset is needed to properly fill the final vector
+        for (int i = 0; i < uind.size(); i++) { // filling the finel vector
             int ind = uind[i];
             y.vals[offset[k] + i] = SPA[ind];
             y.ids[offset[k] + i] = ind;
         }
+        // Now we have the final vector but it's dense
     }
 
 }
