@@ -38,11 +38,20 @@ void SpMSpV(MatrixCSR<T> &matrix_csr,
           SparseVector<T> &y,
           int number_of_buckets)
 {
-    vector<vector<int>> Boffset = estimate_buckets(matrix, x, number_of_buckets);
+    /* ????????????????? */ int number_of_threads = 64; /* ????????????????? */
+
+    vector<vector<int>> Boffset = estimate_buckets(matrix, x, number_of_buckets, number_of_threads);
     // The point of function estimate_buckets is to fill the matrix Boffset in which
     // Boffset[i][j] means how many insertions the i-th thread will make in the j-th bucket
 
     // We need to fill the matrix Boffset in order to make synchronization free insertions in step 1
+
+    vector<int> bucket_amount(number_of_buckets); // Stores how many insertions will be made in i-th bucket
+    for (int thread_number = 0; thread_number < number_of_threads; thread_number++) {
+        for (int bucket_number = 0; bucket_number < number_of_buckets; bucket_number++) {
+            bucket_amount[bucket_number] += Boffset[thread_number][bucket_number];
+        }
+    }
 
     MatrixCSR<T> matrix = matrix_csr.transposed_data;
 
@@ -51,21 +60,34 @@ void SpMSpV(MatrixCSR<T> &matrix_csr,
 
     vector<vector<bucket>> buckets(number_of_buckets);
 
-    #pragma omp parallel for schedule(static)
-    for (int i = 0; i < x.nz; i++) { // Going through all non-zero elements of vector x
-        // We only need matrix's columns which numbers are equal to indexes of non-zero elements of the vector x
-        int vector_index = x.ids[i]; // Index of non-zero element in vector x
-        for (int j = matrix.col_indx[vector_index]; j < matrix.col_indx[vector_index + 1]; j++) {
-            // Going through all the elements of the vector_index-th column
-            int mul = matrix.vals[j] * x.vals[vector_index]; // mul - is a product of matrix and vector non-zero elements.
-            // Essentially we are doing multiplication here
-            int bucket_index = (matrix.rows[j] * number_of_buckets) / matrix.size;
-            // bucket's index depends on the row number
+    for (int i = 0; i < number_of_buckets; i++) {
+        bucket[i] = new vector<bucket>(bucket_amount[i]);
+    }
 
-            // Implementing synchronization free insertion below
-            int thread_number = omp_get_thread_num();
-            // Boffset[i][j] - amount, i - thread, j - bucket
-            buckets[bucket_index].push_back({matrix.rows[j], mul}); // Adding row number and product of elements in the becket
+    #pragma omp parallel
+    {
+        int number_of_insertions = 0;
+        #pragma omp for schedule(static)
+        for (int i = 0; i < x.nz; i++) { // Going through all non-zero elements of vector x
+            // We only need matrix's columns which numbers are equal to indexes of non-zero elements of the vector x
+            int vector_index = x.ids[i]; // Index of non-zero element in vector x
+            for (int j = matrix.col_indx[vector_index]; j < matrix.col_indx[vector_index + 1]; j++) {
+                // Going through all the elements of the vector_index-th column
+                int mul = matrix.vals[j] *
+                          x.vals[vector_index]; // mul - is a product of matrix and vector non-zero elements.
+                // Essentially we are doing multiplication here
+                int bucket_index = (matrix.rows[j] * number_of_buckets) / matrix.size;
+                // bucket's index depends on the row number
+
+                // Implementing synchronization free insertion below
+                int cur_thread_number = omp_get_thread_num();
+                // Boffset[i][j] - amount, i - thread, j - bucket
+                int offset = 0;
+                for (int thread_number = 0; thread_number < i; thread_number++) {
+                    offset += Boffset[thread_number][bucket_index];
+                }
+                buckets[offset + (number_of_insertions++)] = {matrix.rows[j], mul};
+            }
         }
     }
 
