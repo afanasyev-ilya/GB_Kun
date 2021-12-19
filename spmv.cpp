@@ -20,7 +20,7 @@ void report_num_threads(int level)
 template<typename T>
 void test_spmv(int argc, char **argv)
 {
-    #pragma omp parallel num_threads(12)
+    /*#pragma omp parallel num_threads(12)
     {
         int outer_tid = omp_get_thread_num();
         //report_num_threads(1);
@@ -35,7 +35,7 @@ void test_spmv(int argc, char **argv)
             }
 
         }
-    }
+    }*/
 
     //print_omp_stats();
     Parser parser;

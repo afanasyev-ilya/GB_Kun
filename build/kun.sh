@@ -28,8 +28,8 @@ export OMP_PLACES=cores
 
 #./spmv -s 19 -e 32 -type RU -format CSR
 
-#./spmv -graph RW $1 -format $2
-./spmv -graph $1 -s $2 -e 16 -format $3
+./spmv -graph RW $1 -format $2
+#./spmv -graph $1 -s $2 -e 16 -format $3
 
 #./spmv -s 20 -e 32 -type RU -format CSR
 #./spmv -graph RW ./lj.mtx -format CSR

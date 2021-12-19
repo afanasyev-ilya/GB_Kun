@@ -6,6 +6,12 @@ namespace lablas {
 namespace backend {
 
 template <typename T>
+struct LAVSegment
+{
+
+};
+
+template <typename T>
 class MatrixLAV : public MatrixContainer<T>
 {
 public:
@@ -13,7 +19,7 @@ public:
     ~MatrixLAV();
 
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket = 0);
-    void print() const;
+    void print() const {};
     void get_size(VNT* _size) const {
         *_size = size;
     }
@@ -46,10 +52,8 @@ private:
                                 ENT **local_row_ptr,
                                 VNT **local_col_ids,
                                 T **local_vals,
-                                VertexGroup *_vertex_group);
-
-    bool is_non_zero(VNT _row, VNT _col);
-    T get(VNT _row, VNT _col) const;
+                                VertexGroup *_vertex_group,
+                                ENT _total_nnz);
 
     template<typename Y, typename SemiringT>
     friend void SpMV(const MatrixLAV<Y> *_matrix,

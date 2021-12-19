@@ -6,7 +6,8 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
                                           ENT **local_row_ptr,
                                           VNT **local_col_ids,
                                           T **local_vals,
-                                          VertexGroup *_vertex_group)
+                                          VertexGroup *_vertex_group,
+                                          ENT _total_nnz)
 {
     ENT local_size = _tmp_col_ids.size();
     ENT local_nnz = 0;
@@ -15,7 +16,7 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
     {
         local_nnz += _tmp_col_ids[i].size();
     }
-    cout << "local nnz: " << local_nnz << endl;
+    cout << "local nnz: " << local_nnz << ", " << 100.0*((double)local_nnz/_total_nnz) << " % (of total)" << endl;
     cout << "average degree: " << ((double)local_nnz / local_size) << endl;
 
     _vertex_group->set_thresholds(0, INT_MAX);
@@ -29,6 +30,9 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
     MemoryAPI::allocate_array(local_col_ids, local_nnz);
     MemoryAPI::allocate_array(local_vals, local_nnz);
 
+    VNT min_col_id = INT_MAX;
+    VNT max_col_id = 0;
+
     ENT cur_pos = 0;
     for(VNT i = 0; i < local_size; i++)
     {
@@ -38,9 +42,19 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
         {
             (*local_col_ids)[j] = _tmp_col_ids[i][j - (*local_row_ptr)[i]];
             (*local_vals)[j] = _tmp_vals[i][j - (*local_row_ptr)[i]];
+
+            VNT col_id = (*local_col_ids)[j];
+
+            if(col_id < min_col_id)
+                min_col_id = col_id;
+            if(col_id > max_col_id)
+                max_col_id = col_id;
         }
         cur_pos += _tmp_col_ids[i].size();
     }
+
+    cout << "segment ids in range of: " << (max_col_id - min_col_id)*sizeof(T) / 1e3 << " KB" << endl;
+    cout << "starting: " << min_col_id << " ending: " << max_col_id << endl << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -157,11 +171,11 @@ void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
         vec_dense_vals[seg].resize(_size);
 
         construct_unsorted_csr(vec_dense_col_ids[seg], vec_dense_vals[seg], &(dense_row_ptr[seg]), &(dense_col_ids[seg]),
-                               &(dense_vals[seg]), &(dense_vertex_groups[seg]));
+                               &(dense_vals[seg]), &(dense_vertex_groups[seg]), _nnz);
     }
 
     construct_unsorted_csr(vec_sparse_col_ids, vec_sparse_vals, &sparse_row_ptr, &sparse_col_ids,
-                           &sparse_vals, &sparse_vertex_group);
+                           &sparse_vals, &sparse_vertex_group, _nnz);
 
     cout << "all csrs constructed" << endl;
 
