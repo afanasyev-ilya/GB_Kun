@@ -99,7 +99,7 @@ void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
 {
     resize(_size, _nnz);
 
-    #pragma omp parallel
+    /*#pragma omp parallel
     {
         int total_threads = omp_get_num_threads();
         int tid = omp_get_thread_num();
@@ -114,7 +114,7 @@ void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
             {
                 numa_aware_alloc();
             }
-    }
+    }*/
 
     construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nnz);
 

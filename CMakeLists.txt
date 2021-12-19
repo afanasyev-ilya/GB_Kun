@@ -72,8 +72,11 @@ file(MAKE_DIRECTORY scripts)
 add_executable(bfs bfs.cpp)
 target_include_directories(bfs PRIVATE ${header_dir_list})
 
-add_executable(spmv spmv.cpp src/backend/matrix/containers/coo/build.hpp)
+add_executable(spmv spmv.cpp)
 target_include_directories(spmv PRIVATE ${header_dir_list})
+
+add_executable(locality locality_test.cpp)
+target_include_directories(locality PRIVATE ${header_dir_list})
 
 add_executable(gen gen.cpp)
 target_include_directories(gen PRIVATE ${header_dir_list})

@@ -101,6 +101,11 @@ private:
                      DenseVector<N> *_y,
                      SemiringT op);
 
+    template <typename N, typename SemiringT>
+    friend void SpMV_test(const MatrixCSR<N> *_matrix,
+                   const DenseVector<N> *_x,
+                   DenseVector<N> *_y, SemiringT op);
+
     void numa_aware_alloc();
     void prepare_vg_lists();
 };

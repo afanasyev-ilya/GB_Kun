@@ -3,6 +3,20 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
+inline VNT row_block(VNT _id)
+{
+    int seg_size = 16*1024 / sizeof(T);
+    return _id / seg_size;
+}
+
+template <typename T>
+inline VNT col_block(VNT _id)
+{
+    int seg_size = 512*1024 / sizeof(T);
+    return _id / seg_size;
+}
+
+template <typename T>
 void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket)
 {
     int num_threads = omp_get_max_threads();
@@ -24,31 +38,34 @@ void MatrixCOO<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
     {
         ENT *sort_indexes;
         MemoryAPI::allocate_array(&sort_indexes, _nnz);
-
-        #pragma omp parallel for
         for(ENT i = 0; i < _nnz; i++)
             sort_indexes[i] = i;
 
         //int seg_size = min((VNT) (512*1024 / sizeof(T)), (size/(num_threads*2)));
-        int seg_size = 512*1024 / sizeof(T);
+        int seg_size = 8*1024 / sizeof(T);
 
         cout << "num segments: " << (size - 1)/seg_size + 1 << endl;
 
         std::sort(sort_indexes, sort_indexes + _nnz,
                   [_row_ids, _col_ids, seg_size](int index1, int index2)
                   {
-                          if(_row_ids[index1] / seg_size == _row_ids[index2] / seg_size)
-                              if(_col_ids[index1] / seg_size == _col_ids[index2] / seg_size)
-                                  return _row_ids[index1] < _row_ids[index2];
-                              else
-                                return _col_ids[index1] / seg_size < _col_ids[index2] / seg_size;
-                          else
-                              return _row_ids[index1] / seg_size < _row_ids[index2] / seg_size;
+                      if(col_block<T>(_col_ids[index1]) == col_block<T>(_col_ids[index2]))
+                          return _row_ids[index1] < _row_ids[index2];
+                      else
+                          return col_block<T>(_col_ids[index1]) < col_block<T>(_col_ids[index2]);
                   });
         cout << "sort done " << endl;
         reorder(row_ids_new, sort_indexes, _nnz);
         reorder(col_ids_new, sort_indexes, _nnz);
         reorder(vals_new, sort_indexes, _nnz);
+
+        ENT dubs = 0;
+        for(int i = 0; i < _nnz; i++)
+        {
+            if(row_ids_new[i] == col_ids_new[i])
+                dubs ++;
+        }
+        cout << dubs << " / " << nnz << endl;
 
         MemoryAPI::free_array(sort_indexes);
     }

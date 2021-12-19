@@ -95,7 +95,7 @@ void SpMV(const MatrixCSR<T> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
-    /*#pragma omp parallel
+    /*#pragma omp parallel // casual version without good load balancing
     {
         //ENT cnt = 0;
         #pragma omp for schedule(guided, 1024)
@@ -136,7 +136,7 @@ void SpMV(const MatrixCSR<T> *_matrix,
         }
     }
 
-    /*#pragma omp parallel num_threads(6)
+    /*#pragma omp parallel num_threads(6) // dynamic parallelism version (worse perf)
     {
         #pragma omp for schedule (static)
         for(int vg = 0; vg < _matrix->vg_num; vg++)
@@ -160,6 +160,61 @@ void SpMV(const MatrixCSR<T> *_matrix,
         }
     }*/
 }
+
+template <typename T, typename SemiringT>
+void SpMV_test(const MatrixCSR<T> *_matrix,
+               const DenseVector<T> *_x,
+               DenseVector<T> *_y, SemiringT op)
+{
+    const T *x_vals = _x->get_vals();
+    T *y_vals = _y->get_vals();
+    auto add_op = extractAdd(op);
+    auto mul_op = extractMul(op);
+    auto identity_val = op.identity();
+
+    double t1 = omp_get_wtime();
+    ENT nnz = _matrix->get_nnz();
+    #pragma omp parallel for
+    for(VNT i = 0; i < nnz; i++)
+    {
+        VNT col = _matrix->col_ids[i];
+        _matrix->vals[i] = x_vals[col];
+    }
+    double t2 = omp_get_wtime();
+    cout << "xvals size: " << sizeof(T) * _matrix->size / 1e6 << " MB" << endl;
+    cout << "inner gather time: " << (t2 - t1) *1000 << " ms" << endl;
+    cout << "inner gather bw: " << nnz*(sizeof(T)*2 + sizeof(Index))/((t2 - t1)*1e9) << " GB/s" << endl;
+
+    T*new_cols;
+    MemoryAPI::allocate_array(&new_cols, _matrix->nnz);
+    #pragma omp for
+    for(VNT i = 0; i < nnz; i++)
+        new_cols[i] = _matrix->col_ids[i];
+
+    size_t seg_size = 256*1024/sizeof(T);
+    std::sort(new_cols, new_cols + nnz,
+              [seg_size](int index1, int index2)
+              {
+                  return index1 / seg_size < index2 / seg_size;
+              });
+
+    t1 = omp_get_wtime();
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for(VNT i = 0; i < nnz; i++)
+        {
+            VNT col = new_cols[i];
+            _matrix->vals[i] = x_vals[col];
+        }
+    };
+    t2 = omp_get_wtime();
+    cout << "opt gather time: " << (t2 - t1) *1000 << " ms" << endl;
+    cout << "opt gather bw: " << nnz*(sizeof(T)*2 + sizeof(Index))/((t2 - t1)*1e9) << " GB/s" << endl;
+
+    MemoryAPI::free_array(new_cols);
+}
+
 
 }
 }

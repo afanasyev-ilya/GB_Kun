@@ -8,9 +8,37 @@ void save_to_file(const string &_file_name, double _stat)
     stat_file.close();
 }
 
+void report_num_threads(int level)
+{
+    #pragma omp single
+    {
+        printf("Level %d: number of threads in the team - %d\n",
+               level, omp_get_num_threads());
+    }
+}
+
 template<typename T>
 void test_spmv(int argc, char **argv)
 {
+    omp_set_dynamic(0);
+    omp_set_nested(1);
+    #pragma omp parallel num_threads(8)
+    {
+        int outer_tid = omp_get_thread_num();
+        //report_num_threads(1);
+        #pragma omp parallel num_threads(6)
+        {
+            int inner_tid = omp_get_thread_num();
+            //report_num_threads(2);
+            int cpu_num = sched_getcpu();
+            #pragma omp critical
+            {
+                printf("Thread %d %d is running on CPU %3d\n", outer_tid, inner_tid, cpu_num);
+            }
+
+        }
+    }
+
     //print_omp_stats();
     Parser parser;
     parser.parse_args(argc, argv);
