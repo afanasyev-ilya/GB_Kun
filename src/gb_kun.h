@@ -10,33 +10,25 @@
 #include <cstdlib>
 #include <climits>
 #include <map>
+#include <sstream>
+#include <string>
+#include <list>
 
 #include <omp.h>
 
+typedef long long Index;
+
 using namespace std;
 
-#define VNT int
-#define ENT int
-#define CHECK_PRINT_NUM 10
-//#define __USE_SOCKET_OPTIMIZATIONS__
-
+#include "backend/la_backend.h"
 #include "helpers/memory_API/memory_API.h"
 #include "helpers/random_generator/random_generator.h"
-#include "helpers/graph_generation/graph_generation.h"
 #include "helpers/cmd_parser/cmd_parser.h"
+#include "helpers/graph_generation/graph_generation.h"
+#include "helpers/parallel_primitives/primitives.h"
+#include "helpers/stats/stats.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-class Matrix;
-template <typename T>
-class MatrixCSR;
-template <typename T>
-class MatrixSegmentedCSR;
-template <typename T>
-class MatrixLAV;
-template <typename T>
-class MatrixCOO;
 
 template <typename T>
 class DenseVector;
@@ -47,7 +39,14 @@ class DenseVector;
 
 #include "backend/vector/vector.h"
 #include "backend/matrix/matrix.h"
-
 #include "backend/spmv/spmv.h"
+#include "backend/spmspv/spmspv.h"
+
+#include "cpp_graphblas/matrix.hpp"
+#include "cpp_graphblas/vector.hpp"
+#include "cpp_graphblas/descriptor.hpp"
+#include "cpp_graphblas/types.hpp"
+#include "cpp_graphblas/dimensions.hpp"
+#include "cpp_graphblas/operations.hpp"
 
 

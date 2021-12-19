@@ -57,8 +57,8 @@ def parse_timings(output):  # collect time, perf and BW values
 def run_and_wait(params, options):
     os.environ['OMP_NUM_THREADS'] = str(get_cores_count() * int(options.sockets))
     os.environ['OMP_PROC_BIND'] = "close"
-
-    subprocess.run(["./GB_Kun"] + params.split(" "), check=True)
+    print("Running ./spmv " + params)
+    subprocess.run(["./spmv"] + params.split(" "), check=True)
 
 
 if __name__ == "__main__":
@@ -76,16 +76,16 @@ if __name__ == "__main__":
                       help="type of graph used (rmat, ru)", default="ru")
     parser.add_option('-f', '--format',
                       action="store", dest="graph_format",
-                      help="graph storage format used (CSR, COO, COO_OPT, CSR_SEG)", default="CSR")
+                      help="graph storage format used (CSR, COO, CSR_SEG, SIGMA, LAV)", default="CSR")
     parser.add_option('-s', '--sockets',
                       action="store", dest="sockets",
                       help="number of sockets used, default is 1", default=1)
 
     options, args = parser.parse_args()
 
-    if os.path.exists("./output/perf.txt"):
+    if os.path.exists("scripts/perf.txt"):
         os.remove("./output/perf.txt")
-    if os.path.exists("./output/bw.txt"):
+    if os.path.exists("scripts/bw.txt"):
         os.remove("./output/bw.txt")
     for scale in range(int(options.first_scale), int(options.last_scale) + 1):
         params = "-s " + str(scale) + " -e 16 " + " -format " + options.graph_format + " -no-check" +\
@@ -94,8 +94,8 @@ if __name__ == "__main__":
 
     print("\n")
     print("bandwidth stats (GB/s):")
-    print_file("./output/bw.txt")
+    print_file("scripts/bw.txt")
     print("\n")
     print("performance stats (GFLOP/s):")
-    print_file("./output/perf.txt")
+    print_file("scripts/perf.txt")
 

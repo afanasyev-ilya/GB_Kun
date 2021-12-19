@@ -2,7 +2,14 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define HUB_VERTICES 131072
+namespace lablas {
+namespace backend {
+
+template <typename T>
+struct LAVSegment
+{
+
+};
 
 template <typename T>
 class MatrixLAV : public MatrixContainer<T>
@@ -11,37 +18,56 @@ public:
     MatrixLAV();
     ~MatrixLAV();
 
-    void build(VNT *_row_ids, VNT *_col_ids, T *_vals, VNT _size, ENT _nz, int _socket = 0);
-    void print();
+    void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket = 0);
+    void print() const {};
+    void get_size(VNT* _size) const {
+        *_size = size;
+    }
+
+    ENT get_nnz() const {return nnz;};
 private:
     VNT size;
-    ENT nz;
+    ENT nnz;
 
-    ENT *row_ptr;
-    T *vals;
-    VNT *col_ids;
+    VNT dense_segments;
+    ENT **dense_row_ptr;
+    VNT **dense_col_ids;
+    T **dense_vals;
+    VertexGroup *dense_vertex_groups;
 
-    VNT *hub_conversion_array;
+    ENT *sparse_row_ptr;
+    VNT *sparse_col_ids;
+    T *sparse_vals;
+    VertexGroup sparse_vertex_group;
 
-    void alloc(VNT _size, ENT _nz);
+    VNT *old_to_new;
+    VNT *new_to_old;
+
+    void alloc(VNT _size, ENT _nnz);
     void free();
-    void resize(VNT _size, ENT _nz);
+    void resize(VNT _size, ENT _nnz);
 
-    void construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, T *_vals, VNT _size, ENT _nz);
+    void construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
+                                vector<vector<T>> &_tmp_vals,
+                                ENT **local_row_ptr,
+                                VNT **local_col_ids,
+                                T **local_vals,
+                                VertexGroup *_vertex_group,
+                                ENT _total_nnz);
 
-    bool is_non_zero(VNT _row, VNT _col);
-    T get(VNT _row, VNT _col);
-
-    void prepare_hub_data(map<int, int> &_freqs);
-
-    template<typename Y>
-    friend void SpMV(MatrixLAV<Y> &_matrix, DenseVector<Y> &_x, DenseVector<Y> &_y);
+    template<typename Y, typename SemiringT>
+    friend void SpMV(const MatrixLAV<Y> *_matrix,
+                     const DenseVector<Y> *_x,
+                     DenseVector<Y> *_y, SemiringT op);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "lav_matrix.hpp"
 #include "build.hpp"
+
+}
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

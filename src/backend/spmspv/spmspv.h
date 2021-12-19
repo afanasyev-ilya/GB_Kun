@@ -2,19 +2,31 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+namespace lablas{
+namespace backend{
+
 template <typename T>
-void SpMSpV(Matrix<T> &_matrix,
-          Vector<T> &_x,
-          Vector<T> &_y,
-          Descriptor &_desc)
+void SpMSpV(const Matrix<T> *_matrix,
+            const Vector<T> *_x,
+            Vector<T> *_y,
+            Descriptor *_desc)
 {
-    if(_matrix.format == CSR) // CSR format (CSC format is inside CSR)
+    MatrixStorageFormat format;
+    _matrix->get_format(&format);
+
+    cout << "call" << endl;
+    if(format == CSR) // CSR format (CSC format is inside CSR)
     {
-        SpMV(*((MatrixCSR<T> *) _matrix.data), _x.sparse, _y.sparse);
+        SpMSpV_csr(((MatrixCSR<T> *) _matrix->get_data()), _x->getSparse(), _y->getSparse(), 10);
     }
     else {
-        cout << "Unsupported format."
+        cout << "Unsupported format.";
     }
+}
+
+#include "spmspv_csr.h"
+
+}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

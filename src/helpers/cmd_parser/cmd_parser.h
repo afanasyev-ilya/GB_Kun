@@ -9,18 +9,22 @@
 class Parser
 {
 private:
-    int scale;
-    int avg_degree;
+    VNT scale;
+    VNT avg_degree;
     SyntheticGraphType synthetic_graph_type;
     MatrixStorageFormat storage_format;
+    string file_name;
+    string out_file_name;
 
     bool no_check;
 public:
     Parser();
     
-    int get_scale() { return scale; };
-    int get_avg_degree() { return avg_degree; };
+    VNT get_scale() { return scale; };
+    VNT get_avg_degree() { return avg_degree; };
     bool check() { return !no_check; };
+    string get_file_name(){return file_name;};
+    string get_out_file_name() {return out_file_name;};
 
     SyntheticGraphType get_synthetic_graph_type() {return synthetic_graph_type;};
     MatrixStorageFormat get_storage_format() {return storage_format;};

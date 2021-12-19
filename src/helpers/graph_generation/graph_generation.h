@@ -26,7 +26,11 @@ struct EdgeListContainer
     vector<T> edge_vals;
     VNT vertices_count;
     ENT edges_count;
+
+    void save_as_mtx(string _file_name);
 };
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class GraphGenerationAPI
 {
@@ -38,18 +42,32 @@ public:
                                DirectionType _direction_type = DIRECTED_GRAPH);
 
     template <typename T>
-    static void R_MAT(EdgeListContainer<T> &_edges_container,
-                      int _vertices_count,
-                      long long _edges_count,
-                      int _a_prob,
-                      int _b_prob,
-                      int _c_prob,
-                      int _d_prob,
-                      DirectionType _direction_type = DIRECTED_GRAPH);
+    static void RMAT(EdgeListContainer<T> &_edges_container,
+                     VNT _vertices_count,
+                     ENT _edges_count,
+                     int _a_prob,
+                     int _b_prob,
+                     int _c_prob,
+                     int _d_prob,
+                     DirectionType _direction_type = DIRECTED_GRAPH);
+
+    template <typename T>
+    static void HPCG(EdgeListContainer<T> &_edges_container, VNT _nx, VNT _ny, VNT _nnz, ENT _edge_factor);
+
+    template <typename T>
+    static void init_from_txt_file(EdgeListContainer<T> &_edges_container, string _txt_file_name,
+                                   DirectionType _direction_type = DIRECTED_GRAPH);
+
+    template <typename T>
+    static void init_from_mtx_file(EdgeListContainer<T> &_edges_container, string _mtx_file_name);
+
+    template <typename T>
+    static void generate_synthetic_graph(EdgeListContainer<T> &_edges_container, Parser &_parser);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "edges_container.hpp"
 #include "graph_generation.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -18,14 +18,15 @@ MatrixCSR<T>::~MatrixCSR()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::alloc(VNT _size, ENT _nz)
+void MatrixCSR<T>::alloc(VNT _size, ENT _nnz)
 {
     this->size = _size;
-    this->nz = _nz;
+    this->nnz = _nnz;
 
     MemoryAPI::allocate_array(&row_ptr, this->size + 1);
-    MemoryAPI::allocate_array(&col_ids, this->nz);
-    MemoryAPI::allocate_array(&vals, this->nz);
+    MemoryAPI::allocate_array(&col_ids, this->nnz);
+    MemoryAPI::allocate_array(&vals, this->nnz);
+    MemoryAPI::allocate_array(&tmp_buffer, this->size);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,15 +37,16 @@ void MatrixCSR<T>::free()
     MemoryAPI::free_array(row_ptr);
     MemoryAPI::free_array(col_ids);
     MemoryAPI::free_array(vals);
+    MemoryAPI::free_array(tmp_buffer);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::resize(VNT _size, ENT _nz)
+void MatrixCSR<T>::resize(VNT _size, ENT _nnz)
 {
     this->free();
-    this->alloc(_size, _nz);
+    this->alloc(_size, _nnz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,7 +65,7 @@ bool MatrixCSR<T>::is_non_zero(VNT _row, VNT _col)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-T MatrixCSR<T>::get(VNT _row, VNT _col)
+T MatrixCSR<T>::get(VNT _row, VNT _col) const
 {
     for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
     {
@@ -76,7 +78,7 @@ T MatrixCSR<T>::get(VNT _row, VNT _col)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::print()
+void MatrixCSR<T>::print() const
 {
     for(VNT row = 0; row < size; row++)
     {

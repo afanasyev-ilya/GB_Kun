@@ -17,14 +17,10 @@ MatrixLAV<T>::~MatrixLAV()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixLAV<T>::alloc(VNT _size, ENT _nz)
+void MatrixLAV<T>::alloc(VNT _size, ENT _nnz)
 {
     this->size = _size;
-    this->nz = _nz;
-
-    MemoryAPI::allocate_array(&row_ptr, this->size + 1);
-    MemoryAPI::allocate_array(&col_ids, this->nz);
-    MemoryAPI::allocate_array(&vals, this->nz);
+    this->nnz = _nnz;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,59 +28,30 @@ void MatrixLAV<T>::alloc(VNT _size, ENT _nz)
 template <typename T>
 void MatrixLAV<T>::free()
 {
-    MemoryAPI::free_array(row_ptr);
-    MemoryAPI::free_array(col_ids);
-    MemoryAPI::free_array(vals);
+    for(VNT i = 0; i < dense_segments; i++)
+    {
+        MemoryAPI::free_array(dense_row_ptr[i]);
+        MemoryAPI::free_array(dense_col_ids[i]);
+        MemoryAPI::free_array(dense_vals[i]);
+    }
+    MemoryAPI::free_array(sparse_row_ptr);
+    MemoryAPI::free_array(sparse_col_ids);
+    MemoryAPI::free_array(sparse_vals);
+    MemoryAPI::free_array(new_to_old);
+    MemoryAPI::free_array(old_to_new);
+    delete []dense_row_ptr;
+    delete []dense_col_ids;
+    delete []dense_vals;
+    delete []dense_vertex_groups;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixLAV<T>::resize(VNT _size, ENT _nz)
+void MatrixLAV<T>::resize(VNT _size, ENT _nnz)
 {
     this->free();
-    this->alloc(_size, _nz);
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-bool MatrixLAV<T>::is_non_zero(VNT _row, VNT _col)
-{
-    for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
-    {
-        if(col_ids[i] == _col)
-            return true;
-    }
-    return false;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-T MatrixLAV<T>::get(VNT _row, VNT _col)
-{
-    for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
-    {
-        if(col_ids[i] == _col)
-            return vals[i];
-    }
-    return 0;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-void MatrixLAV<T>::print()
-{
-    for(VNT row = 0; row < size; row++)
-    {
-        for(VNT col = 0; col < size; col++)
-        {
-            cout << get(row, col) << " ";
-        }
-        cout << endl;
-    }
+    this->alloc(_size, _nnz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

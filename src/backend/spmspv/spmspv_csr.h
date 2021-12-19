@@ -36,16 +36,16 @@ vector<vector<int>> estimate_buckets(MatrixCSR<T> &matrix, SparseVector<T> &x, i
 }
 
 
-
 template <typename T>
-void SpMSpV(MatrixCSR<T> &matrix_csr,
-          SparseVector<T> &x,
-          SparseVector<T> &y,
-          int number_of_buckets)
+void SpMSpV_csr(const MatrixCSR<T> *_matrix_csr,
+            const SparseVector<T> *_x,
+            SparseVector<T> *_y,
+            int _number_of_buckets)
 {
+    _x->print();
     /* ????????????????? */ int number_of_threads = 64; /* ????????????????? */
 
-    vector<vector<int>> Boffset = estimate_buckets(matrix, x, number_of_buckets, number_of_threads);
+    /*vector<vector<int>> Boffset = estimate_buckets(matrix_csr, x, number_of_buckets, number_of_threads);
     // The point of function estimate_buckets is to fill the matrix Boffset in which
     // Boffset[i][j] means how many insertions the i-th thread will make in the j-th bucket
 
@@ -134,7 +134,7 @@ void SpMSpV(MatrixCSR<T> &matrix_csr,
             y.ids[offset[k] + i] = ind;
         }
         // !CHECK!
-    }
+    }*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

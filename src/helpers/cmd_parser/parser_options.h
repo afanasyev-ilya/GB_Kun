@@ -4,18 +4,22 @@
 
 enum SyntheticGraphType
 {
-    RANDOM_UNIFORM = 0,
-    RMAT = 1,
-    SSCA2 = 2
+    RANDOM_UNIFORM_GRAPH = 0,
+    RMAT_GRAPH = 1,
+    SSCA2_GRAPH = 2,
+    HPCG_GRAPH = 3,
+    REAL_WORLD_GRAPH = 4,
+    MTX_GRAPH = 5
 };
 
 enum MatrixStorageFormat
 {
     CSR = 0,
     COO = 1,
-    COO_OPT = 2,
     CSR_SEG = 3,
-    LAV = 4
+    LAV = 4,
+    VECT_GROUP_CSR = 5,
+    SELL_C = 6
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
