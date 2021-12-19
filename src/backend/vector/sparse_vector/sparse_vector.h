@@ -2,15 +2,38 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define SPARSITY_K 100
+
 template <typename T>
 class SparseVector
 {
 public:
-    SparseVector(int _size) {};
+    SparseVector(int _size)
+    {
+        size = _size;
+        nnz = _size/SPARSITY_K;
+        MemoryAPI::allocate_array(&vals, nnz);
+        MemoryAPI::allocate_array(&ids, nnz);
+    };
 
-    ~SparseVector() {};
+    ~SparseVector()
+    {
+        MemoryAPI::free_array(vals);
+        MemoryAPI::free_array(ids);
+    };
 
-    void set_constant(T _val) {};
+    void set_constant(T _val)
+    {
+        for(VNT i = 0; i < size; i++)
+        {
+            if (i % SPARSITY_K == 0) {
+                int pos = i / SPARSITY_K;
+                vals[pos] = _val;
+                ids[pos] = i;
+                nnz++;
+            }
+        }
+    };
 
     void print() const {
         for(VNT i = 0; i < nnz; i++)

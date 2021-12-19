@@ -152,7 +152,7 @@ void Matrix<T>::build(const VNT *_row_indices,
     //data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nnz, 1);
     #endif
 
-    //transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
+    transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
 }
 }
 }

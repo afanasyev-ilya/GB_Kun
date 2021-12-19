@@ -40,6 +40,7 @@ class DenseVector;
 #include "backend/vector/vector.h"
 #include "backend/matrix/matrix.h"
 #include "backend/spmv/spmv.h"
+#include "backend/spmspv/spmspv.h"
 
 #include "cpp_graphblas/matrix.hpp"
 #include "cpp_graphblas/vector.hpp"

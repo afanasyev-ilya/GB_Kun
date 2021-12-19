@@ -80,3 +80,6 @@ target_include_directories(locality PRIVATE ${header_dir_list})
 
 add_executable(gen gen.cpp)
 target_include_directories(gen PRIVATE ${header_dir_list})
+
+add_executable(sparse_test sparse_test.cpp)
+target_include_directories(sparse_test PRIVATE ${header_dir_list})
