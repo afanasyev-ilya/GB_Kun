@@ -144,10 +144,11 @@ void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
         T val = _vals[i];
 
         VNT new_col = old_to_new[col];
-        VNT seg_id = new_col / seg_size;
 
         if(new_col < dense_threshold)
         {
+            VNT seg_id = new_col / seg_size;
+
             vec_dense_col_ids[seg_id][row].push_back(new_col);
             vec_dense_vals[seg_id][row].push_back(val);
         }

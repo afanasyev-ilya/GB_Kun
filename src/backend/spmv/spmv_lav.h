@@ -24,7 +24,7 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
         const VNT *row_ids = segment_data->vertex_list.ptr();
         const VNT nnz_num_rows = segment_data->vertex_list.size();
 
-        #pragma omp for schedule(guided, 1)
+        #pragma omp for schedule(static)
         for(VNT idx = 0; idx < nnz_num_rows; idx++)
         {
             VNT row = row_ids[idx];
@@ -65,7 +65,14 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
             }
         }
     }
+    ENT mid_sum = 0;
+    for(VNT cur_seg = 1; cur_seg < dense_segments_num; cur_seg++)
+    {
+        mid_sum += _matrix->dense_segments[cur_seg].nnz;
+    }
     t2 = omp_get_wtime();
+    cout << "mid BW: " << mid_sum * (2*sizeof(T) + sizeof(VNT))/((t2 - t1)*1e9) << " GB/s" << endl;
+
 
     t1 = omp_get_wtime();
     #pragma omp parallel
