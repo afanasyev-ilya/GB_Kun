@@ -13,16 +13,16 @@ fi
 #make clean
 #make
 
-#export OMP_NUM_THREADS=48
-#export OMP_PROC_BIND=close
-#export OMP_PLACES=cores
+export OMP_NUM_THREADS=48
+export OMP_PROC_BIND=close
+export OMP_PLACES=cores
 
-export OMP_NUM_THREADS=8,6
-export OMP_PLACES="{0:1}:48:1"
-export OMP_PROC_BIND=spread,close
-export OMP_NESTED=true
-export OMP_MAX_ACTIVE_LEVELS=2
-export OMP_DYNAMIC=true
+#export OMP_NUM_THREADS=12,4
+#export OMP_PLACES="{0:1}:48:1"
+#export OMP_PROC_BIND=spread,close
+#export OMP_NESTED=true
+#export OMP_MAX_ACTIVE_LEVELS=2
+#export OMP_DYNAMIC=true
 
 #./spmv -s $1 -e 32 -type $2 -format $3
 

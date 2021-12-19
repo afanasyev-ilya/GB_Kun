@@ -36,16 +36,16 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
             }
         }
     }*/
-    /*#pragma omp parallel num_threads(48)
+    #pragma omp parallel
     {
         int tid = omp_get_thread_num();
-        int seg_id = tid / 6;
-        int inner_tid = tid % 6;
+        int seg_id = tid / 4;
+        int inner_tid = tid % 4;
 
         SubgraphSegment<T> *segment = &(_matrix->subgraphs[seg_id]);
         T *buffer = (T*)segment->vertex_buffer;
 
-        VNT work_size = (segment->size - 1)/6 + 1;
+        VNT work_size = (segment->size - 1)/4 + 1;
         for(VNT i = inner_tid*work_size; i < (inner_tid+1)*work_size; i++)
             if(i < segment->size)
                 buffer[i] = 0;
@@ -62,14 +62,14 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
                 buffer[i] = res;
             }
         }
-    }*/
-    #pragma omp parallel num_threads(8)
+    }
+    /*#pragma omp parallel num_threads(12)
     {
         int seg_id = omp_get_thread_num();
         SubgraphSegment<T> *segment = &(_matrix->subgraphs[seg_id]);
         T *buffer = (T*)segment->vertex_buffer;
 
-        #pragma omp parallel num_threads(6)
+        #pragma omp parallel num_threads(4)
         {
             #pragma omp for schedule(static)
             for(VNT i = 0; i < segment->size; i++)
@@ -86,10 +86,10 @@ void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseV
                 buffer[i] = res;
             }
         }
-    }
+    }*/
     double t2 = omp_get_wtime();
-    cout << "inner 3 time: " << (t2 - t1)*1000 << " ms" << endl;
-    cout << "inner 3 BW: " << _matrix->nnz * (2.0*sizeof(T) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    cout << "inner 5 time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "inner 5 BW: " << _matrix->nnz * (2.0*sizeof(T) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
     t1 = omp_get_wtime();
     if(_matrix->size > pow(2.0, 23)) // cache aware merge

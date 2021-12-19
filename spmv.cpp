@@ -20,13 +20,11 @@ void report_num_threads(int level)
 template<typename T>
 void test_spmv(int argc, char **argv)
 {
-    omp_set_dynamic(0);
-    omp_set_nested(1);
-    #pragma omp parallel num_threads(8)
+    #pragma omp parallel num_threads(12)
     {
         int outer_tid = omp_get_thread_num();
         //report_num_threads(1);
-        #pragma omp parallel num_threads(6)
+        #pragma omp parallel num_threads(4)
         {
             int inner_tid = omp_get_thread_num();
             //report_num_threads(2);
