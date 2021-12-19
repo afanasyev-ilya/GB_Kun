@@ -39,26 +39,8 @@ LA_Info mxv (Vector<W>*       w,
     }
     else
     {
-        double t1 = omp_get_wtime();
         backend::SpMV<W, M, SemiringT>(A->get_matrix(), u->get_vector(), w->get_vector(), desc->get_descriptor(), op,
                                        NULL);
-        double t2 = omp_get_wtime();
-
-        lablas::Vector<W> w_sparse(A->get_nrows());
-        double t3 = omp_get_wtime();
-        backend::SpMSpV(A->get_matrix(), u->get_vector(), w_sparse.get_vector(), desc->get_descriptor());
-        double t4 = omp_get_wtime();
-
-        cout << "times: " << (t2 - t1)*1000 << " ms vs " << (t4 - t3)*1000 << " ms" << endl;
-
-        if((*w) == w_sparse)
-        {
-            cout << "correct!" << endl;
-        }
-        else
-        {
-            cout << "error!" << endl;
-        }
     }
     return GrB_SUCCESS;
 }

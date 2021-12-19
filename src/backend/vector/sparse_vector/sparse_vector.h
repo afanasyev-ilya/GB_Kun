@@ -12,14 +12,14 @@ public:
     {
         size = _size;
         nnz = _size/SPARSITY_K;
-        MemoryAPI::allocate_array(&vals, nnz);
-        MemoryAPI::allocate_array(&ids, nnz);
+        //MemoryAPI::allocate_array(&vals, nnz);
+        //MemoryAPI::allocate_array(&ids, nnz);
     };
 
     ~SparseVector()
     {
-        MemoryAPI::free_array(vals);
-        MemoryAPI::free_array(ids);
+        //MemoryAPI::free_array(vals);
+        //MemoryAPI::free_array(ids);
     };
 
     void set_constant(T _val)
@@ -117,7 +117,7 @@ public:
 
 private:
     mutable VNT size;
-    mutable VNT nnz;
+    mutable ENT nnz;
 
     mutable T *vals;
     mutable VNT *ids;

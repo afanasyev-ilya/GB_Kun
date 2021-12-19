@@ -18,7 +18,7 @@ public:
     void set_constant(T _val)
     {
         dense.set_constant(_val);
-        sparse.set_constant(_val);
+        //sparse.set_constant(_val);
     };
 
     DenseVector<T>* getDense() {
