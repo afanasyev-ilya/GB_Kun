@@ -24,9 +24,27 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
         const VNT *row_ids = segment_data->vertex_list.ptr();
         const VNT nnz_num_rows = segment_data->vertex_list.size();
 
-        ENT proc_elems = 0;
+        for(int vg = 0; vg < segment_data->vg_num; vg++)
+        {
+            const VNT *vertices = &(segment_data->vertex_groups[vg].data[0]);
+            VNT vertex_group_size = segment_data->vertex_groups[vg].data.size();
 
-        #pragma omp for schedule(guided, 1024)
+            #pragma omp for nowait schedule(guided, 1)
+            for(VNT idx = 0; idx < vertex_group_size; idx++)
+            {
+                VNT row = vertices[idx];
+                T res = identity_val;
+                for(ENT j = segment_data->row_ptr[row]; j < segment_data->row_ptr[row + 1]; j++)
+                {
+                    VNT col = segment_data->col_ids[j];
+                    T val = segment_data->vals[j];
+                    res = add_op(res, mul_op(val, x_vals[col]));
+                }
+                y_vals[row] = res;
+            }
+        }
+
+        /*#pragma omp for schedule(guided, 1024)
         for(VNT idx = 0; idx < nnz_num_rows; idx++)
         {
             VNT row = row_ids[idx];
@@ -39,12 +57,7 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
                 proc_elems++;
             }
             y_vals[row] = add_op(y_vals[row], res);
-        }
-
-        #pragma omp critical
-        {
-            cout << proc_elems << " / " << segment_data->nnz << ", " << 100.0*(double)proc_elems/segment_data->nnz <<  endl;
-        }
+        }*/
     }
     t2 = omp_get_wtime();
     cout << "largest BW: " << _matrix->dense_segments[0].nnz * (2*sizeof(T) + sizeof(VNT))/((t2 - t1)*1e9) << " GB/s" << endl;

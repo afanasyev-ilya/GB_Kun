@@ -55,6 +55,27 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
 
     cout << "segment ids in range of: " << (max_col_id - min_col_id)*sizeof(T) / 1e3 << " KB" << endl;
     cout << "starting: " << min_col_id << " ending: " << max_col_id << endl << endl;
+
+    ENT step = 16;
+    ENT first = 4;
+    _cur_segment->vertex_groups[0].set_thresholds(0, first);
+    for(int i = 1; i < (_cur_segment->vg_num - 1); i++)
+    {
+        _cur_segment->vertex_groups[i].set_thresholds(first, first*step);
+        first *= step;
+    }
+    _cur_segment->vertex_groups[_cur_segment->vg_num - 1].set_thresholds(first, INT_MAX);
+
+    for(VNT row = 0; row < local_size; row++)
+    {
+        ENT connections_count = _tmp_col_ids[row].size();
+        if(connections_count > 0)
+        {
+            for(int vg = 0; vg < _cur_segment->vg_num; vg++)
+                if(_cur_segment->vertex_groups[vg].in_range(connections_count))
+                    _cur_segment->vertex_groups[vg].push_back(row);
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
