@@ -9,7 +9,7 @@ template <typename T>
 class DenseVector
 {
 public:
-    DenseVector(int _size);
+    DenseVector(VNT _size);
 
     ~DenseVector();
 
@@ -42,12 +42,12 @@ public:
     }
 
     LA_Info build(const T* values,
-                  Index nvals) {
+                  VNT nvals) {
         if (nvals > size){
             return GrB_INDEX_OUT_OF_BOUNDS;
         }
         #pragma omp parallel for schedule(static)
-        for (Index i = 0; i < nvals; i++) {
+        for (VNT i = 0; i < nvals; i++) {
             vals[i] = (*values)[i];
         }
         return GrB_SUCCESS;
@@ -75,10 +75,15 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-DenseVector<T>::DenseVector(int _size)
+DenseVector<T>::DenseVector(VNT _size)
 {
     size = _size;
-    MemoryAPI::numa_aware_alloc(&vals, size, 0);
+    MemoryAPI::allocate_array(&vals, size);
+    #pragma omp parallel for schedule(static)
+    for (VNT i = 0; i < size; i++)
+    {
+        vals[i] = 0;
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
