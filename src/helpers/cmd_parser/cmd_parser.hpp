@@ -87,6 +87,8 @@ void Parser::parse_args(int _argc, char **_argv)
                 storage_format = VECT_GROUP_CSR;
             else if(option == "SELL_C" || option == "SIGMA")
                 storage_format = SELL_C;
+            else if(option == "SORT_CSR" || option == "SORTED_CSR")
+                storage_format = SORTED_CSR;
         }
 
         if(option == "-no-check")

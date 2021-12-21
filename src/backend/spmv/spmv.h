@@ -6,6 +6,7 @@
 #include "spmv_lav.h"
 #include "spmv_sell_c.h"
 #include "spmv_vect_csr.h"
+#include "spmv_sort_csr.h"
 #include "../matrix/matrix.h"
 #include "../vector/vector.h"
 #include "../descriptor/descriptor.h"
@@ -55,6 +56,8 @@ void SpMV(const Matrix<T> *_matrix,
         SpMV(((MatrixSegmentedCSR<T> *)_matrix->get_data()), _x->getDense(), _y->getDense(), _op);
     else if(format == SELL_C)
         SpMV(((MatrixSellC<T> *)_matrix->get_data()), _x->getDense(), _y->getDense(), _op);
+    else if(format == SORTED_CSR)
+        SpMV(((MatrixSortCSR<T> *)_matrix->get_data()), _x->getDense(), _y->getDense(), _op);
 
     if (_mask != NULL)
     {
