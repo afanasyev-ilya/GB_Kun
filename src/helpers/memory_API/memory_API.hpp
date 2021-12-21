@@ -30,10 +30,6 @@ void MemoryAPI::numa_aware_alloc(T **_ptr, size_t _size, int _target_socket)
             size_t tid = omp_get_thread_num() % THREADS_PER_SOCKET;
 
             size_t work_per_thread = (_size - 1)/THREADS_PER_SOCKET + 1;
-            #pragma omp single
-            {
-                cout << "doing numa aware alloc on socket " << _target_socket << endl;
-            }
             if(sock == _target_socket)
             {
                 for(size_t i = tid*work_per_thread; i < min((tid+1)*work_per_thread, _size); i++)

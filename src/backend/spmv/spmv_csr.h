@@ -56,6 +56,7 @@ void SpMV_numa_aware(MatrixCSR<T> *_matrix,
             in_socket_copy(local_x_vals, x_vals, vec_size);
         }
 
+        #pragma omp barrier
 
         #pragma omp for schedule(static)
         for(VNT row = 0; row < vec_size; row++)
@@ -82,8 +83,6 @@ void SpMV_non_optimized(MatrixCSR<T> *_matrix,
     T *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);
-
-    cout << "using " << omp_get_max_threads() << " threads" << endl;
 
     #pragma omp parallel
     {
