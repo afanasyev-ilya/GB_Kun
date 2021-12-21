@@ -16,7 +16,7 @@ bool check(MatrixCSR<T> &matrix_csr, SparseVector<T> &x, SparseVector<T> &y)
 // nt - number of threads
 // nb - number of buskets
 template <typename T>
-vector<vector<int>> estimate_buckets(MatrixCSR<T> &matrix, SparseVector<T> &x, int nb, int nt)
+void estimate_buckets(MatrixCSR<T> &matrix, SparseVector<T> &x, int nb, int nt)
 {
     // This function is essential in implementing synchronization free insertion
     int nz = x.nz;

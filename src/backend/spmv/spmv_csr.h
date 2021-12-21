@@ -5,6 +5,18 @@
 namespace lablas {
 namespace backend {
 
+template <typename T>
+void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size)
+{
+    int tid = omp_get_thread_num() % THREADS_PER_SOCKET;
+    VNT work_per_thread = (_size - 1) / THREADS_PER_SOCKET + 1;
+
+    for(VNT i = tid*work_per_thread; i < min(_size, (tid + 1)*work_per_thread); i++)
+    {
+        _local_data[i] = _shared_data[i];
+    }
+}
+
 template <typename T, typename SemiringT>
 void SpMV_numa_aware(MatrixCSR<T> *_matrix,
                      MatrixCSR<T> *_matrix_socket_dub,
@@ -13,41 +25,40 @@ void SpMV_numa_aware(MatrixCSR<T> *_matrix,
                      SemiringT op)
 {
     const T *x_vals = _x->get_vals();
-    T *x_vals_dub = (T*)_matrix_socket_dub->tmp_buffer;
+    T *x_vals_first_socket = (T*)_matrix->tmp_buffer;
+    T *x_vals_second_socket = (T*)_matrix_socket_dub->tmp_buffer;
+
     T *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);
 
-    #pragma omp parallel for num_threads(THREADS_PER_SOCKET)
-    for(VNT row = 0; row < _matrix->size; row++)
-    {
-        x_vals_dub[row] = x_vals[row];
-    }
-    
     #pragma omp parallel
     {
         int total_threads = omp_get_num_threads();
         int tid = omp_get_thread_num();
 
         int socket = tid / (THREADS_PER_SOCKET);
-        int tid_s = tid % THREADS_PER_SOCKET;
 
         T *local_x_vals;
 
+        VNT vec_size = _matrix->size;
         MatrixCSR<T> *local_matrix;
         if(socket == 0)
         {
-            local_x_vals = x_vals;
+            local_x_vals = x_vals_first_socket;
             local_matrix = _matrix;
+            in_socket_copy(local_x_vals, x_vals, vec_size);
         }
         else if(socket == 1)
         {
-            local_x_vals = x_vals_dub;
+            local_x_vals = x_vals_second_socket;
             local_matrix = _matrix_socket_dub;
+            in_socket_copy(local_x_vals, x_vals, vec_size);
         }
 
-        #pragma omp for schedule(guided, 1)
-        for(VNT row = 0; row < local_matrix->size; row++)
+
+        #pragma omp for schedule(static)
+        for(VNT row = 0; row < vec_size; row++)
         {
             for(ENT j = local_matrix->row_ptr[row]; j < local_matrix->row_ptr[row + 1]; j++)
             {
@@ -72,9 +83,11 @@ void SpMV_non_optimized(MatrixCSR<T> *_matrix,
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);
 
+    cout << "using " << omp_get_max_threads() << " threads" << endl;
+
     #pragma omp parallel
     {
-        #pragma omp for schedule(guided, 1)
+        #pragma omp for schedule(static)
         for(VNT row = 0; row < _matrix->size; row++)
         {
             for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)

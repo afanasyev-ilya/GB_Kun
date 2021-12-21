@@ -38,7 +38,7 @@ struct VertexGroup
         return data.size();
     }
 
-    VNT *ptr()
+    const VNT *ptr() const
     {
         return data.data();
     }
