@@ -23,8 +23,10 @@ void MatrixSortCSR<T>::construct_csr(const VNT *_row_ids,
 
     for(ENT i = 0; i < _nnz; i++) // TODO can be get from CSC / vise versa
     {
-        col_frequencies[i]++;
-        row_frequencies[i]++;
+        VNT row = _row_ids[i];
+        VNT col = _col_ids[i];
+        col_frequencies[col]++;
+        row_frequencies[row]++;
     }
 
     for(ENT i = 0; i < _nnz; i++)
@@ -57,36 +59,27 @@ void MatrixSortCSR<T>::construct_csr(const VNT *_row_ids,
                   return row_frequencies[index1] > row_frequencies[index2];
               });
 
-    //resize(_size, _nnz, _target_socket);
+    resize(_size, _nnz, _target_socket);
 
-    for(int i = 0; i < _size; i++)
+    ENT cur_pos = 0;
+    for(VNT row = 0; row < _size; row++)
     {
-        cout << i << " - " << row_conversion_indexes[i] << " | " << tmp_col_ids[i].size() << ", " << tmp_col_ids[row_conversion_indexes[i]].size() << endl;
-    }
-
-    /*ENT cur_pos = 0;
-    for(VNT old_row = 0; old_row < _size; old_row++)
-    {
-        VNT row = row_conversion_indexes[old_row];
-        cout << row << " -> " << old_row << " | " << tmp_col_ids[old_row].size() << endl;
+        VNT old_row = row_conversion_indexes[row];
         row_ptr[row] = cur_pos;
         row_ptr[row + 1] = cur_pos + tmp_col_ids[old_row].size();
-        for(ENT j = row_ptr[row]; j < row_ptr[row + 1]; j++)
+        for(ENT j = 0; j < tmp_col_ids[old_row].size(); j++)
         {
-            col_ids[j] = tmp_col_ids[old_row][j - row_ptr[old_row]];
-            vals[j] = tmp_vals[row][j - row_ptr[row]];
+            VNT new_col_id = col_conversion_indexes[tmp_col_ids[old_row][j]];
+            col_ids[cur_pos + j] = new_col_id;
+            vals[cur_pos + j] = tmp_vals[old_row][j];
         }
         cur_pos += tmp_col_ids[old_row].size();
-    }*/
+    }
 
     MemoryAPI::free_array(col_frequencies);
     MemoryAPI::free_array(row_frequencies);
     MemoryAPI::free_array(col_conversion_indexes);
     MemoryAPI::free_array(row_conversion_indexes);
-
-    cout << "build done " << endl;
-
-    print();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
