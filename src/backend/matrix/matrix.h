@@ -143,13 +143,18 @@ void Matrix<T>::build(const VNT *_row_indices,
         data = new MatrixSellC<T>;
         transposed_data = new MatrixSellC<T>;
         cout << "Using SellC matrix format" << endl;
+    } else if(_format == SORTED_CSR) {
+        data = new MatrixSortCSR<T>;
+        transposed_data = new MatrixSortCSR<T>;
+        cout << "Using SortedCSR matrix format" << endl;
     }
     else {
         throw "Error: unsupported format in Matrix<T>::build";
     }
     data->build(_row_indices, _col_indices, _values, _size, _nnz, 0);
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nnz, 1);
+    if(_format == CSR)
+        data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nnz, 1);
     #endif
 
     //transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);

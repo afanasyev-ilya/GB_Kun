@@ -76,6 +76,11 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
                     _cur_segment->vertex_groups[vg].push_back(row);
         }
     }
+
+    for(int vg = 0; vg < _cur_segment->vg_num; vg++)
+    {
+        _cur_segment->vertex_groups[vg].finalize_creation(0 /* TODO */);
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

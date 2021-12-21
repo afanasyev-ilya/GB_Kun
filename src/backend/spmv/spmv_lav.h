@@ -94,7 +94,6 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
     t2 = omp_get_wtime();
     cout << "mid BW: " << mid_sum * (2*sizeof(T) + sizeof(VNT))/((t2 - t1)*1e9) << " GB/s" << endl;
 
-
     t1 = omp_get_wtime();
     #pragma omp parallel
     {
