@@ -21,13 +21,13 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
     {
         int cur_seg = 0;
         const LAVSegment<T> *segment_data = &(_matrix->dense_segments[cur_seg]);
-        const VNT *row_ids = segment_data->vertex_list.ptr();
-        const VNT nnz_num_rows = segment_data->vertex_list.size();
+        const VNT *row_ids = segment_data->vertex_list.get_data();
+        const VNT nnz_num_rows = segment_data->vertex_list.get_size();
 
         for(int vg = 0; vg < segment_data->vg_num; vg++)
         {
-            const VNT *vertices = &(segment_data->vertex_groups[vg].data[0]);
-            VNT vertex_group_size = segment_data->vertex_groups[vg].data.size();
+            const VNT *vertices = segment_data->vertex_groups[vg].get_data();
+            VNT vertex_group_size = segment_data->vertex_groups[vg].get_size();
 
             #pragma omp for nowait schedule(guided, 1)
             for(VNT idx = 0; idx < vertex_group_size; idx++)
@@ -68,8 +68,8 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
         for(VNT cur_seg = 1; cur_seg < dense_segments_num; cur_seg++)
         {
             const LAVSegment<T> *segment_data = &(_matrix->dense_segments[cur_seg]);
-            const VNT *row_ids = segment_data->vertex_list.ptr();
-            const VNT nnz_num_rows = segment_data->vertex_list.size();
+            const VNT *row_ids = segment_data->vertex_list.get_data();
+            const VNT nnz_num_rows = segment_data->vertex_list.get_size();
 
             #pragma omp for schedule(guided, 1)
             for(VNT idx = 0; idx < nnz_num_rows; idx++)
@@ -99,8 +99,8 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
     #pragma omp parallel
     {
         const LAVSegment<T> *segment_data = &(_matrix->sparse_segment);
-        const VNT *row_ids = segment_data->vertex_list.ptr();
-        const VNT nnz_num_rows = segment_data->vertex_list.size();
+        const VNT *row_ids = segment_data->vertex_list.get_data();
+        const VNT nnz_num_rows = segment_data->vertex_list.get_size();
 
         #pragma omp for schedule(guided, 1)
         for(VNT idx = 0; idx < nnz_num_rows; idx++)

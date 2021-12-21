@@ -10,7 +10,7 @@ struct bucket {
 template <typename T>
 bool check(MatrixCSR<T> &matrix_csr, SparseVector<T> &x, SparseVector<T> &y)
 {
-
+    return 0;
 }
 
 // nt - number of threads

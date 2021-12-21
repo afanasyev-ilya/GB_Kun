@@ -75,6 +75,12 @@ void MatrixCSR<T>::prepare_vg_lists(int _target_socket)
             if(vertex_groups[vg].in_range(connections_count))
                 vertex_groups[vg].push_back(row);
     }
+
+    for(int i = 0; i < vg_num; i++)
+    {
+        vertex_groups[i].finalize_creation(_target_socket);
+    }
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
