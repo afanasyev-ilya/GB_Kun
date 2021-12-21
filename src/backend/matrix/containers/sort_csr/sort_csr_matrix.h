@@ -42,8 +42,6 @@ private:
 
     bool is_non_zero(VNT _row, VNT _col);
     T get(VNT _row, VNT _col) const;
-
-    void prepare_vg_lists(int _target_socket);
 };
 
 #include "sort_csr_matrix.hpp"
