@@ -38,7 +38,7 @@ void gather_two_sock(const base_type *__restrict data, const Index * __restrict 
         result[i] = data[indexes[i]];
 }
 
-void gather_numa(base_type *__restrict data, const Index * __restrict indexes, base_type * __restrict result, size_t size,
+void gather_numa(base_type *__restrict data, const Index * __restrict indexes, base_type * __restrict result, size_t large_size,
                  size_t small_size)
 {
     #pragma omp parallel num_threads(48)
@@ -57,10 +57,12 @@ void gather_numa(base_type *__restrict data, const Index * __restrict indexes, b
     {
         Index sock = omp_get_thread_num() / 48;
         const base_type *__restrict local_data = &(data[small_size * sock]);
+        base_type *local_result = &(result[large_size * sock]);
+        const Index *__restrict local_indexes = &(indexes[large_size * sock]);
 
         #pragma omp for
-        for(size_t i = 0; i < size; i++)
-            result[i] = local_data[indexes[i]];
+        for(size_t i = 0; i < large_size; i++)
+            local_result[i] = local_data[local_indexes[i]];
     }
 
 }
@@ -124,13 +126,18 @@ Index main(void)
         size_t current_radius = rads[idx];
         cout << "Rad size is " << current_radius * sizeof(Index) / (1024) << " KB" << endl;
         
-        MemoryAPI::allocate_array(&result, large_size);
-        MemoryAPI::allocate_array(&indexes, large_size);
+        MemoryAPI::allocate_array(&result, large_size*2);
+        MemoryAPI::allocate_array(&indexes, large_size*2);
         MemoryAPI::allocate_array(&data, current_radius*2);
 
         #pragma omp parallel
         {
             unsigned int myseed = omp_get_thread_num();
+            Index sock = omp_get_thread_num() / 48;
+
+            base_type *local_result = &(result[large_size * sock]);
+            const Index *__restrict local_indexes = &(indexes[large_size * sock]);
+
             #pragma omp for schedule(static)
             for (size_t i = 0; i < large_size; i++)
             {

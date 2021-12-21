@@ -5,7 +5,8 @@ void MatrixCSR<T>::construct_unsorted_csr(const VNT *_row_ids,
                                           const VNT *_col_ids,
                                           const T *_vals,
                                           VNT _size,
-                                          ENT _nnz)
+                                          ENT _nnz,
+                                          int _target_socket)
 {
     vector<vector<VNT>> tmp_col_ids(_size);
     vector<vector<T>> tmp_vals(_size);
@@ -19,7 +20,7 @@ void MatrixCSR<T>::construct_unsorted_csr(const VNT *_row_ids,
         tmp_vals[row].push_back(val);
     }
 
-    resize(_size, _nnz);
+    resize(_size, _nnz, _target_socket);
 
     ENT cur_pos = 0;
     for(VNT i = 0; i < size; i++)
@@ -38,23 +39,7 @@ void MatrixCSR<T>::construct_unsorted_csr(const VNT *_row_ids,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::numa_aware_alloc()
-{
-    for(VNT i = 0; i < size + 1; i++)
-    {
-        row_ptr[i] = 0;
-    }
-    for(ENT i = 0; i < nnz; i++)
-    {
-        vals[i] = 0;
-        col_ids[i] = 0;
-    }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-void MatrixCSR<T>::prepare_vg_lists()
+void MatrixCSR<T>::prepare_vg_lists(int _target_socket)
 {
     /*vertex_groups[0].set_thresholds(0, 8);
     vertex_groups[1].set_thresholds(8, 16);
@@ -95,30 +80,11 @@ void MatrixCSR<T>::prepare_vg_lists()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket)
+void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _target_socket)
 {
-    resize(_size, _nnz);
+    construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nnz, _target_socket);
 
-    /*#pragma omp parallel
-    {
-        int total_threads = omp_get_num_threads();
-        int tid = omp_get_thread_num();
-
-        if(_socket == 0)
-            if(tid == 0)
-            {
-                numa_aware_alloc();
-            }
-        if(_socket == 1)
-            if(tid == (total_threads - 1))
-            {
-                numa_aware_alloc();
-            }
-    }*/
-
-    construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nnz);
-
-    prepare_vg_lists();
+    prepare_vg_lists(_target_socket);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

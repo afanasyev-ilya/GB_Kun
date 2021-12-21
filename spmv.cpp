@@ -62,7 +62,7 @@ void test_spmv(int argc, char **argv)
 
     lablas::mxv<T, T, T, T>(&w, NULL, nullptr, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
 
-    int num_runs = 1;
+    int num_runs = 10;
     double avg_time = 0;
     for(int run = 0; run < num_runs; run++)
     {

@@ -7,7 +7,7 @@ Parser::Parser()
     scale = 11;
     avg_degree = 16;
     synthetic_graph_type = RMAT_GRAPH;
-    storage_format = LAV;
+    storage_format = CSR;
     no_check = false;
     out_file_name = "kun_out.mtx";
     file_name = "lj.mtx";

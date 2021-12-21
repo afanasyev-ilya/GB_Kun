@@ -15,6 +15,9 @@ public:
     template <typename T>
     static void allocate_host_array(T **_ptr, size_t _size);
 
+    template<typename T>
+    static void numa_aware_alloc(T **_ptr, size_t _size, int _target_socket);
+
     template <typename T>
     static void free_array(T *_ptr);
 

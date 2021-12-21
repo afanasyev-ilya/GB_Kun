@@ -4,7 +4,7 @@ template <typename T>
 MatrixCSR<T>::MatrixCSR()
 {
     target_socket = 0;
-    alloc(1, 1);
+    alloc(1, 1, target_socket);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -18,15 +18,16 @@ MatrixCSR<T>::~MatrixCSR()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::alloc(VNT _size, ENT _nnz)
+void MatrixCSR<T>::alloc(VNT _size, ENT _nnz, int _target_socket)
 {
     this->size = _size;
     this->nnz = _nnz;
+    target_socket = _target_socket;
 
-    MemoryAPI::allocate_array(&row_ptr, this->size + 1);
-    MemoryAPI::allocate_array(&col_ids, this->nnz);
-    MemoryAPI::allocate_array(&vals, this->nnz);
-    MemoryAPI::allocate_array(&tmp_buffer, this->size);
+    MemoryAPI::numa_aware_alloc(&row_ptr, this->size + 1, _target_socket);
+    MemoryAPI::numa_aware_alloc(&col_ids, this->nnz, _target_socket);
+    MemoryAPI::numa_aware_alloc(&vals, this->nnz, _target_socket);
+    MemoryAPI::numa_aware_alloc(&tmp_buffer, this->size, _target_socket);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,10 +44,10 @@ void MatrixCSR<T>::free()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::resize(VNT _size, ENT _nnz)
+void MatrixCSR<T>::resize(VNT _size, ENT _nnz, int _target_socket)
 {
     this->free();
-    this->alloc(_size, _nnz);
+    this->alloc(_size, _nnz, _target_socket);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
