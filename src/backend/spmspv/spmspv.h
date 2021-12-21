@@ -17,7 +17,7 @@ void SpMSpV(const Matrix<T> *_matrix,
     cout << "call" << endl;
     if(format == CSR) // CSR format (CSC format is inside CSR)
     {
-        SpMSpV_csr(((MatrixCSR<T> *) _matrix->get_data()), _x->getSparse(), _y->getSparse(), 10);
+        SpMSpV_csr(((MatrixCSR<T> *) _matrix->get_transposed_data()), _x->getSparse(), _y->getSparse(), 10);
     }
     else {
         cout << "Unsupported format.";
