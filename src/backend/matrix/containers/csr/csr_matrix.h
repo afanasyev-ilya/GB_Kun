@@ -31,12 +31,12 @@ public:
 
     VNT get_size() const
     {
-        return (VNT)data.size();
+        return size;
     }
 
     const VNT *get_data() const
     {
-        return data.data();
+        return opt_data;
     }
 
     void finalize_creation(int _target_socket)
