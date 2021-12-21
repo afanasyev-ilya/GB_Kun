@@ -40,7 +40,7 @@ void SpMV_numa_aware(MatrixCSR<T> *_matrix,
 
         int socket = tid / (THREADS_PER_SOCKET);
 
-        T *local_x_vals;
+        T *local_x_vals, *local_y_vals;
 
         VNT vec_size = _matrix->size;
         MatrixCSR<T> *local_matrix;
@@ -59,21 +59,10 @@ void SpMV_numa_aware(MatrixCSR<T> *_matrix,
 
         #pragma omp barrier
 
-        #pragma omp for schedule(guided, 1)
-        for(VNT row = 0; row < vec_size; row++)
+        for(int vg = 0; vg < _matrix->vg_num; vg++)
         {
-            for(ENT j = local_matrix->row_ptr[row]; j < local_matrix->row_ptr[row + 1]; j++)
-            {
-                VNT col = local_matrix->col_ids[j];
-                T val = local_matrix->vals[j];
-                y_vals[row] = add_op(y_vals[row], mul_op(val, local_x_vals[col])) ;
-            }
-        }
-
-        /*for(int vg = 0; vg < local_matrix->vg_num; vg++)
-        {
-            const VNT *vertices = local_matrix->vertex_groups[vg].get_data();
-            VNT vertex_group_size = local_matrix->vertex_groups[vg].get_size();
+            const VNT *vertices = _matrix->vertex_groups[vg].get_data();
+            VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
 
             #pragma omp for nowait schedule(guided, 1)
             for(VNT idx = 0; idx < vertex_group_size; idx++)
@@ -84,11 +73,11 @@ void SpMV_numa_aware(MatrixCSR<T> *_matrix,
                 {
                     VNT col = local_matrix->col_ids[j];
                     T val = local_matrix->vals[j];
-                    res = add_op(res, mul_op(val, x_vals[col]));
+                    res = add_op(res, mul_op(val, local_x_vals[col]));
                 }
                 y_vals[row] = res;
             }
-        }*/
+        }
     }
 }
 
