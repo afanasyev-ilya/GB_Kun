@@ -24,7 +24,7 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
         const VNT *row_ids = segment_data->vertex_list.get_data();
         const VNT nnz_num_rows = segment_data->vertex_list.get_size();
 
-        for(int vg = 0; vg < segment_data->vg_num; vg++)
+        /*for(int vg = 0; vg < segment_data->vg_num; vg++)
         {
             const VNT *vertices = segment_data->vertex_groups[vg].get_data();
             VNT vertex_group_size = segment_data->vertex_groups[vg].get_size();
@@ -42,9 +42,9 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
                 }
                 y_vals[row] = res;
             }
-        }
+        }*/
 
-        /*#pragma omp for schedule(guided, 1)
+        #pragma omp for schedule(guided, 1)
         for(VNT idx = 0; idx < nnz_num_rows; idx++)
         {
             VNT row = row_ids[idx];
@@ -56,7 +56,7 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
                 res = add_op(res, mul_op(val, x_vals[col]));
             }
             y_vals[row] = add_op(y_vals[row], res);
-        }*/
+        }
     }
     t2 = omp_get_wtime();
     cout << "largest BW: " << _matrix->dense_segments[0].nnz * (2*sizeof(T) + sizeof(VNT))/((t2 - t1)*1e9) << " GB/s" << endl;

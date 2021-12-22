@@ -78,7 +78,7 @@ private:
     T *vals;
     VNT *col_ids;
 
-    static const int vg_num = 8; // 9 is best currently
+    static const int vg_num = 9; // 9 is best currently
     VertexGroup vertex_groups[vg_num];
 
     double *tmp_buffer;
