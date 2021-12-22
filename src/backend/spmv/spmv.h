@@ -36,14 +36,12 @@ void SpMV(const Matrix<T> *_matrix,
         #ifdef __USE_SOCKET_OPTIMIZATIONS__
         if(omp_get_max_threads() == THREADS_PER_SOCKET*2)
         {
-            cout << "using numa aware!" << endl;
             SpMV_numa_aware(((MatrixCSR<T> *) _matrix->get_data()), ((MatrixCSR<T> *) _matrix->get_data_dub()),
                             _x->getDense(), _y->getDense(), _op);
         }
         else
         {
-            cout << "using unopt!" << endl;
-            SpMV_non_optimized(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
+            SpMV(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
         }
         #else
         SpMV(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);

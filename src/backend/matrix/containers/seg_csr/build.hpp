@@ -12,7 +12,7 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
     cout << size << endl;
     //VNT segment_size = 64 * 1024 / sizeof(T);
     //num_segments = (size - 1) / segment_size + 1;
-    num_segments = 12;
+    num_segments = 96*2;
     //while(size/num_segments > (1024 * 1024 / sizeof(double)))
     //    num_segments *= 2;
     VNT segment_size = (size - 1)/num_segments + 1;
@@ -30,6 +30,8 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
     size_t merge_block_size = 64*1024; // 64 KB
     merge_blocks_number = (size - 1)/merge_block_size + 1;
 
+    largest_segment = 0;
+    ENT nnz_in_largest = 0;
     for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
     {
         subgraphs[cur_seg].sort_by_row_id();
@@ -40,6 +42,17 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
              100.0*(double)subgraphs[cur_seg].size/_size << "%)" << ", nnz (edges) = " << subgraphs[cur_seg].nnz << " (" <<
              100.0*(double)subgraphs[cur_seg].nnz/_nnz << "%) ";
         cout << "avg degree: " << (double)subgraphs[cur_seg].nnz / subgraphs[cur_seg].size << endl;
+        if(nnz_in_largest < subgraphs[cur_seg].nnz)
+        {
+            nnz_in_largest = subgraphs[cur_seg].nnz;
+            largest_segment = cur_seg;
+        }
+    }
+
+    for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
+    {
+        if(cur_seg != largest_segment)
+            small_segments.push_back(cur_seg);
     }
 
     cout << endl << endl;

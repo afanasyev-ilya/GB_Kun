@@ -34,6 +34,8 @@ private:
     int num_segments;
 
     SubgraphSegment<T> *subgraphs;
+    int largest_segment;
+    vector<int> small_segments;
 
     void alloc(VNT _size, ENT _nnz);
     void free();
