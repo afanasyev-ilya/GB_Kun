@@ -23,6 +23,8 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
             _cur_segment->vertex_list.push_back(row);
     }
 
+    _cur_segment->vertex_list.finalize_creation(0 /* TODO */);
+
     MemoryAPI::allocate_array(&(_cur_segment->row_ptr), local_size + 1);
     MemoryAPI::allocate_array(&(_cur_segment->col_ids), local_nnz);
     MemoryAPI::allocate_array(&(_cur_segment->vals), local_nnz);
@@ -56,8 +58,8 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
     cout << "segment ids in range of: " << (max_col_id - min_col_id)*sizeof(T) / 1e3 << " KB" << endl;
     cout << "starting: " << min_col_id << " ending: " << max_col_id << endl << endl;
 
-    ENT step = 16;
-    ENT first = 4;
+    ENT step = 4;
+    ENT first = 2;
     _cur_segment->vertex_groups[0].set_thresholds(0, first);
     for(int i = 1; i < (_cur_segment->vg_num - 1); i++)
     {

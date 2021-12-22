@@ -44,7 +44,7 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
             }
         }
 
-        /*#pragma omp for schedule(guided, 1024)
+        /*#pragma omp for schedule(guided, 1)
         for(VNT idx = 0; idx < nnz_num_rows; idx++)
         {
             VNT row = row_ids[idx];
@@ -54,7 +54,6 @@ void SpMV(const MatrixLAV<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> 
                 VNT col = segment_data->col_ids[j];
                 T val = segment_data->vals[j];
                 res = add_op(res, mul_op(val, x_vals[col]));
-                proc_elems++;
             }
             y_vals[row] = add_op(y_vals[row], res);
         }*/

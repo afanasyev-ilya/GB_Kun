@@ -14,7 +14,7 @@ struct LAVSegment
 
     VertexGroup vertex_list;
 
-    static const int vg_num = 8;
+    static const int vg_num = 5;
     VertexGroup vertex_groups[vg_num];
     ENT nnz;
     VNT size;

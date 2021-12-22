@@ -8,6 +8,8 @@ void MatrixSortCSR<T>::construct_csr(const VNT *_row_ids,
                                      ENT _nnz,
                                      int _target_socket)
 {
+    size = _size;
+    nnz = _nnz;
     vector<vector<VNT>> tmp_col_ids(_size);
     vector<vector<T>> tmp_vals(_size);
 
@@ -38,9 +40,10 @@ void MatrixSortCSR<T>::construct_csr(const VNT *_row_ids,
         tmp_vals[row].push_back(val);
     }
 
-    VNT *col_conversion_indexes, *row_conversion_indexes;
+    VNT *col_conversion_indexes, *row_conversion_indexes, *col_backward_conversion;
     MemoryAPI::allocate_array(&col_conversion_indexes, _size);
     MemoryAPI::allocate_array(&row_conversion_indexes, _size);
+    MemoryAPI::allocate_array(&col_backward_conversion, _size);
 
     for(VNT i = 0; i < _size; i++) {
         col_conversion_indexes[i] = i;
@@ -59,6 +62,11 @@ void MatrixSortCSR<T>::construct_csr(const VNT *_row_ids,
                   return row_frequencies[index1] > row_frequencies[index2];
               });
 
+    for(VNT i = 0; i < _size; i++)
+    {
+        col_backward_conversion[col_conversion_indexes[i]] = i;
+    }
+
     resize(_size, _nnz, _target_socket);
 
     ENT cur_pos = 0;
@@ -69,7 +77,7 @@ void MatrixSortCSR<T>::construct_csr(const VNT *_row_ids,
         row_ptr[row + 1] = cur_pos + tmp_col_ids[old_row].size();
         for(ENT j = 0; j < tmp_col_ids[old_row].size(); j++)
         {
-            VNT new_col_id = col_conversion_indexes[tmp_col_ids[old_row][j]];
+            VNT new_col_id = col_backward_conversion[tmp_col_ids[old_row][j]];
             col_ids[cur_pos + j] = new_col_id;
             vals[cur_pos + j] = tmp_vals[old_row][j];
         }
@@ -80,6 +88,7 @@ void MatrixSortCSR<T>::construct_csr(const VNT *_row_ids,
     MemoryAPI::free_array(row_frequencies);
     MemoryAPI::free_array(col_conversion_indexes);
     MemoryAPI::free_array(row_conversion_indexes);
+    MemoryAPI::free_array(col_backward_conversion);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

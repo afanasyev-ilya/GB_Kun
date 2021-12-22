@@ -18,7 +18,7 @@ void SpMV(MatrixSortCSR<T> *_matrix,
 
     #pragma omp parallel
     {
-        #pragma omp for schedule(static, 16)
+        #pragma omp for schedule(static, 256)
         for(VNT row = 0; row < _matrix->size; row++)
         {
             for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
