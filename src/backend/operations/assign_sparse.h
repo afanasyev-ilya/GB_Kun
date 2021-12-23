@@ -11,18 +11,21 @@ namespace lablas{
 namespace backend {
 
 
-template <typename W, typename T, typename M, typename I,
-        typename BinaryOpT>
-    LA_Info assignSparse(SparseVector<W>*  w,
-                         const Vector<M>*       mask,
-                         BinaryOpT        accum,
-                         T                val,
-                         const Vector<I>* indices,
-                         Index            nindices,
-                         Descriptor*      desc) {
-        VNT vec_size;
-        w->get_nnz(&vec_size);
-        std::string accum_type = typeid(accum).name();
+template <typename W, typename T, typename M,
+    typename BinaryOpT>
+LA_Info assignSparse(SparseVector<W>*  w,
+                     const Vector<M>*       mask,
+                     BinaryOpT        accum,
+                     T                val,
+                     const Index*     indices,
+                     Index            nindices,
+                     Descriptor*      desc) {
+    VNT vec_size;
+    w->get_nnz(&vec_size);
+    std::string accum_type = typeid(accum).name();
+
+    if(indices == NULL)
+    {
         if (mask != NULL) {
             for (int i = 0; i < vec_size; i++) {
                 if (mask->getDense()->get_vals()[i] != 0) {
@@ -42,8 +45,14 @@ template <typename W, typename T, typename M, typename I,
                 }
             }
         }
-        return GrB_SUCCESS;
     }
+    else
+    {
+        throw "Error in assignSparse: indices != NULL not supported";
+    }
+
+    return GrB_SUCCESS;
+}
 
 }
 }

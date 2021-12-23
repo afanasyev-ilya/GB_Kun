@@ -16,36 +16,32 @@
 namespace lablas{
 namespace backend{
 
-template <typename W, typename T, typename M,
-    typename BinaryOpT>
-    LA_Info assign(Vector<W>*           w,
-                const Vector<M>*           mask,
-                BinaryOpT            accum,
-                const T              val,
-                const Vector<Index>* indices,
-                const Index          nindices,
-                Descriptor*          desc) {
-
-        // Get storage:
-        Storage vec_type;
-        w->getStorage(&vec_type);
-
-        // 3 cases:
-        // 1) SpVec
-        // 2) DeVec
-        // 3) uninitialized vector
-        if (vec_type == GrB_SPARSE) {
-            assignSparse(w->getSparse(), mask, accum, val, indices, nindices,
-                               desc);
-        } else if (vec_type == GrB_DENSE) {
-            assignDense(w->getDense(), mask, accum, val, indices, nindices,
-                              desc);
-        } else {
-            //TODO
-        }
-
-        return GrB_SUCCESS;
+template <typename W, typename T, typename M, typename BinaryOpT>
+LA_Info assign(Vector<W>*           w,
+               const Vector<M>*     mask,
+               BinaryOpT            accum,
+               const T              val,
+               const Index*         indices,
+               const Index          nindices,
+               Descriptor*          desc)
+{
+    // Get storage:
+    Storage vec_type;
+    w->getStorage(&vec_type);
+    // 3 cases:
+    // 1) SpVec
+    // 2) DeVec
+    // 3) uninitialized vector
+    if (vec_type == GrB_SPARSE) {
+        assignSparse(w->getSparse(), mask, accum, val, indices, nindices, desc);
+    } else if (vec_type == GrB_DENSE) {
+        assignDense(w->getDense(), mask, accum, val, indices, nindices, desc);
+    } else {
+        //TODO
     }
+
+    return GrB_SUCCESS;
+}
 
 
 template <typename W, typename U, typename M,

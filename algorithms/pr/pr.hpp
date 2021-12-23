@@ -1,10 +1,9 @@
-template<typename T>
 int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
         (
                 // outputs:
                 //GrB_Vector *centrality, // centrality(i): GAP-style pagerank of node i
                 // inputs:
-                LAGraph_Graph<T> *G,        // input graph
+                LAGraph_Graph<float> *G,        // input graph
                 float damping,          // damping factor (typically 0.85)
                 float tol,              // stopping tolerance (typically 1e-4) ;
                 int itermax            // maximum number of iterations (typically 100)
@@ -62,7 +61,7 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     GrB_TRY (GrB_Vector_new (&t, GrB_FP32, n)) ;
     GrB_TRY (GrB_Vector_new (&r, GrB_FP32, n)) ;
     GrB_TRY (GrB_Vector_new (&w, GrB_FP32, n)) ;
-    GrB_TRY (GrB_assign (r, static_cast<const lablas::Vector<T>*>(NULL), nullptr, 1.0 / n, GrB_ALL, n, NULL)) ;
+    GrB_TRY (GrB_assign (r, static_cast<const lablas::Vector<float>*>(NULL), nullptr, 1.0 / n, GrB_ALL, n, NULL)) ;
     r->print();
 
     // prescale with damping factor, so it isn't done each iteration

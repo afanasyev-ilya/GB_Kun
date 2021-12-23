@@ -10,21 +10,33 @@ namespace lablas{
 namespace backend {
 
 
-template <typename W, typename T, typename M, typename I,
+template <typename W, typename T, typename M,
     typename BinaryOpT>
     LA_Info assignDense(DenseVector<W>*  w,
                         const Vector<M>*       mask,
                         BinaryOpT        accum,
                         T                val,
-                        const Vector<I>* indices,
+                        const Index*     indices,
                         Index            nindices,
                         Descriptor*      desc) {
         VNT vec_size;
         w->get_size(&vec_size);
         std::string accum_type = typeid(accum).name();
-        if (mask != NULL) {
-            for (int i = 0; i < vec_size; i++) {
-                if (mask->getDense()->get_vals()[i] != 0) {
+
+        if(indices == NULL)
+        {
+            if (mask != NULL) {
+                for (int i = 0; i < vec_size; i++) {
+                    if (mask->getDense()->get_vals()[i] != 0) {
+                        if (accum_type.size() <= 1) {
+                            w->get_vals()[i] = val;
+                        } else {
+                            w->get_vals()[i] =  val;
+                        }
+                    }
+                }
+            } else {
+                for (int i = 0; i < vec_size; i++) {
                     if (accum_type.size() <= 1) {
                         w->get_vals()[i] = val;
                     } else {
@@ -32,15 +44,12 @@ template <typename W, typename T, typename M, typename I,
                     }
                 }
             }
-        } else {
-            for (int i = 0; i < vec_size; i++) {
-                    if (accum_type.size() <= 1) {
-                        w->get_vals()[i] = val;
-                    } else {
-                        w->get_vals()[i] =  val;
-                    }
-            }
         }
+        else
+        {
+            throw "Error in assignDense: indices != NULL not supported";
+        }
+
         return GrB_SUCCESS;
     }
 

@@ -17,9 +17,10 @@ LA_Info GrB_assign(lablas::Vector<W>*       _w,
                    BinaryOpT        _accum,
                    const U _value,
                    const GrB_Index *_indices,
-                   GrB_Index _nindices,
+                   const GrB_Index _nindices,
                    lablas::Descriptor*  _desc)
 {
+
     return lablas::assign(_w, _mask, _accum, _value, _indices, _nindices, _desc);
 }
 

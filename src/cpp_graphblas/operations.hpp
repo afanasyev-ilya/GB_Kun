@@ -72,30 +72,27 @@ LA_Info vxm (Vector<W>*       w,
  *   w[indices] = w[indices] + val   +: accum
  *                                  .*: Boolean and
  */
-template <typename W, typename M, typename T, typename I,
-typename BinaryOpT>
+template <typename W, typename M, typename T, typename BinaryOpT>
 LA_Info assign(Vector<W>*       w,
             const Vector<M>*       mask,
             BinaryOpT        accum,
             T                val,
-            const Vector<I>* indices,
-            Index            nindices,
+            const Index *    indices,
+            const Index      nindices,
             Descriptor*      desc)
 {
     // Null pointer check
-    if (w == NULL || desc == NULL)
+    if (w == NULL)
         return GrB_UNINITIALIZED_OBJECT;
 
     // Dimension check
     // -only have one case (no transpose option)
-//        checkDimSizeSize(w, mask, "w.size  != mask.size");
+    //        checkDimSizeSize(w, mask, "w.size  != mask.size");
 
     auto                 mask_t = (mask == NULL) ? NULL : mask->get_vector();
     backend::Descriptor* desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
-    auto              indices_t = (indices == NULL) ? NULL : indices->get_vector();
 
-    return backend::assign(w->get_vector(), mask_t, accum, val, indices_t, nindices,
-                           desc_t);
+    return backend::assign(w->get_vector(), mask_t, accum, val, indices, nindices, desc_t);
 }
 
 template <typename W, typename M, typename U,
@@ -109,12 +106,12 @@ LA_Info assignIndexed(Vector<W>*       w,
                    Descriptor*      desc)
 {
     // Null pointer check
-    if (w == NULL || u == NULL || desc == NULL)
+    if (w == NULL || u == NULL)
         return GrB_UNINITIALIZED_OBJECT;
 
     // Dimension check
     // -only have one case (no transpose option)
-//        checkDimSizeSize(w, mask, "w.size  != mask.size");
+    //        checkDimSizeSize(w, mask, "w.size  != mask.size");
 
     auto                 mask_t = (mask == NULL) ? NULL : mask->get_vector();
     backend::Descriptor* desc_t = (desc == NULL) ? NULL : desc->get_descriptor();

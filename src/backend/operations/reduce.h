@@ -27,10 +27,10 @@ LA_Info reduceInner(T*                    val,
     u->get_size(&vec_size);
     const U* sparse_pointer = u->get_vals();
 
-#pragma om parallel for
+    #pragma om parallel for
     for (int i = 0; i < vec_size; i++) {
         U value  = sparse_pointer[i];
-#pragma omp critical
+        #pragma omp critical
         {
 
             temp_val = op(temp_val, value);
@@ -65,14 +65,14 @@ template <typename T, typename U,
         u->get_nnz(&vec_size);
         const U* sparse_pointer = u->get_vals();
 
-#pragma om parallel for
-        for (int i = 0; i < vec_size; i++) {
-            U value  = sparse_pointer[i];
-#pragma omp critical
+        #pragma om parallel for
+        for (int i = 0; i < vec_size; i++)
         {
-
+            U value  = sparse_pointer[i];
+            #pragma omp critical
+            {
                 temp_val = op(temp_val, value);
-        }
+            }
         }
 
         /*in accum case, use temp buffer var */
