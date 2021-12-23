@@ -21,9 +21,9 @@ template <typename W, typename T, typename M,
     LA_Info assign(Vector<W>*           w,
                 const Vector<M>*           mask,
                 BinaryOpT            accum,
-                T                    val,
+                const T              val,
                 const Vector<Index>* indices,
-                Index                nindices,
+                const Index          nindices,
                 Descriptor*          desc) {
 
         // Get storage:

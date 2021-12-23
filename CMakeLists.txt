@@ -86,3 +86,6 @@ target_include_directories(sparse_test PRIVATE ${header_dir_list})
 
 add_executable(saxpy saxpy.cpp)
 target_include_directories(saxpy PRIVATE ${header_dir_list})
+
+add_executable(pr pr.cpp)
+target_include_directories(pr PRIVATE)
