@@ -8,8 +8,8 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
                 LAGraph_Graph<float> *G,        // input graph
                 float damping,          // damping factor (typically 0.85)
                 float tol,              // stopping tolerance (typically 1e-4) ;
-                int itermax            // maximum number of iterations (typically 100)
-                //int *iters,             // output: number of iterations taken
+                int itermax,            // maximum number of iterations (typically 100)
+                int *iters             // output: number of iterations taken
                 //char *msg
         )
 {
@@ -70,12 +70,12 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     // pagerank iterations
     //--------------------------------------------------------------------------
 
-    /*for ((*iters) = 0 ; (*iters) < itermax && rdiff > tol ; (*iters)++)
+    for ((*iters) = 0 ; (*iters) < itermax && rdiff > tol ; (*iters)++)
     {
         // swap t and r ; now t is the old score
         GrB_Vector temp = t ; t = r ; r = temp ;
         // w = t ./ d
-        GrB_TRY (GrB_eWiseMult (w, NULL, NULL, GrB_DIV_FP32, t, d, NULL)) ;
+        /*GrB_TRY (GrB_eWiseMult (w, NULL, NULL, GrB_DIV_FP32, t, d, NULL)) ;
         // r = teleport
         GrB_TRY (GrB_assign (r, NULL, NULL, teleport, GrB_ALL, n, NULL)) ;
         // r += A'*w
@@ -86,16 +86,16 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
         // t = abs (t)
         GrB_TRY (GrB_apply (t, NULL, NULL, GrB_ABS_FP32, t, NULL)) ;
         // rdiff = sum (t)
-        GrB_TRY (GrB_reduce (&rdiff, NULL, GrB_PLUS_MONOID_FP32, t, NULL)) ;
+        GrB_TRY (GrB_reduce (&rdiff, NULL, GrB_PLUS_MONOID_FP32, t, NULL)) ;*/
     }
 
     //--------------------------------------------------------------------------
     // free workspace and return result
     //--------------------------------------------------------------------------
 
-    (*centrality) = r ;
-    LAGraph_FREE_WORK ;*/
-    return (0);
+    /*(*centrality) = r ;
+    LAGraph_FREE_WORK ;
+    return (0);*/
 
     #undef GrB_Matrix
     #undef GrB_Vector

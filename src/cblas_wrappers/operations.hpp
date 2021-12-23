@@ -6,8 +6,8 @@
 template <typename W, typename M, typename U, typename T, typename BinaryOpTAccum, typename BinaryOpT>
 LA_Info GrB_apply(lablas::Vector<W>* _w,
                   const lablas::Vector<M>* _mask,
-                  const BinaryOpTAccum _accum,
-                  const BinaryOpT _op,
+                  BinaryOpTAccum _accum,
+                  BinaryOpT _op,
                   const T _val,
                   const lablas::Vector<U>* _u,
                   lablas::Descriptor* _desc)
@@ -21,8 +21,8 @@ LA_Info GrB_apply(lablas::Vector<W>* _w,
 template <typename W, typename M, typename U, typename T, typename BinaryOpTAccum, typename BinaryOpT>
 LA_Info GrB_apply(lablas::Vector<W>* _w,
                   const lablas::Vector<M>* _mask,
-                  const BinaryOpTAccum _accum,
-                  const BinaryOpT _op,
+                  BinaryOpTAccum _accum,
+                  BinaryOpT _op,
                   const lablas::Vector<U>* _u,
                   const T _val,
                   lablas::Descriptor* _desc)

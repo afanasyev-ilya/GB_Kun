@@ -38,7 +38,8 @@ int main(int argc, char **argv) {
         graph.rowdegree->print();
         graph.coldegree->build(matrix.get_coldegrees(), ncols);
         graph.coldegree->print();
-        LAGraph_VertexCentrality_PageRankGAP(&graph, 10, 5, 100);
+        int iters_taken = 0;
+        LAGraph_VertexCentrality_PageRankGAP(&graph, 10, 5, 100, &iters_taken );
     }
     catch (string error)
     {

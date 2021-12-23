@@ -1,24 +1,191 @@
 #pragma once
 
-#include "types.hpp"
-#include "vector.hpp"
-#include "matrix.hpp"
-#include "descriptor.hpp"
-#include "dimensions.hpp"
-#include "../backend/spmv/spmv.h"
-#include "../backend/operations/operations.h"
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace lablas {
 
- /*!
- * Matrix-vector product
- *   w = w + mask .* (A * u)    +: accum
- *                              *: op
- *                             .*: Boolean and
- */
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+bool not_initialized(T const &_val)
+{
+    if(_val == NULL)
+        return true;
+    return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename L, typename R, typename... Args>
+bool not_initialized(L const& lhs, R const &rhs, Args const&... args)
+{
+    if(lhs == NULL || not_initialized(rhs,args...))
+        return true;
+    return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename L, typename R, typename... Args>
+bool dims_mismatched(L const& lhs, R const &rhs)
+{
+    if(lhs->get_vector()->getDense()->get_size() != rhs->get_vector()->getDense()->get_size())
+        return true;
+    return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename L, typename R, typename... Args>
+bool dims_mismatched(L const& lhs, R const &rhs, Args const&... args)
+{
+    if((lhs->get_vector()->getDense()->get_size() != rhs->get_vector()->getDense()->get_size()) || dims_mismatched(lhs,args...))
+        return true;
+    return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* w[i] = mask[i] ^ op(u[i], v[i]) */
+template <typename W, typename M, typename U, typename V, typename BinaryOpTAccum, typename BinaryOpT>
+LA_Info eWiseAdd(lablas::Vector<W>* _w,
+                 const lablas::Vector<M>* _mask,
+                 BinaryOpTAccum _accum,
+                 BinaryOpT _op,
+                 const lablas::Vector<U>* _u,
+                 const lablas::Vector<V>* _v,
+                 lablas::Descriptor* _desc)
+{
+    if(not_initialized(_w, _u, _v))
+        return GrB_UNINITIALIZED_OBJECT;
+
+    if(dims_mismatched(_w, _u, _v))
+        return GrB_DIMENSION_MISMATCH;
+
+    auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
+    backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
+
+    Index vector_size = _w->get_vector()->getDense()->get_size();
+    auto w_vals = _w->get_vector()->getDense()->get_vals();
+    auto u_vals = _u->get_vector()->getDense()->get_vals();
+    auto v_vals = _v->get_vector()->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, u_vals, v_vals, &_op] (Index idx)
+    {
+        w_vals[idx] = _op(u_vals[idx], v_vals[idx]);
+    };
+
+    return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* w[i] = mask[i] ^ op(val, u[i]) */
+template <typename W, typename M, typename U, typename T, typename BinaryOpTAccum, typename BinaryOpT>
+LA_Info apply(Vector<W>* _w,
+              const Vector<M>* _mask,
+              BinaryOpTAccum _accum,
+              BinaryOpT _op,
+              const T _val,
+              const Vector<U>* _u,
+              Descriptor* _desc)
+{
+    if(not_initialized(_w, _u))
+        return GrB_UNINITIALIZED_OBJECT;
+
+    if(dims_mismatched(_w, _u))
+        return GrB_DIMENSION_MISMATCH;
+
+    auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
+    backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
+
+    Index vector_size = _w->get_vector()->getDense()->get_size();
+    auto w_vals = _w->get_vector()->getDense()->get_vals();
+    auto u_vals = _u->get_vector()->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, u_vals, _val, &_op] (Index idx)
+    {
+        w_vals[idx] = _op(_val, u_vals[idx]);
+    };
+
+    return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* w[i] = mask[i] ^ op(val, u[i]) */
+template <typename W, typename M, typename U, typename T, typename BinaryOpTAccum, typename BinaryOpT>
+LA_Info apply(Vector<W>* _w,
+              const Vector<M>* _mask,
+              BinaryOpTAccum _accum,
+              BinaryOpT _op,
+              const Vector<U>* _u,
+              const T _val,
+              Descriptor* _desc)
+{
+    if(not_initialized(_w, _u))
+        return GrB_UNINITIALIZED_OBJECT;
+
+    if(dims_mismatched(_w, _u))
+        return GrB_DIMENSION_MISMATCH;
+
+    auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
+    backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
+
+    Index vector_size = _w->get_vector()->getDense()->get_size();
+    auto w_vals = _w->get_vector()->getDense()->get_vals();
+    auto u_vals = _u->get_vector()->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, u_vals, _val, &_op] (Index idx)
+    {
+        w_vals[idx] = _op(u_vals[idx], _val);
+    };
+
+    return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* w[indexes[i]] = mask[indexes[i]] ^ value */
+template <typename W, typename M, typename U,
+        typename BinaryOpT>
+LA_Info assign(Vector<W>*       _w,
+               const Vector<M>* _mask,
+               BinaryOpT        _accum,
+               const U _value,
+               const Index *_indices,
+               const Index _nindices,
+               Descriptor*  _desc)
+{
+    if(not_initialized(_w))
+        return GrB_UNINITIALIZED_OBJECT;
+
+    auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
+    backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
+
+    if(_indices == NULL)
+    {
+        Index vector_size = _w->get_vector()->getDense()->get_size();
+        auto w_vals = _w->get_vector()->getDense()->get_vals();
+
+        auto lambda_op = [w_vals, _value] (Index idx)
+        {
+            w_vals[idx] = _value;
+        };
+        return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+    }
+    else
+    {
+        throw "Error in assign :  _indices != NULL currently not supported";
+    }
+
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename M, typename a, typename U,
-typename BinaryOpT, typename SemiringT>
+        typename BinaryOpT, typename SemiringT>
 LA_Info mxv (Vector<W>*       w,
              const Vector<M>* mask,
              BinaryOpT        accum,
@@ -45,6 +212,8 @@ LA_Info mxv (Vector<W>*       w,
     return GrB_SUCCESS;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename W, typename M, typename a, typename U,
         typename BinaryOpT, typename SemiringT>
 LA_Info vxm (Vector<W>*       w,
@@ -66,161 +235,10 @@ LA_Info vxm (Vector<W>*       w,
     return GrB_SUCCESS;
 }
 
-
-/* w[indexes[i]] = mask[indexes[i]] ^ value */
-template <typename W, typename M, typename T, typename BinaryOpT>
-LA_Info assign(Vector<W>*       w,
-            const Vector<M>*       mask,
-            BinaryOpT        accum,
-            T                val,
-            const Index *    indices,
-            const Index      nindices,
-            Descriptor*      desc)
-{
-    // Null pointer check
-    if (w == NULL)
-        return GrB_UNINITIALIZED_OBJECT;
-
-    auto                 mask_t = (mask == NULL) ? NULL : mask->get_vector();
-    backend::Descriptor* desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
-
-    return backend::assign(w->get_vector(), mask_t, accum, val, indices, nindices, desc_t);
-}
-
-/* w[i] = mask[i] ^ op(val, u[i]) */
-template <typename W, typename M, typename U, typename T, typename BinaryOpTAccum, typename BinaryOpT>
-LA_Info apply(lablas::Vector<W>* _w,
-              const lablas::Vector<M> *_mask,
-              const BinaryOpTAccum _accum,
-              const BinaryOpT _op,
-              const T _val,
-              const lablas::Vector<U> *_u,
-              lablas::Descriptor *_desc)
-{
-    if (_w == NULL || _u == NULL)
-        return GrB_UNINITIALIZED_OBJECT;
-
-    auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
-    backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
-
-    return GrB_SUCCESS;////backend::apply(_w->get_vector(), mask_t, _accum, _op, _val, _u, desc_t);
-}
-
-/* w[i] = mask[i] ^ op(u[i], val) */
-template <typename W, typename M, typename U, typename T, typename BinaryOpTAccum, typename BinaryOpT>
-LA_Info apply(lablas::Vector<W> *_w,
-              const lablas::Vector<M> *_mask,
-              const BinaryOpTAccum _accum,
-              const BinaryOpT _op,
-              const lablas::Vector<U> *_u,
-              const T _val,
-              lablas::Descriptor *_desc)
-{
-    if (_w == NULL || _u == NULL)
-        return GrB_UNINITIALIZED_OBJECT;
-
-    auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
-    backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
-
-    return backend::apply(_w->get_vector(), mask_t, _accum, _op, _u->get_vector(), _val, desc_t);
-}
-
-template <typename W, typename M, typename U,
-typename BinaryOpT>
-LA_Info assignIndexed(Vector<W>*       w,
-                   const Vector<M>* mask,
-                   BinaryOpT        accum,
-                   const Vector<U>* u,
-                   int*             indices,
-                   Index            nindices,
-                   Descriptor*      desc)
-{
-    // Null pointer check
-    if (w == NULL || u == NULL)
-        return GrB_UNINITIALIZED_OBJECT;
-
-    // Dimension check
-    // -only have one case (no transpose option)
-    //        checkDimSizeSize(w, mask, "w.size  != mask.size");
-
-    auto                 mask_t = (mask == NULL) ? NULL : mask->get_vector();
-    backend::Descriptor* desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
-
-    return backend::assignIndexed(w->get_vector(), mask_t, accum, u->get_vector(),
-                                  indices, nindices, desc_t);
-}
-
-/*!
-* Reduction of vector to form scalar
-*   val = val + \sum_i u(i) for all i    +: accum
-*                                      sum: op
-*/
-template <typename T, typename U,
-typename BinaryOpT, typename MonoidT>
-LA_Info reduce(T*               val,
-            BinaryOpT        accum,
-            MonoidT          op,
-            const Vector<U>* u,
-            Descriptor*      desc)
-{
-    if (val == NULL || u == NULL)
-        return GrB_UNINITIALIZED_OBJECT;
-
-    backend::Descriptor* desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
-
-    return backend::reduce(val, accum, op, u->get_vector(), desc_t);
-}
-
-/*!
-* Apply unary operation to vector
-*   w = w + mask .* op(u)    +: accum
-*                           .*: Boolean and
-*/
-template <typename W, typename M, typename U,
-    typename BinaryOpT,     typename UnaryOpT>
-LA_Info apply(Vector<W>*       w,
-           const Vector<M>* mask,
-           BinaryOpT        accum,
-           UnaryOpT         op,
-           const Vector<U>* u,
-           Descriptor*      desc) {
-    // Null pointer check
-    if (w == NULL || u == NULL)
-        return GrB_UNINITIALIZED_OBJECT;
-
-    const backend::Vector<M>* mask_t = (mask == NULL) ? NULL : mask->get_vector();
-    backend::Descriptor*      desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
-
-    return backend::apply(w->get_vector(), mask_t, accum, op, u->get_vector(), desc_t);
-}
-
-
-/*!
-* Element-wise multiply of two vectors
-*   w = w + mask .* (u .* v)    +: accum
-*                 2     1    1).*: op (semiring multiply)
-*                            2).*: Boolean and
-*/
-template <typename W, typename M, typename U, typename V,
-typename BinaryOpT,     typename SemiringT>
-LA_Info eWiseMult(Vector<W>*       w,
-               const Vector<M>* mask,
-               BinaryOpT        accum,
-               SemiringT        op,
-               const Vector<U>* u,
-               const Vector<V>* v,
-               Descriptor*      desc) {
-    // Null pointer check
-    if (w == NULL || u == NULL || v == NULL || desc == NULL)
-        return GrB_UNINITIALIZED_OBJECT;
-
-
-    const backend::Vector<M>* mask_t = (mask == NULL) ? NULL : mask->get_vector();
-    backend::Descriptor*      desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
-
-    return backend::eWiseMult(w->get_vector(), mask_t, accum, op, u->get_vector(),
-                              v->get_vector(), desc_t);
-}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
