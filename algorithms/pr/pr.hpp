@@ -52,6 +52,8 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     // d = d_out / damping ;
     GrB_TRY (GrB_Vector_new (&d, GrB_FP32, n)) ;
     GrB_TRY (GrB_apply (d, TEMP_NULL, nullptr, GrB_DIV_FP32, d_out, damping, NULL)) ;
+    d_out->print();
+    d->print();
 
     // d1 = 1 / damping
     float dmin = 1.0 / damping ;

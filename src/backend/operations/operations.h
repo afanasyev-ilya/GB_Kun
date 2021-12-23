@@ -9,8 +9,7 @@
 #include "assign_sparse.h"
 #include "scatter.h"
 #include "reduce.h"
-#include "apply_dense.h"
-#include "apply_sparse.h"
+#include "apply.h"
 #include "ewise_mult.h"
 
 namespace lablas{
@@ -104,30 +103,7 @@ template <typename T, typename U,
         return GrB_SUCCESS;
     }
 
-template <typename W, typename U, typename M,
-    typename BinaryOpT,     typename UnaryOpT>
-    LA_Info apply(Vector<W>*       w,
-               const Vector<M>* mask,
-               BinaryOpT        accum,
-               UnaryOpT         op,
-               const Vector<U>* u,
-               Descriptor*      desc) {
-        Vector<U>* u_t = const_cast<Vector<U>*>(u);
 
-        Storage u_vec_type;
-        u->getStorage(&u_vec_type);
-
-        // sparse variant
-        if (u_vec_type == GrB_SPARSE) {
-            applySparse(w->getSparse(), mask, accum, op, u_t->getSparse(), desc);
-            // dense variant
-        } else if (u_vec_type == GrB_DENSE) {
-            applyDense(w->getDense(), mask, accum, op, u_t->getDense(), desc);
-        } else {
-            return GrB_UNINITIALIZED_OBJECT;
-        }
-        return GrB_SUCCESS;
-    }
 
 template <typename W, typename U, typename V, typename M,
     typename BinaryOpT,     typename SemiringT>

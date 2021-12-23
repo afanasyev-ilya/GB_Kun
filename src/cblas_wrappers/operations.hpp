@@ -16,11 +16,11 @@ LA_Info GrB_apply(lablas::Vector<W>* _w,
                   const lablas::Vector<M>* _mask,
                   const BinaryOpTAccum _accum,
                   const BinaryOpT _op,
-                  const T val,
+                  const T _val,
                   const lablas::Vector<U>* _u,
-                  const lablas::Descriptor* _desc)
+                  lablas::Descriptor* _desc)
 {
-    return GrB_SUCCESS;
+    return lablas::apply(_w, _mask, _accum, _op, _val, _u, _desc);
 }
 
 /* w[i] = mask[i] ^ op(u[i], val) */
@@ -30,10 +30,10 @@ LA_Info GrB_apply(lablas::Vector<W>* _w,
                   const BinaryOpTAccum _accum,
                   const BinaryOpT _op,
                   const lablas::Vector<U>* _u,
-                  const T val,
-                  const lablas::Descriptor* _desc)
+                  const T _val,
+                  lablas::Descriptor* _desc)
 {
-    return GrB_SUCCESS;
+    return lablas::apply(_w, _mask, _accum, _op, _u, _val, _desc);
 }
 
 /* w[indexes[i]] = mask[indexes[i]] ^ value */

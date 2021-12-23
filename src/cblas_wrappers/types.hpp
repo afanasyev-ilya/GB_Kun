@@ -18,7 +18,7 @@ struct LAGraph_Graph
     CallInstruction; \
 }
 
-#define LG_CLEAR_MSG printf("starting lagraph alg");
+#define LG_CLEAR_MSG printf("starting lagraph alg\n");
 
 enum GrB_Type
 {
@@ -27,4 +27,4 @@ enum GrB_Type
 
 // operations
 
-#define GrB_DIV_FP32 lablas::div<float, float, float>()
+#define GrB_DIV_FP32 lablas::div<float>()

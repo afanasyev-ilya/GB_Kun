@@ -99,9 +99,9 @@ namespace lablas{
             }
         };
 
-        template <typename T_in1, typename T_in2, typename T_out>
+        template <typename T>
         struct div {
-            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+            inline T operator()(const T lhs, const T rhs) {
                 return lhs / rhs;
             }
         };

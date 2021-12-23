@@ -67,11 +67,7 @@ LA_Info vxm (Vector<W>*       w,
 }
 
 
-/*!
- * Assign constant to vector subset
- *   w[indices] = w[indices] + val   +: accum
- *                                  .*: Boolean and
- */
+/* w[indexes[i]] = mask[indexes[i]] ^ value */
 template <typename W, typename M, typename T, typename BinaryOpT>
 LA_Info assign(Vector<W>*       w,
             const Vector<M>*       mask,
@@ -85,14 +81,48 @@ LA_Info assign(Vector<W>*       w,
     if (w == NULL)
         return GrB_UNINITIALIZED_OBJECT;
 
-    // Dimension check
-    // -only have one case (no transpose option)
-    //        checkDimSizeSize(w, mask, "w.size  != mask.size");
-
     auto                 mask_t = (mask == NULL) ? NULL : mask->get_vector();
     backend::Descriptor* desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
 
     return backend::assign(w->get_vector(), mask_t, accum, val, indices, nindices, desc_t);
+}
+
+/* w[i] = mask[i] ^ op(val, u[i]) */
+template <typename W, typename M, typename U, typename T, typename BinaryOpTAccum, typename BinaryOpT>
+LA_Info apply(lablas::Vector<W>* _w,
+              const lablas::Vector<M> *_mask,
+              const BinaryOpTAccum _accum,
+              const BinaryOpT _op,
+              const T _val,
+              const lablas::Vector<U> *_u,
+              lablas::Descriptor *_desc)
+{
+    if (_w == NULL || _u == NULL)
+        return GrB_UNINITIALIZED_OBJECT;
+
+    auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
+    backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
+
+    return GrB_SUCCESS;////backend::apply(_w->get_vector(), mask_t, _accum, _op, _val, _u, desc_t);
+}
+
+/* w[i] = mask[i] ^ op(u[i], val) */
+template <typename W, typename M, typename U, typename T, typename BinaryOpTAccum, typename BinaryOpT>
+LA_Info apply(lablas::Vector<W> *_w,
+              const lablas::Vector<M> *_mask,
+              const BinaryOpTAccum _accum,
+              const BinaryOpT _op,
+              const lablas::Vector<U> *_u,
+              const T _val,
+              lablas::Descriptor *_desc)
+{
+    if (_w == NULL || _u == NULL)
+        return GrB_UNINITIALIZED_OBJECT;
+
+    auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
+    backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
+
+    return backend::apply(_w->get_vector(), mask_t, _accum, _op, _u->get_vector(), _val, desc_t);
 }
 
 template <typename W, typename M, typename U,
