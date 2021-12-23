@@ -28,3 +28,4 @@ enum GrB_Type
 // operations
 
 #define GrB_DIV_FP32 lablas::div<float>()
+#define GrB_MAX_FP32 lablas::maximum<float>()

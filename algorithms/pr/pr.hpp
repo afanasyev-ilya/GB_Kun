@@ -60,8 +60,8 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     GrB_TRY (GrB_Vector_new (&d1, GrB_FP32, n)) ;
     GrB_TRY (GrB_assign (d1, TEMP_NULL, nullptr, dmin, GrB_ALL, n, NULL)) ;
     // d = max (d1, d)
-    //GrB_TRY (GrB_eWiseAdd (d, NULL, NULL, GrB_MAX_FP32, d1, d, NULL)) ;
-    //GrB_free (&d1) ;
+    GrB_TRY (GrB_eWiseAdd (d, TEMP_NULL, nullptr, GrB_MAX_FP32, d1, d, NULL)) ;
+    GrB_free (&d1) ;
 
     //--------------------------------------------------------------------------
     // pagerank iterations

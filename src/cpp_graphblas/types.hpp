@@ -138,6 +138,17 @@ namespace lablas{
             }
         };
 
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct maximum {
+            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+                if (lhs > rhs){
+                    return lhs;
+                } else {
+                    return rhs;
+                }
+            }
+        };
+
         template <typename T_in1 = bool, typename T_in2 = bool, typename T_out = bool>
         struct logical_and {
             inline T_out operator()(T_in1 lhs, T_in2 rhs) {
