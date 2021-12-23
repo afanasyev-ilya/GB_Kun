@@ -129,7 +129,7 @@ namespace lablas{
 
         template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct minimum {
-            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) {
                 if (lhs < rhs){
                     return lhs;
                 } else {
@@ -140,7 +140,7 @@ namespace lablas{
 
         template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct maximum {
-            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) {
                 if (lhs > rhs){
                     return lhs;
                 } else {

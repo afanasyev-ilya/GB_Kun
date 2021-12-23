@@ -1,5 +1,5 @@
-#ifndef GB_KUN_OPERATIONS_HPP
-#define GB_KUN_OPERATIONS_HPP
+#pragma once
+
 #include "types.hpp"
 #include "vector.hpp"
 #include "matrix.hpp"
@@ -224,4 +224,3 @@ LA_Info eWiseMult(Vector<W>*       w,
 
 }
 
-#endif //GB_KUN_OPERATIONS_HPP

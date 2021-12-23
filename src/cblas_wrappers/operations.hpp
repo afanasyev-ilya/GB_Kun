@@ -50,7 +50,7 @@ LA_Info GrB_assign(lablas::Vector<W>*       _w,
 
 /* w[i] = mask[i] ^ op(u[i], v[i]) */
 template <typename W, typename M, typename U, typename V, typename BinaryOpTAccum, typename BinaryOpT>
-LA_Info GrB_eWiseAdd(const lablas::Vector<W>* _w,
+LA_Info GrB_eWiseAdd(lablas::Vector<W>* _w,
                      const lablas::Vector<M>* _mask,
                      BinaryOpTAccum _accum,
                      BinaryOpT _op,
@@ -58,7 +58,7 @@ LA_Info GrB_eWiseAdd(const lablas::Vector<W>* _w,
                      const lablas::Vector<V>* _v,
                      lablas::Descriptor* _desc)
 {
-    return GrB_SUCCESS;
+    return lablas::eWiseAdd(_w, _mask, _accum, _op, _u, _v, _desc);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

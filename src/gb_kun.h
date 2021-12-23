@@ -34,7 +34,7 @@ template <typename T>
 class DenseVector;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// cpp interfaces
+// backend
 
 #include "backend/descriptor/descriptor.h"
 
@@ -43,12 +43,10 @@ class DenseVector;
 #include "backend/spmv/spmv.h"
 #include "backend/spmspv/spmspv.h"
 
-#include "cpp_graphblas/matrix.hpp"
-#include "cpp_graphblas/vector.hpp"
-#include "cpp_graphblas/descriptor.hpp"
-#include "cpp_graphblas/types.hpp"
-#include "cpp_graphblas/dimensions.hpp"
-#include "cpp_graphblas/operations.hpp"
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// cpp interfaces
+
+#include "cpp_graphblas/cpp_graphblas.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // cblas interfaces

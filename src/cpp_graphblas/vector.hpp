@@ -1,5 +1,4 @@
-#ifndef GB_KUN_VECTOR_HPP
-#define GB_KUN_VECTOR_HPP
+#pragma once
 
 #include "../backend/vector/vector.h"
 #include "../helpers/utils.hpp"
@@ -80,4 +79,3 @@ bool operator==(Vector<T>& lhs, Vector<T>& rhs)
 }
 
 }
-#endif //GB_KUN_VECTOR_HPP
