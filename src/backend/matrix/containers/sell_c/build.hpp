@@ -14,8 +14,8 @@ void MatrixSellC<T>::print_connections(VNT _row)
     cout << "vert " << _row << " is connected to : ";
     for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
     {
-        if(abs(i - col_ids[i]) > max_dif)
-            max_dif = abs(i - col_ids[i]);
+        if(std::abs(i - col_ids[i]) > max_dif)
+            max_dif = std::abs(i - col_ids[i]);
         cout << col_ids[i] << " ";
     }
     cout << endl;

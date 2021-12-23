@@ -80,6 +80,45 @@ LA_Info eWiseAdd(lablas::Vector<W>* _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/* w[i] = mask[i] ^ op(u[i], v[i]); w is INTERSECTION of u an v */
+template <typename W, typename M, typename U, typename V, typename BinaryOpTAccum, typename BinaryOpT>
+LA_Info eWiseMult(Vector<W>* _w,
+                  const Vector<M>* _mask,
+                  BinaryOpTAccum _accum,
+                  BinaryOpT _op,
+                  const Vector<U>* _u,
+                  const Vector<V>* _v,
+                  Descriptor* _desc)
+{
+    if(not_initialized(_w, _u, _v))
+        return GrB_UNINITIALIZED_OBJECT;
+
+    if(dims_mismatched(_w, _u, _v))
+        return GrB_DIMENSION_MISMATCH;
+
+    auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
+    backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
+
+    Index vector_size = _w->get_vector()->getDense()->get_size();
+    auto w_vals = _w->get_vector()->getDense()->get_vals();
+    auto u_vals = _u->get_vector()->getDense()->get_vals();
+    auto v_vals = _v->get_vector()->getDense()->get_vals();
+
+    if(true) /* vectors are dense */
+    {
+        auto lambda_op = [w_vals, u_vals, v_vals, &_op] (Index idx)
+        {
+            w_vals[idx] = _op(u_vals[idx], v_vals[idx]);
+        };
+
+        return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+    }
+
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /* w[i] = mask[i] ^ op(val, u[i]) */
 template <typename W, typename M, typename U, typename T, typename BinaryOpTAccum, typename BinaryOpT>
 LA_Info apply(Vector<W>* _w,
@@ -106,6 +145,38 @@ LA_Info apply(Vector<W>* _w,
     auto lambda_op = [w_vals, u_vals, _val, &_op] (Index idx)
     {
         w_vals[idx] = _op(_val, u_vals[idx]);
+    };
+
+    return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* w[i] = mask[i] ^ unary_op(u[i]) */
+template <typename W, typename M, typename U, typename BinaryOpTAccum, typename UnaryOpT>
+LA_Info apply(Vector<W>* _w,
+              const Vector<M>* _mask,
+              BinaryOpTAccum _accum,
+              UnaryOpT _op,
+              const Vector<U>* _u,
+              Descriptor* _desc)
+{
+    if(not_initialized(_w, _u))
+        return GrB_UNINITIALIZED_OBJECT;
+
+    if(dims_mismatched(_w, _u))
+        return GrB_DIMENSION_MISMATCH;
+
+    auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
+    backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
+
+    Index vector_size = _w->get_vector()->getDense()->get_size();
+    auto w_vals = _w->get_vector()->getDense()->get_vals();
+    auto u_vals = _u->get_vector()->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, u_vals, &_op] (Index idx)
+    {
+        w_vals[idx] = _op(u_vals[idx]);
     };
 
     return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
@@ -166,7 +237,7 @@ LA_Info assign(Vector<W>*       _w,
     if(_indices == NULL)
     {
         Index vector_size = _w->get_vector()->getDense()->get_size();
-        auto w_vals = _w->get_vector()->getDense()->get_vals();
+        W* w_vals = _w->get_vector()->getDense()->get_vals();
 
         auto lambda_op = [w_vals, _value] (Index idx)
         {
@@ -176,7 +247,7 @@ LA_Info assign(Vector<W>*       _w,
     }
     else
     {
-        throw "Error in assign :  _indices != NULL currently not supported";
+        throw "Error in assign : _indices != NULL currently not supported";
     }
 
     return GrB_SUCCESS;
@@ -186,29 +257,20 @@ LA_Info assign(Vector<W>*       _w,
 
 template <typename W, typename M, typename a, typename U,
         typename BinaryOpT, typename SemiringT>
-LA_Info mxv (Vector<W>*       w,
-             const Vector<M>* mask,
-             BinaryOpT        accum,
-             SemiringT        op,
-             const Matrix<a>* A,
-             const Vector<U>* u,
-             Descriptor*      desc)
+LA_Info mxv (Vector<W>*       _w,
+             const Vector<M>* _mask,
+             BinaryOpT        _accum,
+             SemiringT        _op,
+             const Matrix<a>* _matrix,
+             const Vector<U>* _u,
+             Descriptor*      _desc)
 {
-
-    if (w == NULL || u == NULL || A == NULL || desc == NULL) {
+    if(not_initialized(_w, _u, _matrix, _desc))
         return GrB_UNINITIALIZED_OBJECT;
-    }
 
-    if(mask != NULL)
-    {
-        backend::SpMV(A->get_matrix(), u->get_vector(), w->get_vector(), desc->get_descriptor(), op,
-                      mask->get_vector());
-    }
-    else
-    {
-        backend::SpMV<W, M, SemiringT>(A->get_matrix(), u->get_vector(), w->get_vector(), desc->get_descriptor(), op,
-                                       NULL);
-    }
+    auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
+    backend::SpMV(_matrix->get_matrix(), _u->get_vector(), _w->get_vector(), _desc->get_descriptor(), _op, mask_t);
+
     return GrB_SUCCESS;
 }
 
@@ -216,22 +278,20 @@ LA_Info mxv (Vector<W>*       w,
 
 template <typename W, typename M, typename a, typename U,
         typename BinaryOpT, typename SemiringT>
-LA_Info vxm (Vector<W>*       w,
-             const Vector<M>* mask,
-             BinaryOpT        accum,
-             SemiringT        op,
-             const Matrix<a>* A,
-             const Vector<U>* u,
-             Descriptor*      desc)
+LA_Info vxm (Vector<W>*       _w,
+             const Vector<M>* _mask,
+             BinaryOpT        _accum,
+             SemiringT        _op,
+             const Matrix<a>* _matrix,
+             const Vector<U>* _u,
+             Descriptor*      _desc)
 {
-    if (w == NULL || u == NULL || A == NULL || desc == NULL) {
+    if(not_initialized(_w, _u, _matrix, _desc))
         return GrB_UNINITIALIZED_OBJECT;
-    }
 
-    if(mask != NULL)
-        backend::VSpM(A->get_matrix(), u->get_vector(), w->get_vector(), desc->get_descriptor(),  op, mask->get_vector());
-    else
-        backend::VSpM<W, M, SemiringT>(A->get_matrix(), u->get_vector(), w->get_vector(), desc->get_descriptor(), op, NULL);
+    auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
+    backend::VSpM(_matrix->get_matrix(), _u->get_vector(), _w->get_vector(), _desc->get_descriptor(), _op, mask_t);
+
     return GrB_SUCCESS;
 }
 

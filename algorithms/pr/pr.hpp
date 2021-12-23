@@ -13,7 +13,6 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
                 //char *msg
         )
 {
-
     #define GrB_Matrix lablas::Matrix<float>*
     #define GrB_Vector lablas::Vector<float>*
     #define TEMP_NULL static_cast<const lablas::Vector<float>*>(NULL)
@@ -75,18 +74,17 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
         // swap t and r ; now t is the old score
         GrB_Vector temp = t ; t = r ; r = temp ;
         // w = t ./ d
-        /*GrB_TRY (GrB_eWiseMult (w, NULL, NULL, GrB_DIV_FP32, t, d, NULL)) ;
+        GrB_TRY (GrB_eWiseMult (w, TEMP_NULL, nullptr, GrB_DIV_FP32, t, d, NULL)) ;
         // r = teleport
-        GrB_TRY (GrB_assign (r, NULL, NULL, teleport, GrB_ALL, n, NULL)) ;
+        GrB_TRY (GrB_assign (r, TEMP_NULL, nullptr, teleport, GrB_ALL, n, NULL)) ;
         // r += A'*w
-        GrB_TRY (GrB_mxv (r, NULL, GrB_PLUS_FP32, LAGraph_plus_second_fp32,
-            AT, w, NULL)) ;
+        GrB_TRY (GrB_mxv (r, TEMP_NULL, GrB_PLUS_FP32, LAGraph_plus_second_fp32, AT, w, NULL)) ;
         // t -= r
-        GrB_TRY (GrB_assign (t, NULL, GrB_MINUS_FP32, r, GrB_ALL, n, NULL)) ;
+        //GrB_TRY (GrB_assign (t, TEMP_NULL, GrB_MINUS_FP32, r, GrB_ALL, n, NULL)) ;
         // t = abs (t)
-        GrB_TRY (GrB_apply (t, NULL, NULL, GrB_ABS_FP32, t, NULL)) ;
+        //GrB_TRY (GrB_apply (t, TEMP_NULL, NULL, GrB_ABS_FP32, t, NULL)) ;
         // rdiff = sum (t)
-        GrB_TRY (GrB_reduce (&rdiff, NULL, GrB_PLUS_MONOID_FP32, t, NULL)) ;*/
+        /*GrB_TRY (GrB_reduce (&rdiff, NULL, GrB_PLUS_MONOID_FP32, t, NULL));*/
     }
 
     //--------------------------------------------------------------------------
@@ -94,8 +92,8 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     //--------------------------------------------------------------------------
 
     /*(*centrality) = r ;
-    LAGraph_FREE_WORK ;
-    return (0);*/
+    LAGraph_FREE_WORK ;*/
+    return 0;
 
     #undef GrB_Matrix
     #undef GrB_Vector

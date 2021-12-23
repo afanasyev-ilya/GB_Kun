@@ -99,6 +99,20 @@ namespace lablas{
             }
         };
 
+        template <typename T_out>
+        struct minus {
+            inline T_out operator()(T_out lhs, T_out rhs) {
+                return lhs - rhs;
+            }
+        };
+
+        template <typename T_out>
+        struct abs {
+            inline T_out operator()(T_out arg) {
+                return std::abs(arg);
+            }
+        };
+
         template <typename T>
         struct div {
             inline T operator()(const T lhs, const T rhs) {
