@@ -148,21 +148,21 @@ LA_Info reduce(T*               val,
 */
 template <typename W, typename M, typename U,
     typename BinaryOpT,     typename UnaryOpT>
-    LA_Info apply(Vector<W>*       w,
-               const Vector<M>* mask,
-               BinaryOpT        accum,
-               UnaryOpT         op,
-               const Vector<U>* u,
-               Descriptor*      desc) {
-        // Null pointer check
-        if (w == NULL || u == NULL)
-            return GrB_UNINITIALIZED_OBJECT;
+LA_Info apply(Vector<W>*       w,
+           const Vector<M>* mask,
+           BinaryOpT        accum,
+           UnaryOpT         op,
+           const Vector<U>* u,
+           Descriptor*      desc) {
+    // Null pointer check
+    if (w == NULL || u == NULL)
+        return GrB_UNINITIALIZED_OBJECT;
 
-        const backend::Vector<M>* mask_t = (mask == NULL) ? NULL : mask->get_vector();
-        backend::Descriptor*      desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
+    const backend::Vector<M>* mask_t = (mask == NULL) ? NULL : mask->get_vector();
+    backend::Descriptor*      desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
 
-        return backend::apply(w->get_vector(), mask_t, accum, op, u->get_vector(), desc_t);
-    }
+    return backend::apply(w->get_vector(), mask_t, accum, op, u->get_vector(), desc_t);
+}
 
 
 /*!

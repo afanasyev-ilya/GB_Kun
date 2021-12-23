@@ -26,10 +26,17 @@ public:
     }
 
     LA_Info build(const std::vector<T>*     values,
-                          Index  nvals) {
+                  Index  nvals) {
         if (values == NULL) return GrB_NULL_POINTER;
         if (nvals == 0) return GrB_INVALID_VALUE;
         return _vector.build(values->data(), nvals);
+    }
+
+    LA_Info build(const T* values,
+                  Index  nvals) {
+        if (values == NULL) return GrB_NULL_POINTER;
+        if (nvals == 0) return GrB_INVALID_VALUE;
+        return _vector.build(values, nvals);
     }
 
     LA_Info fill(T val) {

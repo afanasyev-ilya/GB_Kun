@@ -48,7 +48,7 @@ public:
         }
         #pragma omp parallel for schedule(static)
         for (VNT i = 0; i < nvals; i++) {
-            vals[i] = (*values)[i];
+            vals[i] = values[i];
         }
         return GrB_SUCCESS;
     }

@@ -27,8 +27,17 @@ int main(int argc, char **argv) {
         lablas::Vector<float> levels(el.vertices_count);
 
         LAGraph_Graph<float> graph;
+        Index nrows, ncols;
+        matrix.get_nrows(&nrows);
+        matrix.get_ncols(&ncols);
         graph.A = &matrix;
         graph.AT = &matrix;
+        graph.rowdegree = new lablas::Vector<Index>(nrows);
+        graph.coldegree = new lablas::Vector<Index>(ncols);
+        graph.rowdegree->build(matrix.get_rowdegrees(), nrows);
+        graph.rowdegree->print();
+        graph.coldegree->build(matrix.get_coldegrees(), ncols);
+        graph.coldegree->print();
         LAGraph_VertexCentrality_PageRankGAP(&graph, 1, 1, 1);
     }
     catch (string error)

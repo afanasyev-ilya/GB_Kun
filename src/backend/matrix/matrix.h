@@ -20,9 +20,12 @@ public:
     ~Matrix() {
         delete data;
         #ifdef __USE_SOCKET_OPTIMIZATIONS__
-        //delete data_socket_dub;
+        delete data_socket_dub;
         #endif
         delete transposed_data;
+
+        MemoryAPI::free_array(rowdegrees);
+        MemoryAPI::free_array(coldegrees);
     };
 
     void build(const VNT *_row_indices,
@@ -81,10 +84,24 @@ public:
         return transposed_data;
     }
 
-    void get_nrows(VNT* _size) const {
-        if (_format == CSR) {
-            data->get_size(_size);
-        }
+    void get_nrows(VNT* _nrows) const {
+        data->get_size(_nrows);
+    }
+
+    VNT get_nrows() const {
+        VNT nrows;
+        data->get_size(&nrows);
+        return nrows;
+    }
+
+    void get_ncols(VNT* _ncols) const {
+        data->get_size(_ncols);
+    }
+
+    VNT get_ncols() const {
+        VNT ncols;
+        data->get_size(&ncols);
+        return ncols;
     }
 
     void print() const
@@ -93,6 +110,16 @@ public:
     }
 
     ENT get_nnz() const {return data->get_nnz();};
+
+    ENT* get_rowdegrees()
+    {
+        return rowdegrees;
+    }
+
+    ENT* get_coldegrees()
+    {
+        return coldegrees;
+    }
 
 private:
     MatrixContainer<T> *data;
@@ -104,6 +131,8 @@ private:
 
     MatrixStorageFormat _format;
     Storage mat_type_;
+
+    ENT *rowdegrees, *coldegrees;
 };
 
 
@@ -114,7 +143,8 @@ void Matrix<T>::build(const VNT *_row_indices,
                       const VNT *_col_indices,
                       const T *_values,
                       const VNT _size, // todo remove
-                      const ENT _nnz) {
+                      const ENT _nnz)
+{
     if (_format == CSR) {
         data = new MatrixCSR<T>;
         #ifdef __USE_SOCKET_OPTIMIZATIONS__
@@ -157,7 +187,24 @@ void Matrix<T>::build(const VNT *_row_indices,
         data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nnz, 1);
     #endif
 
-    //transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
+    transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
+
+    MemoryAPI::allocate_array(&rowdegrees, get_nrows());
+    MemoryAPI::allocate_array(&coldegrees, get_ncols());
+
+    if (_format == CSR) {
+        #pragma omp parallel for
+        for(int i = 0; i < get_nrows(); i++)
+        {
+            rowdegrees[i] = data->get_degree(i);
+        }
+
+        #pragma omp parallel for
+        for(int i = 0; i < get_ncols(); i++)
+        {
+            coldegrees[i] = transposed_data->get_degree(i);
+        }
+    }
 }
 }
 }

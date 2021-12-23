@@ -70,6 +70,8 @@ public:
     ENT *get_row_ptr() {return row_ptr;};
     T *get_vals() {return vals;};
     VNT *get_col_ids() {return col_ids;};
+
+    ENT get_degree(VNT _row) {return row_ptr[_row + 1] - row_ptr[_row];};
 private:
     VNT size;
     ENT nnz;

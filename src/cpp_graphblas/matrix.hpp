@@ -31,21 +31,24 @@ public:
         return _matrix.set_preferred_matrix_format(_format);
     }
 
-    LA_Info get_nrows(Index* size) const{
-        _matrix.get_nrows(size);
+    LA_Info get_nrows(Index* _nrows) const{
+        *_nrows = _matrix.get_nrows();
         return GrB_SUCCESS;
     }
 
-    Index get_nrows() const{
-        Index size = 0;
-        _matrix.get_nrows(&size);
-        return size;
+    LA_Info get_ncols(Index* _ncols) const{
+        *_ncols = _matrix.get_ncols();
+        return GrB_SUCCESS;
     }
 
-    Index nrows() const{
-        Index size = 0;
-        _matrix.get_nrows(&size);
-        return size;
+    Index* get_rowdegrees()
+    {
+        return _matrix.get_rowdegrees();
+    }
+
+    Index* get_coldegrees()
+    {
+        return _matrix.get_coldegrees();
     }
 
     template <typename BinaryOpT>
@@ -78,7 +81,6 @@ public:
     }
 
     Index get_nnz() const {return _matrix.get_nnz();};
-
 private:
     backend::Matrix<T> _matrix;
 };

@@ -87,38 +87,47 @@
 //        };
 namespace lablas{
 
-template <typename D1, typename D2 = D1>
+        template <typename D1, typename D2 = D1>
         struct Identity {
             inline D2 operator()(D1 input) const { return input; }
         };
-template <typename T_out>
+
+        template <typename T_out>
         struct plus {
             inline T_out operator()(T_out lhs, T_out rhs) {
                 return lhs + rhs;
             }
         };
-template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+
+        template <typename T_in1, typename T_in2, typename T_out>
+        struct div {
+            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+                return lhs / rhs;
+            }
+        };
+
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct multiplies {
             inline T_out operator()(T_in1 lhs, T_in2 rhs) {
                 return lhs * rhs;
             }
         };
 
-template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct first {
             inline T_out operator()(T_in1 lhs, T_in2 rhs) {
                 return lhs;
             }
         };
 
-template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct second {
             inline T_out operator()(T_in1 lhs, T_in2 rhs) {
                 return lhs;
             }
         };
 
-template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct minimum {
             inline T_out operator()(T_in1 lhs, T_in2 rhs) {
                 if (lhs < rhs){
@@ -129,7 +138,7 @@ template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
             }
         };
 
-template <typename T_in1 = bool, typename T_in2 = bool, typename T_out = bool>
+        template <typename T_in1 = bool, typename T_in2 = bool, typename T_out = bool>
         struct logical_and {
             inline T_out operator()(T_in1 lhs, T_in2 rhs) {
                 return lhs && rhs;

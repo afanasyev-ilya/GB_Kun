@@ -10,6 +10,7 @@ public:
     virtual void print() const = 0;
     virtual void get_size(VNT* _size) const = 0;
     virtual ENT get_nnz() const = 0;
+    virtual ENT get_degree(VNT _row) {return 0;};
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

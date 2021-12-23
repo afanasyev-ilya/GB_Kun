@@ -12,34 +12,34 @@ namespace backend{
 // Dense vector indexed variant
 template <typename W, typename M, typename U, typename I,
         typename BinaryOpT>
-    LA_Info scatterIndexed(DenseVector<W>*  w,
-                        const Vector<M>* mask,
-                        BinaryOpT        accum,
-                        U*               d_u_val,
-                        I*               d_indices,
-                        Index            nindices,
-                        Descriptor*      desc) {
-        int w_size;
-        w->get_size(&w_size);
+LA_Info scatterIndexed(DenseVector<W>*  w,
+                    const Vector<M>* mask,
+                    BinaryOpT        accum,
+                    U*               d_u_val,
+                    I*               d_indices,
+                    Index            nindices,
+                    Descriptor*      desc) {
+    int w_size;
+    w->get_size(&w_size);
 
-        if (d_indices == NULL) {
-            for (VNT i = 0; i < w_size; i++) {
-                U val = d_u_val[i];
-                Index ind = i;
+    if (d_indices == NULL) {
+        for (VNT i = 0; i < w_size; i++) {
+            U val = d_u_val[i];
+            Index ind = i;
+            w->get_vals()[ind] = val;
+        }
+    } else {
+        for (VNT i = 0; i < w_size; i++) {
+            U val = d_u_val[i];
+            Index ind = d_indices[i];
+            if (ind >= 0 && ind < w_size) {
                 w->get_vals()[ind] = val;
             }
-        } else {
-            for (VNT i = 0; i < w_size; i++) {
-                U val = d_u_val[i];
-                Index ind = d_indices[i];
-                if (ind >= 0 && ind < w_size) {
-                    w->get_vals()[ind] = val;
-                }
-            }
         }
-
-        return GrB_SUCCESS;
     }
+
+    return GrB_SUCCESS;
+}
 
 }
 }
