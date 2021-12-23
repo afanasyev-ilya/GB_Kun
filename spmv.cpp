@@ -70,7 +70,7 @@ void test_spmv(int argc, char **argv)
         w.fill(0.0);
         u.fill(1.0);
         double t1 = omp_get_wtime();
-        lablas::mxv<T, T, T, T>(&w, NULL, nullptr, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
+        lablas::mxv(&w, static_cast<const lablas::Vector<T>*>(NULL), lablas::PlusMonoid<T>(), lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
         double t2 = omp_get_wtime();
         avg_time += (t2 - t1) / num_runs;
     }

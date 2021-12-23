@@ -117,3 +117,18 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     LAGraph_FREE_WORK ;
     return (0) ;
 }
+
+// вопросы для обсуждения
+
+// GrB_Vector - это указатель на Vector?
+
+// у нас есть указание шаблонных парамтеров vxm<float, float, float, float> -- как его избежать?
+// делать отдельные варинаты функций под возможность NULL?
+
+// где храним транспонированную матрицу? как у них, или нет?
+
+// реализация интеграции
+// 1. wrappers GrB_assign (t, NULL, GrB_MINUS_FP32, r, GrB_ALL, n, NULL) - внутри вызов наших функций, совместимых с graphBLAST
+// 2. define LAGraph_plus_second_fp32
+// 3. структура LAGraph_Graph
+// 4. макросы GrB_TRY / LG_CHECK
