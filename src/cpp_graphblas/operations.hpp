@@ -322,8 +322,8 @@ LA_Info vxm (Vector<W>*       _w,
              const Vector<M>* _mask,
              BinaryOpTAccum        _accum,
              SemiringT        _op,
-             const Matrix<a>* _matrix,
              const Vector<U>* _u,
+             const Matrix<a>* _matrix,
              Descriptor*      _desc)
 {
     if(not_initialized(_w, _u, _matrix, _desc))

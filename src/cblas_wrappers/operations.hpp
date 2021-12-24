@@ -204,8 +204,8 @@ LA_Info GrB_vxm (lablas::Vector<W>*       _w,
                  const lablas::Vector<M>* _mask,
                  BinaryOpTAccum        _accum,
                  SemiringT        _op,
-                 const lablas::Matrix<a>* _matrix,
                  const lablas::Vector<U>* _u,
+                 const lablas::Matrix<a>* _matrix,
                  lablas::Descriptor*      _desc)
 {
     return lablas::vxm(_w, _mask, _accum, _op, _matrix, _u, _desc);
@@ -216,11 +216,11 @@ LA_Info GrB_vxm (lablas::Vector<W>*       _w,
                  const lablas::Vector<M>* _mask,
                  NULL_TYPE        _accum,
                  SemiringT        _op,
-                 const lablas::Matrix<a>* _matrix,
                  const lablas::Vector<U>* _u,
+                 const lablas::Matrix<a>* _matrix,
                  lablas::Descriptor*      _desc)
 {
-    return lablas::vxm(_w, _mask, lablas::second<U, W, U>(), _op, _matrix, _u, _desc);
+    return lablas::vxm(_w, _mask, lablas::second<U, W, U>(), _op, _u, _matrix, _desc);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

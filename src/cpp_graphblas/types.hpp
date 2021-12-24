@@ -170,6 +170,20 @@ namespace lablas{
             }
         };
 
+        template <typename T_in1 = bool, typename T_in2 = bool, typename T_out = bool>
+        struct logical_or {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
+                return lhs || rhs;
+            }
+        };
+
+        template <typename T_in1, typename T_in2=T_in1, typename T_out=T_in1>
+        struct GrB_ONEB_T {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
+                return (T_out)1;
+            }
+        };
+
 // Monoid generator macro provided by Scott McMillan.
 #define REGISTER_MONOID(M_NAME, BINARYOP, IDENTITY)                          \
 template <typename T_out>                                                    \
@@ -193,6 +207,7 @@ REGISTER_MONOID(SecondWinsMonoid, second, 0)
 
 REGISTER_MONOID(FirstMin, minimum, 0)
 
+REGISTER_MONOID(GrB_LOR_MONOID_BOOL, logical_or, false)
 
 // Semiring generator macro provided by Scott McMillan
 #define REGISTER_SEMIRING(SR_NAME, ADD_MONOID, MULT_BINARYOP)             \
@@ -218,6 +233,7 @@ REGISTER_SEMIRING(LogicalOrAndSemiring, LogicalOrMonoid, logical_and)
 REGISTER_SEMIRING(FirstWinsSemiring, FirstWinsMonoid, multiplies)
 REGISTER_SEMIRING(FirstMinSemiring, FirstMin, multiplies)
 REGISTER_SEMIRING(PlusSecondSemiring, PlusMonoid, second)
+REGISTER_SEMIRING(StructuralBool, GrB_LOR_MONOID_BOOL, GrB_ONEB_T)
 
 template <typename SemiringT>
 struct AdditiveMonoidFromSemiring {

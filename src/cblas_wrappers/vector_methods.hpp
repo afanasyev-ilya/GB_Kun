@@ -16,3 +16,11 @@ LA_Info GrB_free(lablas::Vector<T> **_vector)
     *_vector = NULL;
     return GrB_SUCCESS;
 }
+
+template <typename W, typename T>
+LA_Info GrB_Vector_setElement(lablas::Vector<W> *_w,
+                              const T _val,
+                              GrB_Index _index)
+{
+    return _w->set_element(_val, _index);
+}
