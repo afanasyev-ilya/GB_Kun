@@ -222,7 +222,7 @@ template <typename W, typename M, typename U,
         typename BinaryOpTAccum>
 LA_Info assign(Vector<W>*       _w,
                const Vector<M>* _mask,
-               BinaryOpTAccum        _accum,
+               BinaryOpTAccum _accum,
                U _value,
                const Index *_indices,
                const Index _nindices,
@@ -280,20 +280,10 @@ LA_Info assign(Vector<W>*       _w,
         W* w_vals = _w->get_vector()->getDense()->get_vals();
         U* u_vals = _u->get_vector()->getDense()->get_vals();
 
-        if(std::is_same<BinaryOpTAccum, long int>::value)
-        {
-            auto lambda_op = [w_vals, u_vals](Index idx) {
-                w_vals[idx] = u_vals[idx];
-            };
-            return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
-        }
-        else
-        {
-            auto lambda_op = [w_vals, u_vals, &_accum](Index idx) {
-                w_vals[idx] = _accum(w_vals[idx], u_vals[idx]);
-            };
-            return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
-        }
+        auto lambda_op = [w_vals, u_vals, &_accum](Index idx) {
+            w_vals[idx] = _accum(w_vals[idx], u_vals[idx]);
+        };
+        return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
     }
     else
     {

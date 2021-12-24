@@ -45,7 +45,7 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     GrB_TRY (GrB_Vector_new (&t, GrB_FP32, n)) ;
     GrB_TRY (GrB_Vector_new (&r, GrB_FP32, n)) ;
     GrB_TRY (GrB_Vector_new (&w, GrB_FP32, n)) ;
-    GrB_TRY (GrB_assign (r, TEMP_NULL, nullptr, 1.0 / n, GrB_ALL, n, NULL)) ;
+    GrB_TRY (GrB_assign (r, TEMP_NULL, NULL, 1.0 / n, GrB_ALL, n, NULL)) ;
 
     // prescale with damping factor, so it isn't done each iteration
     // d = d_out / damping ;
@@ -57,11 +57,11 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     // d1 = 1 / damping
     float dmin = 1.0 / damping ;
     GrB_TRY (GrB_Vector_new (&d1, GrB_FP32, n)) ;
-    GrB_TRY (GrB_assign (d1, TEMP_NULL, nullptr, dmin, GrB_ALL, n, NULL)) ;
+    GrB_TRY (GrB_assign (d1, TEMP_NULL, NULL, dmin, GrB_ALL, n, NULL)) ;
     // d = max (d1, d)
     d1->print();
     d->print();
-    GrB_TRY (GrB_eWiseAdd (d, TEMP_NULL, nullptr, GrB_MAX_FP32, d1, d, NULL)) ;
+    GrB_TRY (GrB_eWiseAdd (d, TEMP_NULL, NULL, GrB_MAX_FP32, d1, d, NULL)) ;
     GrB_free (&d1) ;
     d->print();
 
@@ -74,13 +74,13 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
         // swap t and r ; now t is the old score
         GrB_Vector temp = t ; t = r ; r = temp ;
         // w = t ./ d
-        GrB_TRY (GrB_eWiseMult (w, TEMP_NULL, nullptr, GrB_DIV_FP32, t, d, NULL)) ;
+        GrB_TRY (GrB_eWiseMult (w, TEMP_NULL, NULL, GrB_DIV_FP32, t, d, NULL)) ;
         // r = teleport
-        GrB_TRY (GrB_assign (r, TEMP_NULL, nullptr, teleport, GrB_ALL, n, NULL)) ;
+        GrB_TRY (GrB_assign (r, TEMP_NULL, NULL, teleport, GrB_ALL, n, NULL)) ;
         // r += A'*w
         GrB_TRY (GrB_mxv (r, TEMP_NULL, GrB_PLUS_FP32, LAGraph_plus_second_fp32, AT, w, NULL)) ;
         // t -= r
-        GrB_TRY (GrB_assign (t, TEMP_NULL, GrB_MINUS_FP32, r, GrB_ALL, n, NULL)) ;
+        GrB_TRY (GrB_assign (t, TEMP_NULL, NULL, r, GrB_ALL, n, NULL)) ;
 
         cout << "t: ";
         t->print();
@@ -102,18 +102,3 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     #undef GrB_Vector
     #undef TEMP_NULL
 }
-
-// вопросы для обсуждения
-
-// GrB_Vector - это указатель на Vector?
-
-// у нас есть указание шаблонных парамтеров vxm<float, float, float, float> -- как его избежать?
-// делать отдельные варинаты функций под возможность NULL?
-
-// где храним транспонированную матрицу? как у них, или нет?
-
-// реализация интеграции
-// 1. wrappers GrB_assign (t, NULL, GrB_MINUS_FP32, r, GrB_ALL, n, NULL) - внутри вызов наших функций, совместимых с graphBLAST
-// 2. define LAGraph_plus_second_fp32
-// 3. структура LAGraph_Graph
-// 4. макросы GrB_TRY / LG_CHECK
