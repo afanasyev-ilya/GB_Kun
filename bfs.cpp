@@ -30,8 +30,7 @@ int main(int argc, char **argv) {
         matrix.get_nrows(&nrows);
         Index source_vertex = rand() % nrows;
 
-        lablas::Vector<int> *levels = new lablas::Vector<int>(nrows);
-        lablas::Vector<int> *parents = NULL;
+        lablas::Vector<int> *parents, *levels;
 
         LAGraph_Graph<int> graph(matrix);
 
