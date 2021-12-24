@@ -137,7 +137,7 @@ namespace lablas{
         template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct second {
             inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
-                return lhs;
+                return rhs;
             }
         };
 

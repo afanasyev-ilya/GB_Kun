@@ -63,7 +63,7 @@ LA_Info generic_dense_reduce_op(T *_tmp_val,
 
         #pragma omp critical
         {
-            *_tmp_val = _monoid_op(*_tmp_val, *_tmp_val);
+            *_tmp_val = _monoid_op(*_tmp_val, local_res);
         };
     }
     return GrB_SUCCESS;

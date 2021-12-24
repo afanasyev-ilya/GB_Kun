@@ -1,21 +1,21 @@
 #pragma once
 
+#define GrB_Matrix lablas::Matrix<float>*
+#define GrB_Vector lablas::Vector<float>*
+#define TEMP_NULL static_cast<const lablas::Vector<float>*>(NULL)
+
 int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
         (
                 // outputs:
-                //GrB_Vector *centrality, // centrality(i): GAP-style pagerank of node i
+                GrB_Vector* centrality, // centrality(i): GAP-style pagerank of node i
                 // inputs:
                 LAGraph_Graph<float> *G,        // input graph
-                float damping,          // damping factor (typically 0.85)
-                float tol,              // stopping tolerance (typically 1e-4) ;
-                int itermax,            // maximum number of iterations (typically 100)
-                int *iters             // output: number of iterations taken
-                //char *msg
+                int *iters,                      // output: number of iterations taken
+                float damping = 0.85,           // damping factor (typically 0.85)
+                float tol = 1e-4,               // stopping tolerance (typically 1e-4) ;
+                int itermax = 100              // maximum number of iterations (typically 100)
         )
 {
-    #define GrB_Matrix lablas::Matrix<float>*
-    #define GrB_Vector lablas::Vector<float>*
-    #define TEMP_NULL static_cast<const lablas::Vector<float>*>(NULL)
     //--------------------------------------------------------------------------
     // check inputs
     //--------------------------------------------------------------------------
@@ -53,25 +53,21 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     // d = d_out / damping ;
     GrB_TRY (GrB_Vector_new (&d, GrB_FP32, n)) ;
     GrB_TRY (GrB_apply (d, TEMP_NULL, NULL, GrB_DIV_FP32, d_out, damping, NULL)) ;
-    d_out->print();
-    d->print();
 
     // d1 = 1 / damping
     float dmin = 1.0 / damping ;
     GrB_TRY (GrB_Vector_new (&d1, GrB_FP32, n)) ;
     GrB_TRY (GrB_assign (d1, TEMP_NULL, NULL, dmin, GrB_ALL, n, NULL)) ;
     // d = max (d1, d)
-    d1->print();
-    d->print();
     GrB_TRY (GrB_eWiseAdd (d, TEMP_NULL, NULL, GrB_MAX_FP32, d1, d, NULL)) ;
     GrB_free (&d1) ;
-    d->print();
 
     //--------------------------------------------------------------------------
     // pagerank iterations
     //--------------------------------------------------------------------------
 
-    for ((*iters) = 0 ; (*iters) < 1/*itermax && rdiff > tol */; (*iters)++)
+    cout << rdiff << " " << tol << endl;
+    for ((*iters) = 0 ; (*iters) < 1 && rdiff > tol; (*iters)++)
     {
         // swap t and r ; now t is the old score
         GrB_Vector temp = t ; t = r ; r = temp ;
@@ -94,11 +90,15 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     // free workspace and return result
     //--------------------------------------------------------------------------
 
-    /*(*centrality) = r ;
-    LAGraph_FREE_WORK ;*/
-    return 0;
+    float ranks_sum = 0;
+    GrB_TRY (GrB_reduce (&ranks_sum, NULL, GrB_PLUS_MONOID_FP32, r, NULL));
+    r->print();
+    cout << "ranks sum : " << ranks_sum << endl;
 
-    #undef GrB_Matrix
-    #undef GrB_Vector
-    #undef TEMP_NULL
+    (*centrality) = r ;
+    return 0;
 }
+
+#undef GrB_Matrix
+#undef GrB_Vector
+#undef TEMP_NULL

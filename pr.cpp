@@ -39,7 +39,11 @@ int main(int argc, char **argv) {
         graph.coldegree->build(matrix.get_coldegrees(), ncols);
         graph.coldegree->print();
         int iters_taken = 0;
-        LAGraph_VertexCentrality_PageRankGAP(&graph, 10, 5, 100, &iters_taken );
+
+        lablas::Vector<float>* centrality;
+        LAGraph_VertexCentrality_PageRankGAP(&centrality, &graph, &iters_taken);
+
+        centrality->print();
     }
     catch (string error)
     {
