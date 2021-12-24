@@ -26,9 +26,6 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
     // get the problem size and properties
     //--------------------------------------------------------------------------
     GrB_Matrix A = G->A;
-    GrB_Matrix AT = G->AT;
-
-    lablas::Vector<Index>* Degree = G->rowdegree ;
 
     GrB_Index n;
     GrB_TRY( GrB_Matrix_nrows (&n, A) );
@@ -59,6 +56,7 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
     // parent BFS
     do
     {
+        cout << " ------------------- " << endl;
         // assign levels: l_level<s(frontier)> = current_level
         GrB_TRY( GrB_assign(l_level, frontier, NULL, current_level, GrB_ALL, n, &desc) );
         l_level->print();
@@ -80,6 +78,46 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
 
     (*level ) = l_level;
     return (0);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int my_BreadthFirstSearch_vanilla(GrB_Vector *levels,
+                                  LAGraph_Graph<int> *G,
+                                  GrB_Index src)
+{
+    lablas::Descriptor desc;
+    GrB_Matrix A = G->A;
+    GrB_Index n;
+    GrB_TRY( GrB_Matrix_nrows (&n, A) );
+
+    GrB_Vector f1 = NULL, *f2 = NULL, *v = NULL;
+    GrB_TRY(GrB_Vector_new(&f1, GrB_INT32, n));
+    GrB_TRY(GrB_Vector_new(&f2, GrB_INT32, n));
+    GrB_TRY(GrB_Vector_new(&v, GrB_INT32, n));
+
+    GrB_TRY(GrB_assign(f1, MASK_NULL, NULL, 0, GrB_ALL, n, NULL));
+    GrB_TRY(GrB_assign(f2, MASK_NULL, NULL, 0, GrB_ALL, n, NULL));
+    GrB_TRY(GrB_assign(v, MASK_NULL, NULL, 0, GrB_ALL, n, NULL));
+    GrB_TRY (GrB_Vector_setElement(f1, 1, src)) ;
+
+    int iter = 0;
+    int succ = 0;
+    do {
+        GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, NULL));
+        GrB_TRY( GrB_vxm(f2, v, NULL, lablas::LogicalOrAndSemiring<int>(), f1, A, &desc));
+
+        GrB_Vector tmp = f2;
+        f2 = f1;
+        f1 = tmp;
+
+        GrB_TRY (GrB_reduce (&succ, NULL, GrB_PLUS_MONOID_INT32, f1, NULL)) ;
+
+        iter++;
+    } while(succ > 0);
+
+    v->print();
+    *levels = v;
 }
 
 #undef GrB_Matrix

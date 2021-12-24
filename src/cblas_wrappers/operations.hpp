@@ -235,7 +235,7 @@ LA_Info GrB_mxv (lablas::Vector<W>*       _w,
                  const lablas::Vector<U>* _u,
                  lablas::Descriptor*      _desc)
 {
-    return lablas::vxm(_w, _mask, _accum, _op, _matrix, _u, _desc);
+    return lablas::mxv(_w, _mask, _accum, _op, _matrix, _u, _desc);
 }
 
 template <typename W, typename M, typename a, typename U, typename SemiringT>
@@ -247,7 +247,7 @@ LA_Info GrB_mxv (lablas::Vector<W>*       _w,
                  const lablas::Vector<U>* _u,
                  lablas::Descriptor*      _desc)
 {
-    return lablas::vxm(_w, _mask, lablas::second<U, W, U>(), _op, _matrix, _u, _desc);
+    return lablas::mxv(_w, _mask, lablas::second<U, W, U>(), _op, _matrix, _u, _desc);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

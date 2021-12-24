@@ -99,10 +99,10 @@ private:
 
     template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV(const MatrixCSR<A> *_matrix,
-              const DenseVector<X> *_x,
-              DenseVector<Y> *_y,
-              BinaryOpTAccum _accum,
-              SemiringT op);
+                     const DenseVector<X> *_x,
+                     DenseVector<Y> *_y,
+                     BinaryOpTAccum _accum,
+                     SemiringT op);
 
     template <typename N, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_numa_aware(MatrixCSR<N> *_matrix,

@@ -61,7 +61,8 @@ enum GrB_Type
 
 // semirings
 #define LAGraph_plus_second_fp32 lablas::PlusSecondSemiring<float>()
-#define LAGraph_structural_bool lablas::StructuralBool<float>()
+#define LAGraph_structural_bool lablas::StructuralBool<bool>()
 
 // monoids
 #define GrB_PLUS_MONOID_FP32 lablas::PlusMonoid<float>()
+#define GrB_PLUS_MONOID_INT32 lablas::PlusMonoid<int>()
