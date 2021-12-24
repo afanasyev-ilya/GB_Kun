@@ -39,6 +39,7 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
     // create a sparse boolean vector frontier, and set frontier(src) = true
     GrB_TRY (GrB_Vector_new(&frontier, GrB_BOOL, n)) ;
     GrB_TRY (GrB_Vector_setElement(frontier, true, src)) ;
+    frontier->print();
 
     // create the level vector. v(i) is the level of node i
     // v (src) = 0 denotes the source node
@@ -55,21 +56,25 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
     // {!mask} is the set of unvisited nodes
     GrB_Vector mask = l_level ;
 
-    frontier->print();
-
     // parent BFS
     do
     {
         // assign levels: l_level<s(frontier)> = current_level
         GrB_TRY( GrB_assign(l_level, frontier, NULL, current_level, GrB_ALL, n, &desc) );
+        l_level->print();
         ++current_level;
 
         // frontier = kth level of the BFS
         // mask is l_parent if computing parent, l_level if computing just level
+        cout << "mask ";
+        mask->print();
+        desc.set(GrB_MASK, GrB_DEFAULT);
         GrB_TRY( GrB_vxm(frontier, mask, NULL, LAGraph_structural_bool, frontier, A, &desc) );
+        cout << "frontier after vxm ";
+        frontier->print();
 
         // done if frontier is empty
-        //GrB_TRY( GrB_Vector_nvals(&nvals, frontier) );
+        GrB_TRY( GrB_Vector_nvals(&nvals, frontier) );
     } while (nvals > 0);
 
 

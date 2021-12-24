@@ -79,7 +79,22 @@ public:
         }
     }
 
-    VNT nvals() {return nnz;};
+    VNT nvals()
+    {
+        if(storage == GrB_SPARSE)
+        {
+            sparse.get_nnz(&nnz);
+        }
+        else
+        {
+            nnz = 0;
+            #pragma omp parallel for reduction(+: nnz)
+            for(int i = 0; i < dense.get_size(); i++)
+                if(dense.get_vals()[i] != 0)
+                    nnz++;
+        }
+        return nnz;
+    };
 private:
     VNT size;
     VNT nnz;

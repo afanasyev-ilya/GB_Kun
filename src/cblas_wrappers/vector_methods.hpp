@@ -24,3 +24,10 @@ LA_Info GrB_Vector_setElement(lablas::Vector<W> *_w,
 {
     return _w->set_element(_val, _index);
 }
+
+template <typename W>
+LA_Info GrB_Vector_nvals(Index *_nvals,
+                         const lablas::Vector<W> *_w)
+{
+    return _w->get_nvals(_nvals);
+}

@@ -52,6 +52,13 @@ public:
         return &_vector;
     }
 
+    LA_Info get_nvals(Index *_nvals)
+    {
+        *_nvals = _vector.nvals();
+        cout << "!!!!!" << *_nvals << endl;
+        return GrB_SUCCESS;
+    }
+
     const backend::Vector<T>* get_vector() const {
         return &_vector;
     }
