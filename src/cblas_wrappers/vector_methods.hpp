@@ -13,5 +13,6 @@ LA_Info GrB_free(lablas::Vector<T> **_vector)
 {
     // types can be checked
     delete (*_vector);
+    *_vector = NULL;
     return GrB_SUCCESS;
 }
