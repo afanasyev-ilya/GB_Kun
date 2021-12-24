@@ -22,7 +22,7 @@ void bfs_traditional(Vector <T> *_levels,
     list<Index> queue;
 
     // Mark the current node as visited and enqueue it
-    levels[_source_vertex] = 0;
+    levels[_source_vertex] = 1;
     queue.push_back(_source_vertex);
 
     while(!queue.empty())

@@ -45,8 +45,8 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
     //--------------------------------------------------------------------------
     // BFS traversal and label the nodes
     //--------------------------------------------------------------------------
-    GrB_Index nq = 1 ;          // number of nodes in the current level
-    GrB_Index last_nq = 0 ;
+    GrB_Index nq = 1; // number of nodes in the current level
+    GrB_Index last_nq = 0;
     GrB_Index current_level = 1;
     GrB_Index nvals = 1;
 
@@ -96,12 +96,14 @@ int my_BreadthFirstSearch_vanilla(GrB_Vector *levels,
     GrB_TRY(GrB_Vector_new(&f2, GrB_INT32, n));
     GrB_TRY(GrB_Vector_new(&v, GrB_INT32, n));
 
+    double t1 = omp_get_wtime();
+
     GrB_TRY(GrB_assign(f1, MASK_NULL, NULL, 0, GrB_ALL, n, NULL));
     GrB_TRY(GrB_assign(f2, MASK_NULL, NULL, 0, GrB_ALL, n, NULL));
     GrB_TRY(GrB_assign(v, MASK_NULL, NULL, 0, GrB_ALL, n, NULL));
     GrB_TRY (GrB_Vector_setElement(f1, 1, src)) ;
 
-    int iter = 0;
+    int iter = 1;
     int succ = 0;
     do {
         GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, NULL));
@@ -111,16 +113,15 @@ int my_BreadthFirstSearch_vanilla(GrB_Vector *levels,
         f2 = f1;
         f1 = tmp;
 
-        succ = 0;
-        f1->print();
         GrB_TRY (GrB_reduce (&succ, NULL, GrB_PLUS_MONOID_INT32, f1, NULL)) ;
-        cout << "succ: " << succ << "/" << n << endl;
 
         iter++;
     } while(succ > 0);
 
-    v->print();
     *levels = v;
+
+    double t2 = omp_get_wtime();
+    cout << "BFS perf: " << A->get_nnz()/((t2 - t1)*1e6) << " MTEPS" << endl;
 }
 
 #undef GrB_Matrix

@@ -96,7 +96,10 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
     int max_id_val = vertices_count;
     rng_api.generate_array_of_random_values<VNT>(src_ids, directed_edges_count, max_id_val);
     rng_api.generate_array_of_random_values<VNT>(dst_ids, directed_edges_count, max_id_val);
-    rng_api.generate_array_of_random_values<T>(vals, directed_edges_count, 1.0);
+    //rng_api.generate_array_of_random_values<T>(vals, directed_edges_count, 1.0);
+    #pragma omp parallel for
+    for(ENT i = 0; i < directed_edges_count; i++)
+        vals[i] = EDGE_VAL;
 
     if(!_direction_type)
     {
