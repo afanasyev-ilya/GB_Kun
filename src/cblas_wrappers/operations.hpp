@@ -52,7 +52,7 @@ template <typename W, typename M, typename U,
 LA_Info GrB_assign(lablas::Vector<W>*       _w,
                    const lablas::Vector<M>* _mask,
                    BinaryOpT        _accum,
-                   const U _value,
+                   U _value,
                    const GrB_Index *_indices,
                    const GrB_Index _nindices,
                    lablas::Descriptor*  _desc)

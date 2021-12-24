@@ -223,7 +223,7 @@ template <typename W, typename M, typename U,
 LA_Info assign(Vector<W>*       _w,
                const Vector<M>* _mask,
                BinaryOpT        _accum,
-               const U _value,
+               U _value,
                const Index *_indices,
                const Index _nindices,
                Descriptor*  _desc)
