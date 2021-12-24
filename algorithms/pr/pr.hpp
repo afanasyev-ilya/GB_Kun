@@ -64,25 +64,23 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
         GrB_TRY (GrB_assign (r, MASK_NULL, NULL, teleport, GrB_ALL, n, NULL)) ;
         // r += A'*w
         GrB_TRY (GrB_mxv (r, MASK_NULL, GrB_PLUS_FP32, LAGraph_plus_second_fp32,
-                          AT, w, NULL)) ;
+                          AT, w, &desc)) ;
         // t -= r
         GrB_TRY (GrB_assign (t, MASK_NULL, GrB_MINUS_FP32, r, GrB_ALL, n, NULL)) ;
         // t = abs (t)
         GrB_TRY (GrB_apply (t, MASK_NULL, NULL, GrB_ABS_FP32, t, NULL)) ;
         // rdiff = sum (t)
         GrB_TRY (GrB_reduce (&rdiff, NULL, GrB_PLUS_MONOID_FP32, t, NULL)) ;
+
+        float ranks_sum = 0;
+        GrB_TRY (GrB_reduce (&ranks_sum, NULL, GrB_PLUS_MONOID_FP32, r, NULL));
+        cout << "ranks sum : " << ranks_sum << endl;
+
     }
 
     //--------------------------------------------------------------------------
     // free workspace and return result
     //--------------------------------------------------------------------------
-
-    (*centrality) = r ;
-
-    float ranks_sum = 0;
-    GrB_TRY (GrB_reduce (&ranks_sum, NULL, GrB_PLUS_MONOID_FP32, r, NULL));
-    r->print();
-    cout << "ranks sum : " << ranks_sum << endl;
 
     (*centrality) = r ;
     GrB_free (&d1) ;

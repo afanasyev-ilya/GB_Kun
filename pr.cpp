@@ -35,15 +35,14 @@ int main(int argc, char **argv) {
         graph.rowdegree = new lablas::Vector<Index>(nrows);
         graph.coldegree = new lablas::Vector<Index>(ncols);
         graph.rowdegree->build(matrix.get_rowdegrees(), nrows);
-        graph.rowdegree->print();
         graph.coldegree->build(matrix.get_coldegrees(), ncols);
-        graph.coldegree->print();
         int iters_taken = 0;
 
         lablas::Vector<float>* centrality;
         LAGraph_VertexCentrality_PageRankGAP(&centrality, &graph, &iters_taken);
 
         centrality->print();
+        delete centrality;
     }
     catch (string error)
     {
