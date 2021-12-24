@@ -111,7 +111,10 @@ int my_BreadthFirstSearch_vanilla(GrB_Vector *levels,
         f2 = f1;
         f1 = tmp;
 
+        succ = 0;
+        f1->print();
         GrB_TRY (GrB_reduce (&succ, NULL, GrB_PLUS_MONOID_INT32, f1, NULL)) ;
+        cout << "succ: " << succ << "/" << n << endl;
 
         iter++;
     } while(succ > 0);

@@ -55,7 +55,7 @@ LA_Info generic_dense_reduce_op(T *_tmp_val,
     #pragma omp parallel
     {
         T local_res = _monoid_op.identity();
-        #pragma omp parallel for
+        #pragma omp for
         for(Index i = 0; i < _size; i++)
         {
             local_res = _monoid_op(_lambda_op(i), local_res);
