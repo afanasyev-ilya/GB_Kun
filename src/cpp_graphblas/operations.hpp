@@ -255,6 +255,47 @@ LA_Info assign(Vector<W>*       _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/* w[indexes[i]] = mask[indexes[i]] ^ _u[indexes[i]] */
+template <typename W, typename M, typename U,
+        typename BinaryOpT>
+LA_Info assign(Vector<W>*       _w,
+               const Vector<M>* _mask,
+               BinaryOpT        _accum,
+               Vector<U>* _u,
+               const Index *_indices,
+               const Index _nindices,
+               Descriptor*  _desc)
+{
+    if(not_initialized(_w))
+        return GrB_UNINITIALIZED_OBJECT;
+    if(dims_mismatched(_w, _u))
+        return GrB_DIMENSION_MISMATCH;
+
+    auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
+    backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
+
+    if(_indices == NULL)
+    {
+        Index vector_size = _w->get_vector()->getDense()->get_size();
+        W* w_vals = _w->get_vector()->getDense()->get_vals();
+        U* u_vals = _u->get_vector()->getDense()->get_vals();
+
+        auto lambda_op = [w_vals, u_vals] (Index idx)
+        {
+            w_vals[idx] = u_vals[idx];
+        };
+        return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+    }
+    else
+    {
+        throw "Error in assign : _indices != NULL currently not supported";
+    }
+
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename W, typename M, typename a, typename U,
         typename BinaryOpT, typename SemiringT>
 LA_Info mxv (Vector<W>*       _w,

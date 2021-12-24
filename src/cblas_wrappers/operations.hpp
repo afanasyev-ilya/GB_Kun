@@ -62,6 +62,21 @@ LA_Info GrB_assign(lablas::Vector<W>*       _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/* w[indexes[i]] = mask[indexes[i]] ^ _u[indexes[i]] */
+template <typename W, typename M, typename U, typename BinaryOpT>
+LA_Info GrB_assign(lablas::Vector<W>*       _w,
+                   const lablas::Vector<M>* _mask,
+                   BinaryOpT        _accum,
+                   lablas::Vector<U>* _u,
+                   const GrB_Index *_indices,
+                   const GrB_Index _nindices,
+                   lablas::Descriptor*  _desc)
+{
+    return lablas::assign(_w, _mask, _accum, _u, _indices, _nindices, _desc);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /* w[i] = mask[i] ^ op(u[i], v[i]); w is UNION of u an v */
 template <typename W, typename M, typename U, typename V, typename BinaryOpTAccum, typename BinaryOpT>
 LA_Info GrB_eWiseAdd(lablas::Vector<W>* _w,

@@ -36,4 +36,4 @@ enum GrB_Type
 #define GrB_ABS_FP32 lablas::abs<float>()
 
 // semirings
-#define LAGraph_plus_second_fp32 lablas::PlusMultipliesSemiring<float>()
+#define LAGraph_plus_second_fp32 lablas::PlusSecondSemiring<float>()

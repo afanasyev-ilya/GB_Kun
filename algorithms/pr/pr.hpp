@@ -50,7 +50,7 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     // prescale with damping factor, so it isn't done each iteration
     // d = d_out / damping ;
     GrB_TRY (GrB_Vector_new (&d, GrB_FP32, n)) ;
-    GrB_TRY (GrB_apply (d, TEMP_NULL, nullptr, GrB_DIV_FP32, d_out, damping, NULL)) ;
+    GrB_TRY (GrB_apply (d, TEMP_NULL, NULL, GrB_DIV_FP32, d_out, damping, NULL)) ;
     d_out->print();
     d->print();
 
@@ -80,11 +80,14 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
         // r += A'*w
         GrB_TRY (GrB_mxv (r, TEMP_NULL, GrB_PLUS_FP32, LAGraph_plus_second_fp32, AT, w, NULL)) ;
         // t -= r
-        //GrB_TRY (GrB_assign (t, TEMP_NULL, GrB_MINUS_FP32, r, GrB_ALL, n, NULL)) ;
+        GrB_TRY (GrB_assign (t, TEMP_NULL, GrB_MINUS_FP32, r, GrB_ALL, n, NULL)) ;
+
+        cout << "t: ";
+        t->print();
         // t = abs (t)
-        //GrB_TRY (GrB_apply (t, TEMP_NULL, NULL, GrB_ABS_FP32, t, NULL)) ;
+        GrB_TRY (GrB_apply (t, TEMP_NULL, NULL, GrB_ABS_FP32, t, NULL)) ;
         // rdiff = sum (t)
-        /*GrB_TRY (GrB_reduce (&rdiff, NULL, GrB_PLUS_MONOID_FP32, t, NULL));*/
+        //GrB_TRY (GrB_reduce (&rdiff, NULL, GrB_PLUS_MONOID_FP32, t, NULL));
     }
 
     //--------------------------------------------------------------------------
