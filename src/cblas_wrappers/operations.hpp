@@ -257,10 +257,20 @@ template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
 LA_Info GrB_reduce(T *_val,
                    BinaryOpTAccum _accum,
                    MonoidT _op,
-                   const lablas::Vector<U>* u,
-                   lablas::Descriptor* desc)
+                   const lablas::Vector<U>* _u,
+                   lablas::Descriptor* _desc)
 {
-    return GrB_SUCCESS;
+    return lablas::reduce(_val, _accum, _op, _u, _desc);
+}
+
+template <typename T, typename U, typename MonoidT>
+LA_Info GrB_reduce(T *_val,
+                   NULL_TYPE _accum,
+                   MonoidT _op,
+                   const lablas::Vector<U>* _u,
+                   lablas::Descriptor* _desc)
+{
+    return lablas::reduce(_val, lablas::second<T, T, T>(), _op, _u, _desc);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

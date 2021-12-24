@@ -45,5 +45,31 @@ LA_Info generic_dense_vector_op(const Vector<M> *_mask,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename T, typename LambdaOp, typename MonoidOpT>
+LA_Info generic_dense_reduce_op(T *_tmp_val,
+                                const Index _size,
+                                LambdaOp &&_lambda_op,
+                                MonoidOpT _monoid_op,
+                                Descriptor *_desc)
+{
+    #pragma omp parallel
+    {
+        T local_res = _monoid_op.identity();
+        #pragma omp parallel for
+        for(Index i = 0; i < _size; i++)
+        {
+            local_res = _monoid_op(_lambda_op(i), local_res);
+        }
+
+        #pragma omp critical
+        {
+            *_tmp_val = _monoid_op(*_tmp_val, *_tmp_val);
+        };
+    }
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 }
 }
