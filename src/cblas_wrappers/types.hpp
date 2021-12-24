@@ -8,11 +8,30 @@
 template <typename T>
 struct LAGraph_Graph
 {
-    lablas::Matrix<float> *A;
-    lablas::Matrix<float> *AT;
+    lablas::Matrix<T> *A;
+    lablas::Matrix<T> *AT;
 
     lablas::Vector<GrB_Index> *rowdegree;
     lablas::Vector<GrB_Index> *coldegree;
+
+    LAGraph_Graph(lablas::Matrix<T> &_matrix)
+    {
+        Index nrows, ncols;
+        _matrix.get_nrows(&nrows);
+        _matrix.get_ncols(&ncols);
+        A = &_matrix;
+        AT = &_matrix;
+        rowdegree = new lablas::Vector<Index>(nrows);
+        coldegree = new lablas::Vector<Index>(ncols);
+        rowdegree->build(_matrix.get_rowdegrees(), nrows);
+        coldegree->build(_matrix.get_coldegrees(), ncols);
+    }
+
+    ~LAGraph_Graph()
+    {
+        delete rowdegree;
+        delete coldegree;
+    }
 };
 
 #define GrB_TRY( CallInstruction ) { \

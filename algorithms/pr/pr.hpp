@@ -4,17 +4,13 @@
 #define GrB_Vector lablas::Vector<float>*
 #define MASK_NULL static_cast<const lablas::Vector<float>*>(NULL)
 
-int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
-        (
-                // outputs:
-                GrB_Vector* centrality, // centrality(i): GAP-style pagerank of node i
-                // inputs:
-                LAGraph_Graph<float> *G,        // input graph
-                int *iters,                      // output: number of iterations taken
-                float damping = 0.85,           // damping factor (typically 0.85)
-                float tol = 1e-4,               // stopping tolerance (typically 1e-4) ;
-                int itermax = 100              // maximum number of iterations (typically 100)
-        )
+int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(i): GAP-style pagerank of node i
+                                          // inputs:
+                                          LAGraph_Graph<float> *G,        // input graph
+                                          int *iters,                     // output: number of iterations taken
+                                          float damping = 0.85,           // damping factor (typically 0.85)
+                                          float tol = 1e-4,               // stopping tolerance (typically 1e-4) ;
+                                          int itermax = 100)              // maximum number of iterations (typically 100)
 {
     GrB_Matrix AT = G->AT;
     lablas::Vector<Index>* d_out = G->rowdegree ;
@@ -63,8 +59,7 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
         // r = teleport
         GrB_TRY (GrB_assign (r, MASK_NULL, NULL, teleport, GrB_ALL, n, NULL)) ;
         // r += A'*w
-        GrB_TRY (GrB_mxv (r, MASK_NULL, GrB_PLUS_FP32, LAGraph_plus_second_fp32,
-                          AT, w, &desc)) ;
+        GrB_TRY (GrB_mxv (r, MASK_NULL, GrB_PLUS_FP32, LAGraph_plus_second_fp32, AT, w, &desc)) ;
         // t -= r
         GrB_TRY (GrB_assign (t, MASK_NULL, GrB_MINUS_FP32, r, GrB_ALL, n, NULL)) ;
         // t = abs (t)
@@ -75,7 +70,6 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
         float ranks_sum = 0;
         GrB_TRY (GrB_reduce (&ranks_sum, NULL, GrB_PLUS_MONOID_FP32, r, NULL));
         cout << "ranks sum : " << ranks_sum << endl;
-
     }
 
     //--------------------------------------------------------------------------

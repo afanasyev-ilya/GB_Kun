@@ -70,22 +70,22 @@ message(STATUS "[INFO] header files list: ${headers_list}")
 file(MAKE_DIRECTORY scripts)
 
 add_executable(bfs bfs.cpp)
-target_include_directories(bfs PRIVATE ${header_dir_list})
+target_include_directories(bfs PRIVATE)
 
 add_executable(spmv spmv.cpp)
-target_include_directories(spmv PRIVATE ${header_dir_list})
+target_include_directories(spmv PRIVATE)
 
 add_executable(locality locality_test.cpp)
-target_include_directories(locality PRIVATE ${header_dir_list})
+target_include_directories(locality PRIVATE)
 
 add_executable(gen gen.cpp)
-target_include_directories(gen PRIVATE ${header_dir_list})
+target_include_directories(gen PRIVATE)
 
 add_executable(sparse_test sparse_test.cpp)
-target_include_directories(sparse_test PRIVATE ${header_dir_list})
+target_include_directories(sparse_test PRIVATE)
 
 add_executable(saxpy saxpy.cpp)
-target_include_directories(saxpy PRIVATE ${header_dir_list})
+target_include_directories(saxpy PRIVATE)
 
 add_executable(pr pr.cpp)
 target_include_directories(pr PRIVATE)

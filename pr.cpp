@@ -26,18 +26,9 @@ int main(int argc, char **argv) {
         LA_Info info = matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
         lablas::Vector<float> levels(el.vertices_count);
 
-        LAGraph_Graph<float> graph;
-        Index nrows, ncols;
-        matrix.get_nrows(&nrows);
-        matrix.get_ncols(&ncols);
-        graph.A = &matrix;
-        graph.AT = &matrix;
-        graph.rowdegree = new lablas::Vector<Index>(nrows);
-        graph.coldegree = new lablas::Vector<Index>(ncols);
-        graph.rowdegree->build(matrix.get_rowdegrees(), nrows);
-        graph.coldegree->build(matrix.get_coldegrees(), ncols);
-        int iters_taken = 0;
+        LAGraph_Graph<float> graph(matrix);
 
+        int iters_taken = 0;
         lablas::Vector<float>* centrality;
         LAGraph_VertexCentrality_PageRankGAP(&centrality, &graph, &iters_taken);
 
