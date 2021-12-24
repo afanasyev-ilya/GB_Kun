@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
             lablas::Matrix<int> check_matrix;
             LA_Info info = check_matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
             check_matrix.set_preferred_matrix_format(CSR);
-            lablas::Vector<int> check_levels();
+            lablas::Vector<int> check_levels(nrows);
 
             lablas::algorithm::bfs_traditional(&check_levels, &check_matrix, source_vertex);
 
