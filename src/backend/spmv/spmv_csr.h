@@ -17,11 +17,12 @@ void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size)
     }
 }
 
-template <typename T, typename SemiringT>
+template <typename T, typename SemiringT, typename BinaryOpTAccum>
 void SpMV_numa_aware(MatrixCSR<T> *_matrix,
                      MatrixCSR<T> *_matrix_socket_dub,
                      const DenseVector<T> *_x,
                      DenseVector<T> *_y,
+                     BinaryOpTAccum _accum,
                      SemiringT op)
 {
     const T *x_vals = _x->get_vals();
@@ -75,7 +76,7 @@ void SpMV_numa_aware(MatrixCSR<T> *_matrix,
                     T val = local_matrix->vals[j];
                     res = add_op(res, mul_op(val, local_x_vals[col]));
                 }
-                y_vals[row] = res;
+                y_vals[row] = _accum(y_vals[row], res);
             }
         }
     }
@@ -83,43 +84,51 @@ void SpMV_numa_aware(MatrixCSR<T> *_matrix,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename SemiringT>
+template <typename T, typename SemiringT, typename BinaryOpTAccum>
 void SpMV_non_optimized(MatrixCSR<T> *_matrix,
                         const DenseVector<T> *_x,
                         DenseVector<T> *_y,
+                        BinaryOpTAccum _accum,
                         SemiringT op)
 {
     const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);
+    auto identity_val = op.identity();
 
     #pragma omp parallel
     {
         #pragma omp for schedule(static)
         for(VNT row = 0; row < _matrix->size; row++)
         {
+            T res = identity_val;
             for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
                 VNT col = _matrix->col_ids[j];
                 T val = _matrix->vals[j];
-                y_vals[row] = add_op(y_vals[row], mul_op(val, x_vals[col])) ;
+                res = add_op(res, mul_op(val, x_vals[col]));
             }
+            y_vals[row] = _accum(y_vals[row], res);
         }
     };
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <bool CMP, typename T, typename Y, typename SemiringT>
+template <bool CMP, typename T, typename Y, typename SemiringT, typename BinaryOpTAccum>
 void SpMV_dense(const MatrixCSR<T> *_matrix,
           const DenseVector<T> *_x,
-          DenseVector<T> *_y, SemiringT op, const Vector<Y> *_mask)
+          DenseVector<T> *_y,
+          BinaryOpTAccum _accum,
+          SemiringT op,
+          const Vector<Y> *_mask)
 {
     const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);
+    auto identity_val = op.identity();
 
     #pragma omp parallel
     {
@@ -128,10 +137,12 @@ void SpMV_dense(const MatrixCSR<T> *_matrix,
         {
             bool mask_val = (bool)_mask->getDense()->get_vals()[i];
             if (mask_val && !CMP) {
+                T res = identity_val;
                 for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
                 {
-                    y_vals[i] = add_op(y_vals[i], mul_op(_matrix->vals[j], x_vals[_matrix->col_ids[j]])) ;
+                    res = add_op(res, mul_op(_matrix->vals[j], x_vals[_matrix->col_ids[j]])) ;
                 }
+                y_vals[i] = _accum(y_vals, res);
             }
         }
     }
@@ -139,10 +150,12 @@ void SpMV_dense(const MatrixCSR<T> *_matrix,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename SemiringT>
+template <typename T, typename SemiringT, typename BinaryOpTAccum>
 void SpMV(const MatrixCSR<T> *_matrix,
           const DenseVector<T> *_x,
-          DenseVector<T> *_y, SemiringT op)
+          DenseVector<T> *_y,
+          BinaryOpTAccum _accum,
+          SemiringT op)
 {
     const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();
@@ -168,90 +181,11 @@ void SpMV(const MatrixCSR<T> *_matrix,
                     T val = _matrix->vals[j];
                     res = add_op(res, mul_op(val, x_vals[col]));
                 }
-                y_vals[row] = res;
+                y_vals[row] = _accum(res, y_vals[row]);
             }
         }
     }
-
-    /*#pragma omp parallel num_threads(6) // dynamic parallelism version (worse perf)
-    {
-        #pragma omp for schedule (static)
-        for(int vg = 0; vg < _matrix->vg_num; vg++)
-        {
-            const VNT *vertices = &(_matrix->vertex_groups[vg].data[0]);
-            VNT vertex_group_size = _matrix->vertex_groups[vg].data.size();
-
-            #pragma omp parallel for schedule(guided, 1) num_threads(8)
-            for(VNT idx = 0; idx < vertex_group_size; idx++)
-            {
-                VNT row = vertices[idx];
-                T res = 0;
-                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
-                {
-                    VNT col = _matrix->col_ids[j];
-                    T val = _matrix->vals[j];
-                    res = add_op(res, mul_op(val, x_vals[col]));
-                }
-                y_vals[row] = res;
-            }
-        }
-    }*/
 }
-
-template <typename T, typename SemiringT>
-void SpMV_test(const MatrixCSR<T> *_matrix,
-               const DenseVector<T> *_x,
-               DenseVector<T> *_y, SemiringT op)
-{
-    const T *x_vals = _x->get_vals();
-    T *y_vals = _y->get_vals();
-    auto add_op = extractAdd(op);
-    auto mul_op = extractMul(op);
-    auto identity_val = op.identity();
-
-    double t1 = omp_get_wtime();
-    ENT nnz = _matrix->get_nnz();
-    #pragma omp parallel for
-    for(VNT i = 0; i < nnz; i++)
-    {
-        VNT col = _matrix->col_ids[i];
-        _matrix->vals[i] = x_vals[col];
-    }
-    double t2 = omp_get_wtime();
-    cout << "xvals size: " << sizeof(T) * _matrix->size / 1e6 << " MB" << endl;
-    cout << "inner gather time: " << (t2 - t1) *1000 << " ms" << endl;
-    cout << "inner gather bw: " << nnz*(sizeof(T)*2 + sizeof(Index))/((t2 - t1)*1e9) << " GB/s" << endl;
-
-    T*new_cols;
-    MemoryAPI::allocate_array(&new_cols, _matrix->nnz);
-    #pragma omp for
-    for(VNT i = 0; i < nnz; i++)
-        new_cols[i] = _matrix->col_ids[i];
-
-    size_t seg_size = 256*1024/sizeof(T);
-    std::sort(new_cols, new_cols + nnz,
-              [seg_size](int index1, int index2)
-              {
-                  return index1 / seg_size < index2 / seg_size;
-              });
-
-    t1 = omp_get_wtime();
-    #pragma omp parallel
-    {
-        #pragma omp for
-        for(VNT i = 0; i < nnz; i++)
-        {
-            VNT col = new_cols[i];
-            _matrix->vals[i] = x_vals[col];
-        }
-    };
-    t2 = omp_get_wtime();
-    cout << "opt gather time: " << (t2 - t1) *1000 << " ms" << endl;
-    cout << "opt gather bw: " << nnz*(sizeof(T)*2 + sizeof(Index))/((t2 - t1)*1e9) << " GB/s" << endl;
-
-    MemoryAPI::free_array(new_cols);
-}
-
 
 }
 }

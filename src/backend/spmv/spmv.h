@@ -17,11 +17,12 @@
 namespace lablas{
 namespace backend{
 
-template <typename T, typename Y, typename SemiringT>
+template <typename T, typename Y, typename SemiringT, typename BinaryOpTAccum>
 void SpMV(const Matrix<T> *_matrix,
           const Vector<T> *_x,
           Vector<T> *_y,
-          Descriptor *_desc, 
+          Descriptor *_desc,
+          BinaryOpTAccum _accum,
           SemiringT _op,
           const Vector<Y> *_mask)
 {
@@ -33,19 +34,21 @@ void SpMV(const Matrix<T> *_matrix,
     }
 
     if(format == CSR)
+    {
         #ifdef __USE_SOCKET_OPTIMIZATIONS__
         if(omp_get_max_threads() == THREADS_PER_SOCKET*2)
         {
             SpMV_numa_aware(((MatrixCSR<T> *) _matrix->get_data()), ((MatrixCSR<T> *) _matrix->get_data_dub()),
-                            _x->getDense(), _y->getDense(), _op);
+                            _x->getDense(), _y->getDense(), _accum, _op);
         }
         else
         {
-            SpMV(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
+            SpMV(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op);
         }
         #else
-        SpMV(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
+        SpMV(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op);
         #endif
+    }
     else if(format == LAV)
         SpMV(((MatrixLAV<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
     else if(format == COO)
@@ -81,11 +84,12 @@ void SpMV(const Matrix<T> *_matrix,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename Y, typename SemiringT>
+template <typename T, typename Y, typename SemiringT, typename BinaryOpTAccum>
 void VSpM(const Matrix<T> *_matrix,
           const Vector<T> *_x,
           Vector<T> *_y,
           Descriptor *_desc,
+          BinaryOpTAccum _accum,
           SemiringT _op,
           const Vector<Y> *_mask)
 {
@@ -98,7 +102,22 @@ void VSpM(const Matrix<T> *_matrix,
     }
 
     if(format == CSR)
-        SpMV(((MatrixCSR<T> *) _matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op);
+    {
+        SpMV(((MatrixCSR<T> *) _matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _accum, _op);
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        if(omp_get_max_threads() == THREADS_PER_SOCKET*2)
+        {
+            SpMV_numa_aware(((MatrixCSR<T> *) _matrix->get_data()), ((MatrixCSR<T> *) _matrix->get_data_dub()),
+                            _x->getDense(), _y->getDense(), _accum, _op);
+        }
+        else
+        {
+            SpMV(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op);
+        }
+        #else
+        SpMV(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op);
+        #endif
+    }
     else if(format == LAV)
         SpMV(((MatrixLAV<T> *) _matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _op);
     else if(format == COO)

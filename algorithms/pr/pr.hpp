@@ -27,6 +27,8 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     GrB_Vector w = NULL;
     GrB_Vector d1 = NULL;
 
+    lablas::Descriptor desc;
+
     //--------------------------------------------------------------------------
     // initializations
     //--------------------------------------------------------------------------
@@ -78,16 +80,14 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
         // r = teleport
         GrB_TRY (GrB_assign (r, TEMP_NULL, NULL, teleport, GrB_ALL, n, NULL)) ;
         // r += A'*w
-        GrB_TRY (GrB_mxv (r, TEMP_NULL, GrB_PLUS_FP32, LAGraph_plus_second_fp32, AT, w, NULL)) ;
+        GrB_TRY (GrB_mxv (r, TEMP_NULL, GrB_PLUS_FP32, LAGraph_plus_second_fp32, AT, w, &desc)) ;
         // t -= r
         GrB_TRY (GrB_assign (t, TEMP_NULL, NULL, r, GrB_ALL, n, NULL)) ;
 
-        cout << "t: ";
-        t->print();
         // t = abs (t)
         GrB_TRY (GrB_apply (t, TEMP_NULL, NULL, GrB_ABS_FP32, t, NULL)) ;
         // rdiff = sum (t)
-        //GrB_TRY (GrB_reduce (&rdiff, NULL, GrB_PLUS_MONOID_FP32, t, NULL));
+        GrB_TRY (GrB_reduce (&rdiff, NULL, GrB_PLUS_MONOID_FP32, t, NULL));
     }
 
     //--------------------------------------------------------------------------

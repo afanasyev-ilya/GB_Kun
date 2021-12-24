@@ -97,28 +97,27 @@ private:
     bool is_non_zero(VNT _row, VNT _col);
     T get(VNT _row, VNT _col) const;
 
-    template <typename N, typename SemiringT>
+    template <typename N, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV(const MatrixCSR<N> *_matrix,
               const DenseVector<N> *_x,
-              DenseVector<N> *_y, SemiringT op);
+              DenseVector<N> *_y,
+              BinaryOpTAccum _accum,
+              SemiringT op);
 
-    template <typename N, typename SemiringT>
+    template <typename N, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_numa_aware(MatrixCSR<N> *_matrix,
                                 MatrixCSR<N> *_matrix_socket_dub,
                                 const DenseVector<N> *_x,
                                 DenseVector<N> *_y,
+                                BinaryOpTAccum _accum,
                                 SemiringT op);
 
-    template <typename N, typename SemiringT>
+    template <typename N, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_non_optimized(MatrixCSR<N> *_matrix,
                                    const DenseVector<N> *_x,
                                    DenseVector<N> *_y,
+                                   BinaryOpTAccum _accum,
                                    SemiringT op);
-
-    template <typename N, typename SemiringT>
-    friend void SpMV_test(const MatrixCSR<N> *_matrix,
-                   const DenseVector<N> *_x,
-                   DenseVector<N> *_y, SemiringT op);
 
     void prepare_vg_lists(int _target_socket);
 };

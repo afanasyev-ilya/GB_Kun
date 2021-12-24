@@ -309,7 +309,7 @@ LA_Info mxv (Vector<W>*       _w,
         return GrB_UNINITIALIZED_OBJECT;
 
     auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
-    backend::SpMV(_matrix->get_matrix(), _u->get_vector(), _w->get_vector(), _desc->get_descriptor(), _op, mask_t);
+    backend::SpMV(_matrix->get_matrix(), _u->get_vector(), _w->get_vector(), _desc->get_descriptor(), _accum, _op, mask_t);
 
     return GrB_SUCCESS;
 }
@@ -330,7 +330,7 @@ LA_Info vxm (Vector<W>*       _w,
         return GrB_UNINITIALIZED_OBJECT;
 
     auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
-    backend::VSpM(_matrix->get_matrix(), _u->get_vector(), _w->get_vector(), _desc->get_descriptor(), _op, mask_t);
+    backend::VSpM(_matrix->get_matrix(), _u->get_vector(), _w->get_vector(), _desc->get_descriptor(), _accum, _op, mask_t);
 
     return GrB_SUCCESS;
 }

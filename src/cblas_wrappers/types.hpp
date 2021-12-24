@@ -38,3 +38,6 @@ enum GrB_Type
 
 // semirings
 #define LAGraph_plus_second_fp32 lablas::PlusSecondSemiring<float>()
+
+// monoids
+#define GrB_PLUS_MONOID_FP32 lablas::PlusMonoid<float>()

@@ -252,3 +252,16 @@ LA_Info GrB_mxv (lablas::Vector<W>*       _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/* w = op(w, u[i]) for each i; */
+template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
+LA_Info GrB_reduce(T *_val,
+                   BinaryOpTAccum _accum,
+                   MonoidT _op,
+                   const lablas::Vector<U>* u,
+                   lablas::Descriptor* desc)
+{
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
