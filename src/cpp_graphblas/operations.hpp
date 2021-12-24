@@ -219,10 +219,10 @@ LA_Info apply(Vector<W>* _w,
 
 /* w[indexes[i]] = mask[indexes[i]] ^ value */
 template <typename W, typename M, typename U,
-        typename BinaryOpT>
+        typename BinaryOpTAccum>
 LA_Info assign(Vector<W>*       _w,
                const Vector<M>* _mask,
-               BinaryOpT        _accum,
+               BinaryOpTAccum        _accum,
                U _value,
                const Index *_indices,
                const Index _nindices,
@@ -257,10 +257,10 @@ LA_Info assign(Vector<W>*       _w,
 
 /* w[indexes[i]] = mask[indexes[i]] ^ _u[indexes[i]] */
 template <typename W, typename M, typename U,
-        typename BinaryOpT>
+        typename BinaryOpTAccum>
 LA_Info assign(Vector<W>*       _w,
                const Vector<M>* _mask,
-               BinaryOpT        _accum,
+               BinaryOpTAccum _accum,
                Vector<U>* _u,
                const Index *_indices,
                const Index _nindices,
@@ -280,11 +280,20 @@ LA_Info assign(Vector<W>*       _w,
         W* w_vals = _w->get_vector()->getDense()->get_vals();
         U* u_vals = _u->get_vector()->getDense()->get_vals();
 
-        auto lambda_op = [w_vals, u_vals] (Index idx)
+        if(std::is_same<BinaryOpTAccum, long int>::value)
         {
-            w_vals[idx] = u_vals[idx];
-        };
-        return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+            auto lambda_op = [w_vals, u_vals](Index idx) {
+                w_vals[idx] = u_vals[idx];
+            };
+            return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+        }
+        else
+        {
+            auto lambda_op = [w_vals, u_vals, &_accum](Index idx) {
+                w_vals[idx] = _accum(w_vals[idx], u_vals[idx]);
+            };
+            return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+        }
     }
     else
     {
@@ -297,10 +306,10 @@ LA_Info assign(Vector<W>*       _w,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename M, typename a, typename U,
-        typename BinaryOpT, typename SemiringT>
+        typename BinaryOpTAccum, typename SemiringT>
 LA_Info mxv (Vector<W>*       _w,
              const Vector<M>* _mask,
-             BinaryOpT        _accum,
+             BinaryOpTAccum        _accum,
              SemiringT        _op,
              const Matrix<a>* _matrix,
              const Vector<U>* _u,
@@ -318,10 +327,10 @@ LA_Info mxv (Vector<W>*       _w,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename M, typename a, typename U,
-        typename BinaryOpT, typename SemiringT>
+        typename BinaryOpTAccum, typename SemiringT>
 LA_Info vxm (Vector<W>*       _w,
              const Vector<M>* _mask,
-             BinaryOpT        _accum,
+             BinaryOpTAccum        _accum,
              SemiringT        _op,
              const Matrix<a>* _matrix,
              const Vector<U>* _u,

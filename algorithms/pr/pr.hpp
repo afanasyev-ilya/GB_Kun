@@ -69,7 +69,7 @@ int LAGraph_VertexCentrality_PageRankGAP // returns -1 on failure, 0 on success
     // pagerank iterations
     //--------------------------------------------------------------------------
 
-    for ((*iters) = 0 ; (*iters) < itermax && rdiff > tol ; (*iters)++)
+    for ((*iters) = 0 ; (*iters) < 1/*itermax && rdiff > tol */; (*iters)++)
     {
         // swap t and r ; now t is the old score
         GrB_Vector temp = t ; t = r ; r = temp ;

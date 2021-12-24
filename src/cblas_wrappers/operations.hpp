@@ -48,10 +48,10 @@ LA_Info GrB_apply(lablas::Vector<W>* _w,
 
 /* w[indexes[i]] = mask[indexes[i]] ^ value */
 template <typename W, typename M, typename U,
-        typename BinaryOpT>
+        typename BinaryOpTAccum>
 LA_Info GrB_assign(lablas::Vector<W>*       _w,
                    const lablas::Vector<M>* _mask,
-                   BinaryOpT        _accum,
+                   BinaryOpTAccum        _accum,
                    U _value,
                    const GrB_Index *_indices,
                    const GrB_Index _nindices,
@@ -63,10 +63,10 @@ LA_Info GrB_assign(lablas::Vector<W>*       _w,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* w[indexes[i]] = mask[indexes[i]] ^ _u[indexes[i]] */
-template <typename W, typename M, typename U, typename BinaryOpT>
+template <typename W, typename M, typename U, typename BinaryOpTAccum>
 LA_Info GrB_assign(lablas::Vector<W>*       _w,
                    const lablas::Vector<M>* _mask,
-                   BinaryOpT        _accum,
+                   BinaryOpTAccum        _accum,
                    lablas::Vector<U>* _u,
                    const GrB_Index *_indices,
                    const GrB_Index _nindices,
@@ -108,10 +108,10 @@ LA_Info GrB_eWiseMult(lablas::Vector<W>* _w,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename M, typename a, typename U,
-        typename BinaryOpT, typename SemiringT>
+        typename BinaryOpTAccum, typename SemiringT>
 LA_Info GrB_vxm (lablas::Vector<W>*       _w,
                  const lablas::Vector<M>* _mask,
-                 BinaryOpT        _accum,
+                 BinaryOpTAccum        _accum,
                  SemiringT        _op,
                  const lablas::Matrix<a>* _matrix,
                  const lablas::Vector<U>* _u,
@@ -123,10 +123,10 @@ LA_Info GrB_vxm (lablas::Vector<W>*       _w,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename M, typename a, typename U,
-        typename BinaryOpT, typename SemiringT>
+        typename BinaryOpTAccum, typename SemiringT>
 LA_Info GrB_mxv (lablas::Vector<W>*       _w,
                  const lablas::Vector<M>* _mask,
-                 BinaryOpT        _accum,
+                 BinaryOpTAccum        _accum,
                  SemiringT        _op,
                  const lablas::Matrix<a>* _matrix,
                  const lablas::Vector<U>* _u,
