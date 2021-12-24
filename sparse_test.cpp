@@ -22,7 +22,7 @@ void test_sparse(int argc, char **argv)
     lablas::Vector<T> w(el.vertices_count);
     lablas::Vector<T> u(el.vertices_count);
 
-    for(int run = 0; run < 10; run++)
+    for(int run = 0; run < 1; run++)
     {
         w.fill(0.0);
 

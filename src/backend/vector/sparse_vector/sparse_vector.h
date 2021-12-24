@@ -2,7 +2,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define SPARSITY_K 100
+#define SPARSITY_K 2
 
 template <typename T>
 class SparseVector
@@ -24,6 +24,7 @@ public:
 
     void set_constant(T _val)
     {
+        nnz = 0;
         for(VNT i = 0; i < size; i++)
         {
             if (i % SPARSITY_K == 0) {
@@ -38,6 +39,7 @@ public:
     void print() const {
         for(VNT i = 0; i < nnz; i++)
         {
+            //cout << nnz << endl;
             cout << "( "<< ids[i]<< " , "  << vals[i] << ") ";
         }
         cout << endl;
