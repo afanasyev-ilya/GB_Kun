@@ -50,7 +50,7 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
     //--------------------------------------------------------------------------
     GrB_Index nq = 1 ;          // number of nodes in the current level
     GrB_Index last_nq = 0 ;
-    GrB_Index current_level = 0;
+    GrB_Index current_level = 1;
     GrB_Index nvals = 1;
 
     // {!mask} is the set of unvisited nodes

@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 
         Index nrows;
         matrix.get_nrows(&nrows);
-        VNT source_vertex = rand() % nrows;
+        Index source_vertex = rand() % nrows;
 
         lablas::Vector<int> *levels = new lablas::Vector<int>(nrows);
         lablas::Vector<int> *parents = NULL;
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
 
         LG_BreadthFirstSearch_vanilla(&levels, &parents, &graph, source_vertex, true);
 
-        /*if(parser.check())
+        if(parser.check())
         {
             lablas::Matrix<int> check_matrix;
             LA_Info info = check_matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 
             lablas::algorithm::bfs_traditional(&check_levels, &check_matrix, source_vertex);
 
-            if(levels == check_levels)
+            if((*levels) == check_levels)
             {
                 cout << "BFS levels are equal" << endl;
             }
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
             {
                 cout << "BFS levels are NOT equal" << endl;
             }
-        }*/
+        }
     }
     catch (string error)
     {

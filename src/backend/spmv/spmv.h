@@ -32,6 +32,7 @@ void SpMV(const Matrix<T> *_matrix,
     if (_mask != NULL) {
         _desc->get(GrB_MASK, &mask_field);
     }
+    auto zero_val = _op.identity();
 
     if(format == CSR)
     {
@@ -77,7 +78,7 @@ void SpMV(const Matrix<T> *_matrix,
         #pragma omp parallel for
         for (VNT i = 0; i < mask_size; i++) {
             if (mask_vals[i] && !use_cmp)
-                result_vals[i] = 0;
+                result_vals[i] = zero_val;
         }
     }
 }
@@ -95,6 +96,7 @@ void VSpM(const Matrix<A> *_matrix,
 {
     MatrixStorageFormat format;
     _matrix->get_format(&format);
+    auto zero_val = _op.identity();
 
     Desc_value mask_field;
     if (_mask != NULL) {
@@ -123,7 +125,7 @@ void VSpM(const Matrix<A> *_matrix,
         #pragma omp parallel for
         for (VNT i = 0; i < mask_size; i++) {
             if (mask_vals[i] && !use_cmp)
-                result_vals[i] = 0;
+                result_vals[i] = zero_val;
         }
     }
 }

@@ -181,7 +181,7 @@ void SpMV(const MatrixCSR<A> *_matrix,
                     A val = _matrix->vals[j];
                     res = add_op(res, mul_op(val, x_vals[col]));
                 }
-                y_vals[row] = _accum(res, y_vals[row]);
+                y_vals[row] = _accum(y_vals[row], res);
             }
         }
     }

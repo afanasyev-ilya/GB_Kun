@@ -2,6 +2,9 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//#define EDGE_VAL ((float) rand_r(&seed)) / (float) RAND_MAX
+#define EDGE_VAL 1
+
 template <typename T>
 void GraphGenerationAPI::generate_synthetic_graph(EdgeListContainer<T> &_edges_container, Parser &_parser)
 {
@@ -194,7 +197,7 @@ void GraphGenerationAPI::RMAT(EdgeListContainer<T> &_edges_container,
 
             src_ids[cur_edge] = from;
             dst_ids[cur_edge] = to;
-            vals[cur_edge] = ((float) rand_r(&seed)) / (float) RAND_MAX;
+            vals[cur_edge] = EDGE_VAL;
             
             if(!_direction_type)
             {
@@ -544,7 +547,7 @@ void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_contain
 
         _edges_container.src_ids[i] = src_id - 1;
         _edges_container.dst_ids[i] = dst_id - 1;
-        _edges_container.edge_vals[i] = ((float) rand_r(&seed)) / (float) RAND_MAX;
+        _edges_container.edge_vals[i] = EDGE_VAL;
         i++;
     }
 
