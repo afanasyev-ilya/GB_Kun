@@ -52,10 +52,9 @@ public:
         return &_vector;
     }
 
-    LA_Info get_nvals(Index *_nvals)
+    LA_Info get_nvals(Index *_nvals) const
     {
         *_nvals = _vector.nvals();
-        cout << "!!!!!" << *_nvals << endl;
         return GrB_SUCCESS;
     }
 

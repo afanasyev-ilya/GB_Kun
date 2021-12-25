@@ -25,12 +25,11 @@ int main(int argc, char **argv) {
         matrix.set_preferred_matrix_format(parser.get_storage_format());
         LA_Info info = matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
 
-
         Index nrows;
         matrix.get_nrows(&nrows);
         Index source_vertex = rand() % nrows;
 
-        lablas::Vector<int> *parents, *levels;
+        lablas::Vector<int> *parents = NULL, *levels = NULL;
 
         LAGraph_Graph<int> graph(matrix);
 
@@ -55,6 +54,11 @@ int main(int argc, char **argv) {
                 cout << "BFS levels are NOT equal" << endl;
             }
         }
+
+        if(levels != NULL)
+            delete levels;
+        if(parents != NULL)
+            delete parents;
     }
     catch (string error)
     {

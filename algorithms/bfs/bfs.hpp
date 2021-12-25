@@ -67,7 +67,7 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
         cout << "mask ";
         mask->print();
         desc.set(GrB_MASK, GrB_DEFAULT);
-        GrB_TRY( GrB_vxm(frontier, mask, NULL, LAGraph_structural_bool, frontier, A, &desc) );
+        GrB_TRY( GrB_vxm(frontier, mask, NULL, lablas::LogicalOrAndSemiring<bool>(), frontier, A, &desc) );
         cout << "frontier after vxm ";
         frontier->print();
 
@@ -109,9 +109,7 @@ int my_BreadthFirstSearch_vanilla(GrB_Vector *levels,
         GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, NULL));
         GrB_TRY( GrB_vxm(f2, v, NULL, lablas::LogicalOrAndSemiring<int>(), f1, A, &desc));
 
-        GrB_Vector tmp = f2;
-        f2 = f1;
-        f1 = tmp;
+        std::swap(f1, f2);
 
         GrB_TRY (GrB_reduce (&succ, NULL, GrB_PLUS_MONOID_INT32, f1, NULL)) ;
 
@@ -122,6 +120,10 @@ int my_BreadthFirstSearch_vanilla(GrB_Vector *levels,
 
     double t2 = omp_get_wtime();
     cout << "BFS perf: " << A->get_nnz()/((t2 - t1)*1e6) << " MTEPS" << endl;
+
+    GrB_free(&f1);
+    GrB_free(&f2);
+    return 0;
 }
 
 #undef GrB_Matrix

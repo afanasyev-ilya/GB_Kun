@@ -207,8 +207,6 @@ REGISTER_MONOID(SecondWinsMonoid, second, 0)
 
 REGISTER_MONOID(FirstMin, minimum, 0)
 
-REGISTER_MONOID(GrB_LOR_MONOID_BOOL, logical_or, false)
-
 // Semiring generator macro provided by Scott McMillan
 #define REGISTER_SEMIRING(SR_NAME, ADD_MONOID, MULT_BINARYOP)             \
 template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1> \
@@ -233,7 +231,7 @@ REGISTER_SEMIRING(LogicalOrAndSemiring, LogicalOrMonoid, logical_and)
 REGISTER_SEMIRING(FirstWinsSemiring, FirstWinsMonoid, multiplies)
 REGISTER_SEMIRING(FirstMinSemiring, FirstMin, multiplies)
 REGISTER_SEMIRING(PlusSecondSemiring, PlusMonoid, second)
-REGISTER_SEMIRING(StructuralBool, GrB_LOR_MONOID_BOOL, GrB_ONEB_T)
+REGISTER_SEMIRING(StructuralBool, LogicalOrMonoid, GrB_ONEB_T)
 
 template <typename SemiringT>
 struct AdditiveMonoidFromSemiring {

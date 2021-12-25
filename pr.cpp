@@ -32,7 +32,6 @@ int main(int argc, char **argv) {
         lablas::Vector<float>* centrality;
         LAGraph_VertexCentrality_PageRankGAP(&centrality, &graph, &iters_taken);
 
-        centrality->print();
         delete centrality;
     }
     catch (string error)
