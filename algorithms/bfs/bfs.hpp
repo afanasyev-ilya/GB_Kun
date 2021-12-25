@@ -82,9 +82,7 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int my_BreadthFirstSearch_vanilla(GrB_Vector *levels,
-                                  LAGraph_Graph<int> *G,
-                                  GrB_Index src)
+int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
 {
     lablas::Descriptor desc;
     GrB_Matrix A = G->A;
@@ -107,7 +105,11 @@ int my_BreadthFirstSearch_vanilla(GrB_Vector *levels,
     int succ = 0;
     do {
         GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, NULL));
+        // v can become sparse if f1 is sparse
+        // or v1 can become dense
+
         GrB_TRY( GrB_vxm(f2, v, NULL, lablas::LogicalOrAndSemiring<int>(), f1, A, &desc));
+        // f2 can become sparse if v is sparse
 
         std::swap(f1, f2);
 

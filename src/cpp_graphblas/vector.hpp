@@ -17,38 +17,43 @@ public:
 
     LA_Info build(const std::vector<Index>* indices,
                   const std::vector<T>*     values,
-               Index  nvals) {
-
+               Index  nvals)
+    {
         if (indices == NULL || values == NULL) return GrB_NULL_POINTER;
         if (nvals == 0) return GrB_INVALID_VALUE;
         return _vector.build(indices->data(), values->data(), nvals);
     }
 
     LA_Info build(const std::vector<T>*     values,
-                  Index  nvals) {
+                  Index  nvals)
+    {
         if (values == NULL) return GrB_NULL_POINTER;
         if (nvals == 0) return GrB_INVALID_VALUE;
         return _vector.build(values->data(), nvals);
     }
 
     LA_Info build(const T* values,
-                  Index  nvals) {
+                  Index  nvals)
+    {
         if (values == NULL) return GrB_NULL_POINTER;
         if (nvals == 0) return GrB_INVALID_VALUE;
         return _vector.build(values, nvals);
     }
 
-    LA_Info fill(T val) {
+    LA_Info fill(T val)
+    {
         _vector.set_constant(val);
         return GrB_SUCCESS;
     }
 
-    LA_Info set_element(T val, VNT pos) {
+    LA_Info set_element(T val, VNT pos)
+    {
         _vector.set_element(val, pos);
         return GrB_SUCCESS;
     }
 
-    backend::Vector<T>* get_vector() {
+    backend::Vector<T>* get_vector()
+    {
         return &_vector;
     }
 
@@ -58,16 +63,19 @@ public:
         return GrB_SUCCESS;
     }
 
-    const backend::Vector<T>* get_vector() const {
+    const backend::Vector<T>* get_vector() const
+    {
         return &_vector;
     }
 
-    void print() const {
+    void print() const
+    {
         return _vector.print();
     }
 
-    void swap(Vector* rhs) {
-        return _vector.swap(rhs->get_vector());
+    void print_storage_type() const
+    {
+        _vector.print_storage_type();
     }
 
     Index nvals() const { return _vector.nvals();};

@@ -41,6 +41,11 @@ public:
         return GrB_SUCCESS;
     }
 
+    LA_Info get_nvals(Index* _nvals) const{
+        *_nvals = _matrix.get_nnz();
+        return GrB_SUCCESS;
+    }
+
     Index* get_rowdegrees()
     {
         return _matrix.get_rowdegrees();

@@ -58,8 +58,20 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
         GrB_TRY (GrB_eWiseMult (w, MASK_NULL, NULL, GrB_DIV_FP32, t, d, NULL)) ;
         // r = teleport
         GrB_TRY (GrB_assign (r, MASK_NULL, NULL, teleport, GrB_ALL, n, NULL)) ;
+
         // r += A'*w
+        GrB_Index nvals = 0;
+        GrB_Matrix_nvals(&nvals, AT);
+        printf("matrix has %d %ld\n edges", nvals, nvals);
+        double t1 = omp_get_wtime();
         GrB_TRY (GrB_mxv (r, MASK_NULL, GrB_PLUS_FP32, LAGraph_plus_second_fp32, AT, w, &desc)) ;
+        double t2 = omp_get_wtime();
+        double gflop = nvals * 2.0 / ((t2 - t1)*1e9);
+        printf("edges: %lf\n", nvals);
+        printf("SPMV time %lf (ms)\n", (t2-t1)*1000);
+        printf("SPMV perf %lf (GFLop/s)\n", gflop);
+        printf("SPMV BW %lf (GB/s)\n", nvals * (sizeof(float)*2 + sizeof(size_t))/((t2 - t1)*1e9));
+
         // t -= r
         GrB_TRY (GrB_assign (t, MASK_NULL, GrB_MINUS_FP32, r, GrB_ALL, n, NULL)) ;
         // t = abs (t)

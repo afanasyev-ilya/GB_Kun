@@ -48,6 +48,9 @@ public:
         }
     }
 
+    bool is_sparse() const { return storage == GrB_SPARSE;};
+    bool is_dense() const { return storage == GrB_DENSE;};
+
     LA_Info build (const Index* indices,
                    const T*     values,
                    Index nvals) {
@@ -70,13 +73,12 @@ public:
         }
     }
 
-    void swap(Vector* rhs) {
-        if (storage == GrB_DENSE) {
-           dense.swap(rhs->getDense());
-        }
-        if (storage == GrB_SPARSE) {
-            sparse.swap(rhs->getSparse());
-        }
+    void print_storage_type() const
+    {
+        if(is_sparse())
+            cout << "I'm sparse!" << endl;
+        else
+            cout << "I'm dense!" << endl;
     }
 
     VNT nvals() const
@@ -89,6 +91,7 @@ public:
         }
         else
         {
+            // TODO really need to compute that?
             VNT loc_nnz = 0;
             #pragma omp parallel for reduction(+: loc_nnz)
             for(int i = 0; i < dense.get_size(); i++)
@@ -115,6 +118,8 @@ bool operator==(Vector<T>& lhs, Vector<T>& rhs)
 {
     return lhs.dense == rhs.dense;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 }

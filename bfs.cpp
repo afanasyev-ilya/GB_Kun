@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
         LAGraph_Graph<int> graph(matrix);
 
         //LG_BreadthFirstSearch_vanilla(&levels, &parents, &graph, source_vertex, true);
-        my_BreadthFirstSearch_vanilla(&levels, &graph, source_vertex);
+        GraphBlast_BFS(&levels, &graph, source_vertex);
 
         if(parser.check())
         {
