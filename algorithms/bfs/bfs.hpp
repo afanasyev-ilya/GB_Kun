@@ -5,7 +5,7 @@
 
 #define GrB_Matrix lablas::Matrix<int>*
 #define GrB_Vector lablas::Vector<int>*
-#define MASK_NULL static_cast<const lablas::Vector<float>*>(NULL)
+#define MASK_NULL static_cast<const lablas::Vector<int>*>(NULL)
 
 int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
                                   GrB_Vector *parent,
