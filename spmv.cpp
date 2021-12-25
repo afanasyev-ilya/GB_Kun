@@ -20,24 +20,6 @@ void report_num_threads(int level)
 template<typename T>
 void test_spmv(int argc, char **argv)
 {
-    /*#pragma omp parallel num_threads(12)
-    {
-        int outer_tid = omp_get_thread_num();
-        //report_num_threads(1);
-        #pragma omp parallel num_threads(4)
-        {
-            int inner_tid = omp_get_thread_num();
-            //report_num_threads(2);
-            int cpu_num = sched_getcpu();
-            #pragma omp critical
-            {
-                printf("Thread %d %d is running on CPU %3d\n", outer_tid, inner_tid, cpu_num);
-            }
-
-        }
-    }*/
-
-    //print_omp_stats();
     Parser parser;
     parser.parse_args(argc, argv);
 

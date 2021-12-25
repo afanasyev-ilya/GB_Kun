@@ -12,7 +12,12 @@ namespace backend {
 template<typename T>
 class Vector {
 public:
-    Vector(int _size): dense(_size), sparse(_size), storage(GrB_DENSE) {size = _size; nnz = size;};
+    Vector(int _size): dense(_size), sparse(_size), storage(GrB_DENSE)
+    {
+        size = _size;
+        nnz = size;
+    };
+
     ~Vector(){};
 
     void set_constant(T _val)
@@ -21,28 +26,44 @@ public:
         //sparse.set_constant(_val);
     };
 
-    DenseVector<T>* getDense() {
+    DenseVector<T>* getDense()
+    {
         return &dense;
     }
-    SparseVector<T>* getSparse() {
+
+    SparseVector<T>* getSparse()
+    {
         return &sparse;
     }
-    const DenseVector<T>* getDense() const {
+
+    const DenseVector<T>* getDense() const
+    {
         return &dense;
     }
-    const SparseVector<T>* getSparse() const {
+
+    const SparseVector<T>* getSparse() const
+    {
         return &sparse;
     }
-    void getStorage(Storage* _storage) const{
+
+    void getStorage(Storage* _storage) const
+    {
         *_storage = storage;
     }
-    void setStorage(Storage _storage) {
+
+    void setStorage(Storage _storage)
+    {
         storage = _storage;
     }
-    void set_element(T val, VNT pos) {
-        if (storage == GrB_DENSE) {
+
+    void set_element(T val, VNT pos)
+    {
+        if (storage == GrB_DENSE)
+        {
             dense.get_vals()[pos] = val;
-        } else if (storage == GrB_SPARSE) {
+        }
+        else if (storage == GrB_SPARSE)
+        {
             /* we count pos in NZ numbers, or in SIZE? */
             sparse.get_vals()[pos] = val;
         }
@@ -91,7 +112,6 @@ public:
         }
         else
         {
-            // TODO really need to compute that?
             VNT loc_nnz = 0;
             #pragma omp parallel for reduction(+: loc_nnz)
             for(int i = 0; i < dense.get_size(); i++)

@@ -53,17 +53,6 @@ public:
         return GrB_SUCCESS;
     }
 
-    void swap(DenseVector* rhs) const {
-        VNT tmp_size = size;
-        T* tmp_vals = vals;
-
-        rhs->get_size(&size);
-        vals = rhs->get_vals();
-
-        rhs->set_size(tmp_size);
-        rhs->set_vals(tmp_vals);
-    }
-
 private:
     mutable VNT size;
     mutable T *vals;

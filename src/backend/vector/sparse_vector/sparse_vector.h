@@ -98,23 +98,6 @@ public:
         return GrB_SUCCESS;
     }
 
-    void swap(SparseVector* rhs) const {
-        VNT tmp_size = size;
-        VNT tmp_nnz = nnz;
-        T* tmp_vals = vals;
-        VNT* tmp_ids = ids;
-
-        rhs->get_size(&size);
-        rhs->get_nnz(&nnz);
-        vals = rhs->get_vals();
-        ids = rhs->get_ids();
-
-        rhs->set_nnz(tmp_nnz);
-        rhs->set_size(tmp_size);
-        rhs->set_ids(tmp_ids);
-        rhs->set_vals(tmp_vals);
-    }
-
 private:
     mutable VNT size;
     mutable ENT nnz;
