@@ -1,5 +1,7 @@
 #pragma once
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
 LA_Info GrB_Vector_new(lablas::Vector<T> **_vector, GrB_Type _type, GrB_Index _size)
 {
@@ -7,6 +9,8 @@ LA_Info GrB_Vector_new(lablas::Vector<T> **_vector, GrB_Type _type, GrB_Index _s
     *_vector = new lablas::Vector<T>(_size);
     return GrB_SUCCESS;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 LA_Info GrB_free(lablas::Vector<T> **_vector)
@@ -17,6 +21,8 @@ LA_Info GrB_free(lablas::Vector<T> **_vector)
     return GrB_SUCCESS;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename W, typename T>
 LA_Info GrB_Vector_setElement(lablas::Vector<W> *_w,
                               const T _val,
@@ -25,9 +31,13 @@ LA_Info GrB_Vector_setElement(lablas::Vector<W> *_w,
     return _w->set_element(_val, _index);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename W>
 LA_Info GrB_Vector_nvals(Index *_nvals,
                          const lablas::Vector<W> *_w)
 {
     return _w->get_nvals(_nvals);
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

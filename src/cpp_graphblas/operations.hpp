@@ -234,23 +234,20 @@ LA_Info assign(Vector<W>*       _w,
     auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
+    W* w_vals = _w->get_vector()->getDense()->get_vals();
+    Index vector_size = _w->get_vector()->getDense()->get_size();
+    auto lambda_op = [w_vals, _value] (Index idx)
+    {
+        w_vals[idx] = _value;
+    };
     if(_indices == NULL)
     {
-        Index vector_size = _w->get_vector()->getDense()->get_size();
-        W* w_vals = _w->get_vector()->getDense()->get_vals();
-
-        auto lambda_op = [w_vals, _value] (Index idx)
-        {
-            w_vals[idx] = _value;
-        };
         return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
     }
     else
     {
-        throw "Error in assign : _indices != NULL currently not supported";
+        return backend::indexed_dense_vector_op(mask_t, _indices, _nindices, vector_size, lambda_op, desc_t);
     }
-
-    return GrB_SUCCESS;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -274,23 +271,21 @@ LA_Info assign(Vector<W>*       _w,
     auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
+    Index vector_size = _w->get_vector()->getDense()->get_size();
+    W* w_vals = _w->get_vector()->getDense()->get_vals();
+    U* u_vals = _u->get_vector()->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, u_vals, &_accum](Index idx) {
+        w_vals[idx] = _accum(w_vals[idx], u_vals[idx]);
+    };
     if(_indices == NULL)
     {
-        Index vector_size = _w->get_vector()->getDense()->get_size();
-        W* w_vals = _w->get_vector()->getDense()->get_vals();
-        U* u_vals = _u->get_vector()->getDense()->get_vals();
-
-        auto lambda_op = [w_vals, u_vals, &_accum](Index idx) {
-            w_vals[idx] = _accum(w_vals[idx], u_vals[idx]);
-        };
         return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
     }
     else
     {
-        throw "Error in assign : _indices != NULL currently not supported";
+        return backend::indexed_dense_vector_op(mask_t, _indices, _nindices, vector_size, lambda_op, desc_t);
     }
-
-    return GrB_SUCCESS;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
