@@ -98,11 +98,27 @@ private:
     T get(VNT _row, VNT _col) const;
 
     template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
-    friend void SpMV(const MatrixCSR<A> *_matrix,
-                     const DenseVector<X> *_x,
-                     DenseVector<Y> *_y,
-                     BinaryOpTAccum _accum,
-                     SemiringT op);
+    friend void SpMV_all_active(const MatrixCSR<A> *_matrix,
+                                const DenseVector<X> *_x,
+                                DenseVector<Y> *_y,
+                                BinaryOpTAccum _accum,
+                                SemiringT op);
+
+    template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
+    friend void SpMV_dense(const MatrixCSR<A> *_matrix,
+                           const DenseVector<X> *_x,
+                           DenseVector<Y> *_y,
+                           BinaryOpTAccum _accum,
+                           SemiringT op,
+                           const DenseVector<M> *_mask);
+
+    template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
+    friend void SpMV_sparse(const MatrixCSR<A> *_matrix,
+                            const DenseVector<X> *_x,
+                            DenseVector<Y> *_y,
+                            BinaryOpTAccum _accum,
+                            SemiringT op,
+                            const SparseVector<M> *_mask);
 
     template <typename N, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_numa_aware(MatrixCSR<N> *_matrix,
@@ -111,13 +127,6 @@ private:
                                 DenseVector<N> *_y,
                                 BinaryOpTAccum _accum,
                                 SemiringT op);
-
-    template <typename N, typename SemiringT, typename BinaryOpTAccum>
-    friend void SpMV_non_optimized(MatrixCSR<N> *_matrix,
-                                   const DenseVector<N> *_x,
-                                   DenseVector<N> *_y,
-                                   BinaryOpTAccum _accum,
-                                   SemiringT op);
 
     void prepare_vg_lists(int _target_socket);
 };

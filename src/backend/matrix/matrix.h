@@ -26,6 +26,9 @@ public:
 
         MemoryAPI::free_array(rowdegrees);
         MemoryAPI::free_array(coldegrees);
+
+        delete csr_data;
+        delete csc_data;
     };
 
     void build(const VNT *_row_indices,
@@ -71,6 +74,8 @@ public:
     }
     #endif
 
+    const MatrixCSR<T> *get_csr() const { return csr_data; };
+    const MatrixCSR<T> *get_csc() const { return csc_data; };
 
     const MatrixContainer<T>* get_data() const {
         return data;
@@ -85,22 +90,22 @@ public:
     }
 
     void get_nrows(VNT* _nrows) const {
-        data->get_size(_nrows);
+        csr_data->get_size(_nrows);
     }
 
     VNT get_nrows() const {
         VNT nrows;
-        data->get_size(&nrows);
+        csr_data->get_size(&nrows);
         return nrows;
     }
 
     void get_ncols(VNT* _ncols) const {
-        data->get_size(_ncols);
+        csr_data->get_size(_ncols);
     }
 
     VNT get_ncols() const {
         VNT ncols;
-        data->get_size(&ncols);
+        csr_data->get_size(&ncols);
         return ncols;
     }
 
@@ -109,7 +114,7 @@ public:
         data->print();
     }
 
-    ENT get_nnz() const {return data->get_nnz();};
+    ENT get_nnz() const {return csr_data->get_nnz();};
 
     ENT* get_rowdegrees()
     {
@@ -123,11 +128,13 @@ public:
 
 private:
     MatrixContainer<T> *data;
+    MatrixContainer<T> *transposed_data;
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
     MatrixContainer<T> *data_socket_dub;
     #endif
 
-    MatrixContainer<T> *transposed_data;
+    MatrixCSR<T> *csr_data;
+    MatrixCSR<T> *csc_data;
 
     MatrixStorageFormat _format;
     Storage mat_type_;
@@ -145,6 +152,28 @@ void Matrix<T>::build(const VNT *_row_indices,
                       const VNT _size, // todo remove
                       const ENT _nnz)
 {
+    // CSR data creation
+    csr_data = new MatrixCSR<T>;
+    csc_data = new MatrixCSR<T>;
+    csr_data->build(_row_indices, _col_indices, _values, _size, _nnz, 0);
+    csc_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
+
+    MemoryAPI::allocate_array(&rowdegrees, get_nrows());
+    MemoryAPI::allocate_array(&coldegrees, get_ncols());
+
+    #pragma omp parallel for
+    for(int i = 0; i < get_nrows(); i++)
+    {
+        rowdegrees[i] = csr_data->get_degree(i);
+    }
+
+    #pragma omp parallel for
+    for(int i = 0; i < get_ncols(); i++)
+    {
+        coldegrees[i] = csc_data->get_degree(i);
+    }
+
+    // optimized representation creation
     if (_format == CSR) {
         data = new MatrixCSR<T>;
         #ifdef __USE_SOCKET_OPTIMIZATIONS__
@@ -188,23 +217,6 @@ void Matrix<T>::build(const VNT *_row_indices,
     #endif
 
     transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
-
-    MemoryAPI::allocate_array(&rowdegrees, get_nrows());
-    MemoryAPI::allocate_array(&coldegrees, get_ncols());
-
-    if (_format == CSR) {
-        #pragma omp parallel for
-        for(int i = 0; i < get_nrows(); i++)
-        {
-            rowdegrees[i] = data->get_degree(i);
-        }
-
-        #pragma omp parallel for
-        for(int i = 0; i < get_ncols(); i++)
-        {
-            coldegrees[i] = transposed_data->get_degree(i);
-        }
-    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

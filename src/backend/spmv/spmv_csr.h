@@ -116,33 +116,72 @@ void SpMV_non_optimized(MatrixCSR<T> *_matrix,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <bool CMP, typename T, typename Y, typename SemiringT, typename BinaryOpTAccum>
-void SpMV_dense(const MatrixCSR<T> *_matrix,
-          const DenseVector<T> *_x,
-          DenseVector<T> *_y,
-          BinaryOpTAccum _accum,
-          SemiringT op,
-          const Vector<Y> *_mask)
+template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
+void SpMV_sparse(const MatrixCSR<A> *_matrix,
+                 const DenseVector<X> *_x,
+                 DenseVector<Y> *_y,
+                 BinaryOpTAccum _accum,
+                 SemiringT op,
+                 const SparseVector<M> *_mask)
 {
-    const T *x_vals = _x->get_vals();
-    T *y_vals = _y->get_vals();
+    const X *x_vals = _x->get_vals();
+    Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
+    const VNT mask_nvals = _mask->get_nvals();
+    const VNT *mask_ids = _mask->get_ids();
+
+    #pragma omp parallel
+    {
+        #pragma omp for schedule(guided, 1)
+        for(VNT i = 0; i < mask_nvals; i++)
+        {
+            VNT row = mask_ids[i];
+
+            Y res = identity_val;
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+            {
+                res = add_op(res, mul_op(_matrix->vals[j], x_vals[_matrix->col_ids[j]])) ;
+            }
+            y_vals[row] = _accum(y_vals[row], res);
+        }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
+void SpMV_dense(const MatrixCSR<A> *_matrix,
+                const DenseVector<X> *_x,
+                DenseVector<Y> *_y,
+                BinaryOpTAccum _accum,
+                SemiringT op,
+                const DenseVector<M> *_mask)
+{
+    const X *x_vals = _x->get_vals();
+    Y *y_vals = _y->get_vals();
+    auto add_op = extractAdd(op);
+    auto mul_op = extractMul(op);
+    auto identity_val = op.identity();
+
+    const M *mask_vals = _mask->get_vals();
+
     #pragma omp parallel
     {
         #pragma omp for schedule(static)
-        for(VNT i = 0; i < _matrix->size; i++)
+        for(VNT row = 0; row < _matrix->size; row++)
         {
-            bool mask_val = (bool)_mask->getDense()->get_vals()[i];
-            if (mask_val && !CMP) {
-                T res = identity_val;
-                for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
+            bool mask_val = (bool)mask_vals[row];
+            if (mask_val)
+            {
+                Y res = identity_val;
+                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
                 {
                     res = add_op(res, mul_op(_matrix->vals[j], x_vals[_matrix->col_ids[j]])) ;
                 }
-                y_vals[i] = _accum(y_vals, res);
+                y_vals[row] = _accum(y_vals[row], res);
             }
         }
     }
@@ -151,11 +190,11 @@ void SpMV_dense(const MatrixCSR<T> *_matrix,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
-void SpMV(const MatrixCSR<A> *_matrix,
-          const DenseVector<X> *_x,
-          DenseVector<Y> *_y,
-          BinaryOpTAccum _accum,
-          SemiringT op)
+void SpMV_all_active(const MatrixCSR<A> *_matrix,
+                     const DenseVector<X> *_x,
+                     DenseVector<Y> *_y,
+                     BinaryOpTAccum _accum,
+                     SemiringT op)
 {
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
