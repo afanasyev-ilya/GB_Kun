@@ -18,18 +18,29 @@ LA_Info generic_dense_vector_op(const Vector<M> *_mask,
 {
     if(_mask != NULL)
     {
-        // TODO if mask is sparse
-
-        if(_mask->getDense()->get_size() != _size)
+        if(_mask->get_size() != _size)
             return GrB_DIMENSION_MISMATCH;
 
-        const M *mask_data = _mask->getDense()->get_vals();
-
-        #pragma omp parallel for
-        for(Index i = 0; i < _size; i++)
+        if(_mask->is_sparse())
         {
-            if(mask_data[i])
-                _lambda_op(i);
+            const Index *mask_ids = _mask->getSparse()->get_ids();
+            const Index mask_nvals = _mask->getSparse()->get_nvals();
+            #pragma omp parallel for
+            for(Index i = 0; i < mask_nvals; i++)
+            {
+                Index idx = mask_ids[i];
+                _lambda_op(idx);
+            }
+        }
+        else
+        {
+            const M *mask_data = _mask->getDense()->get_vals();
+            #pragma omp parallel for
+            for(Index i = 0; i < _size; i++)
+            {
+                if(mask_data[i])
+                    _lambda_op(i);
+            }
         }
     }
     else
@@ -42,6 +53,8 @@ LA_Info generic_dense_vector_op(const Vector<M> *_mask,
     }
     return GrB_SUCCESS;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename M, typename LambdaOp>
 LA_Info indexed_dense_vector_op(const Vector<M> *_mask,

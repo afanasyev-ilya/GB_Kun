@@ -58,44 +58,69 @@ public:
 
     DenseVector<T>* getDense()
     {
-        if(is_sparse())
-        {
-            swap_to_dense();
-            ((DenseVector<T>*)main_container)->convert((SparseVector<T>*)secondary_container);
-        }
+        force_to_dense();
         return (DenseVector<T>*)main_container;
     }
 
     SparseVector<T>* getSparse()
     {
-        if(is_dense())
-        {
-            swap_to_sparse();
-            ((SparseVector<T>*)main_container)->convert((DenseVector<T>*)secondary_container);
-
-        }
+        force_to_sparse();
         return (SparseVector<T>*)main_container;
     }
 
     const DenseVector<T>* getDense() const
     {
-        if(is_sparse())
-        {
-            swap_to_dense();
-            ((DenseVector<T>*)main_container)->convert((SparseVector<T>*)secondary_container);
-        }
+        force_to_dense();
         return (DenseVector<T>*)main_container;
     }
 
     const SparseVector<T>* getSparse() const
     {
+        force_to_sparse();
+        return (SparseVector<T>*)main_container;
+    }
+
+    void force_to_dense()
+    {
         if(is_dense())
+            return;
+        else
+        {
+            swap_to_dense();
+            ((DenseVector<T>*)main_container)->convert((SparseVector<T>*)secondary_container);
+        }
+    }
+
+    void force_to_sparse()
+    {
+        if(is_sparse())
+            return;
+        else
         {
             swap_to_sparse();
             ((SparseVector<T>*)main_container)->convert((DenseVector<T>*)secondary_container);
-
         }
-        return (SparseVector<T>*)main_container;
+    }
+
+    void convert_if_required()
+    {
+        VNT nvals = main_container->get_nvals();
+        if(nvals > main_container->get_size() * SPARSE_VECTOR_THRESHOLD) // TODO more complex
+        {
+            cout << "must be made dense: " << endl;
+            main_container->print();
+            force_to_dense();
+            cout << "done" << endl;
+            main_container->print();
+        }
+        else
+        {
+            cout << "must be made sparse: " << endl;
+            main_container->print();
+            force_to_sparse();
+            cout << "done" << endl;
+            main_container->print();
+        }
     }
 
     void getStorage(Storage* _storage) const

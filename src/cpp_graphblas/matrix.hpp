@@ -2,7 +2,6 @@
 #define GB_KUN_MATRIX_HPP
 
 #include "../backend/matrix/matrix.h"
-#include "../helpers/utils.hpp"
 #include "types.hpp"
 #include <vector>
 #include "../backend/la_backend.h"

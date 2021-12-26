@@ -36,6 +36,20 @@ template <typename T>
 void SparseVector<T>::convert(DenseVector<T> *_dense_vector)
 {
     cout << "converting dense -> sparse" << endl;
+    VNT dense_size = _dense_vector->get_size();
+    T* dense_vals = _dense_vector->get_vals();
+
+    // TODO faster using optimized copy if
+    nnz = 0;
+    for(VNT i = 0; i < size; i++)
+    {
+        if(dense_vals[i] != 0)
+        {
+            vals[nnz] = dense_vals[i];
+            ids[nnz] = i;
+            nnz++;
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

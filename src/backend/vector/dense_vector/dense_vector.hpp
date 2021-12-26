@@ -6,8 +6,6 @@ template <typename T>
 DenseVector<T>::DenseVector(VNT _size)
 {
     size = _size;
-    if(size == 0)
-        cout << "?????????" << endl;
     MemoryAPI::allocate_array(&vals, size);
     #pragma omp parallel for schedule(static) // numa aware alloc
     for (VNT i = 0; i < size; i++)
@@ -87,9 +85,11 @@ void DenseVector<T>::convert(SparseVector<T> *_sparse_vector)
 {
     cout << "converting sparse -> dense" << endl;
     memset(vals, 0, size*sizeof(T));
+
     VNT *sparse_ids = _sparse_vector->get_ids();
     T *sparse_vals = _sparse_vector->get_vals();
     VNT sparse_nvals = _sparse_vector->get_nvals();
+
     #pragma omp parallel for
     for(VNT i = 0; i < sparse_nvals; i++)
         vals[sparse_ids[i]] = sparse_vals[i];

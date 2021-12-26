@@ -116,6 +116,8 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
         GrB_TRY (GrB_reduce (&succ, NULL, GrB_PLUS_MONOID_INT32, f1, NULL)) ;
 
         iter++;
+        if(iter > 3)
+            break;
     } while(succ > 0);
 
     *levels = v;

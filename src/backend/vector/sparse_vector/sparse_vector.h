@@ -27,12 +27,16 @@ public:
 
     void print() const
     {
-        for(VNT i = 0; i < nnz; i++)
+        if(nnz == 0)
+            cout << "vector is empty (from print)" << endl;
+        else
         {
-            cout << "( "<< ids[i]<< " , "  << vals[i] << ") ";
+            for(VNT i = 0; i < nnz; i++)
+            {
+                cout << "( "<< ids[i]<< " , "  << vals[i] << ") ";
+            }
+            cout << endl;
         }
-        cout << endl;
-
     };
 
     void get_nnz(VNT* _nnz) const {

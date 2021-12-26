@@ -10,5 +10,7 @@
 
 #define THREADS_PER_SOCKET 48
 
+#define SPARSE_VECTOR_THRESHOLD 0.6
+
 
 
