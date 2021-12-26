@@ -58,7 +58,7 @@ public:
 
     DenseVector<T>* getDense()
     {
-        if(is_dense())
+        if(is_sparse())
         {
             swap_to_dense();
             ((DenseVector<T>*)main_container)->convert((SparseVector<T>*)secondary_container);
@@ -79,7 +79,7 @@ public:
 
     const DenseVector<T>* getDense() const
     {
-        if(is_dense())
+        if(is_sparse())
         {
             swap_to_dense();
             ((DenseVector<T>*)main_container)->convert((SparseVector<T>*)secondary_container);
