@@ -61,7 +61,7 @@ public:
 
     LA_Info get_nvals(Index *_nvals) const
     {
-        *_nvals = _vector.nvals();
+        *_nvals = _vector.get_nvals();
         return GrB_SUCCESS;
     }
 

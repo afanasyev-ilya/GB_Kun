@@ -1,19 +1,16 @@
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace lablas{
 namespace backend{
 
-
 template <typename T>
-class DenseVector
+class DenseVector : public GenericVector<T>
 {
 public:
     DenseVector(VNT _size);
-
     ~DenseVector();
-
-    void set_constant(T _val);
 
     void print() const;
 
@@ -33,14 +30,6 @@ public:
         return vals;
     }
 
-    void set_size(VNT _size) const {
-        size = _size;
-    }
-
-    void set_vals(T* _vals) const {
-        vals = _vals;
-    }
-
     LA_Info build(const T* values,
                   VNT nvals) {
         if (nvals > size){
@@ -53,9 +42,17 @@ public:
         return GrB_SUCCESS;
     }
 
+    VNT get_nvals() const;
+
+    void print_storage_type() const { cout << "It is dense vector" << endl; };
+
+    void set_element(T _val, VNT _pos);
+    void set_all_constant(T _val);
+
+    void fill_with_zeros();
 private:
-    mutable VNT size;
-    mutable T *vals;
+    VNT size;
+    T *vals;
 
     template<typename Y>
     friend bool operator==(DenseVector<Y>& lhs, DenseVector<Y>& rhs);
@@ -63,79 +60,8 @@ private:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-DenseVector<T>::DenseVector(VNT _size)
-{
-    size = _size;
-    MemoryAPI::allocate_array(&vals, size);
-    #pragma omp parallel for schedule(static)
-    for (VNT i = 0; i < size; i++)
-    {
-        vals[i] = 0;
-    }
-}
+#include "dense_vector.hpp"
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-DenseVector<T>::~DenseVector()
-{
-    MemoryAPI::free_array(vals);
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-void DenseVector<T>::set_constant(T _val)
-{
-    for(VNT i = 0; i < size; i++)
-    {
-        vals[i] = _val;
-    }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-void DenseVector<T>::print() const
-{
-    for(VNT i = 0; i < size; i++)
-    {
-        cout << vals[i] << " ";
-    }
-    cout << endl;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
-{
-    if(lhs.size != rhs.size)
-        return false;
-
-    VNT error_count = 0;
-    for(VNT i = 0; i < lhs.size; i++)
-    {
-        if(fabs(lhs.vals[i] - rhs.vals[i]) > 0.001 && lhs.vals[i] < 100000)
-        {
-            if(error_count < 10)
-                cout << "Error in " << i << " : " << lhs.vals[i] << " " << rhs.vals[i] << endl;
-            error_count++;
-        }
-    }
-
-    for(VNT i = 0; i < min(lhs.size, (VNT)CHECK_PRINT_NUM); i++)
-    {
-        cout << "check " << i << " : " << lhs.vals[i] << " vs " << rhs.vals[i] << endl;
-    }
-
-    cout << "error_count: " << error_count << "/" << max(lhs.size, rhs.size)  << endl;
-    if(error_count == 0)
-        return true;
-    else
-        return false;
-}
 }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
