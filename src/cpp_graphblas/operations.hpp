@@ -29,7 +29,7 @@ bool not_initialized(L const& lhs, R const &rhs, Args const&... args)
 template<typename L, typename R, typename... Args>
 bool dims_mismatched(L const& lhs, R const &rhs)
 {
-    if(lhs->get_vector()->getDense()->get_size() != rhs->get_vector()->getDense()->get_size())
+    if(lhs->get_vector()->get_size() != rhs->get_vector()->get_size())
         return true;
     return false;
 }
@@ -39,7 +39,7 @@ bool dims_mismatched(L const& lhs, R const &rhs)
 template<typename L, typename R, typename... Args>
 bool dims_mismatched(L const& lhs, R const &rhs, Args const&... args)
 {
-    if((lhs->get_vector()->getDense()->get_size() != rhs->get_vector()->getDense()->get_size()) || dims_mismatched(lhs,args...))
+    if((lhs->get_vector()->get_size() != rhs->get_vector()->get_size()) || dims_mismatched(lhs,args...))
         return true;
     return false;
 }

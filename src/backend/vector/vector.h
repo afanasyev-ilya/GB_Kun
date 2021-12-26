@@ -11,14 +11,22 @@
 namespace lablas {
 namespace backend {
 
+template <typename T>
+void ptr_swap(T *& _a, T *& _b)
+{
+    T* c = _a;
+    _a = _b;
+    _b = c;
+}
+
 template<typename T>
 class Vector {
 public:
     Vector(VNT _size)
     {
         storage = GrB_SPARSE;
-        main_container = new SparseVector<T>(size);
-        secondary_container = new DenseVector<T>(size);
+        main_container = new SparseVector<T>(_size);
+        secondary_container = new DenseVector<T>(_size);
     }
 
     ~Vector()
@@ -42,8 +50,7 @@ public:
             }
             else // convert to dense
             {
-                storage = GrB_DENSE;
-                swap(main_container, secondary_container);
+                swap_to_dense();
                 main_container->set_all_constant(_val);
             }
         }
@@ -52,45 +59,43 @@ public:
     DenseVector<T>* getDense()
     {
         if(is_dense())
-            return (DenseVector<T>*)main_container;
-        else
         {
-            cout << "conversion required" << endl;
-            throw "Error in getDense, conversion not implemented";
+            swap_to_dense();
+            ((DenseVector<T>*)main_container)->convert((SparseVector<T>*)secondary_container);
         }
+        return (DenseVector<T>*)main_container;
     }
 
     SparseVector<T>* getSparse()
     {
-        if(is_sparse())
-            return (SparseVector<T>*)main_container;
-        else
+        if(is_dense())
         {
-            cout << "conversion required" << endl;
-            throw "Error in getDense, conversion not implemented";
+            swap_to_sparse();
+            ((SparseVector<T>*)main_container)->convert((DenseVector<T>*)secondary_container);
+
         }
+        return (SparseVector<T>*)main_container;
     }
 
     const DenseVector<T>* getDense() const
     {
         if(is_dense())
-            return (DenseVector<T>*)main_container;
-        else
         {
-            cout << "conversion required" << endl;
-            throw "Error in getDense, conversion not implemented";
+            swap_to_dense();
+            ((DenseVector<T>*)main_container)->convert((SparseVector<T>*)secondary_container);
         }
+        return (DenseVector<T>*)main_container;
     }
 
     const SparseVector<T>* getSparse() const
     {
-        if(is_sparse())
-            return (SparseVector<T>*)main_container;
-        else
+        if(is_dense())
         {
-            cout << "conversion required" << endl;
-            throw "Error in getDense, conversion not implemented";
+            swap_to_sparse();
+            ((SparseVector<T>*)main_container)->convert((DenseVector<T>*)secondary_container);
+
         }
+        return (SparseVector<T>*)main_container;
     }
 
     void getStorage(Storage* _storage) const
@@ -115,15 +120,16 @@ public:
                    const T*     _values,
                    Index _nvals)
     {
-        storage = GrB_SPARSE;
-        auto *sparse_vec = (SparseVector<T>*)main_container;
+        swap_to_sparse();
+        auto *sparse_vec = ((SparseVector<T>*)main_container)->build(_indices, _values, _nvals);
+        sparse_vec->fill_with_zeros();
         return sparse_vec->build(_indices, _values, _nvals);
     }
 
     LA_Info build(const T*    _values,
                   Index _nvals)
     {
-        storage = GrB_DENSE;
+        swap_to_dense();
         auto *dense_vec = (DenseVector<T>*)main_container;
         return dense_vec->build(_values, _nvals);
     }
@@ -142,13 +148,35 @@ public:
     {
         return main_container->get_nvals();
     };
+
+    VNT get_size() const
+    {
+        return main_container->get_size();
+    }
 private:
-    VNT size;
     VNT nnz;
     Storage storage;
 
     GenericVector<T> *main_container;
     GenericVector<T> *secondary_container;
+
+    void swap_to_sparse()
+    {
+        if(is_dense())
+        {
+            ptr_swap(main_container, secondary_container);
+            storage = GrB_SPARSE;
+        }
+    }
+
+    void swap_to_dense()
+    {
+        if(is_sparse())
+        {
+            ptr_swap(main_container, secondary_container);
+            storage = GrB_DENSE;
+        }
+    }
 
     template<typename Y>
     friend bool operator==(Vector<Y>& lhs, Vector<Y>& rhs);

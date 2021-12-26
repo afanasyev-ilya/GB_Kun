@@ -5,8 +5,6 @@
 namespace lablas{
 namespace backend{
 
-#define SPARSITY_K 100
-
 template <typename T>
 class SparseVector : public GenericVector<T>
 {
@@ -15,6 +13,8 @@ public:
     {
         size = _size;
         nnz = 0;
+        if(size == 0)
+            cout << "!!!!!" << endl;
         MemoryAPI::allocate_array(&vals, size);
         MemoryAPI::allocate_array(&ids, size);
     };
@@ -79,6 +79,10 @@ public:
     void set_all_constant(T _val);
 
     void fill_with_zeros() { nnz = 0; };
+
+    void convert(DenseVector<T> *_dense_vector);
+
+    VNT get_size() const {return size;};
 private:
     VNT size;
     ENT nnz;

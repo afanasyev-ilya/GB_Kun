@@ -103,6 +103,13 @@ void VSpM(const Matrix<A> *_matrix,
         _desc->get(GrB_MASK, &mask_field);
     }
 
+    cout << "x: ";
+    _x->print_storage_type();
+    cout << "y: ";
+    _y->print_storage_type();
+    cout << "mask: ";
+    _mask->print_storage_type();
+
     if(format == CSR)
     {
         SpMV(((MatrixCSR<A> *) _matrix->get_transposed_data()), _x->getDense(), _y->getDense(), _accum, _op);

@@ -14,6 +14,7 @@ public:
     virtual void set_element(T _val, VNT _pos) = 0;
     virtual void set_all_constant(T _val) = 0;
     virtual void fill_with_zeros() = 0;
+    virtual VNT get_size() const = 0;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -6,6 +6,8 @@ template <typename T>
 DenseVector<T>::DenseVector(VNT _size)
 {
     size = _size;
+    if(size == 0)
+        cout << "?????????" << endl;
     MemoryAPI::allocate_array(&vals, size);
     #pragma omp parallel for schedule(static) // numa aware alloc
     for (VNT i = 0; i < size; i++)
@@ -81,32 +83,16 @@ void DenseVector<T>::fill_with_zeros()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
+void DenseVector<T>::convert(SparseVector<T> *_sparse_vector)
 {
-    if(lhs.size != rhs.size)
-        return false;
-
-    VNT error_count = 0;
-    for(VNT i = 0; i < lhs.size; i++)
-    {
-        if(fabs(lhs.vals[i] - rhs.vals[i]) > 0.001 && lhs.vals[i] < 100000)
-        {
-            if(error_count < 10)
-                cout << "Error in " << i << " : " << lhs.vals[i] << " " << rhs.vals[i] << endl;
-            error_count++;
-        }
-    }
-
-    for(VNT i = 0; i < min(lhs.size, (VNT)CHECK_PRINT_NUM); i++)
-    {
-        cout << "check " << i << " : " << lhs.vals[i] << " vs " << rhs.vals[i] << endl;
-    }
-
-    cout << "error_count: " << error_count << "/" << max(lhs.size, rhs.size)  << endl;
-    if(error_count == 0)
-        return true;
-    else
-        return false;
+    cout << "converting sparse -> dense" << endl;
+    memset(vals, 0, size*sizeof(T));
+    VNT *sparse_ids = _sparse_vector->get_ids();
+    T *sparse_vals = _sparse_vector->get_vals();
+    VNT sparse_nvals = _sparse_vector->get_nvals();
+    #pragma omp parallel for
+    for(VNT i = 0; i < sparse_nvals; i++)
+        vals[sparse_ids[i]] = sparse_vals[i];
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
