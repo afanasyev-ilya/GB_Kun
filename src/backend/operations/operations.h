@@ -68,7 +68,7 @@ LA_Info indexed_dense_vector_op(const Vector<M> *_mask,
     {
         // TODO if mask is sparse
 
-        if(_mask->getDense()->get_size() != _vector_size)
+        if(_mask->get_size() != _vector_size)
             return GrB_DIMENSION_MISMATCH;
 
         const M *mask_data = _mask->getDense()->get_vals();

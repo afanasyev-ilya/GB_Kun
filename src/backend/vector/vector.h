@@ -107,19 +107,11 @@ public:
         VNT nvals = main_container->get_nvals();
         if(nvals > main_container->get_size() * SPARSE_VECTOR_THRESHOLD) // TODO more complex
         {
-            cout << "must be made dense: " << endl;
-            main_container->print();
             force_to_dense();
-            cout << "done" << endl;
-            main_container->print();
         }
         else
         {
-            cout << "must be made sparse: " << endl;
-            main_container->print();
             force_to_sparse();
-            cout << "done" << endl;
-            main_container->print();
         }
     }
 

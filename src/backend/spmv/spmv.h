@@ -129,6 +129,7 @@ void VSpM(const Matrix<A> *_matrix,
         Y *result_vals = _y->getDense()->get_vals();
         const M *mask_vals = _mask->getDense()->get_vals();
         VNT mask_size = _mask->getDense()->get_size();
+
         #pragma omp parallel for
         for (VNT i = 0; i < mask_size; i++) {
             if (mask_vals[i] && !use_cmp)
