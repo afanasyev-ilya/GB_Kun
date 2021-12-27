@@ -189,7 +189,7 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
         for(VNT row = 0; row < _matrix->size; row++)
         {
             bool mask_val = (bool)mask_vals[row];
-            if (!use_comp_mask && (mask_val) || use_comp_mask && (!mask_val))
+            if (!use_comp_mask && mask_val || use_comp_mask && !mask_val)
             {
                 Y res = identity_val;
                 for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
@@ -197,6 +197,10 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
                     res = add_op(res, mul_op(_matrix->vals[j], x_vals[_matrix->col_ids[j]])) ;
                 }
                 y_vals[row] = _accum(y_vals[row], res);
+            }
+            else
+            {
+                y_vals[row] = 0; // if assign
             }
         }
     }
