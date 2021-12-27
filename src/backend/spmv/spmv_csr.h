@@ -89,7 +89,8 @@ void SpMV_non_optimized(MatrixCSR<T> *_matrix,
                         const DenseVector<T> *_x,
                         DenseVector<T> *_y,
                         BinaryOpTAccum _accum,
-                        SemiringT op)
+                        SemiringT op,
+                        Descriptor *_desc)
 {
     const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();
@@ -122,7 +123,8 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
                  DenseVector<Y> *_y,
                  BinaryOpTAccum _accum,
                  SemiringT op,
-                 const SparseVector<M> *_mask)
+                 const SparseVector<M> *_mask,
+                 Descriptor *_desc)
 {
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
@@ -158,7 +160,8 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
                 DenseVector<Y> *_y,
                 BinaryOpTAccum _accum,
                 SemiringT op,
-                const DenseVector<M> *_mask)
+                const DenseVector<M> *_mask,
+                Descriptor *_desc)
 {
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
@@ -167,6 +170,18 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
     auto identity_val = op.identity();
 
     const M *mask_vals = _mask->get_vals();
+    bool use_comp_mask;
+
+    Desc_value mask_field;
+    _desc->get(GrB_MASK, &mask_field);
+    if (mask_field == GrB_SCMP)
+    {
+        use_comp_mask = true;
+    }
+    else
+    {
+        use_comp_mask = false;
+    }
 
     #pragma omp parallel
     {
@@ -174,7 +189,7 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
         for(VNT row = 0; row < _matrix->size; row++)
         {
             bool mask_val = (bool)mask_vals[row];
-            if (mask_val)
+            if (!use_comp_mask && (mask_val) || use_comp_mask && (!mask_val))
             {
                 Y res = identity_val;
                 for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
@@ -194,7 +209,8 @@ void SpMV_all_active(const MatrixCSR<A> *_matrix,
                      const DenseVector<X> *_x,
                      DenseVector<Y> *_y,
                      BinaryOpTAccum _accum,
-                     SemiringT op)
+                     SemiringT op,
+                     Descriptor *_desc)
 {
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();

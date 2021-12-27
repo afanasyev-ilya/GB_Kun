@@ -41,10 +41,10 @@ void SpMV(const Matrix<T> *_matrix,
             }
             else
             {
-                SpMV_all_active(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op);
+                SpMV_all_active(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op, _desc);
             }
             #else
-            SpMV_all_active(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op);
+            SpMV_all_active(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op, _desc);
             #endif
         }
         else if(format == LAV)
@@ -98,29 +98,25 @@ void VSpM(const Matrix<A> *_matrix,
 
     if(_mask == NULL) // all active case
     {
-        SpMV_all_active(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op);
+        SpMV_all_active(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _desc);
     }
     else
     {
-        /*Desc_value mask_field;
-        _desc->get(GrB_MASK, &mask_field);
-        if (mask_field == GrB_SCMP)
+        /*if(_mask->is_dense()) // dense case
         {
-            throw "SCMP mask is not supported for now";
-        }
-
-        if(_mask->is_dense()) // dense case
-        {
-            SpMV_dense(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getDense());
+            SpMV_dense(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getDense(), _desc);
         }
         else // sparse_case
         {
-            SpMV_sparse(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getSparse());
+            SpMV_sparse(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getSparse(), _desc);
         }*/
-        SpMV_all_active(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op);
+
+        SpMV_dense(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getDense(), _desc);
+
+        //SpMV_all_active(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _desc));
     }
 
-    if (_mask != NULL)
+    /*if (_mask != NULL)
     {
         MatrixStorageFormat format;
         _matrix->get_format(&format);
@@ -148,7 +144,7 @@ void VSpM(const Matrix<A> *_matrix,
             if (!(!use_cmp && (mask_vals[i]) || use_cmp && (!mask_vals[i])))
                 result_vals[i] = 0;
         }
-    }
+    }*/
 }
 
 }
