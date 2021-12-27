@@ -12,7 +12,7 @@ void bfs_traditional(Vector <T> *_levels,
 {
     Index vertices_count = _levels->get_vector()->getDense()->get_size();
     T* levels = _levels->get_vector()->getDense()->get_vals();
-    backend::MatrixCSR<T> *graph = ((backend::MatrixCSR<T> *) _graph->get_matrix()->get_data());
+    backend::MatrixCSR<T> *graph = ((backend::MatrixCSR<T> *) _graph->get_matrix()->get_csr());
 
     // Mark all the vertices as not visited
     for(int i = 0; i < vertices_count; i++)

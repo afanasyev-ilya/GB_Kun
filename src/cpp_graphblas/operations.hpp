@@ -251,7 +251,7 @@ LA_Info assign(Vector<W>*       _w,
     {
         info = backend::indexed_dense_vector_op(mask_t, _indices, _nindices, vector_size, lambda_op, desc_t);
     }
-    _w->get_vector()->convert_if_required();
+    //_w->get_vector()->convert_if_required();
     return info;
 }
 
@@ -293,7 +293,7 @@ LA_Info assign(Vector<W>*       _w,
     {
         info = backend::indexed_dense_vector_op(mask_t, _indices, _nindices, vector_size, lambda_op, desc_t);
     }
-    _w->get_vector()->convert_if_required();
+    //_w->get_vector()->convert_if_required();
     return info;
 }
 

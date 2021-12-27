@@ -89,6 +89,13 @@ void VSpM(const Matrix<A> *_matrix,
           SemiringT _op,
           const Vector<M> *_mask)
 {
+    cout << "x ";
+    _x->print_storage_type();
+    cout << "y ";
+    _y->print_storage_type();
+    cout << "mask ";
+    _mask->print_storage_type();
+
     if(_mask == NULL) // all active case
     {
         SpMV_all_active(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op);
@@ -111,6 +118,15 @@ void VSpM(const Matrix<A> *_matrix,
             SpMV_sparse(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getSparse());
         }
     }
+
+    cout << "x(a) ";
+    _x->print_storage_type();
+    cout << "y(a) ";
+    _y->print_storage_type();
+    cout << "mask(a) ";
+    _mask->print_storage_type();
+    _mask->print();
+    cout << _mask->get_nvals() << endl << endl;
 }
 
 }

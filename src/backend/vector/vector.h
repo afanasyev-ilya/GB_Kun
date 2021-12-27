@@ -213,7 +213,7 @@ bool operator==(Vector<T>& lhs, Vector<T>& rhs)
         if(lhs.is_dense())
         {
             auto den_lhs = (DenseVector<T> *)lhs.main_container;
-            auto den_rhs = (DenseVector<T> *)lhs.main_container;
+            auto den_rhs = (DenseVector<T> *)rhs.main_container;
             return (*den_lhs) == (*den_rhs);
         }
         else
