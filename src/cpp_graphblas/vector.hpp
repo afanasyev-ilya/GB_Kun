@@ -80,6 +80,8 @@ public:
     }
 
     Index nvals() const { return _vector.nvals();};
+
+    void force_to_dense() {_vector.force_to_dense();};
 private:
     backend::Vector<T> _vector;
 

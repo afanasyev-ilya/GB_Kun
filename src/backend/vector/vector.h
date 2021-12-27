@@ -206,6 +206,8 @@ bool operator==(Vector<T>& lhs, Vector<T>& rhs)
 {
     if(lhs.storage != rhs.storage) // storages mismatch, not equal
     {
+        lhs.print();
+        rhs.print();
         return 0;
     }
     else

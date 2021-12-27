@@ -28,16 +28,17 @@ void SpMV(const Matrix<T> *_matrix,
 {
     if(_mask == NULL) // all active case
     {
+        /*SpMV_all_active(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _desc);*/
+
         MatrixStorageFormat format;
         _matrix->get_format(&format);
-
         if(format == CSR)
         {
             #ifdef __USE_SOCKET_OPTIMIZATIONS__
             if(omp_get_max_threads() == THREADS_PER_SOCKET*2)
             {
                 SpMV_numa_aware(((MatrixCSR<T> *) _matrix->get_data()), ((MatrixCSR<T> *) _matrix->get_data_dub()),
-                                _x->getDense(), _y->getDense(), _accum, _op);
+                                _x->getDense(), _y->getDense(), _accum, _op, _matrix->get_workspace());
             }
             else
             {
@@ -60,20 +61,14 @@ void SpMV(const Matrix<T> *_matrix,
     }
     else
     {
-        Desc_value mask_field;
-        _desc->get(GrB_MASK, &mask_field);
-        if (mask_field == GrB_SCMP)
-        {
-            throw "SCMP mask is not supported for now";
-        }
-
         if(_mask->is_dense()) // dense case
         {
-            SpMV_dense(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op, _mask->getDense());
+            SpMV_dense(_matrix->get_csr(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getDense(), _desc);
         }
         else // sparse_case
         {
-            SpMV_sparse(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op, _mask->getSparse());
+            SpMV_sparse(_matrix->get_csr(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getSparse(), _desc,
+                        _matrix->get_workspace());
         }
     }
 }
