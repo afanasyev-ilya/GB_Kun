@@ -89,10 +89,6 @@ void VSpM(const Matrix<A> *_matrix,
           SemiringT _op,
           const Vector<M> *_mask)
 {
-    cout << "x ";
-    _x->print_storage_type();
-    cout << "y ";
-    _y->print_storage_type();
     cout << "mask ";
     _mask->print_storage_type();
 
@@ -102,49 +98,16 @@ void VSpM(const Matrix<A> *_matrix,
     }
     else
     {
-        /*if(_mask->is_dense()) // dense case
+        if(_mask->is_dense()) // dense case
         {
             SpMV_dense(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getDense(), _desc);
         }
         else // sparse_case
         {
-            SpMV_sparse(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getSparse(), _desc);
-        }*/
-
-        SpMV_dense(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getDense(), _desc);
-
-        //SpMV_all_active(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _desc));
+            SpMV_sparse(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getSparse(), _desc,
+                        _matrix->get_workspace());
+        }
     }
-
-    /*if (_mask != NULL)
-    {
-        MatrixStorageFormat format;
-        _matrix->get_format(&format);
-        Desc_value mask_field;
-        if (_mask != NULL) {
-            _desc->get(GrB_MASK, &mask_field);
-        }
-
-        bool use_cmp;
-        if (mask_field == GrB_SCMP)
-        {
-            use_cmp = true;
-        }
-        else
-        {
-            use_cmp = false;
-        }
-        cout << "USE CMP: " << use_cmp << endl;
-
-        Y *result_vals = _y->getDense()->get_vals();
-        const M *mask_vals = _mask->getDense()->get_vals();
-        VNT mask_size = _mask->getDense()->get_size();
-        #pragma omp parallel for
-        for (VNT i = 0; i < mask_size; i++) {
-            if (!(!use_cmp && (mask_vals[i]) || use_cmp && (!mask_vals[i])))
-                result_vals[i] = 0;
-        }
-    }*/
 }
 
 }

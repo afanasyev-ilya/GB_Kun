@@ -2,14 +2,18 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "workspace.h"
 #include "containers/matrix_container.h"
 #include "../../cpp_graphblas/types.hpp"
 #include "../../helpers/cmd_parser/parser_options.h"
 #include "../la_backend.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace lablas {
 namespace backend {
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
 class Matrix {
@@ -29,6 +33,8 @@ public:
 
         delete csr_data;
         delete csc_data;
+
+        delete workspace;
     };
 
     void build(const VNT *_row_indices,
@@ -126,6 +132,7 @@ public:
         return coldegrees;
     }
 
+    Workspace *get_workspace() {return workspace;};
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
@@ -138,6 +145,8 @@ private:
 
     MatrixStorageFormat _format;
     Storage mat_type_;
+
+    Workspace *workspace;
 
     ENT *rowdegrees, *coldegrees;
 };
@@ -217,6 +226,8 @@ void Matrix<T>::build(const VNT *_row_indices,
     #endif
 
     transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
+
+    workspace = new Workspace(get_nrows(), get_ncols());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

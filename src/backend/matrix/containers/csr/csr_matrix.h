@@ -83,8 +83,6 @@ private:
     static const int vg_num = 9; // 9 is best currently
     VertexGroup vertex_groups[vg_num];
 
-    double *tmp_buffer;
-
     int target_socket;
 
     void alloc(VNT _size, ENT _nnz, int _target_socket);
@@ -121,7 +119,8 @@ private:
                             BinaryOpTAccum _accum,
                             SemiringT op,
                             const SparseVector<M> *_mask,
-                            Descriptor *_desc);
+                            Descriptor *_desc,
+                            Workspace *_workspace);
 
     template <typename N, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_numa_aware(MatrixCSR<N> *_matrix,
@@ -129,7 +128,8 @@ private:
                                 const DenseVector<N> *_x,
                                 DenseVector<N> *_y,
                                 BinaryOpTAccum _accum,
-                                SemiringT op);
+                                SemiringT op,
+                                Workspace *_workspace);
 
     void prepare_vg_lists(int _target_socket);
 };
