@@ -103,15 +103,14 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
 
     int iter = 1;
     int succ = 0;
-    A->print();
     do {
-        cout << "------------" << endl;
         GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, NULL));
-        cout << "mask :"; v->print();
         // v can become sparse if f1 is sparse
         // or v1 can become dense
 
+        desc.set(GrB_MASK, GrB_SCMP);
         GrB_TRY( GrB_vxm(f2, v, NULL, lablas::LogicalOrAndSemiring<int>(), f1, A, &desc));
+        desc.set(GrB_MASK, GrB_DEFAULT);
         // f2 can become sparse if v is sparse
 
         std::swap(f1, f2);
@@ -121,7 +120,6 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
         iter++;
         if(iter > 6)
             break;
-        cout << "------------" << endl << endl;
     } while(succ > 0);
 
     *levels = v;
