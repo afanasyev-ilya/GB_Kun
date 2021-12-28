@@ -68,8 +68,11 @@ public:
     void get_size(VNT* _size) const {*_size = size;};
 
     ENT *get_row_ptr() {return row_ptr;};
+    const ENT *get_row_ptr() const {return row_ptr;};
     T *get_vals() {return vals;};
+    const T *get_vals() const {return vals;};
     VNT *get_col_ids() {return col_ids;};
+    const VNT *get_col_ids() const {return col_ids;};
 
     ENT get_degree(VNT _row) {return row_ptr[_row + 1] - row_ptr[_row];};
 private:

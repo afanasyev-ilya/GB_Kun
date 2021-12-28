@@ -22,21 +22,20 @@ void test_sparse(int argc, char **argv)
     lablas::Vector<T> w(el.vertices_count);
     lablas::Vector<T> u(el.vertices_count);
 
+    #define MASK_NULL static_cast<const lablas::Vector<T>*>(NULL)
+
     for(int run = 0; run < 1; run++)
     {
         w.fill(0.0);
 
-        /*VNT matrix_size = el.vertices_count;
-        VNT num_non_zeroes = 100;
-        u.fill(0.0);
-        for(VNT i = 0; i < num_non_zeroes; i++)
-        {
-            u.set_element(1.0, rand()%matrix_size);
-        }*/
-        u.fill(1.0);
+        const GrB_Index indexes_num = 3;
+        const GrB_Index sparse_indexes[indexes_num] = {1, 2, 4};
+        GrB_TRY( GrB_assign(&u, MASK_NULL, NULL, 1, sparse_indexes, indexes_num, NULL));
 
-        lablas::mxv<T, T, T, T>(&w, NULL, nullptr, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
+        GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
     }
+
+    #undef MASK_NULL
 }
 
 int main(int argc, char **argv) {

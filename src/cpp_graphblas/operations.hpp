@@ -313,7 +313,18 @@ LA_Info mxv (Vector<W>*       _w,
         return GrB_UNINITIALIZED_OBJECT;
 
     auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
-    backend::SpMV(_matrix->get_matrix(), _u->get_vector(), _w->get_vector(), _desc->get_descriptor(), _accum, _op, mask_t);
+
+    if(_u->get_vector()->is_dense())
+        backend::SpMV(_matrix->get_matrix(), _u->get_vector(), _w->get_vector(), _desc->get_descriptor(), _accum, _op, mask_t);
+    else
+    {
+        backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor());
+
+        // TODO remove
+        backend::SpMV(_matrix->get_matrix(), _u->get_vector(), _w->get_vector(), _desc->get_descriptor(), _accum, _op, mask_t);
+        cout << "SPMV result: ";
+        _w->print();
+    }
 
     return GrB_SUCCESS;
 }
