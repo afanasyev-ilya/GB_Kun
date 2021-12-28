@@ -28,9 +28,12 @@ void test_sparse(int argc, char **argv)
     {
         w.fill(0.0);
 
-        const GrB_Index indexes_num = 3;
-        const GrB_Index sparse_indexes[indexes_num] = {1, 2, 4};
-        GrB_TRY( GrB_assign(&u, MASK_NULL, NULL, 1, sparse_indexes, indexes_num, NULL));
+        int SPARSITY_K = 100;
+        const GrB_Index indexes_num = ceil(el.vertices_count / SPARSITY_K);
+        vector<GrB_Index> sparse_indexes(indexes_num);
+        for(GrB_Index i = 0; i < indexes_num; i++)
+            sparse_indexes[i] = rand() % el.vertices_count;
+        GrB_TRY( GrB_assign(&u, MASK_NULL, NULL, 1, &sparse_indexes[0], indexes_num, NULL));
 
         GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
     }

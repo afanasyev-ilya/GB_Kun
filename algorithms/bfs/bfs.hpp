@@ -117,6 +117,7 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
 
         iter++;
     } while(succ > 0);
+    cout << "------------------------------ alg done ------------------------------------ " << endl;
 
     v->force_to_dense();
     *levels = v;
