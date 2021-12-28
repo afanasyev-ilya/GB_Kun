@@ -4,9 +4,9 @@
 
 Parser::Parser()
 {
-    scale = 4;
-    avg_degree = 7;
-    synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
+    scale = 2;
+    avg_degree = 4;
+    synthetic_graph_type = MTX_GRAPH;
     storage_format = CSR;
     no_check = false;
     out_file_name = "kun_out.mtx";
@@ -87,8 +87,6 @@ void Parser::parse_args(int _argc, char **_argv)
                 storage_format = VECT_GROUP_CSR;
             else if(option == "SELL_C" || option == "SIGMA")
                 storage_format = SELL_C;
-            else if(option == "SORT_CSR" || option == "SORTED_CSR")
-                storage_format = SORTED_CSR;
         }
 
         if(option == "-no-check")

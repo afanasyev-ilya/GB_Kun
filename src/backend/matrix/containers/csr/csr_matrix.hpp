@@ -79,6 +79,8 @@ T MatrixCSR<T>::get(VNT _row, VNT _col) const
 template <typename T>
 void MatrixCSR<T>::print() const
 {
+    cout << "--------------------\n";
+    cout << "MATRIX: [ " << endl;
     for(VNT row = 0; row < size; row++)
     {
         for(VNT col = 0; col < size; col++)
@@ -87,6 +89,23 @@ void MatrixCSR<T>::print() const
         }
         cout << endl;
     }
+    cout << "]\n";
+    cout << "--------------------\n";
+    cout << "nnz: " << nnz << endl;
+    cout << "col_ids: [ ";
+    for (int i = 0; i < get_nnz(); i++) {
+        cout << get_col_ids()[i] << " ";
+    }
+    cout << "]\n";
+    cout << endl;
+    Index size_ = 0;
+    get_size(&size_);
+    cout << "row_ptr: [ ";
+    for (int i = 0; i < size_ + 1; i++) {
+        cout << get_row_ptr()[i] << " ";
+    }
+    cout << "]" << endl;
+    cout << "--------------------\n";
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

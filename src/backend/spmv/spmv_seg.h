@@ -8,6 +8,8 @@ namespace backend {
 template <typename T, typename  SemiringT>
 void SpMV(const MatrixSegmentedCSR<T> *_matrix, const DenseVector<T> *_x, DenseVector<T> *_y, SemiringT op)
 {
+    _matrix->print();
+    _x->print();
     const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
