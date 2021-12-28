@@ -28,7 +28,8 @@ public:
     LA_Info build(const T* values,
                   VNT nvals)
     {
-        if (nvals > size){
+        if (nvals > size)
+        {
             return GrB_INDEX_OUT_OF_BOUNDS;
         }
         #pragma omp parallel for schedule(static)
