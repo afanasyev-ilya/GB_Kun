@@ -28,8 +28,6 @@ void SpMV(const Matrix<T> *_matrix,
 {
     if(_mask == NULL) // all active case
     {
-        /*SpMV_all_active(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _desc);*/
-
         MatrixStorageFormat format;
         _matrix->get_format(&format);
         if(format == CSR)
@@ -83,9 +81,6 @@ void VSpM(const Matrix<A> *_matrix,
           SemiringT _op,
           const Vector<M> *_mask)
 {
-    cout << "mask ";
-    _mask->print_storage_type();
-
     if(_mask == NULL) // all active case
     {
         SpMV_all_active(_matrix->get_csc(), _x, _y, _accum, _op, _desc);

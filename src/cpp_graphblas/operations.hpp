@@ -361,19 +361,33 @@ LA_Info reduce(T *_val,
     if(not_initialized(_u))
         return GrB_UNINITIALIZED_OBJECT;
 
-    Index vector_size = _u->get_vector()->getDense()->get_size();
-    const U* u_vals = _u->get_vector()->getDense()->get_vals();
-
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
-    auto lambda_op = [u_vals] (Index idx)->U
-    {
-        return u_vals[idx];
-    };
-
     T reduce_result = _op.identity();
+    if(_u->get_vector()->is_dense())
+    {
+        Index vector_size = _u->get_vector()->getDense()->get_size();
+        const U* u_vals = _u->get_vector()->getDense()->get_vals();
 
-    backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, desc_t);
+        auto lambda_op = [u_vals] (Index idx)->U
+        {
+            return u_vals[idx];
+        };
+
+        backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, desc_t);
+    }
+    else
+    {
+        Index nvals = _u->get_vector()->getSparse()->get_nvals();
+        const U* u_vals = _u->get_vector()->getSparse()->get_vals();
+        const Index *ids = _u->get_vector()->getSparse()->get_ids();
+
+        auto lambda_op = [u_vals] (Index idx)->U
+        {
+            return u_vals[idx];
+        };
+        backend::generic_sparse_reduce_op(&reduce_result, ids, nvals, lambda_op, _op, desc_t);
+    }
 
     *_val = _accum(*_val, reduce_result);
 

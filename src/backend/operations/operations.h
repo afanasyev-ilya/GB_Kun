@@ -121,5 +121,33 @@ LA_Info generic_dense_reduce_op(T *_tmp_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename T, typename LambdaOp, typename MonoidOpT>
+LA_Info generic_sparse_reduce_op(T *_tmp_val,
+                                 const Index *_ids,
+                                 const Index _nvals,
+                                 LambdaOp &&_lambda_op,
+                                 MonoidOpT _monoid_op,
+                                 Descriptor *_desc)
+{
+    #pragma omp parallel
+    {
+        T local_res = _monoid_op.identity();
+        #pragma omp for
+        for(Index i = 0; i < _nvals; i++)
+        {
+            Index idx = _ids[i];
+            local_res = _monoid_op(_lambda_op(idx), local_res);
+        }
+
+        #pragma omp critical
+        {
+            *_tmp_val = _monoid_op(*_tmp_val, local_res);
+        };
+    }
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 }
 }

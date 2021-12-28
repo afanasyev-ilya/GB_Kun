@@ -105,7 +105,6 @@ public:
     void convert_if_required()
     {
         VNT nvals = main_container->get_nvals();
-        cout << "nvals: " << nvals << " " << main_container->get_size() << endl;
         if(nvals > main_container->get_size() * SPARSE_VECTOR_THRESHOLD) // TODO more complex
         {
             force_to_dense();
