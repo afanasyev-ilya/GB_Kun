@@ -179,8 +179,7 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
             float value = SPA[ind];
             printf("\t\t[%f] pos: %d\n", value, offset[number_of_bucket] + i);
             int off = offset[number_of_bucket];
-            y_vals[offset[number_of_bucket] + i] = SPA[ind];
-            y_ids[offset[number_of_bucket] + i] = ind;
+            _y->set_element(SPA[ind], ind);
         }
         // !CHECK!
     }
