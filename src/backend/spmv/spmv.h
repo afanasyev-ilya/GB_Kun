@@ -19,8 +19,8 @@ namespace backend{
 
 template <typename T, typename Y, typename SemiringT, typename BinaryOpTAccum>
 void SpMV(const Matrix<T> *_matrix,
-          const Vector<T> *_x,
-          Vector<T> *_y,
+          const DenseVector<T> *_x,
+          DenseVector<T> *_y,
           Descriptor *_desc,
           BinaryOpTAccum _accum,
           SemiringT _op,
@@ -38,37 +38,36 @@ void SpMV(const Matrix<T> *_matrix,
             if(omp_get_max_threads() == THREADS_PER_SOCKET*2)
             {
                 SpMV_numa_aware(((MatrixCSR<T> *) _matrix->get_data()), ((MatrixCSR<T> *) _matrix->get_data_dub()),
-                                _x->getDense(), _y->getDense(), _accum, _op, _matrix->get_workspace());
+                                _x, _y, _accum, _op, _matrix->get_workspace());
             }
             else
             {
-                SpMV_all_active(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op, _desc);
+                SpMV_all_active(((MatrixCSR<T> *) _matrix->get_data()), _x, _y, _accum, _op, _desc);
             }
             #else
             SpMV_all_active(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op, _desc);
             #endif
         }
         else if(format == LAV)
-            SpMV(((MatrixLAV<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
+            SpMV(((MatrixLAV<T> *) _matrix->get_data()), _x, _y, _op);
         else if(format == COO)
-            SpMV(((MatrixCOO<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _op);
+            SpMV(((MatrixCOO<T> *) _matrix->get_data()), _x, _y, _op);
         else if(format == CSR_SEG)
-            SpMV(((MatrixSegmentedCSR<T> *)_matrix->get_data()), _x->getDense(), _y->getDense(), _op);
+            SpMV(((MatrixSegmentedCSR<T> *)_matrix->get_data()), _x, _y, _op);
         else if(format == SELL_C)
-            SpMV(((MatrixSellC<T> *)_matrix->get_data()), _x->getDense(), _y->getDense(), _op);
+            SpMV(((MatrixSellC<T> *)_matrix->get_data()), _x, _y, _op);
         else if(format == SORTED_CSR)
-            SpMV(((MatrixSortCSR<T> *)_matrix->get_data()), _x->getDense(), _y->getDense(), _op);
+            SpMV(((MatrixSortCSR<T> *)_matrix->get_data()), _x, _y, _op);
     }
     else
     {
         if(_mask->is_dense()) // dense case
         {
-            SpMV_dense(_matrix->get_csr(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getDense(), _desc);
+            SpMV_dense(_matrix->get_csr(), _x, _y, _accum, _op, _mask->getDense(), _desc);
         }
         else // sparse_case
         {
-            SpMV_sparse(_matrix->get_csr(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getSparse(), _desc,
-                        _matrix->get_workspace());
+            SpMV_sparse(_matrix->get_csr(), _x, _y, _accum, _op, _mask->getSparse(), _desc, _matrix->get_workspace());
         }
     }
 }
@@ -77,8 +76,8 @@ void SpMV(const Matrix<T> *_matrix,
 
 template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
 void VSpM(const Matrix<A> *_matrix,
-          const Vector<X> *_x,
-          Vector<Y> *_y,
+          const DenseVector<X> *_x,
+          DenseVector<Y> *_y,
           Descriptor *_desc,
           BinaryOpTAccum _accum,
           SemiringT _op,
@@ -89,17 +88,17 @@ void VSpM(const Matrix<A> *_matrix,
 
     if(_mask == NULL) // all active case
     {
-        SpMV_all_active(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _desc);
+        SpMV_all_active(_matrix->get_csc(), _x, _y, _accum, _op, _desc);
     }
     else
     {
         if(_mask->is_dense()) // dense case
         {
-            SpMV_dense(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getDense(), _desc);
+            SpMV_dense(_matrix->get_csc(), _x, _y, _accum, _op, _mask->getDense(), _desc);
         }
         else // sparse_case
         {
-            SpMV_sparse(_matrix->get_csc(), _x->getDense(), _y->getDense(), _accum, _op, _mask->getSparse(), _desc,
+            SpMV_sparse(_matrix->get_csc(), _x, _y, _accum, _op, _mask->getSparse(), _desc,
                         _matrix->get_workspace());
         }
     }

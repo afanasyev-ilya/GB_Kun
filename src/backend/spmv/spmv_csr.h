@@ -136,6 +136,7 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
 
     const VNT mask_nvals = _mask->get_nvals();
     const VNT *mask_ids = _mask->get_ids();
+    const M* mask_vals = _mask->get_vals();
 
     Desc_value mask_field;
     _desc->get(GrB_MASK, &mask_field);
@@ -160,20 +161,24 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
     else
     {
         Index *dense_mask = _workspace->get_mask_conversion();
-        memset(dense_mask, 0, _matrix->size);
-        #pragma omp parallel for
-        for(VNT i = 0; i < mask_nvals; i++)
-        {
-            VNT row = mask_ids[i];
-            dense_mask[row] = 1;
-        }
 
         #pragma omp parallel
         {
+            #pragma omp for
+            for(VNT i = 0; i < _matrix->size; i++)
+                dense_mask[i] = 1;
+
+            #pragma omp for
+            for(VNT i = 0; i < mask_nvals; i++)
+            {
+                VNT row = mask_ids[i];
+                dense_mask[row] = 0;
+            }
+
             #pragma omp for schedule(guided, 1)
             for(VNT row = 0; row < _matrix->size; row++)
             {
-                bool mask_val = !dense_mask[row];
+                bool mask_val = dense_mask[row];
                 if(mask_val)
                 {
                     Y res = identity_val;
