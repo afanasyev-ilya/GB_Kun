@@ -20,24 +20,6 @@ void report_num_threads(int level)
 template<typename T>
 void test_spmv(int argc, char **argv)
 {
-    /*#pragma omp parallel num_threads(12)
-    {
-        int outer_tid = omp_get_thread_num();
-        //report_num_threads(1);
-        #pragma omp parallel num_threads(4)
-        {
-            int inner_tid = omp_get_thread_num();
-            //report_num_threads(2);
-            int cpu_num = sched_getcpu();
-            #pragma omp critical
-            {
-                printf("Thread %d %d is running on CPU %3d\n", outer_tid, inner_tid, cpu_num);
-            }
-
-        }
-    }*/
-
-    //print_omp_stats();
     Parser parser;
     parser.parse_args(argc, argv);
 
@@ -60,7 +42,9 @@ void test_spmv(int argc, char **argv)
     w.fill(0.0);
     u.fill(1.0);
 
-    lablas::mxv<T, T, T, T>(&w, NULL, nullptr, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
+    #define MASK_NULL static_cast<const lablas::Vector<T>*>(NULL)
+
+    GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
 
     int num_runs = 10;
     double avg_time = 0;
@@ -70,7 +54,7 @@ void test_spmv(int argc, char **argv)
         w.fill(0.0);
         u.fill(1.0);
         double t1 = omp_get_wtime();
-        lablas::mxv<T, T, T, T>(&w, NULL, nullptr, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
+        GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
         double t2 = omp_get_wtime();
         avg_time += (t2 - t1) / num_runs;
     }
@@ -92,7 +76,7 @@ void test_spmv(int argc, char **argv)
 
         u.fill(1.0);
         w_check.fill(0.0);
-        lablas::mxv<T, T, T, T>(&w_check, NULL, nullptr, lablas::PlusMultipliesSemiring<T>(), &check_matrix, &u, &desc);
+        GrB_mxv(&w_check, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &check_matrix, &u, &desc);
 
         if(w == w_check)
         {
@@ -103,6 +87,8 @@ void test_spmv(int argc, char **argv)
             cout << "Vectors are NOT equal" << endl;
         }
     }
+
+    #undef MASK_NULL
 }
 
 int main(int argc, char **argv) {

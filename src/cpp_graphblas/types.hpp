@@ -87,40 +87,63 @@
 //        };
 namespace lablas{
 
-template <typename D1, typename D2 = D1>
+        template <typename D1, typename D2 = D1>
         struct Identity {
-            inline D2 operator()(D1 input) const { return input; }
+            inline D2 operator()(const D1 input) const { return input; }
         };
-template <typename T_out>
+
+        template <typename T_out>
         struct plus {
-            inline T_out operator()(T_out lhs, T_out rhs) {
+            inline T_out operator()(const T_out lhs, const T_out rhs) const {
                 return lhs + rhs;
             }
         };
-template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct minus {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
+                return lhs - rhs;
+            }
+        };
+
+        template <typename T_out>
+        struct abs {
+            inline T_out operator()(const T_out arg) const {
+                return std::abs(arg);
+            }
+        };
+
+        template <typename T>
+        struct div {
+            inline T operator()(const T lhs, const T rhs) const {
+                return lhs / rhs;
+            }
+        };
+
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct multiplies {
-            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
                 return lhs * rhs;
             }
         };
 
-template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct first {
-            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
                 return lhs;
             }
         };
 
-template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct second {
-            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
-                return lhs;
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
+                return rhs;
             }
         };
 
-template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct minimum {
-            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
                 if (lhs < rhs){
                     return lhs;
                 } else {
@@ -129,10 +152,35 @@ template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
             }
         };
 
-template <typename T_in1 = bool, typename T_in2 = bool, typename T_out = bool>
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct maximum {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
+                if (lhs > rhs){
+                    return lhs;
+                } else {
+                    return rhs;
+                }
+            }
+        };
+
+        template <typename T_in1 = bool, typename T_in2 = bool, typename T_out = bool>
         struct logical_and {
-            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
                 return lhs && rhs;
+            }
+        };
+
+        template <typename T_in1 = bool, typename T_in2 = bool, typename T_out = bool>
+        struct logical_or {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
+                return lhs || rhs;
+            }
+        };
+
+        template <typename T_in1, typename T_in2=T_in1, typename T_out=T_in1>
+        struct GrB_ONEB_T {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
+                return (T_out)1;
             }
         };
 
@@ -159,7 +207,6 @@ REGISTER_MONOID(SecondWinsMonoid, second, 0)
 
 REGISTER_MONOID(FirstMin, minimum, 0)
 
-
 // Semiring generator macro provided by Scott McMillan
 #define REGISTER_SEMIRING(SR_NAME, ADD_MONOID, MULT_BINARYOP)             \
 template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1> \
@@ -184,6 +231,7 @@ REGISTER_SEMIRING(LogicalOrAndSemiring, LogicalOrMonoid, logical_and)
 REGISTER_SEMIRING(FirstWinsSemiring, FirstWinsMonoid, multiplies)
 REGISTER_SEMIRING(FirstMinSemiring, FirstMin, multiplies)
 REGISTER_SEMIRING(PlusSecondSemiring, PlusMonoid, second)
+REGISTER_SEMIRING(StructuralBool, LogicalOrMonoid, GrB_ONEB_T)
 
 template <typename SemiringT>
 struct AdditiveMonoidFromSemiring {

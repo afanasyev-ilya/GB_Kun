@@ -2,18 +2,21 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define SPARSITY_K 2
+namespace lablas{
+namespace backend{
 
 template <typename T>
-class SparseVector
+class SparseVector : public GenericVector<T>
 {
 public:
     SparseVector(int _size)
     {
         size = _size;
-        nnz = _size/SPARSITY_K;
-        MemoryAPI::allocate_array(&vals, nnz);
-        MemoryAPI::allocate_array(&ids, nnz);
+        nnz = 0;
+        if(size == 0)
+            cout << "!!!!!" << endl;
+        MemoryAPI::allocate_array(&vals, size);
+        MemoryAPI::allocate_array(&ids, size);
     };
 
     ~SparseVector()
@@ -22,38 +25,18 @@ public:
         MemoryAPI::free_array(ids);
     };
 
-    void set_constant(T _val)
+    void print() const
     {
-        nnz = 0;
-
-        vals[0] = 2;
-        vals[1] = 3;
-
-        ids[0] = 0;
-        ids[1] = 2;
-
-        nnz = 2;
-
-        for(VNT i = 0; i < size; i++)
+        if(nnz == 0)
+            cout << "vector is empty (from print)" << endl;
+        else
         {
-//            if (i % SPARSITY_K == 0) {
-//                int pos = i / SPARSITY_K;
-//                vals[pos] = _val;
-//                ids[pos] = i;
-//                nnz++;
-//            }
+            for(VNT i = 0; i < nnz; i++)
+            {
+                cout << "( "<< ids[i]<< " , "  << vals[i] << ") ";
+            }
+            cout << endl;
         }
-    };
-
-    void print() const {
-        cout << "Vector: [ ";
-        for(VNT i = 0; i < nnz; i++)
-        {
-            //cout << nnz << endl;
-            cout << "( id: "<< ids[i]<< " , val: "  << vals[i] << ") ";
-        }
-        cout << "] ";
-        cout << endl;
     };
 
     void get_nnz(VNT* _nnz) const {
@@ -62,14 +45,6 @@ public:
 
     void get_size(VNT* _size) const {
         *_size = size;
-    }
-
-    void set_nnz(VNT _nnz) const {
-        nnz = _nnz;
-    }
-
-    void set_size(VNT _size) const {
-        size = _size;
     }
 
     T* get_vals () {
@@ -88,16 +63,6 @@ public:
         return ids;
     }
 
-    void set_ids(VNT *_ids) const {
-       ids = _ids;
-    }
-
-    void set_vals(T* _vals) const {
-        vals = _vals;
-    }
-
-    /* TODO implement constructor and build for sparse */
-
     LA_Info build(const Index* indices, const T *values, Index nvals) {
 
         if (nvals > size)
@@ -110,29 +75,29 @@ public:
         return GrB_SUCCESS;
     }
 
-    void swap(SparseVector* rhs) const {
-        VNT tmp_size = size;
-        VNT tmp_nnz = nnz;
-        T* tmp_vals = vals;
-        VNT* tmp_ids = ids;
+    VNT get_nvals() const { return nnz; };
+    void print_storage_type() const { cout << "It is sparse vector" << endl; };
 
-        rhs->get_size(&size);
-        rhs->get_nnz(&nnz);
-        vals = rhs->get_vals();
-        ids = rhs->get_ids();
+    void set_element(T _val, VNT _pos);
 
-        rhs->set_nnz(tmp_nnz);
-        rhs->set_size(tmp_size);
-        rhs->set_ids(tmp_ids);
-        rhs->set_vals(tmp_vals);
-    }
+    void set_all_constant(T _val);
 
+    void fill_with_zeros() { nnz = 0; };
+
+    void convert(DenseVector<T> *_dense_vector);
+
+    VNT get_size() const {return size;};
 private:
-    mutable VNT size;
-    mutable VNT nnz;
+    VNT size;
+    ENT nnz;
 
-    mutable T *vals;
-    mutable VNT *ids;
+    VNT *ids;
+    T *vals;
 };
+
+#include "sparse_vector.hpp"
+
+}
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

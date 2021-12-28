@@ -2,6 +2,9 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//#define EDGE_VAL ((float) rand_r(&seed)) / (float) RAND_MAX
+#define EDGE_VAL 1
+
 template <typename T>
 void GraphGenerationAPI::generate_synthetic_graph(EdgeListContainer<T> &_edges_container, Parser &_parser)
 {
@@ -93,7 +96,10 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
     int max_id_val = vertices_count;
     rng_api.generate_array_of_random_values<VNT>(src_ids, directed_edges_count, max_id_val);
     rng_api.generate_array_of_random_values<VNT>(dst_ids, directed_edges_count, max_id_val);
-    rng_api.generate_array_of_random_values<T>(vals, directed_edges_count, 1.0);
+    //rng_api.generate_array_of_random_values<T>(vals, directed_edges_count, 1.0);
+    #pragma omp parallel for
+    for(ENT i = 0; i < directed_edges_count; i++)
+        vals[i] = EDGE_VAL;
 
     if(!_direction_type)
     {
@@ -194,7 +200,7 @@ void GraphGenerationAPI::RMAT(EdgeListContainer<T> &_edges_container,
 
             src_ids[cur_edge] = from;
             dst_ids[cur_edge] = to;
-            vals[cur_edge] = ((float) rand_r(&seed)) / (float) RAND_MAX;
+            vals[cur_edge] = EDGE_VAL;
             
             if(!_direction_type)
             {
@@ -544,7 +550,7 @@ void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_contain
 
         _edges_container.src_ids[i] = src_id - 1;
         _edges_container.dst_ids[i] = dst_id - 1;
-        _edges_container.edge_vals[i] = ((int) rand_r(&seed)) % 3 + 1;
+        _edges_container.edge_vals[i] = EDGE_VAL;
         i++;
     }
 

@@ -2,14 +2,18 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "workspace.h"
 #include "containers/matrix_container.h"
 #include "../../cpp_graphblas/types.hpp"
 #include "../../helpers/cmd_parser/parser_options.h"
 #include "../la_backend.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace lablas {
 namespace backend {
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
 class Matrix {
@@ -23,6 +27,14 @@ public:
         delete data_socket_dub;
         #endif
         delete transposed_data;
+
+        MemoryAPI::free_array(rowdegrees);
+        MemoryAPI::free_array(coldegrees);
+
+        delete csr_data;
+        delete csc_data;
+
+        delete workspace;
     };
 
     void build(const VNT *_row_indices,
@@ -68,6 +80,8 @@ public:
     }
     #endif
 
+    const MatrixCSR<T> *get_csr() const { return csr_data; };
+    const MatrixCSR<T> *get_csc() const { return csc_data; };
 
     const MatrixContainer<T>* get_data() const {
         return data;
@@ -81,10 +95,24 @@ public:
         return transposed_data;
     }
 
-    void get_nrows(VNT* _size) const {
-        if (_format == CSR) {
-            data->get_size(_size);
-        }
+    void get_nrows(VNT* _nrows) const {
+        csr_data->get_size(_nrows);
+    }
+
+    VNT get_nrows() const {
+        VNT nrows;
+        csr_data->get_size(&nrows);
+        return nrows;
+    }
+
+    void get_ncols(VNT* _ncols) const {
+        csr_data->get_size(_ncols);
+    }
+
+    VNT get_ncols() const {
+        VNT ncols;
+        csr_data->get_size(&ncols);
+        return ncols;
     }
 
     void print() const
@@ -92,18 +120,35 @@ public:
         data->print();
     }
 
-    ENT get_nnz() const {return data->get_nnz();};
+    ENT get_nnz() const {return csr_data->get_nnz();};
 
+    ENT* get_rowdegrees()
+    {
+        return rowdegrees;
+    }
+
+    ENT* get_coldegrees()
+    {
+        return coldegrees;
+    }
+
+    Workspace *get_workspace() {return workspace;};
 private:
     MatrixContainer<T> *data;
+    MatrixContainer<T> *transposed_data;
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
     MatrixContainer<T> *data_socket_dub;
     #endif
 
-    MatrixContainer<T> *transposed_data;
+    MatrixCSR<T> *csr_data;
+    MatrixCSR<T> *csc_data;
 
     MatrixStorageFormat _format;
     Storage mat_type_;
+
+    Workspace *workspace;
+
+    ENT *rowdegrees, *coldegrees;
 };
 
 
@@ -114,7 +159,30 @@ void Matrix<T>::build(const VNT *_row_indices,
                       const VNT *_col_indices,
                       const T *_values,
                       const VNT _size, // todo remove
-                      const ENT _nnz) {
+                      const ENT _nnz)
+{
+    // CSR data creation
+    csr_data = new MatrixCSR<T>;
+    csc_data = new MatrixCSR<T>;
+    csr_data->build(_row_indices, _col_indices, _values, _size, _nnz, 0);
+    csc_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
+
+    MemoryAPI::allocate_array(&rowdegrees, get_nrows());
+    MemoryAPI::allocate_array(&coldegrees, get_ncols());
+
+    #pragma omp parallel for
+    for(int i = 0; i < get_nrows(); i++)
+    {
+        rowdegrees[i] = csr_data->get_degree(i);
+    }
+
+    #pragma omp parallel for
+    for(int i = 0; i < get_ncols(); i++)
+    {
+        coldegrees[i] = csc_data->get_degree(i);
+    }
+
+    // optimized representation creation
     if (_format == CSR) {
         data = new MatrixCSR<T>;
         #ifdef __USE_SOCKET_OPTIMIZATIONS__
@@ -143,17 +211,28 @@ void Matrix<T>::build(const VNT *_row_indices,
         data = new MatrixSellC<T>;
         transposed_data = new MatrixSellC<T>;
         cout << "Using SellC matrix format" << endl;
+    } else if(_format == SORTED_CSR) {
+        data = new MatrixSortCSR<T>;
+        transposed_data = new MatrixSortCSR<T>;
+        cout << "Using SortedCSR matrix format" << endl;
     }
     else {
         throw "Error: unsupported format in Matrix<T>::build";
     }
     data->build(_row_indices, _col_indices, _values, _size, _nnz, 0);
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    //data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nnz, 1);
+    if(_format == CSR)
+        data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nnz, 1);
     #endif
 
     transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
+
+    workspace = new Workspace(get_nrows(), get_ncols());
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 }
 }
-}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

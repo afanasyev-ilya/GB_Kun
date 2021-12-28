@@ -8,7 +8,23 @@ namespace backend {
 template <typename T>
 struct LAVSegment
 {
+    ENT *row_ptr;
+    VNT *col_ids;
+    T *vals;
 
+    VertexGroup vertex_list;
+
+    static const int vg_num = 9;
+    VertexGroup vertex_groups[vg_num];
+    ENT nnz;
+    VNT size;
+
+    void free()
+    {
+        delete []row_ptr;
+        delete []col_ids;
+        delete []vals;
+    }
 };
 
 template <typename T>
@@ -29,16 +45,9 @@ private:
     VNT size;
     ENT nnz;
 
-    VNT dense_segments;
-    ENT **dense_row_ptr;
-    VNT **dense_col_ids;
-    T **dense_vals;
-    VertexGroup *dense_vertex_groups;
-
-    ENT *sparse_row_ptr;
-    VNT *sparse_col_ids;
-    T *sparse_vals;
-    VertexGroup sparse_vertex_group;
+    VNT dense_segments_num;
+    LAVSegment<T> *dense_segments;
+    LAVSegment<T> sparse_segment;
 
     VNT *old_to_new;
     VNT *new_to_old;
@@ -49,10 +58,7 @@ private:
 
     void construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
                                 vector<vector<T>> &_tmp_vals,
-                                ENT **local_row_ptr,
-                                VNT **local_col_ids,
-                                T **local_vals,
-                                VertexGroup *_vertex_group,
+                                LAVSegment<T> *_cur_segment,
                                 ENT _total_nnz);
 
     template<typename Y, typename SemiringT>

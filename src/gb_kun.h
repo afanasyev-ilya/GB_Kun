@@ -13,6 +13,7 @@
 #include <sstream>
 #include <string>
 #include <list>
+#include <cassert>
 
 #include <omp.h>
 
@@ -34,6 +35,7 @@ template <typename T>
 class DenseVector;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// backend
 
 #include "backend/descriptor/descriptor.h"
 
@@ -42,11 +44,18 @@ class DenseVector;
 #include "backend/spmv/spmv.h"
 #include "backend/spmspv/spmspv.h"
 
-#include "cpp_graphblas/matrix.hpp"
-#include "cpp_graphblas/vector.hpp"
-#include "cpp_graphblas/descriptor.hpp"
-#include "cpp_graphblas/types.hpp"
-#include "cpp_graphblas/dimensions.hpp"
-#include "cpp_graphblas/operations.hpp"
+#include "backend/operations/operations.h"
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// cpp interfaces
+
+#include "cpp_graphblas/cpp_graphblas.h"
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// cblas interfaces
+
+#include "cblas_wrappers/cblas_wrappers.h"
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 

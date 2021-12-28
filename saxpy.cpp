@@ -3,164 +3,180 @@
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
+#include "src/helpers/memory_API/memory_API.h"
 
-//#define CMG_SIZE 12
-//#define MAX_CORES 48
-//#define CMG_NUM 4
-
-#define MAX_CORES 48
-#define CMG_SIZE (MAX_CORES/CMG_NUM)
-
-//#include "fj_tool/fipp.h"
+#define Index int
+#define base_type float
 
 using namespace std;
 
-void saxpy(float a, float * __restrict z, const float * __restrict x, const float * __restrict y, size_t size)
+void saxpy_one_sock(base_type a, base_type * __restrict z, const base_type * __restrict x, const base_type * __restrict y, size_t size)
 {
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(48)
     for(size_t i = 0; i < size; i++)
         z[i] = a*x[i] + y[i];
 }
 
-void gather(const float *__restrict data, const int * __restrict indexes, float * __restrict result, size_t size)
+void saxpy_both_sock(base_type a, base_type * __restrict z, const base_type * __restrict x, const base_type * __restrict y, size_t size)
 {
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(96)
+    for(size_t i = 0; i < size; i++)
+        z[i] = a*x[i] + y[i];
+}
+
+void gather_one_sock(const base_type *__restrict data, const Index * __restrict indexes, base_type * __restrict result, size_t size)
+{
+    #pragma omp parallel for num_threads(48)
     for(size_t i = 0; i < size; i++)
         result[i] = data[indexes[i]];
 }
 
-void gather_local_copy(const float *__restrict copy_data, const int * __restrict indexes, float * __restrict result, size_t size, int current_radius)
+void gather_two_sock(const base_type *__restrict data, const Index * __restrict indexes, base_type * __restrict result, size_t size)
 {
-    #pragma omp parallel
-    {
-        int tid = omp_get_thread_num();
-        int cmg = tid / CMG_SIZE;
-        const float *__restrict local_data = &copy_data[current_radius * cmg];
-        #pragma omp for
-        for(size_t i = 0; i < size; i++)
-            result[i] = local_data[indexes[i]];
-    }
+    #pragma omp parallel for num_threads(96)
+    for(size_t i = 0; i < size; i++)
+        result[i] = data[indexes[i]];
 }
 
-int main(void)
+void gather_numa(base_type *__restrict data, const Index * __restrict indexes, base_type * __restrict result, size_t large_size,
+                 size_t small_size)
 {
-    cout << "CMG NUM: " << CMG_NUM << endl;
+    #pragma omp parallel num_threads(48)
+    {
+        unsigned int myseed = omp_get_thread_num();
+        Index sock = omp_get_thread_num() / 48;
+        const base_type *__restrict local_data = &(data[small_size * 0]);
+        base_type *__restrict remote_data = &(data[small_size * 1]);
+
+        #pragma omp for
+        for (size_t i = 0; i < small_size; i++)
+            remote_data[i] = local_data[i];
+    }
+
+    #pragma omp parallel num_threads(96)
+    {
+        Index sock = omp_get_thread_num() / 48;
+        const base_type *__restrict local_data = &(data[small_size * sock]);
+        base_type *local_result = &(result[large_size * sock]);
+        const Index *__restrict local_indexes = &(indexes[large_size * sock]);
+
+        #pragma omp for
+        for(size_t i = 0; i < large_size; i++)
+            local_result[i] = local_data[local_indexes[i]];
+    }
+
+}
+
+Index main(void)
+{
+    cout << "threads: " << omp_get_max_threads() << endl;
 
     size_t size = 1610612736; // 6.4 GB each
-    float *x, *y, *z;
-    x = (float*)memalign(0x200, size *sizeof(float));
-    y = (float*)memalign(0x200, size *sizeof(float));
-    z = (float*)memalign(0x200, size *sizeof(float));
+    base_type *x, *y, *z;
+    MemoryAPI::allocate_array(&x, size);
+    MemoryAPI::allocate_array(&y, size);
+    MemoryAPI::allocate_array(&z, size);
 
     #pragma omp parallel for
-    for (int i = 0; i < size; i++)
+    for (Index i = 0; i < size; i++)
     {
         x[i] = 1.0f;
         y[i] = 2.0f;
         z[i] = 3.0f;
     }
 
-    for(int i = 0; i < 4; i++) {
+    for(Index i = 0; i < 4; i++) {
         double t1 = omp_get_wtime();
-        //fipp_start();
-        saxpy(2.0f, z, x, y, size);
-        //fipp_stop();
+        saxpy_one_sock(2.0f, z, x, y, size);
         double t2 = omp_get_wtime();
-        //cout << size * sizeof(float) * 3.0 / ((t2 - t1)*1e9) << " GB/s" << endl;
+        cout << size * sizeof(base_type) * 3.0 / ((t2 - t1)*1e9) << " GB/s (one sock)" << endl;
+
+        t1 = omp_get_wtime();
+        saxpy_both_sock(2.0f, z, x, y, size);
+        t2 = omp_get_wtime();
+        cout << size * sizeof(base_type) * 3.0 / ((t2 - t1)*1e9) << " GB/s (both sock)" << endl;
     }
     free(x);
     free(y);
     free(z);
 
-    float *result, *data;
-    int *indexes;
-    int large_size = size;
-    int small_size = 1024*1024*8;
+    base_type *result, *data;
+    Index *indexes;
+    
+    size_t large_size = size;
+    
+    const int num_tests = 11;
+    size_t rads[num_tests] = {128*1024/sizeof(base_type),
+                              256*1024/sizeof(base_type),
+                    1024*1024/sizeof(base_type),
+                   2*1024*1024/sizeof(base_type),
+                   4*1024*1024/sizeof(base_type),
+                   8*1024*1024/sizeof(base_type),
+                   16*1024*1024/sizeof(base_type),
+                   32*1024*1024/sizeof(base_type),
+                   64*1024*1024/sizeof(base_type),
+                   128*1024*1024/sizeof(base_type),
+                   256*1024*1024/sizeof(base_type)};
 
-    result = (float*)memalign(0x200, large_size *sizeof(float));
-    indexes = (int*)memalign(0x200, large_size *sizeof(int));
-    data = (float*)memalign(0x200, small_size *sizeof(float));
-    #pragma omp parallel
+    cout << "num_tests: " << num_tests << endl;
+    cout << "large size is " << large_size * sizeof(Index) / (1024*1024) << " MB" << endl;
+    for(int idx = 0; idx < num_tests; idx++)
     {
-        unsigned int myseed = omp_get_thread_num();
-        #pragma omp for schedule(static)
-        for (size_t i = 0; i < large_size; i++)
-        {
-            result[i] = rand_r(&myseed);
-        }
-
-        #pragma omp for schedule(static)
-        for (size_t i = 0; i < small_size; i++)
-        {
-            data[i] = rand_r(&myseed)/RAND_MAX;
-        }
-    }
-    const int num_tests = 6;
-    int rads[num_tests] = {1024*1024/sizeof(float),
-                   2*1024*1024/sizeof(float),
-                   4*1024*1024/sizeof(float),
-                   8*1024*1024/sizeof(float),
-                   16*1024*1024/sizeof(float),
-                   32*1024*1024/sizeof(float)};
-
-    cout << "large size is " << large_size * sizeof(int) / (1024*1024) << " MB" << endl;
-    for(int idx = 0; idx < num_tests; idx ++)
-    {
-        int current_radius = rads[idx];
-        cout << "Rad size is " << current_radius * sizeof(int) / (1024) << " KB" << endl;
-
-        float *copy_data = (float*)memalign(0x200, CMG_NUM*small_size *sizeof(float));
+        cout << "num_tests: " << idx << " " << num_tests << endl;
+        size_t current_radius = rads[idx];
+        cout << "Rad size is " << current_radius * sizeof(Index) / (1024) << " KB" << endl;
+        
+        MemoryAPI::allocate_array(&result, large_size*2);
+        MemoryAPI::allocate_array(&indexes, large_size*2);
+        MemoryAPI::allocate_array(&data, current_radius*2);
 
         #pragma omp parallel
         {
             unsigned int myseed = omp_get_thread_num();
+            Index sock = omp_get_thread_num() / 48;
+
+            base_type *local_result = &(result[large_size * sock]);
+            const Index *__restrict local_indexes = &(indexes[large_size * sock]);
+
             #pragma omp for schedule(static)
             for (size_t i = 0; i < large_size; i++)
             {
-                indexes[i] = (int) rand_r(&myseed) % current_radius;
+                indexes[i] = (Index) rand_r(&myseed) % current_radius;
+                result[i] = 0;
             }
         }
 
         #pragma omp parallel
         {
-            int tid = omp_get_thread_num();
-            int cmg = tid / CMG_SIZE;
-            float *local_data = &copy_data[current_radius * cmg];
-            if(tid % CMG_SIZE == 0)
-            {
-                for(int i = 0; i < current_radius; i++) // numa aware alloc
-                {
-                    local_data[i] = data[i];
-                }
-            }
+            unsigned int myseed = omp_get_thread_num();
+            Index sock = omp_get_thread_num() / 48;
+            base_type *__restrict local_data = &(data[current_radius * sock]);
+
+            #pragma omp for
+            for (size_t i = 0; i < current_radius; i++)
+                local_data[i] = rand_r(&myseed);
         }
 
         double t1 = omp_get_wtime();
-        gather(data, indexes, result, large_size);
+        gather_one_sock(data, indexes, result, large_size);
         double t2 = omp_get_wtime();
-        cout << current_radius * sizeof(int) / (1024) << "KB " << large_size * sizeof(int) * 3.0 / ((t2 - t1)*1e9) << " GB/s" << endl;
+        cout << current_radius * sizeof(Index) / (1024) << "KB " << large_size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s (one sock)" << endl;
 
         t1 = omp_get_wtime();
-        gather_local_copy(copy_data, indexes, result, large_size, current_radius);
+        gather_two_sock(data, indexes, result, large_size);
         t2 = omp_get_wtime();
-        cout << current_radius * sizeof(int) / (1024) << "KB " << large_size * sizeof(int) * 3.0 / ((t2 - t1)*1e9) << " GB/s (copy data)" << endl;
-
-        /*int threads = omp_get_max_threads();
-        int seg_size = 32*1024/sizeof(float);
-        std::sort(indexes, indexes + large_size,
-                  [seg_size](int a, int b) {return a/seg_size > b/seg_size; });
+        cout << current_radius * sizeof(Index) / (1024) << "KB " << large_size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s (both sock)" << endl;
 
         t1 = omp_get_wtime();
-        gather_local_copy(copy_data, indexes, result, large_size, current_radius);
+        gather_numa(data, indexes, result, large_size, current_radius);
         t2 = omp_get_wtime();
-        cout << current_radius * sizeof(int) / (1024) << "KB " << large_size * sizeof(int) * 3.0 / ((t2 - t1)*1e9) << " GB/s (copy data, sorted)" << endl;
-        cout << endl;*/
+        cout << current_radius * sizeof(Index) / (1024) << "KB " << large_size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s (numa)" << endl;
 
-        free(copy_data);
+        MemoryAPI::free_array(indexes);
+        MemoryAPI::free_array(result);
+        MemoryAPI::free_array(data);
+        cout << endl;
     }
 
-    free(data);
-    free(indexes);
-    free(result);
+    return 0;
 }

@@ -23,8 +23,8 @@ vector<vector<int>> estimate_buckets(const MatrixCSR<T> *matrix, const SparseVec
     // This function is essential in implementing synchronization free insertion
     VNT nz, matrix_size;
 
-    ENT *col_ptr = matrix->get_row_ptr(); // we assume csr of AT is equal to csc of A
-    VNT *row_ids = matrix->get_col_ids(); // we assume csr of AT is equal to csc of A
+    const ENT *col_ptr = matrix->get_row_ptr(); // we assume csr of AT is equal to csc of A
+    const VNT *row_ids = matrix->get_col_ids(); // we assume csr of AT is equal to csc of A
 
     x->get_nnz(&nz);
     matrix->get_size(&matrix_size);
@@ -49,16 +49,16 @@ vector<vector<int>> estimate_buckets(const MatrixCSR<T> *matrix, const SparseVec
 
 template <typename T>
 void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
-            const SparseVector<T> *_x,
-            SparseVector<T> *_y,
-            int _number_of_buckets)
+                const SparseVector<T> *_x,
+                DenseVector<T> *_y,
+                int _number_of_buckets)
 {
     VNT nz, matrix_size;
     _x->get_nnz(&nz);
     _matrix_csc->get_size(&matrix_size);
 
-    ENT *col_ptr = _matrix_csc->get_row_ptr(); // we assume csr of AT is equal to csc of A
-    VNT *row_ids = _matrix_csc->get_col_ids(); // we assume csr of AT is equal to csc of A
+    const ENT *col_ptr = _matrix_csc->get_row_ptr(); // we assume csr of AT is equal to csc of A
+    const VNT *row_ids = _matrix_csc->get_col_ids(); // we assume csr of AT is equal to csc of A
 
     //_matrix_csc->print();
 
@@ -196,8 +196,8 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
     }
     printf("\n");
 
-    _y->set_vals(y_vals);
-    _y->set_ids(y_ids);
+    /*_y->set_vals(y_vals);
+    _y->set_ids(y_ids);*/
 
     printf("\n");
     _y->print();

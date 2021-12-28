@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-MatrixCSR<T>::MatrixCSR()
+MatrixSortCSR<T>::MatrixSortCSR()
 {
     target_socket = 0;
     alloc(1, 1, target_socket);
@@ -10,7 +10,7 @@ MatrixCSR<T>::MatrixCSR()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-MatrixCSR<T>::~MatrixCSR()
+MatrixSortCSR<T>::~MatrixSortCSR()
 {
     free();
 }
@@ -18,7 +18,7 @@ MatrixCSR<T>::~MatrixCSR()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::alloc(VNT _size, ENT _nnz, int _target_socket)
+void MatrixSortCSR<T>::alloc(VNT _size, ENT _nnz, int _target_socket)
 {
     this->size = _size;
     this->nnz = _nnz;
@@ -27,22 +27,24 @@ void MatrixCSR<T>::alloc(VNT _size, ENT _nnz, int _target_socket)
     MemoryAPI::numa_aware_alloc(&row_ptr, this->size + 1, _target_socket);
     MemoryAPI::numa_aware_alloc(&col_ids, this->nnz, _target_socket);
     MemoryAPI::numa_aware_alloc(&vals, this->nnz, _target_socket);
+    MemoryAPI::numa_aware_alloc(&tmp_buffer, this->size, _target_socket);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::free()
+void MatrixSortCSR<T>::free()
 {
     MemoryAPI::free_array(row_ptr);
     MemoryAPI::free_array(col_ids);
     MemoryAPI::free_array(vals);
+    MemoryAPI::free_array(tmp_buffer);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::resize(VNT _size, ENT _nnz, int _target_socket)
+void MatrixSortCSR<T>::resize(VNT _size, ENT _nnz, int _target_socket)
 {
     this->free();
     this->alloc(_size, _nnz, _target_socket);
@@ -51,7 +53,7 @@ void MatrixCSR<T>::resize(VNT _size, ENT _nnz, int _target_socket)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool MatrixCSR<T>::is_non_zero(VNT _row, VNT _col)
+bool MatrixSortCSR<T>::is_non_zero(VNT _row, VNT _col)
 {
     for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
     {
@@ -64,7 +66,7 @@ bool MatrixCSR<T>::is_non_zero(VNT _row, VNT _col)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-T MatrixCSR<T>::get(VNT _row, VNT _col) const
+T MatrixSortCSR<T>::get(VNT _row, VNT _col) const
 {
     for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
     {
@@ -77,10 +79,8 @@ T MatrixCSR<T>::get(VNT _row, VNT _col) const
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::print() const
+void MatrixSortCSR<T>::print() const
 {
-    cout << "--------------------\n";
-    cout << "MATRIX: [ " << endl;
     for(VNT row = 0; row < size; row++)
     {
         for(VNT col = 0; col < size; col++)
@@ -89,27 +89,6 @@ void MatrixCSR<T>::print() const
         }
         cout << endl;
     }
-    cout << "]\n";
-    cout << "--------------------\n";
-    cout << "nnz: " << nnz << endl;
-
-    Index size_ = 0;
-    get_size(&size_);
-    cout << "row_ptr: [ ";
-    for (int i = 0; i < size_ + 1; i++)
-    {
-        cout << row_ptr[i] << " ";
-    }
-
-    cout << "col_ids: [ ";
-    for (int i = 0; i < get_nnz(); i++)
-    {
-        cout << col_ids[i] << " ";
-    }
-    cout << "]\n";
-    cout << endl;
-    cout << "]" << endl;
-    cout << "--------------------\n";
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

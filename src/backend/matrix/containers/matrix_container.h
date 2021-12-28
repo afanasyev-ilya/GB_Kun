@@ -10,6 +10,7 @@ public:
     virtual void print() const = 0;
     virtual void get_size(VNT* _size) const = 0;
     virtual ENT get_nnz() const = 0;
+    virtual ENT get_degree(VNT _row) {return 0;};
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -20,5 +21,6 @@ public:
 #include "lav/lav_matrix.h"
 #include "vg_csr/vg_csr.h"
 #include "sell_c/sell_c.h"
+#include "sort_csr/sort_csr_matrix.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

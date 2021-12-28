@@ -7,22 +7,20 @@ namespace backend{
 
 template <typename T>
 void SpMSpV(const Matrix<T> *_matrix,
-            const Vector<T> *_x,
+            const SparseVector<T> *_x,
             Vector<T> *_y,
             Descriptor *_desc)
 {
-    MatrixStorageFormat format;
-    _matrix->get_format(&format);
+    cout << "SPMSPV x: ";
+    _x->print_storage_type();
+    cout << "SPMSPV y: ";
+    _y->print_storage_type();
 
-    //cout << "call" << endl;
-    if(format == CSR) // CSR format (CSC format is inside CSR)
-    {
-        _matrix->print();
-        SpMSpV_csr(((MatrixCSR<T> *) _matrix->get_transposed_data()), _x->getSparse(), _y->getSparse(), 2);
-    }
-    else {
-        cout << "Unsupported format.";
-    }
+    SpMSpV_csr((MatrixCSR<T> *) _matrix->get_csc(), _x, _y->getDense(), 2);
+
+    cout << "SPMSPV result: ";
+    _y->force_to_dense();
+    _y->print();
 }
 
 #include "spmspv_csr.h"

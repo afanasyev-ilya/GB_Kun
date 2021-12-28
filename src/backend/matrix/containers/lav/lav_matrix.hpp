@@ -28,21 +28,13 @@ void MatrixLAV<T>::alloc(VNT _size, ENT _nnz)
 template <typename T>
 void MatrixLAV<T>::free()
 {
-    for(VNT i = 0; i < dense_segments; i++)
-    {
-        MemoryAPI::free_array(dense_row_ptr[i]);
-        MemoryAPI::free_array(dense_col_ids[i]);
-        MemoryAPI::free_array(dense_vals[i]);
-    }
-    MemoryAPI::free_array(sparse_row_ptr);
-    MemoryAPI::free_array(sparse_col_ids);
-    MemoryAPI::free_array(sparse_vals);
+    for(int i = 0; i < dense_segments_num; i++)
+        dense_segments[i].free();
+    delete []dense_segments;
+    sparse_segment.free();
+
     MemoryAPI::free_array(new_to_old);
     MemoryAPI::free_array(old_to_new);
-    delete []dense_row_ptr;
-    delete []dense_col_ids;
-    delete []dense_vals;
-    delete []dense_vertex_groups;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -2,90 +2,198 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "generic_vector.h"
 #include "dense_vector/dense_vector.h"
 #include "sparse_vector/sparse_vector.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace lablas {
 namespace backend {
+
+template <typename T>
+void ptr_swap(T *& _a, T *& _b)
+{
+    T* c = _a;
+    _a = _b;
+    _b = c;
+}
 
 template<typename T>
 class Vector {
 public:
-    Vector(int _size): dense(_size), sparse(_size), storage(GrB_DENSE) {size = _size; nnz = size;};
-    ~Vector(){};
+    Vector(VNT _size)
+    {
+        storage = GrB_SPARSE;
+        main_container = new SparseVector<T>(_size);
+        secondary_container = new DenseVector<T>(_size);
+    }
+
+    ~Vector()
+    {
+        delete main_container;
+        delete secondary_container;
+    }
 
     void set_constant(T _val)
     {
-        dense.set_constant(_val);
-        sparse.set_constant(_val);
+        if(_val == 0) // if val is zero, it is sparse vector with 0 elements
+        {
+            storage = GrB_SPARSE;
+            main_container->fill_with_zeros();
+        }
+        else
+        {
+            if(is_dense()) // if dense, just change all contents
+            {
+                main_container->set_all_constant(_val);
+            }
+            else // convert to dense
+            {
+                swap_to_dense();
+                main_container->set_all_constant(_val);
+            }
+        }
     };
 
-    DenseVector<T>* getDense() {
-        return &dense;
+    DenseVector<T>* getDense()
+    {
+        force_to_dense();
+        return (DenseVector<T>*)main_container;
     }
-    SparseVector<T>* getSparse() {
-        return &sparse;
+
+    SparseVector<T>* getSparse()
+    {
+        force_to_sparse();
+        return (SparseVector<T>*)main_container;
     }
-    const DenseVector<T>* getDense() const {
-        return &dense;
+
+    const DenseVector<T>* getDense() const
+    {
+        force_to_dense();
+        return (DenseVector<T>*)main_container;
     }
-    const SparseVector<T>* getSparse() const {
-        return &sparse;
+
+    const SparseVector<T>* getSparse() const
+    {
+        force_to_sparse();
+        return (SparseVector<T>*)main_container;
     }
-    void getStorage(Storage* _storage) const{
+
+    void force_to_dense()
+    {
+        if(is_dense())
+            return;
+        else
+        {
+            swap_to_dense();
+            ((DenseVector<T>*)main_container)->convert((SparseVector<T>*)secondary_container);
+        }
+    }
+
+    void force_to_sparse()
+    {
+        if(is_sparse())
+            return;
+        else
+        {
+            swap_to_sparse();
+            ((SparseVector<T>*)main_container)->convert((DenseVector<T>*)secondary_container);
+        }
+    }
+
+    void convert_if_required()
+    {
+        VNT nvals = main_container->get_nvals();
+        if(nvals > main_container->get_size() * SPARSE_VECTOR_THRESHOLD) // TODO more complex
+        {
+            force_to_dense();
+        }
+        else
+        {
+            force_to_sparse();
+        }
+    }
+
+    void getStorage(Storage* _storage) const
+    {
         *_storage = storage;
     }
-    void setStorage(Storage _storage) {
+
+    void setStorage(Storage _storage)
+    {
         storage = _storage;
     }
-    void set_element(T val, VNT pos) {
-        if (storage == GrB_DENSE) {
-            dense.get_vals()[pos] = val;
-        } else if (storage == GrB_SPARSE) {
-            /* we count pos in NZ numbers, or in SIZE? */
-            sparse.get_vals()[pos] = val;
-        }
+
+    void set_element(T _val, VNT _pos)
+    {
+        main_container->set_element(_val, _pos);
     }
 
-    LA_Info build (const Index* indices,
-                   const T*     values,
-                   Index nvals) {
-        storage = GrB_SPARSE;
-        return sparse.build(indices, values, nvals);
+    bool is_sparse() const { return storage == GrB_SPARSE;};
+    bool is_dense() const { return storage == GrB_DENSE;};
+
+    LA_Info build (const Index* _indices,
+                   const T*     _values,
+                   Index _nvals)
+    {
+        swap_to_sparse();
+        auto *sparse_vec = ((SparseVector<T>*)main_container)->build(_indices, _values, _nvals);
+        sparse_vec->fill_with_zeros();
+        return sparse_vec->build(_indices, _values, _nvals);
     }
 
-    LA_Info build(const T*    values,
-                  Index nvals) {
-        storage = GrB_DENSE;
-        return dense.build(values, nvals);
+    LA_Info build(const T*    _values,
+                  Index _nvals)
+    {
+        swap_to_dense();
+        auto *dense_vec = (DenseVector<T>*)main_container;
+        return dense_vec->build(_values, _nvals);
     }
 
-    void print() const {
-        if (storage == GrB_DENSE) {
-            return dense.print();
-        }
-        if (storage == GrB_SPARSE) {
-            return sparse.print();
-        }
+    void print() const
+    {
+        main_container->print();
     }
 
-    void swap(Vector* rhs) {
-        if (storage == GrB_DENSE) {
-           dense.swap(rhs->getDense());
-        }
-        if (storage == GrB_SPARSE) {
-            sparse.swap(rhs->getSparse());
-        }
+    void print_storage_type() const
+    {
+        main_container->print_storage_type();
     }
 
-    VNT nvals() {return nnz;};
+    VNT get_nvals() const
+    {
+        return main_container->get_nvals();
+    };
+
+    VNT get_size() const
+    {
+        return main_container->get_size();
+    }
 private:
-    VNT size;
     VNT nnz;
-    DenseVector<T> dense;
-    SparseVector<T> sparse;
     Storage storage;
+
+    GenericVector<T> *main_container;
+    GenericVector<T> *secondary_container;
+
+    void swap_to_sparse()
+    {
+        if(is_dense())
+        {
+            ptr_swap(main_container, secondary_container);
+            storage = GrB_SPARSE;
+        }
+    }
+
+    void swap_to_dense()
+    {
+        if(is_sparse())
+        {
+            ptr_swap(main_container, secondary_container);
+            storage = GrB_DENSE;
+        }
+    }
 
     template<typename Y>
     friend bool operator==(Vector<Y>& lhs, Vector<Y>& rhs);
@@ -96,8 +204,28 @@ private:
 template <typename T>
 bool operator==(Vector<T>& lhs, Vector<T>& rhs)
 {
-    return lhs.dense == rhs.dense;
+    if(lhs.storage != rhs.storage) // storages mismatch, not equal
+    {
+        lhs.print();
+        rhs.print();
+        return 0;
+    }
+    else
+    {
+        if(lhs.is_dense())
+        {
+            auto den_lhs = (DenseVector<T> *)lhs.main_container;
+            auto den_rhs = (DenseVector<T> *)rhs.main_container;
+            return (*den_lhs) == (*den_rhs);
+        }
+        else
+        {
+            throw " == for sparse vectors not implemented yet";
+        }
+    }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 }
