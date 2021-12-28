@@ -1,12 +1,13 @@
 #pragma once
 
-struct bucket {
-    int row;
-    int val;
-};
-
 #define VNT Index
 #define ENT Index
+
+struct bucket {
+    VNT row;
+    float val;
+};
+
 
 #define INF 1000000000
 
@@ -21,18 +22,23 @@ vector<vector<int>> estimate_buckets(const MatrixCSR<T> *matrix, const SparseVec
 
     // This function is essential in implementing synchronization free insertion
     VNT nz, matrix_size;
+
+    ENT *col_ptr = matrix->get_row_ptr(); // we assume csr of AT is equal to csc of A
+    VNT *row_ids = matrix->get_col_ids(); // we assume csr of AT is equal to csc of A
+
     x->get_nnz(&nz);
     matrix->get_size(&matrix_size);
     vector<vector<int>> Boffset(nt, vector<int>(nb)); // Boffset is described in the SpmSpv function
+    
    // #pragma omp parallel for schedule(static)
     for (int t = 0; t < nt; t++) {
         int offset = t * nz / nt; // Every thread has it's own piece of vector x
-        for (int j = offset; j < offset + nt && j < nz; j++) {
+        for (int j = offset; j < nz; j++) {
             int vector_index = x->get_ids()[j]; // index of j-th non-zero element in vector x
             //printf("%d %d\n", vector_index, j);
-            for (int i = matrix->get_row_ptr()[vector_index]; vector_index + 1 < matrix_size && i < matrix->get_row_ptr()[vector_index + 1]; i++) {
+            for (int i = col_ptr[vector_index]; i < col_ptr[vector_index + 1]; i++) {
                 // bucket index depends on the row of an element
-                int bucket_index = matrix->get_col_ids()[i] * nb / matrix_size;
+                int bucket_index = row_ids[i] * nb / matrix_size;
                 Boffset[t][bucket_index] += 1;
             }
         }
@@ -50,6 +56,11 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
     VNT nz, matrix_size;
     _x->get_nnz(&nz);
     _matrix_csc->get_size(&matrix_size);
+
+    ENT *col_ptr = _matrix_csc->get_row_ptr(); // we assume csr of AT is equal to csc of A
+    VNT *row_ids = _matrix_csc->get_col_ids(); // we assume csr of AT is equal to csc of A
+
+    //_matrix_csc->print();
 
     _x->print();
     /* ????????????????? */ int number_of_threads = 1; /* ????????????????? */
@@ -77,10 +88,19 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
         printf("Bucket %d: %d\n", i, bucket_amount[i]);
     }
 
+    for (int i = 0; i < Boffset.size(); i++) {
+        printf("Thread: %d\n", i);
+        for (int j = 0; j < Boffset[i].size(); j++) {
+            printf("\tBucket %d: ", j);
+            cout << Boffset[i][j] << "\n";
+        }
+    }
+
  //   #pragma omp parallel
    // {
-        int number_of_insertions = 0;
+        //int number_of_insertions = 0;
      //   #pragma omp for schedule(static)
+        vector<int> insertions(_number_of_buckets);
         for (int i = 0; i < nz; i++) { // Going through all non-zero elements of vector x
             // We only need matrix's columns which numbers are equal to indices of non-zero elements of the vector x
             int vector_index = _x->get_ids()[i]; // Index of non-zero element in vector x
@@ -88,13 +108,14 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
 //                cout << _x->get_ids()[k] << " ";
 //            }
 //            cout << endl;
-            for (int j = _matrix_csc->get_row_ptr()[vector_index]; j < _matrix_csc->get_row_ptr()[vector_index + 1]; j++) {
+            for (int j = col_ptr[vector_index]; j < col_ptr[vector_index + 1]; j++) {
+
                 // Going through all the elements of the vector_index-th column
-
                 // Essentially we are doing multiplication here
-                int mul = _matrix_csc->get_vals()[j] * _x->get_vals()[vector_index]; // mul - is a product of matrix and vector non-zero elements.
+                float mul = _matrix_csc->get_vals()[j] * _x->get_vals()[i]; // mul - is a product of matrix and vector non-zero elements.
+                printf("\n\t[ %f * %f = %f]\n",  _matrix_csc->get_vals()[j], _x->get_vals()[i], mul);
 
-                int bucket_index = (_matrix_csc->get_col_ids()[j] * _number_of_buckets) / matrix_size;
+                int bucket_index = (row_ids[j] * _number_of_buckets) / matrix_size;
                 // bucket's index depends on the row number
 
                 // Implementing synchronization free insertion below
@@ -106,13 +127,21 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
                     offset += Boffset[thread_number][bucket_index];
                 }
                 // offset - how many elements have been inserted in the bucket by other threads
-                buckets[bucket_index][offset + (number_of_insertions++)] = {_matrix_csc->get_col_ids()[j], mul}; // insertion
+                cout << "Col_id: " << row_ids[j] << " Matrix val: " << _matrix_csc->get_vals()[j] << " Vector val: " << _x->get_vals()[i] << endl;
+
+                buckets[bucket_index][offset + (insertions[bucket_index])++] = {row_ids[j], mul}; // insertion
             }
         }
     //}
 
+    for (int i = 0; i < _number_of_buckets; i++) {
+        printf("Bucket %d\n", i);
+        for (int j = 0; j < buckets[i].size(); j++) {
+            printf("\trow: %d val: %f\n", buckets[i][j]);
+        }
+    }
 
-    vector<int> SPA(matrix_size); // SPA -  a sparse accumulator
+    vector<float> SPA(matrix_size); // SPA -  a sparse accumulator
     // The SPA vector is essentially a final vector-answer, but it is dense and we will have to transform it in sparse vector
     vector<int> offset(_number_of_buckets);
 
@@ -132,7 +161,7 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
         // Accumulating values in a row and getting unique indices
         for (int i = 0; i < buckets[number_of_bucket].size(); i++) {
             int row = buckets[number_of_bucket][i].row;
-            int val = buckets[number_of_bucket][i].val;
+            float val = buckets[number_of_bucket][i].val;
             if (SPA[row] == INF) {
                 uind.push_back(row);
                 SPA[row] = val;
@@ -141,19 +170,38 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
             }
         }
         if (number_of_bucket) // if not the first bucket
-            offset[number_of_bucket] += offset[number_of_bucket - 1];
+            offset[number_of_bucket] += offset[number_of_bucket - 1] + bucket_amount[number_of_bucket - 1];
         // offset is needed to properly fill the final vector
 
         // !CHECK!
         for (int i = 0; i < uind.size(); i++) { // filling the final vector
             int ind = uind[i];
+            float value = SPA[ind];
+            printf("\t\t[%f] pos: %d\n", value, offset[number_of_bucket] + i);
+            int off = offset[number_of_bucket];
             y_vals[offset[number_of_bucket] + i] = SPA[ind];
             y_ids[offset[number_of_bucket] + i] = ind;
         }
         // !CHECK!
     }
+
+    printf("SPA: \n");
+    for (int i = 0; i < matrix_size; i++) {
+        printf("%f ", SPA[i]);
+    }
+    printf("\n");
+
+    for (int i = 0; i < matrix_size; i++) {
+        printf("%f ", y_vals[i]);
+    }
+    printf("\n");
+
     _y->set_vals(y_vals);
     _y->set_ids(y_ids);
+
+    printf("\n");
+    _y->print();
+    printf("\n");
 
 }
 

@@ -110,11 +110,18 @@ void DenseVector<T>::set_constant(T _val)
 template <typename T>
 void DenseVector<T>::print() const
 {
+
+    cout << "Vector: [";
     for(VNT i = 0; i < size; i++)
     {
-        cout << vals[i] << " ";
+        cout << vals[i];
+        if (i != size - 1) {
+            cout << ", ";
+        }
     }
+    cout << "] ";
     cout << endl;
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

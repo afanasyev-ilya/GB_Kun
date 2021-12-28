@@ -544,7 +544,7 @@ void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_contain
 
         _edges_container.src_ids[i] = src_id - 1;
         _edges_container.dst_ids[i] = dst_id - 1;
-        _edges_container.edge_vals[i] = ((float) rand_r(&seed)) / (float) RAND_MAX;
+        _edges_container.edge_vals[i] = ((int) rand_r(&seed)) % 3 + 1;
         i++;
     }
 

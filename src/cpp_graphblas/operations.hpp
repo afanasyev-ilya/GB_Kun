@@ -40,13 +40,21 @@ LA_Info mxv (Vector<W>*       w,
     else
     {
         double t1 = omp_get_wtime();
+        printf("\033[0;31m");
+        A->get_matrix()->print();
         backend::SpMV<W, M, SemiringT>(A->get_matrix(), u->get_vector(), w->get_vector(), desc->get_descriptor(), op,
                                        NULL);
+        w->print();
+        printf("\033[0m");
         double t2 = omp_get_wtime();
+
 
         lablas::Vector<W> w_sparse(A->get_nrows());
         double t3 = omp_get_wtime();
+        printf("\033[0;34m");
         backend::SpMSpV(A->get_matrix(), u->get_vector(), w_sparse.get_vector(), desc->get_descriptor());
+        printf("\033[0m");
+
         double t4 = omp_get_wtime();
 
         cout << "times: " << (t2 - t1)*1000 << " ms vs " << (t4 - t3)*1000 << " ms" << endl;

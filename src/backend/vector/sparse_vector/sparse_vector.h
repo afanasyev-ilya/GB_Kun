@@ -25,25 +25,35 @@ public:
     void set_constant(T _val)
     {
         nnz = 0;
+
+        vals[0] = 2;
+        vals[1] = 3;
+
+        ids[0] = 0;
+        ids[1] = 2;
+
+        nnz = 2;
+
         for(VNT i = 0; i < size; i++)
         {
-            if (i % SPARSITY_K == 0) {
-                int pos = i / SPARSITY_K;
-                vals[pos] = _val;
-                ids[pos] = i;
-                nnz++;
-            }
+//            if (i % SPARSITY_K == 0) {
+//                int pos = i / SPARSITY_K;
+//                vals[pos] = _val;
+//                ids[pos] = i;
+//                nnz++;
+//            }
         }
     };
 
     void print() const {
+        cout << "Vector: [ ";
         for(VNT i = 0; i < nnz; i++)
         {
             //cout << nnz << endl;
-            cout << "( "<< ids[i]<< " , "  << vals[i] << ") ";
+            cout << "( id: "<< ids[i]<< " , val: "  << vals[i] << ") ";
         }
+        cout << "] ";
         cout << endl;
-
     };
 
     void get_nnz(VNT* _nnz) const {
