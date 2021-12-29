@@ -48,7 +48,7 @@ void SparseVector<T>::convert(DenseVector<T> *_dense_vector)
     #pragma omp parallel
     {
         VNT tid_elements = 0;
-        #pragma omp for
+        #pragma omp for nowait
         for(VNT i = 0; i < size; i++)
         {
             if(dense_vals[i] != 0)

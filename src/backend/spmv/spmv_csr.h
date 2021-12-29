@@ -140,7 +140,7 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
 
     Desc_value mask_field;
     _desc->get(GrB_MASK, &mask_field);
-    if (mask_field != GrB_SCMP)
+    if (mask_field != GrB_STR_COMP)
     {
         #pragma omp parallel
         {
@@ -219,7 +219,7 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
 
     Desc_value mask_field;
     _desc->get(GrB_MASK, &mask_field);
-    if (mask_field == GrB_SCMP)
+    if (mask_field == GrB_STR_COMP)
     {
         use_comp_mask = true;
     }

@@ -96,24 +96,22 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
 
     double t1 = omp_get_wtime();
 
-    GrB_TRY(GrB_assign(f1, MASK_NULL, NULL, 0, GrB_ALL, n, NULL));
-    GrB_TRY(GrB_assign(f2, MASK_NULL, NULL, 0, GrB_ALL, n, NULL));
-    GrB_TRY(GrB_assign(v, MASK_NULL, NULL, 0, GrB_ALL, n, NULL));
+    GrB_TRY(GrB_assign(f1, MASK_NULL, NULL, 0, GrB_ALL, n, GrB_NULL));
+    GrB_TRY(GrB_assign(f2, MASK_NULL, NULL, 0, GrB_ALL, n, GrB_NULL));
+    GrB_TRY(GrB_assign(v, MASK_NULL, NULL, 0, GrB_ALL, n, GrB_NULL));
     GrB_TRY (GrB_Vector_setElement(f1, 1, src)) ;
 
     int iter = 1;
     int succ = 0;
     cout << "------------------------------ alg started ------------------------------------ " << endl;
     do {
-        GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, NULL));
+        GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, GrB_NULL));
 
-        desc.set(GrB_MASK, GrB_SCMP);
-        GrB_TRY( GrB_vxm(f2, v, NULL, lablas::LogicalOrAndSemiring<int>(), f1, A, &desc));
-        desc.set(GrB_MASK, GrB_DEFAULT);
+        GrB_TRY( GrB_vxm(f2, v, NULL, lablas::LogicalOrAndSemiring<int>(), f1, A, GrB_DESC_SC));
 
         std::swap(f1, f2);
 
-        GrB_TRY (GrB_reduce (&succ, NULL, GrB_PLUS_MONOID_INT32, f1, NULL)) ;
+        GrB_TRY (GrB_reduce (&succ, NULL, GrB_PLUS_MONOID_INT32, f1, GrB_NULL)) ;
 
         iter++;
     } while(succ > 0);

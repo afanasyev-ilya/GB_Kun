@@ -12,16 +12,13 @@ namespace backend{
 class Descriptor
 {
 public:
-    explicit Descriptor() : desc_{ GrB_DEFAULT, GrB_DEFAULT, GrB_DEFAULT, GrB_DEFAULT,
-                                          GrB_FIXEDROW, GrB_32, GrB_32, GrB_128, GrB_PUSHPULL,
-                                          GrB_16, GrB_CUDA}, debug_flag(false)
+    explicit Descriptor() : debug_flag(false)
     {
-
+        for(auto & i : desc_)
+            i = GrB_DEFAULT;
     }
-    ~Descriptor()
-    {
 
-    }
+    ~Descriptor() = default;
 
     LA_Info set(Desc_field field, Desc_value value) {
         desc_[field] = value;
@@ -38,7 +35,7 @@ public:
     }
 
 private:
-    Desc_value desc_[GrB_NDESCFIELD];
+    Desc_value desc_[GrB_NDESCFIELD]{};
     bool debug_flag;
 };
 
