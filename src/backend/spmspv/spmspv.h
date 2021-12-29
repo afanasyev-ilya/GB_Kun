@@ -11,16 +11,16 @@ void SpMSpV(const Matrix<T> *_matrix,
             Vector<T> *_y,
             Descriptor *_desc)
 {
-    cout << "SPMSPV x: ";
-    _x->print_storage_type();
-    cout << "SPMSPV y: ";
-    _y->print_storage_type();
+//    cout << "SPMSPV x: ";
+//    _x->print_storage_type();
+//    cout << "SPMSPV y: ";
+//    _y->print_storage_type();
 
-    SpMSpV_csr((MatrixCSR<T> *) _matrix->get_csc(), _x, _y->getDense(), 2);
+    SpMSpV_csr((MatrixCSR<T> *) _matrix->get_csc(), _x, _y->getDense(), 10);
 
-    cout << "SPMSPV result: ";
-    _y->force_to_dense();
-    _y->print();
+//    cout << "SPMSPV result: ";
+//    _y->force_to_dense();
+//    _y->print();
 }
 
 #include "spmspv_csr.h"
