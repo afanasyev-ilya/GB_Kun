@@ -32,8 +32,8 @@ vector<vector<int>> estimate_buckets(const MatrixCSR<T> *matrix, const SparseVec
     
     #pragma omp parallel for schedule(static)
     for (int t = 0; t < nt; t++) {
-        int offset = t * nz / nt; // Every thread has it's own piece of vector x
-        for (int j = offset; j < nz; j++) {
+        int offset_ = t * nz / nt; // Every thread has it's own piece of vector x
+        for (int j = offset_; j < nz; j++) {
             int vector_index = x->get_ids()[j]; // index of j-th non-zero element in vector x
             //printf("%d %d\n", vector_index, j);
             for (int i = col_ptr[vector_index]; i < col_ptr[vector_index + 1]; i++) {
@@ -81,13 +81,21 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
     // Boffset[i][j] means how many insertions the i-th thread will make in the j-th bucket
 
     // We need to fill the matrix Boffset in order to make synchronization free insertions in step 1
-
     vector<int> bucket_amount(_number_of_buckets); // Stores how many insertions will be made in i-th bucket
-    for (int thread_number = 0; thread_number < number_of_threads; thread_number++) {
-        for (int bucket_number = 0; bucket_number < _number_of_buckets; bucket_number++) {
+    vector<vector<int>> offset_(_number_of_buckets, vector<int>(number_of_threads));
+
+    for (int bucket_number = 0; bucket_number < _number_of_buckets; bucket_number++) {
+        for (int thread_number = 0; thread_number < number_of_threads; thread_number++) {
+            if (thread_number)
+                offset_[bucket_number][thread_number] = offset_[bucket_number][thread_number - 1] + Boffset[thread_number - 1][bucket_number];
             bucket_amount[bucket_number] += Boffset[thread_number][bucket_number];
         }
     }
+//    for (int thread_number = 0; thread_number < number_of_threads; thread_number++) {
+//        for (int bucket_number = 0; bucket_number < _number_of_buckets; bucket_number++) {
+//            bucket_amount[bucket_number] += Boffset[thread_number][bucket_number];
+//        }
+//    }
 
     t3 = omp_get_wtime();
 
@@ -97,6 +105,7 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
     vector<vector<bucket>> buckets(_number_of_buckets);
 
     for (int i = 0; i < _number_of_buckets; i++) {
+        printf("%d %d\n", bucket_amount[i], offset_[i][number_of_threads - 1]);
         buckets[i] = vector<bucket>(bucket_amount[i]);
     }
     #pragma omp parallel
@@ -110,22 +119,17 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
                 // Going through all the elements of the vector_index-th column
                 // Essentially we are doing multiplication here
                 float mul = _matrix_csc->get_vals()[j] * _x->get_vals()[i]; // mul - is a product of matrix and vector non-zero elements.
-
                 int bucket_index = (row_ids[j] * _number_of_buckets) / matrix_size;
                 // bucket's index depends on the row number
-
                 // Implementing synchronization free insertion below
-
                 int cur_thread_number = omp_get_thread_num();
                 // Boffset[i][j] - amount, i - thread, j - bucket
-                int offset = 0;
-                for (int thread_number = 0; thread_number < cur_thread_number; thread_number++) {
-                    // printf("%d\n", thread_number);
-                    fflush(stdout);
-                    offset += Boffset[thread_number][bucket_index];
-                }
+//                int offset = 0;
+//                for (int thread_number = 0; thread_number < cur_thread_number; thread_number++) {
+//                    offset += Boffset[thread_number][bucket_index];
+//                }
                 // offset - how many elements have been inserted in the bucket by other threads
-                buckets[bucket_index][offset + (insertions[bucket_index])++] = {row_ids[j], mul}; // insertion
+                buckets[bucket_index][offset_[bucket_index][cur_thread_number] + (insertions[bucket_index])++] = {row_ids[j], mul}; // insertion
             }
         }
     }
