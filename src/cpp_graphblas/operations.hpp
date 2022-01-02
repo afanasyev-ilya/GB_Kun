@@ -319,7 +319,11 @@ LA_Info mxv (Vector<W>*       _w,
     else
     {
         //double t1 = omp_get_wtime();
-        backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor());
+        for (int i = 2; i <= 262144; i *= 2) {
+            printf("\n\nNumber of buckets: [ %d ]\n", i);
+            lablas::Vector<W> v(_u->get_vector()->get_size());
+            backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), v.get_vector(),_desc->get_descriptor(), i);
+        }
         //double t2 = omp_get_wtime();
 
 //        printf("\033[0;31m");
@@ -338,11 +342,11 @@ LA_Info mxv (Vector<W>*       _w,
 
 //        cout << "SPMV result: ";
 //        _w->print();
-
-        if(check_w == (*_w))
-            cout << "ok" << endl;
-        else
-            cout << "not ok" << endl;
+//
+//        if(check_w == (*_w))
+//            cout << "ok" << endl;
+//        else
+//            cout << "not ok" << endl;
 
     }
 
