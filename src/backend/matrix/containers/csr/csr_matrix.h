@@ -104,7 +104,8 @@ private:
                                 DenseVector<Y> *_y,
                                 BinaryOpTAccum _accum,
                                 SemiringT op,
-                                Descriptor *_desc);
+                                Descriptor *_desc,
+                                Workspace *_workspace);
 
     template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_dense(const MatrixCSR<A> *_matrix,
@@ -113,7 +114,8 @@ private:
                            BinaryOpTAccum _accum,
                            SemiringT op,
                            const DenseVector<M> *_mask,
-                           Descriptor *_desc);
+                           Descriptor *_desc,
+                           Workspace *_workspace);
 
     template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_sparse(const MatrixCSR<A> *_matrix,

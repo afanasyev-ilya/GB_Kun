@@ -1,5 +1,25 @@
 #pragma once
 
+#define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, graph_ptr) \
+GrB_Index nvals = 0;                                                                 \
+GrB_Matrix_nvals(&nvals, (graph_ptr)->AT);                                           \
+/*printf("matrix has %ld\n edges", nvals);*/                                         \
+double t1 = omp_get_wtime();                                                         \
+call_instruction;                                                                    \
+double t2 = omp_get_wtime();                                                         \
+double time = (t2 - t1)*1000;                                                        \
+double perf = nvals * 2.0 / ((t2 - t1)*1e9);                                         \
+double bw = nvals * bytes_per_flop/((t2 - t1)*1e9);                                  \
+/*printf("edges: %lf\n", nvals);*/                                                   \
+/*printf("%s time %lf (ms)\n", op_name, (t2-t1)*1000);*/                             \
+/*printf("%s perf %lf (GFLop/s)\n", op_name, perf);*/                                \
+/*printf("%s BW %lf (GB/s)\n", op_name, bw);*/                                       \
+FILE *f;                                                                             \
+f = fopen("perf_stats.txt", "a");                                                    \
+fprintf(f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", op_name, time, perf, bw, nvals);\
+fclose(f);                                                                           \
+
+
 #define GrB_Matrix lablas::Matrix<float>*
 #define GrB_Vector lablas::Vector<float>*
 #define MASK_NULL static_cast<const lablas::Vector<float>*>(NULL)
@@ -49,7 +69,6 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
     //--------------------------------------------------------------------------
     // pagerank iterations
     //--------------------------------------------------------------------------
-
     for ((*iters) = 0 ; (*iters) < itermax && rdiff > tol ; (*iters)++)
     {
         // swap t and r ; now t is the old score
@@ -60,24 +79,8 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
         GrB_TRY (GrB_assign (r, MASK_NULL, NULL, teleport, GrB_ALL, n, NULL)) ;
 
         // r += A'*w
-        double t1, t2;
-        GrB_Index nvals = 0;
-        if(true)
-        {
-            GrB_Matrix_nvals(&nvals, AT);
-            printf("matrix has %ld\n edges", nvals);
-            t1 = omp_get_wtime();
-        }
-        GrB_TRY (GrB_mxv (r, MASK_NULL, GrB_PLUS_FP32, LAGraph_plus_second_fp32, AT, w, &desc)) ;
-        if(true)
-        {
-            t2 = omp_get_wtime();
-            double gflop = nvals * 2.0 / ((t2 - t1)*1e9);
-            printf("edges: %lf\n", nvals);
-            printf("SPMV time %lf (ms)\n", (t2-t1)*1000);
-            printf("SPMV perf %lf (GFLop/s)\n", gflop);
-            printf("SPMV BW %lf (GB/s)\n", nvals * (sizeof(float)*2 + sizeof(size_t))/((t2 - t1)*1e9));
-        }
+        SAVE_STATS((GrB_TRY (GrB_mxv (r, MASK_NULL, GrB_PLUS_FP32, LAGraph_plus_second_fp32, AT, w, &desc))),
+                   "pr_mxv", (sizeof(float)*2 + sizeof(size_t)), 1, G);
 
         // t -= r
         GrB_TRY (GrB_assign (t, MASK_NULL, GrB_MINUS_FP32, r, GrB_ALL, n, NULL)) ;
@@ -88,7 +91,6 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
 
         float ranks_sum = 0;
         GrB_TRY (GrB_reduce (&ranks_sum, NULL, GrB_PLUS_MONOID_FP32, r, NULL));
-        cout << "ranks sum : " << ranks_sum << endl;
     }
 
     //--------------------------------------------------------------------------

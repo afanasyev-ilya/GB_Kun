@@ -206,13 +206,23 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
                 BinaryOpTAccum _accum,
                 SemiringT op,
                 const DenseVector<M> *_mask,
-                Descriptor *_desc)
+                Descriptor *_desc,
+                Workspace *_workspace)
 {
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
+
+    /*if(x_vals == y_vals)
+    {
+        X *tmp_vals = (X*)_workspace->get_first_socket_vector();
+        #pragma omp parallel for
+        for(VNT i = 0; i < _matrix->size; i++)
+            tmp_vals[i] = x_vals[i];
+        x_vals = tmp_vals;
+    }*/
 
     const M *mask_vals = _mask->get_vals();
     bool use_comp_mask;
@@ -259,7 +269,8 @@ void SpMV_all_active(const MatrixCSR<A> *_matrix,
                      DenseVector<Y> *_y,
                      BinaryOpTAccum _accum,
                      SemiringT op,
-                     Descriptor *_desc)
+                     Descriptor *_desc,
+                     Workspace *_workspace)
 {
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();

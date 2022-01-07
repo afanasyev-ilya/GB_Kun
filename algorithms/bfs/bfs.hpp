@@ -56,25 +56,21 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
     // parent BFS
     do
     {
-        cout << " ------------------- " << endl;
         // assign levels: l_level<s(frontier)> = current_level
-        GrB_TRY( GrB_assign(l_level, frontier, NULL, current_level, GrB_ALL, n, &desc) );
+        GrB_TRY( GrB_assign(l_level, frontier, NULL, current_level, GrB_ALL, n, GrB_DESC_S) );
         l_level->print();
         ++current_level;
 
         // frontier = kth level of the BFS
         // mask is l_parent if computing parent, l_level if computing just level
-        cout << "mask ";
-        mask->print();
-        desc.set(GrB_MASK, GrB_DEFAULT);
-        GrB_TRY( GrB_vxm(frontier, mask, NULL, lablas::LogicalOrAndSemiring<bool>(), frontier, A, &desc) );
-        cout << "frontier after vxm ";
+        GrB_TRY( GrB_vxm(frontier, mask, NULL, lablas::LogicalOrAndSemiring<bool>(), frontier, A, GrB_DESC_RSC) );
         frontier->print();
 
         // done if frontier is empty
         GrB_TRY( GrB_Vector_nvals(&nvals, frontier) );
     } while (nvals > 0);
 
+    l_level->force_to_dense();
 
     (*level ) = l_level;
     return (0);

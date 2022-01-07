@@ -40,10 +40,11 @@ void SpMV(const Matrix<T> *_matrix,
             }
             else
             {
-                SpMV_all_active(((MatrixCSR<T> *) _matrix->get_data()), _x, _y, _accum, _op, _desc);
+                SpMV_all_active(((MatrixCSR<T> *) _matrix->get_data()), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
             }
             #else
-            SpMV_all_active(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op, _desc);
+            SpMV_all_active(((MatrixCSR<T> *) _matrix->get_data()), _x->getDense(), _y->getDense(), _accum, _op, _desc,
+                            _matrix->get_workspace());
             #endif
         }
         else if(format == LAV)
@@ -61,7 +62,7 @@ void SpMV(const Matrix<T> *_matrix,
     {
         if(_mask->is_dense()) // dense case
         {
-            SpMV_dense(_matrix->get_csr(), _x, _y, _accum, _op, _mask->getDense(), _desc);
+            SpMV_dense(_matrix->get_csr(), _x, _y, _accum, _op, _mask->getDense(), _desc, _matrix->get_workspace());
         }
         else // sparse_case
         {
@@ -83,13 +84,14 @@ void VSpM(const Matrix<A> *_matrix,
 {
     if(_mask == NULL) // all active case
     {
-        SpMV_all_active(_matrix->get_csc(), _x, _y, _accum, _op, _desc);
+        SpMV_all_active(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
     }
     else
     {
         if(_mask->is_dense()) // dense case
         {
-            SpMV_dense(_matrix->get_csc(), _x, _y, _accum, _op, _mask->getDense(), _desc);
+            SpMV_dense(_matrix->get_csc(), _x, _y, _accum, _op, _mask->getDense(), _desc,
+                       _matrix->get_workspace());
         }
         else // sparse_case
         {
