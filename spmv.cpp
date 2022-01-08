@@ -44,8 +44,6 @@ void test_spmv(int argc, char **argv)
 
     #define MASK_NULL static_cast<const lablas::Vector<T>*>(NULL)
 
-    GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
-
     int num_runs = 10;
     double avg_time = 0;
     for(int run = 0; run < num_runs; run++)
@@ -53,9 +51,8 @@ void test_spmv(int argc, char **argv)
         // lablas::PlusMultipliesSemiring<T>()
         w.fill(0.0);
         u.fill(1.0);
-        double t1 = omp_get_wtime();
-        GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
-        double t2 = omp_get_wtime();
+        SAVE_STATS(GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);,
+                   "SPMV", (sizeof(float)*2 + sizeof(size_t)), 1, &matrix);
         avg_time += (t2 - t1) / num_runs;
     }
 

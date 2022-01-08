@@ -14,6 +14,7 @@ function benchmark_graph {
     python3 ./analize_data.py --graph=$graph_path
 }
 
+rm perf_stats.xlsx
 rm perf_dict.pkl
 
 benchmark_graph "pr" "flick.mtx"

@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
         lablas::Vector<float>* centrality;
 
         SAVE_STATS(LAGraph_VertexCentrality_PageRankGAP(&centrality, &graph, &iters_taken),
-                   "Page_Rank", (sizeof(float)*2 + sizeof(size_t)), iters_taken, &graph);
+                   "Page_Rank", (sizeof(float)*2 + sizeof(size_t)), iters_taken, (graph.AT));
 
 
         delete centrality;

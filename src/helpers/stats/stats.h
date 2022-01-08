@@ -4,6 +4,25 @@
 #include <sched.h>
 #include <omp.h>
 
+#define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, matrix)    \
+GrB_Index nvals = 0;                                                                 \
+GrB_Matrix_nvals(&nvals, matrix);                                                    \
+/*printf("matrix has %ld\n edges", nvals);*/                                         \
+double t1 = omp_get_wtime();                                                         \
+call_instruction;                                                                    \
+double t2 = omp_get_wtime();                                                         \
+double time = (t2 - t1)*1000;                                                        \
+double perf = nvals * 2.0 / ((t2 - t1)*1e9);                                         \
+double bw = nvals * bytes_per_flop/((t2 - t1)*1e9);                                  \
+/*printf("edges: %lf\n", nvals);*/                                                   \
+/*printf("%s time %lf (ms)\n", op_name, (t2-t1)*1000);*/                             \
+/*printf("%s perf %lf (GFLop/s)\n", op_name, perf);*/                                \
+/*printf("%s BW %lf (GB/s)\n", op_name, bw);*/                                       \
+FILE *f;                                                                             \
+f = fopen("perf_stats.txt", "a");                                                    \
+fprintf(f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", op_name, time, perf, bw, nvals);\
+fclose(f);                                                                           \
+
 void print_omp_stats()
 {
     /*#pragma omp parallel
