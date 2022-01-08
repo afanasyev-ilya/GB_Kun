@@ -132,7 +132,10 @@ public:
         return coldegrees;
     }
 
-    Workspace *get_workspace() {return workspace;};
+    Workspace *get_workspace() const
+    {
+        return (const_cast <Matrix<T>*> (this))->workspace;
+    };
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
