@@ -39,9 +39,6 @@ void test_spmv(int argc, char **argv)
     lablas::Vector<T> w(el.vertices_count);
     lablas::Vector<T> u(el.vertices_count);
 
-    w.fill(0.0);
-    u.fill(1.0);
-
     #define MASK_NULL static_cast<const lablas::Vector<T>*>(NULL)
 
     int num_runs = 10;
@@ -49,8 +46,8 @@ void test_spmv(int argc, char **argv)
     for(int run = 0; run < num_runs; run++)
     {
         // lablas::PlusMultipliesSemiring<T>()
-        w.fill(0.0);
         u.fill(1.0);
+        w.fill(1.0);
         SAVE_STATS(GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);,
                    "SPMV", (sizeof(float)*2 + sizeof(size_t)), 1, &matrix);
         avg_time += (t2 - t1) / num_runs;
@@ -72,7 +69,7 @@ void test_spmv(int argc, char **argv)
         lablas::Vector<T> w_check(el.vertices_count);
 
         u.fill(1.0);
-        w_check.fill(0.0);
+        w_check.fill(1.0);
         GrB_mxv(&w_check, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &check_matrix, &u, &desc);
 
         if(w == w_check)

@@ -23,12 +23,19 @@ def save_worksheet(workbook, type_key, full_perf_data, col_names_dict):
 
 
 def main():
+    parser = optparse.OptionParser()
+    parser.add_option('-o', '--output',
+                      action="store", dest="output",
+                      help="specify name of output file", default="perf_stats.xlsx")
+
+    options, args = parser.parse_args()
+
     full_perf_data = {}
     with open('perf_dict.pkl', 'rb') as f:
         full_perf_data = pickle.load(f)
     print(full_perf_data)
 
-    workbook = xlsxwriter.Workbook('perf_stats.xlsx')
+    workbook = xlsxwriter.Workbook(options.output)
 
     col_names_dict = {}
     for graph_name in full_perf_data.keys():
@@ -38,6 +45,9 @@ def main():
     for key in col_names_dict.keys():
         col_names_dict[key] = cnt
         cnt += 1
+    print("\n\n\n")
+    print(full_perf_data)
+    print(col_names_dict)
 
     save_worksheet(workbook, "time", full_perf_data, col_names_dict)
     save_worksheet(workbook, "bw", full_perf_data, col_names_dict)

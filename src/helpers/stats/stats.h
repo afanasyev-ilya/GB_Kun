@@ -15,7 +15,7 @@ double time = (t2 - t1)*1000;                                                   
 double perf = nvals * 2.0 / ((t2 - t1)*1e9);                                         \
 double bw = nvals * bytes_per_flop/((t2 - t1)*1e9);                                  \
 /*printf("edges: %lf\n", nvals);*/                                                   \
-/*printf("%s time %lf (ms)\n", op_name, (t2-t1)*1000);*/                             \
+printf("%s time %lf (ms)\n", op_name, (t2-t1)*1000);                             \
 /*printf("%s perf %lf (GFLop/s)\n", op_name, perf);*/                                \
 /*printf("%s BW %lf (GB/s)\n", op_name, bw);*/                                       \
 FILE *f;                                                                             \

@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 
         LAGraph_Graph<int> graph(matrix);
 
-        SAVE_STATS(LG_BreadthFirstSearch_vanilla(&levels, &parents, &graph, source_vertex, true);,
+        SAVE_STATS(GraphBlast_BFS(&levels, &graph, source_vertex),
                    "BFS", (sizeof(float)*2 + sizeof(size_t)), 1, (graph.AT));
 
         //GraphBlast_BFS(&levels, &graph, source_vertex);
