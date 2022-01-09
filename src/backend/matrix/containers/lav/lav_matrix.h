@@ -61,10 +61,13 @@ private:
                                 LAVSegment<T> *_cur_segment,
                                 ENT _total_nnz);
 
-    template<typename Y, typename SemiringT>
-    friend void SpMV(const MatrixLAV<Y> *_matrix,
-                     const DenseVector<Y> *_x,
-                     DenseVector<Y> *_y, SemiringT op);
+    template <typename A, typename X, typename Y, typename BinaryOpTAccum, typename SemiringT>
+    friend void SpMV(const MatrixLAV<A> *_matrix,
+                     const DenseVector<X> *_x,
+                     DenseVector<Y> *_y,
+                     BinaryOpTAccum _accum,
+                     SemiringT op,
+                     Workspace *_workspace);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -48,7 +48,7 @@ void SpMV(const Matrix<T> *_matrix,
             #endif
         }
         else if(format == LAV)
-            SpMV(((MatrixLAV<T> *) _matrix->get_data()), _x, _y, _op);
+            SpMV(((MatrixLAV<T> *) _matrix->get_data()), _x, _y, _accum, _op, _matrix->get_workspace());
         else if(format == COO)
             SpMV(((MatrixCOO<T> *) _matrix->get_data()), _x, _y, _op);
         else if(format == CSR_SEG)
