@@ -128,10 +128,8 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
 
     t1 = omp_get_wtime();
     cout << "merge blocks: " << _matrix->merge_blocks_number << endl;
-    if(false) // cache aware merge
+    if(true) // cache aware merge
     {
-         // int outer_threads = std::min((int)_matrix->merge_blocks_number, cores_num);
-        //int inner_threads = cores_num/outer_threads;
         #pragma omp parallel
         {
             #pragma omp for
@@ -157,6 +155,12 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
                         shared_vector[conversion_indexes[i]] = add_op(shared_vector[conversion_indexes[i]], buffer[i]);
                     }
                 }
+            }
+
+            #pragma omp for
+            for(VNT i = 0; i < _matrix->size; i++)
+            {
+                y_vals[i] = _accum(y_vals[i], shared_vector[i]);
             }
         };
     }

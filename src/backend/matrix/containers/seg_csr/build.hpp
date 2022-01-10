@@ -12,7 +12,7 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
     cout << size << endl;
     //VNT segment_size = 64 * 1024 / sizeof(T);
     //num_segments = (size - 1) / segment_size + 1;
-    num_segments = 2*(omp_get_max_threads())*2;
+    num_segments = (omp_get_max_threads())*4; // since 4x for load balancing
     //while(size/num_segments > (1024 * 1024 / sizeof(double)))
     //    num_segments *= 2;
     VNT segment_size = (size - 1)/num_segments + 1;
@@ -27,8 +27,15 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
         subgraphs[seg_id].add_edge(_row_ids[i], _col_ids[i], _vals[i]);
     }
 
-    size_t merge_block_size = 64*1024; // 64 KB
-    merge_blocks_number = (size - 1)/merge_block_size + 1;
+    //size_t merge_block_size = 64*1024; // 64 KB
+    //merge_blocks_number = (size - 1)/merge_block_size + 1;
+    merge_blocks_number = omp_get_max_threads();
+    size_t merge_block_size = (_size - 1) / merge_blocks_number + 1;
+    while(merge_block_size > 64*1024)
+    {
+        merge_blocks_number *= 2;
+        merge_block_size = (_size - 1) / merge_blocks_number + 1;
+    }
 
     largest_segment = 0;
     ENT nnz_in_largest = 0;
