@@ -19,6 +19,7 @@ void SpMV(const MatrixLAV<A> *_matrix,
     auto identity_val = op.identity();
 
     Y *shared_vector = (Y*)_workspace->get_first_socket_vector();
+    Y *prefetched_vector = (Y*)_workspace->get_prefetched_vector();
 
     VNT dense_segments_num = _matrix->dense_segments_num;
     VNT num_rows = _matrix->size;
@@ -37,6 +38,14 @@ void SpMV(const MatrixLAV<A> *_matrix,
             shared_vector[idx] = identity_val;
         }
 
+        VNT min_col = segment_data->min_col_id;
+        VNT max_col = segment_data->min_col_id;
+        #pragma omp for schedule(static)
+        for(VNT i = min_col; i < max_col; i++)
+        {
+            prefetched_vector[i - min_col] = x_vals[i];
+        }
+
         for(int vg = 0; vg < segment_data->vg_num; vg++)
         {
             const VNT *vertices = segment_data->vertex_groups[vg].get_data();
@@ -50,8 +59,9 @@ void SpMV(const MatrixLAV<A> *_matrix,
                 for(ENT j = segment_data->row_ptr[row]; j < segment_data->row_ptr[row + 1]; j++)
                 {
                     VNT col = segment_data->col_ids[j];
-                    Y val = segment_data->vals[j];
-                    res = add_op(res, mul_op(val, x_vals[col]));
+                    Y mat_val = segment_data->vals[j];
+                    X x_val = prefetched_vector[col - min_col];
+                    res = add_op(res, mul_op(mat_val, x_vals[col]));
                 }
                 shared_vector[row] = add_op(shared_vector[row], res);
             }

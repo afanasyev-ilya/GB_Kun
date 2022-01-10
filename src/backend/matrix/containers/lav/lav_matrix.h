@@ -19,6 +19,9 @@ struct LAVSegment
     ENT nnz;
     VNT size;
 
+    VNT min_col_id;
+    VNT max_col_id;
+
     void free()
     {
         delete []row_ptr;

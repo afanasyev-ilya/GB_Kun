@@ -29,8 +29,8 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
     MemoryAPI::allocate_array(&(_cur_segment->col_ids), local_nnz);
     MemoryAPI::allocate_array(&(_cur_segment->vals), local_nnz);
 
-    VNT min_col_id = INT_MAX;
-    VNT max_col_id = 0;
+    _cur_segment->min_col_id = INT_MAX;
+    _cur_segment->max_col_id = 0;
 
     ENT cur_pos = 0;
     for(VNT i = 0; i < local_size; i++)
@@ -44,10 +44,10 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
 
             VNT col_id = (_cur_segment->col_ids)[j];
 
-            if(col_id < min_col_id)
-                min_col_id = col_id;
-            if(col_id > max_col_id)
-                max_col_id = col_id;
+            if(col_id < _cur_segment->min_col_id)
+                _cur_segment->min_col_id = col_id;
+            if(col_id > _cur_segment->max_col_id)
+                _cur_segment->max_col_id = col_id;
         }
         cur_pos += _tmp_col_ids[i].size();
     }
@@ -55,8 +55,8 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
     _cur_segment->nnz = local_nnz;
     _cur_segment->size = local_size;
 
-    cout << "segment ids in range of: " << (max_col_id - min_col_id)*sizeof(T) / 1e3 << " KB" << endl;
-    cout << "starting: " << min_col_id << " ending: " << max_col_id << endl << endl;
+    cout << "segment ids in range of: " << (_cur_segment->max_col_id - _cur_segment->min_col_id)*sizeof(T) / 1e3 << " KB" << endl;
+    cout << "starting: " << _cur_segment->min_col_id << " ending: " << _cur_segment->max_col_id << endl << endl;
 
     ENT step = 16;
     ENT first = 4;
@@ -101,28 +101,23 @@ void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
     size = _size;
     nnz = _nnz;
 
-    cout << "starting build" << endl;
-
-    map<VNT, ENT> col_freqs;
-    map<VNT, ENT> row_freqs;
-
-    for(ENT i = 0; i < _nnz; i++)
-    {
-        VNT row_id = _row_ids[i];
-        VNT col_id = _col_ids[i];
-        col_freqs[col_id]++;
-        row_freqs[row_id]++;
-    }
-
-    cout << "freqs calculated" << endl;
-
     VNT *cols_frequencies;
     MemoryAPI::allocate_array(&new_to_old, _size);
     MemoryAPI::allocate_array(&old_to_new, _size);
     MemoryAPI::allocate_array(&cols_frequencies, _size);
-    for(VNT i = 0; i < _size; i++) {
+    #pragma omp parallel for
+    for(VNT i = 0; i < _size; i++)
+    {
         new_to_old[i] = i;
-        cols_frequencies[i] = col_freqs[i];
+        cols_frequencies[i] = 0;
+    }
+
+    #pragma omp parallel for
+    for(ENT i = 0; i < _nnz; i++)
+    {
+        VNT col_id = _col_ids[i];
+        #pragma omp atomic
+        cols_frequencies[col_id]++;
     }
 
     std::sort(new_to_old, new_to_old + _size,
