@@ -59,13 +59,13 @@ list(LENGTH header_dir_list header_dir_list_count)
 message(STATUS "[INFO] Found ${header_dir_list_count} header directories.")
 STRING(REPLACE ";" " " header_dir_list "${header_dir_list}")
 STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" header_dir_list "${header_dir_list}")
-message(STATUS "[INFO] header dir list: ${header_dir_list}")
+#message(STATUS "[INFO] header dir list: ${header_dir_list}")
 
 list(LENGTH headers_list headers_list_count)
 message(STATUS "[INFO] Found ${headers_list_count} headers.")
 STRING(REPLACE ";" " " headers_list "${headers_list}")
 STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" headers_list "${headers_list}")
-message(STATUS "[INFO] header files list: ${headers_list}")
+#message(STATUS "[INFO] header files list: ${headers_list}")
 #
 
 file(MAKE_DIRECTORY scripts)

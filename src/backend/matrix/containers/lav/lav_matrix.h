@@ -36,7 +36,8 @@ public:
 
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket = 0);
     void print() const {};
-    void get_size(VNT* _size) const {
+    void get_size(VNT* _size) const
+    {
         *_size = size;
     }
 

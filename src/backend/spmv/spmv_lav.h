@@ -37,27 +37,27 @@ void SpMV(const MatrixLAV<A> *_matrix,
             shared_vector[idx] = identity_val;
         }
 
-        /*for(int vg = 0; vg < segment_data->vg_num; vg++)
+        for(int vg = 0; vg < segment_data->vg_num; vg++)
         {
             const VNT *vertices = segment_data->vertex_groups[vg].get_data();
             VNT vertex_group_size = segment_data->vertex_groups[vg].get_size();
 
-            #pragma omp for nowait schedule(guided, 1)
+            #pragma omp for nowait schedule(static)
             for(VNT idx = 0; idx < vertex_group_size; idx++)
             {
                 VNT row = vertices[idx];
-                T res = identity_val;
+                Y res = identity_val;
                 for(ENT j = segment_data->row_ptr[row]; j < segment_data->row_ptr[row + 1]; j++)
                 {
                     VNT col = segment_data->col_ids[j];
-                    T val = segment_data->vals[j];
+                    Y val = segment_data->vals[j];
                     res = add_op(res, mul_op(val, x_vals[col]));
                 }
-                y_vals[row] = res;
+                shared_vector[row] = add_op(shared_vector[row], res);
             }
-        }*/
+        }
 
-        #pragma omp for schedule(guided, 1)
+        /*#pragma omp for schedule(guided, 256)
         for(VNT idx = 0; idx < nnz_num_rows; idx++)
         {
             VNT row = row_ids[idx];
@@ -69,7 +69,7 @@ void SpMV(const MatrixLAV<A> *_matrix,
                 res = add_op(res, mul_op(val, x_vals[col]));
             }
             shared_vector[row] = add_op(shared_vector[row], res);
-        }
+        }*/
     }
     t2 = omp_get_wtime();
     cout << "largest BW: " << _matrix->dense_segments[0].nnz * (2*sizeof(A) + sizeof(VNT))/((t2 - t1)*1e9) << " GB/s" << endl;

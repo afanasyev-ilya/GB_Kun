@@ -41,7 +41,7 @@ void test_spmv(int argc, char **argv)
 
     #define MASK_NULL static_cast<const lablas::Vector<T>*>(NULL)
 
-    int num_runs = 10;
+    int num_runs = 100;
     double avg_time = 0;
     for(int run = 0; run < num_runs; run++)
     {

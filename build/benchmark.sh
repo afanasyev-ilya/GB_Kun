@@ -35,7 +35,7 @@ echo "Writing output to "$xls_name" file..."
 rm $xls_name
 rm perf_dict.pkl
 
-declare -a apps=("pr")
+declare -a apps=("pr" "spmv")
 declare -a graphs=("flick.mtx" "lj.mtx" "ork.mtx" "pock.mtx" "rmat_20_16.mtx" "rmat_21_16.mtx" "ru_21_16.mtx")
 
 for app in "${apps[@]}"

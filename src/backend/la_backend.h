@@ -2,8 +2,9 @@
 
 #define VNT Index
 #define ENT Index
-#define CHECK_PRINT_NUM 10
-#define __USE_SOCKET_OPTIMIZATIONS__
+#define CHECK_PRINT_NUM 16 // 2^4 graph is fully printed
+
+//#define __USE_SOCKET_OPTIMIZATIONS__ // TODO activate
 #define VECTOR_LENGTH 32
 #define HUB_VERTICES 131072
 #define CSR_VERTEX_GROUPS_NUM 6
