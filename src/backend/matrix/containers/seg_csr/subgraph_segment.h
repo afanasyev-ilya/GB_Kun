@@ -42,10 +42,13 @@ private:
     VNT *block_starts;
     VNT *block_ends;
 
-    template<typename Y, typename SemiringT>
-    friend void SpMV(const MatrixSegmentedCSR<Y> *_matrix,
-                     const DenseVector<Y> *_x,
-                     DenseVector<Y> *_y, SemiringT op);
+    template <typename A, typename X, typename Y, typename BinaryOpTAccum, typename SemiringT>
+    friend void SpMV(const MatrixSegmentedCSR<A> *_matrix,
+                     const DenseVector<X> *_x,
+                     DenseVector<Y> *_y,
+                     BinaryOpTAccum _accum,
+                     SemiringT op,
+                     Workspace *_workspace);
 
     template <typename Y>
     friend class MatrixSegmentedCSR;

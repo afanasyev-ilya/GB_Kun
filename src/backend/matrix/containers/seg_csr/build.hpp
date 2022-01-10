@@ -12,7 +12,7 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
     cout << size << endl;
     //VNT segment_size = 64 * 1024 / sizeof(T);
     //num_segments = (size - 1) / segment_size + 1;
-    num_segments = 96*2;
+    num_segments = 2*(omp_get_max_threads())*2;
     //while(size/num_segments > (1024 * 1024 / sizeof(double)))
     //    num_segments *= 2;
     VNT segment_size = (size - 1)/num_segments + 1;

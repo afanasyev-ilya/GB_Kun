@@ -40,10 +40,13 @@ private:
     void alloc(VNT _size, ENT _nnz);
     void free();
 
-    template<typename Y, typename SemiringT>
-    friend void SpMV(const MatrixSegmentedCSR<Y> *_matrix,
-                     const DenseVector<Y> *_x,
-                     DenseVector<Y> *_y, SemiringT op);
+    template <typename A, typename X, typename Y, typename BinaryOpTAccum, typename SemiringT>
+    friend void SpMV(const MatrixSegmentedCSR<A> *_matrix,
+                     const DenseVector<X> *_x,
+                     DenseVector<Y> *_y,
+                     BinaryOpTAccum _accum,
+                     SemiringT op,
+                     Workspace *_workspace);
 };
 
 }

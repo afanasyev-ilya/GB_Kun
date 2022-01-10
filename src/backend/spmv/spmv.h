@@ -51,7 +51,7 @@ void SpMV(const Matrix<T> *_matrix,
         else if(format == COO)
             SpMV(((MatrixCOO<T> *) _matrix->get_data()), _x, _y, _op);
         else if(format == CSR_SEG)
-            SpMV(((MatrixSegmentedCSR<T> *)_matrix->get_data()), _x, _y, _op);
+            SpMV(((MatrixSegmentedCSR<T> *)_matrix->get_data()), _x, _y, _accum, _op, _matrix->get_workspace());
         else if(format == SELL_C)
             SpMV(((MatrixSellC<T> *)_matrix->get_data()), _x, _y, _op);
         else if(format == SORTED_CSR)
