@@ -24,7 +24,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     double t1 = omp_get_wtime();
 
     int cores_num = omp_get_max_threads();
-    #pragma omp parallel // parallelism between different segments
+    /*#pragma omp parallel // parallelism between different segments
     {
         #pragma omp for schedule(dynamic, 1)
         for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
@@ -32,6 +32,26 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
             Y *buffer = (Y*)segment->vertex_buffer;
 
+            for(VNT i = 0; i < segment->size; i++)
+            {
+                Y res = identity_val;
+                for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
+                {
+                    res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
+                }
+                buffer[i] = res;
+            }
+        }
+    }*/
+
+    #pragma omp parallel // parallelism within different segments
+    {
+        for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
+        {
+            SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
+            Y *buffer = (Y*)segment->vertex_buffer;
+
+            #pragma omp for nowait schedule(static)
             for(VNT i = 0; i < segment->size; i++)
             {
                 Y res = identity_val;
@@ -128,7 +148,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
 
     t1 = omp_get_wtime();
     cout << "merge blocks: " << _matrix->merge_blocks_number << endl;
-    if(true) // cache aware merge
+    if(false) // cache aware merge
     {
         #pragma omp parallel
         {
