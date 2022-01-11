@@ -46,8 +46,9 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
 
     #pragma omp parallel // parallelism within different segments
     {
-        for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
+        for(int seg_idx = 0; seg_idx < _matrix->num_segments; seg_idx++)
         {
+            int seg_id = _matrix->sorted_segments[seg_idx].first;
             SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
             Y *buffer = (Y*)segment->vertex_buffer;
 
