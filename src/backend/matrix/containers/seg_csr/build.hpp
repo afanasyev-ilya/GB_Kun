@@ -2,6 +2,10 @@
 namespace lablas{
 namespace backend{
 
+bool custome_compare(const std::pair<int, ENT> &p1, const std::pair<int, ENT> &p2)
+{
+    return p1.second > p2.second;
+}
 
 template <typename T>
 void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket)
@@ -35,8 +39,6 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
         merge_block_size = (_size - 1) / merge_blocks_number + 1;
     }*/
 
-    largest_segment = 0;
-    ENT nnz_in_largest = 0;
     for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
     {
         subgraphs[cur_seg].sort_by_row_id();
@@ -47,18 +49,13 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
              100.0*(double)subgraphs[cur_seg].size/_size << "%)" << ", nnz (edges) = " << subgraphs[cur_seg].nnz << " (" <<
              100.0*(double)subgraphs[cur_seg].nnz/_nnz << "%) ";
         cout << "avg degree: " << (double)subgraphs[cur_seg].nnz / subgraphs[cur_seg].size << endl;
-        if(nnz_in_largest < subgraphs[cur_seg].nnz)
-        {
-            nnz_in_largest = subgraphs[cur_seg].nnz;
-            largest_segment = cur_seg;
-        }
+        sorted_segments.push_back(make_pair(cur_seg, subgraphs[cur_seg].nnz));
     }
 
-    for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
-    {
-        if(cur_seg != largest_segment)
-            small_segments.push_back(cur_seg);
-    }
+    std::sort( std::begin(sorted_segments), std::end(sorted_segments), custome_compare );
+
+    for(auto i: sorted_segments)
+        cout << ")) " << i.first << " " << i.second << endl;
 
     cout << endl << endl;
 }
