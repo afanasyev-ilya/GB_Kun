@@ -159,7 +159,12 @@ void SubgraphSegment<T>::construct_blocks(VNT _block_number, size_t _block_size)
         block_nums[i] = large_graph_vertex / _block_size;
     }
 
-    block_starts[block_nums[0]] = 0;
+    for(VNT i = 0; i < _block_number; i++)
+    {
+        block_starts[i] = 0;
+        block_ends[i] = 0;
+    }
+
 
     for(VNT i = 1; i < size - 1; i++)
     {
