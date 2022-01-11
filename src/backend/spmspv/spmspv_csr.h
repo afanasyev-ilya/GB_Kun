@@ -12,6 +12,18 @@ struct bucket {
 
 #define INF 1000000000
 
+/*
+vector<int> bucket_amount(_number_of_buckets);
+vector<vector<int>> offset_(_number_of_buckets, vector<int>(number_of_threads));
+vector<vector<bucket>> buckets(_number_of_buckets);
+for (int i = 0; i < _number_of_buckets; i++) {
+    buckets[i] = vector<bucket>(bucket_amount[i]);
+}
+vector<float> SPA(matrix_size);
+vector<int> offset(_number_of_buckets);
+
+ */
+
 // nt - number of threads
 // nb - number of buskets
 template <typename T>
@@ -51,7 +63,8 @@ template <typename T>
 void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
                 const SparseVector<T> *_x,
                 DenseVector<T> *_y,
-                int _number_of_buckets)
+                int _number_of_buckets, int number_of_threads,
+                int *bucket_amount, int **offset_, bucket<T> **buckets, float *SPA, int *offset)
 {
     double merging_entries, estimating_buckets, filling_buckets, overall_time, matrix_prop, preparing_for_filling_buckets;
 
@@ -66,7 +79,6 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
     const ENT *col_ptr = _matrix_csc->get_row_ptr(); // we assume csr of AT is equal to csc of A
     const VNT *row_ids = _matrix_csc->get_col_ids(); // we assume csr of AT is equal to csc of A
 
-    int number_of_threads = 32;
 
     omp_set_dynamic(0);     // Explicitly disable dynamic teams
     omp_set_num_threads(number_of_threads); // Use 1 threads for all consecutive parallel regions
@@ -90,8 +102,9 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
 
     double t5 = omp_get_wtime();
     // We need to fill the matrix Boffset in order to make synchronization free insertions in step 1
-    vector<int> bucket_amount(_number_of_buckets); // Stores how many insertions will be made in i-th bucket
-    vector<vector<int>> offset_(_number_of_buckets, vector<int>(number_of_threads));
+
+//    vector<int> bucket_amount(_number_of_buckets); // Stores how many insertions will be made in i-th bucket
+//    vector<vector<int>> offset_(_number_of_buckets, vector<int>(number_of_threads));
 
     double t6 = omp_get_wtime();
 
@@ -117,11 +130,12 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
 
     t5 = omp_get_wtime();
 
+    /*
     vector<vector<bucket>> buckets(_number_of_buckets);
     for (int i = 0; i < _number_of_buckets; i++) {
         buckets[i] = vector<bucket>(bucket_amount[i]);
     }
-
+    */
     t6 = omp_get_wtime();
 
     t4 = omp_get_wtime();
@@ -157,9 +171,9 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
 
     t3 = omp_get_wtime();
 
-    vector<float> SPA(matrix_size); // SPA -  a sparse accumulator
+    //vector<float> SPA(matrix_size); // SPA -  a sparse accumulator
     // The SPA vector is essentially a final vector-answer, but it is dense and we will have to transform it in sparse vector
-    vector<int> offset(_number_of_buckets);
+    //vector<int> offset(_number_of_buckets);
 
     T *y_vals = (T *)malloc(sizeof(T) * matrix_size);
     VNT *y_ids = (VNT *)malloc(sizeof(VNT) * matrix_size);
