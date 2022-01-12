@@ -29,6 +29,7 @@ void test_sparse(int argc, char **argv)
         w.fill(0.0);
 
         int SPARSITY_K = 100;
+        cout << "[ SPARSITY_K = " << SPARSITY_K << " ]" << endl;
         const GrB_Index indexes_num = ceil(el.vertices_count / SPARSITY_K);
         vector<GrB_Index> sparse_indexes(indexes_num);
         for(GrB_Index i = 0; i < indexes_num; i++)

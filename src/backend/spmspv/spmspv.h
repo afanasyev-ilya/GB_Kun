@@ -23,10 +23,10 @@ void SpMSpV(const Matrix<T> *_matrix,
     VNT matrix_size, nz;
     _matrix->get_csc()->get_size(&matrix_size);
     _x->get_nnz(&nz);
-    //long long max_number_of_insertions = nz*_matrix->get_csc()->get_max_degree();
-    long long max_number_of_insertions = nz*matrix_size;
+    long long max_number_of_insertions = nz*_matrix->get_csc()->get_max_degree();
+    //long long max_number_of_insertions = nz*matrix_size;
 
-    int nt = 32;
+    int nt = 64;
     long long spmspv_buffer_size = sizeof(int) * (2*nb + nt * nb) + sizeof(float) * (matrix_size) + sizeof(bucket<T>) * (nb * max_number_of_insertions);
     cout << spmspv_buffer_size / 1e6 << " MB" << endl;
     //auto v = _matrix->get_workspace()->get_spmspv_buffer();

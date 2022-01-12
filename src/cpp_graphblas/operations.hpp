@@ -318,16 +318,21 @@ LA_Info mxv (Vector<W>*       _w,
         backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
     else
     {
-        backend::SpMSpV_alloc(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor(), 64);
+        int number_of_buckets = 64 * 4;
+        cout << "[ NUMBER_OF_BUCKETS = " << number_of_buckets << " ]" << endl;
 
-
-        backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor(), 64);
+        backend::SpMSpV_alloc(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor(), number_of_buckets);
+        backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor(), number_of_buckets);
 
         lablas::Vector<W> check_w(_u->get_vector()->get_size());
 
         double t3 = omp_get_wtime();
         backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), check_w.get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
         double t4 = omp_get_wtime();
+
+        printf("\033[0;34m");
+        printf("SPMV time: %lf seconds.\n", t4 - t3);
+        printf("\033[0m");
 
         //_w->print();
         //check_w->print();

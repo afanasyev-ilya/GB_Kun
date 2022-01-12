@@ -49,15 +49,16 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
 {
     double merging_entries, estimating_buckets, filling_buckets, overall_time, matrix_prop, preparing_for_filling_buckets;
 
+    
     double t1 = omp_get_wtime();
 
-    double t3 = omp_get_wtime();
+//    double t3 = omp_get_wtime();
 
     VNT nz, matrix_size, matrix_nz;
     _x->get_nnz(&nz);
     _matrix_csc->get_size(&matrix_size);
     matrix_nz = _matrix_csc->get_nnz();
-    long long max_number_of_insertions = matrix_size * nz;
+    long long max_number_of_insertions = nz * _matrix_csc->get_max_degree();
 
     const ENT *col_ptr = _matrix_csc->get_row_ptr(); // we assume csr of AT is equal to csc of A
     const VNT *row_ids = _matrix_csc->get_col_ids(); // we assume csr of AT is equal to csc of A
@@ -66,35 +67,35 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
     omp_set_dynamic(0);     // Explicitly disable dynamic teams
     omp_set_num_threads(_number_of_threads); // Use 1 threads for all consecutive parallel regions
 
-    double t4 = omp_get_wtime();
+  //  double t4 = omp_get_wtime();
 
-    matrix_prop = t4 - t3;
+  //  matrix_prop = t4 - t3;
 
 
-    t3 = omp_get_wtime();
+    //t3 = omp_get_wtime();
     vector<vector<int>> Boffset(_number_of_threads, vector<int>(_number_of_buckets));
     estimate_buckets(_matrix_csc, _x, Boffset, _number_of_buckets, _number_of_threads);
-    t4 = omp_get_wtime();
+    //t4 = omp_get_wtime();
 
-    estimating_buckets = t4 - t3;
+    //estimating_buckets = t4 - t3;
     // The point of function estimate_buckets is to fill the matrix Boffset in which
     // Boffset[i][j] means how many insertions the i-th thread will make in the j-th bucket
 
-    double sub_time1, sub_time2;
+    //double sub_time1, sub_time2;
 
-    t3 = omp_get_wtime();
+    //t3 = omp_get_wtime();
 
-    double t5 = omp_get_wtime();
+    //double t5 = omp_get_wtime();
     // We need to fill the matrix Boffset in order to make synchronization free insertions in step 1
 
 //    vector<int> bucket_amount(_number_of_buckets); // Stores how many insertions will be made in i-th bucket
 //    vector<vector<int>> offset_(_number_of_buckets, vector<int>(_number_of_threads));
 
-    double t6 = omp_get_wtime();
+    //double t6 = omp_get_wtime();
 
-    sub_time1 = t6 - t5;
+    //sub_time1 = t6 - t5;
 
-    t5 = omp_get_wtime();
+    //t5 = omp_get_wtime();
 
     for (int bucket_number = 0; bucket_number < _number_of_buckets; bucket_number++) {
         for (int thread_number = 0; thread_number < _number_of_threads; thread_number++) {
@@ -104,15 +105,15 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
         }
     }
 
-    t6 = omp_get_wtime();
+    //t6 = omp_get_wtime();
 
-    sub_time2 = t6 - t5;
+    //sub_time2 = t6 - t5;
 
     // Step 1. Filling buckets.
     // Every bucket gets it's own set of rows
 
 
-    t5 = omp_get_wtime();
+    //t5 = omp_get_wtime();
 
     /*
     vector<vector<bucket>> buckets(_number_of_buckets);
@@ -120,12 +121,12 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
         buckets[i] = vector<bucket>(bucket_amount[i]);
     }
     */
-    t6 = omp_get_wtime();
+    //t6 = omp_get_wtime();
 
-    t4 = omp_get_wtime();
-    preparing_for_filling_buckets = t4 - t3;
+    //t4 = omp_get_wtime();
+    //preparing_for_filling_buckets = t4 - t3;
 
-    t3 = omp_get_wtime();
+    //t3 = omp_get_wtime();
 
     #pragma omp parallel
     {
@@ -150,11 +151,11 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
         }
     }
 
-    t4 = omp_get_wtime();
+    //t4 = omp_get_wtime();
 
-    filling_buckets = t4 - t3;
+    //filling_buckets = t4 - t3;
 
-    t3 = omp_get_wtime();
+    //t3 = omp_get_wtime();
 
     //vector<float> SPA(matrix_size); // SPA -  a sparse accumulator
     // The SPA vector is essentially a final vector-answer, but it is dense and we will have to transform it in sparse vector
@@ -163,13 +164,13 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
     T *y_vals = (T *)malloc(sizeof(T) * matrix_size);
     VNT *y_ids = (VNT *)malloc(sizeof(VNT) * matrix_size);
 
-    t4 = omp_get_wtime();
+    //t4 = omp_get_wtime();
 
-    matrix_prop += t4 - t3;
+    //matrix_prop += t4 - t3;
 
-    t3 = omp_get_wtime();
+    //t3 = omp_get_wtime();
 
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(dynamic, 1)
     for (int number_of_bucket = 0; number_of_bucket < _number_of_buckets; number_of_bucket++) { // Going through all buckets
         vector<int> uind; // uing - unique indices in the number_of_bucket-th bucket
 
@@ -201,9 +202,9 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
             _y->set_element(SPA[ind], ind);
         }
     }
-    t4 = omp_get_wtime();
+    //t4 = omp_get_wtime();
 
-    merging_entries = t4 - t3;
+    //merging_entries = t4 - t3;
 
     double t2 = omp_get_wtime();
 
@@ -212,6 +213,7 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
     printf("\033[0;31m");
     printf("SpMSpV time: %lf seconds.\n", overall_time);
     printf("\033[0m");
+    /*
     printf("\t- Getting matrix properties and allocating memory: %.1lf %%\n", matrix_prop / overall_time * 100.0);
     printf("\t- Estimating buckets: %.1lf %%\n", estimating_buckets / overall_time * 100.0);
     printf("\t- Preparing for filling buckets: %.1lf %%\n", preparing_for_filling_buckets / overall_time * 100.0);
@@ -219,7 +221,8 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
     printf("\t\t- double for: %.1lf %%\n", sub_time2 / preparing_for_filling_buckets * 100.0);
     printf("\t- Filling buckets: %.1lf %%\n", filling_buckets / overall_time * 100.0);
     printf("\t- Merging entries: %.1lf %%\n", merging_entries / overall_time * 100.0);
-}
+*/
+    }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -269,7 +272,7 @@ void SpMSpV_csr_old(const MatrixCSR<T> *_matrix_csc,
 
     double t1 = omp_get_wtime();
 
-    double t3 = omp_get_wtime();
+   // double t3 = omp_get_wtime();
 
     VNT nz, matrix_size;
     _x->get_nnz(&nz);
@@ -278,38 +281,38 @@ void SpMSpV_csr_old(const MatrixCSR<T> *_matrix_csc,
     const ENT *col_ptr = _matrix_csc->get_row_ptr(); // we assume csr of AT is equal to csc of A
     const VNT *row_ids = _matrix_csc->get_col_ids(); // we assume csr of AT is equal to csc of A
 
-    int number_of_threads = 32;
+    int number_of_threads = 64;
 
     omp_set_dynamic(0);     // Explicitly disable dynamic teams
     omp_set_num_threads(number_of_threads); // Use 1 threads for all consecutive parallel regions
 
-    double t4 = omp_get_wtime();
+  //  double t4 = omp_get_wtime();
 
-    matrix_prop = t4 - t3;
+    //matrix_prop = t4 - t3;
 
 
-    t3 = omp_get_wtime();
+    //t3 = omp_get_wtime();
     vector<vector<int>> Boffset = estimate_buckets_old(_matrix_csc, _x, _number_of_buckets, number_of_threads);
-    t4 = omp_get_wtime();
+    //t4 = omp_get_wtime();
 
-    estimating_buckets = t4 - t3;
+    //estimating_buckets = t4 - t3;
     // The point of function estimate_buckets is to fill the matrix Boffset in which
     // Boffset[i][j] means how many insertions the i-th thread will make in the j-th bucket
 
     double sub_time1, sub_time2;
 
-    t3 = omp_get_wtime();
+    //t3 = omp_get_wtime();
 
-    double t5 = omp_get_wtime();
+    //double t5 = omp_get_wtime();
     // We need to fill the matrix Boffset in order to make synchronization free insertions in step 1
     vector<int> bucket_amount(_number_of_buckets); // Stores how many insertions will be made in i-th bucket
     vector<vector<int>> offset_(_number_of_buckets, vector<int>(number_of_threads));
 
-    double t6 = omp_get_wtime();
+    //double t6 = omp_get_wtime();
 
-    sub_time1 = t6 - t5;
+    //sub_time1 = t6 - t5;
 
-    t5 = omp_get_wtime();
+    //t5 = omp_get_wtime();
 
     for (int bucket_number = 0; bucket_number < _number_of_buckets; bucket_number++) {
         for (int thread_number = 0; thread_number < number_of_threads; thread_number++) {
@@ -319,27 +322,27 @@ void SpMSpV_csr_old(const MatrixCSR<T> *_matrix_csc,
         }
     }
 
-    t6 = omp_get_wtime();
+    //t6 = omp_get_wtime();
 
-    sub_time2 = t6 - t5;
+    //sub_time2 = t6 - t5;
 
     // Step 1. Filling buckets.
     // Every bucket gets it's own set of rows
 
 
-    t5 = omp_get_wtime();
+    //t5 = omp_get_wtime();
 
     vector<vector<bucket<T>>> buckets(_number_of_buckets);
     for (int i = 0; i < _number_of_buckets; i++) {
         buckets[i] = vector<bucket<T>>(bucket_amount[i]);
     }
 
-    t6 = omp_get_wtime();
+    //t6 = omp_get_wtime();
 
-    t4 = omp_get_wtime();
-    preparing_for_filling_buckets = t4 - t3;
+    //t4 = omp_get_wtime();
+    //preparing_for_filling_buckets = t4 - t3;
 
-    t3 = omp_get_wtime();
+    //t3 = omp_get_wtime();
 
 #pragma omp parallel
     {
@@ -363,11 +366,11 @@ void SpMSpV_csr_old(const MatrixCSR<T> *_matrix_csc,
         }
     }
 
-    t4 = omp_get_wtime();
+    //t4 = omp_get_wtime();
 
-    filling_buckets = t4 - t3;
+    //filling_buckets = t4 - t3;
 
-    t3 = omp_get_wtime();
+    //t3 = omp_get_wtime();
 
     vector<float> SPA(matrix_size); // SPA -  a sparse accumulator
     // The SPA vector is essentially a final vector-answer, but it is dense and we will have to transform it in sparse vector
@@ -376,13 +379,13 @@ void SpMSpV_csr_old(const MatrixCSR<T> *_matrix_csc,
     T *y_vals = (T *)malloc(sizeof(T) * matrix_size);
     VNT *y_ids = (VNT *)malloc(sizeof(VNT) * matrix_size);
 
-    t4 = omp_get_wtime();
+    //t4 = omp_get_wtime();
 
-    matrix_prop += t4 - t3;
+    //matrix_prop += t4 - t3;
 
-    t3 = omp_get_wtime();
+    //t3 = omp_get_wtime();
 
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(dynamic, 1)
     for (int number_of_bucket = 0; number_of_bucket < _number_of_buckets; number_of_bucket++) { // Going through all buckets
         vector<int> uind; // uing - unique indices in the number_of_bucket-th bucket
 
@@ -417,9 +420,9 @@ void SpMSpV_csr_old(const MatrixCSR<T> *_matrix_csc,
         // !CHECK!
     }
 
-    t4 = omp_get_wtime();
+    //t4 = omp_get_wtime();
 
-    merging_entries = t4 - t3;
+    //merging_entries = t4 - t3;
 
     double t2 = omp_get_wtime();
 
@@ -428,6 +431,7 @@ void SpMSpV_csr_old(const MatrixCSR<T> *_matrix_csc,
     printf("\033[0;31m");
     printf("SpMSpV_alloc time: %lf seconds.\n", overall_time);
     printf("\033[0m");
+    /*
     printf("\t- Getting matrix properties and allocating memory: %.1lf %%\n", matrix_prop / overall_time * 100.0);
     printf("\t- Estimating buckets: %.1lf %%\n", estimating_buckets / overall_time * 100.0);
     printf("\t- Preparing for filling buckets: %.1lf %%\n", preparing_for_filling_buckets / overall_time * 100.0);
@@ -435,4 +439,5 @@ void SpMSpV_csr_old(const MatrixCSR<T> *_matrix_csc,
     printf("\t\t- double for: %.1lf %%\n", sub_time2 / preparing_for_filling_buckets * 100.0);
     printf("\t- Filling buckets: %.1lf %%\n", filling_buckets / overall_time * 100.0);
     printf("\t- Merging entries: %.1lf %%\n", merging_entries / overall_time * 100.0);
+    */
 }
