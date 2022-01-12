@@ -3,26 +3,7 @@
 #define VNT Index
 #define ENT Index
 
-template <typename T>
-struct bucket {
-    VNT row;
-    T val;
-};
-
-
 #define INF 1000000000
-
-/*
-vector<int> bucket_amount(_number_of_buckets);
-vector<vector<int>> offset_(_number_of_buckets, vector<int>(number_of_threads));
-vector<vector<bucket>> buckets(_number_of_buckets);
-for (int i = 0; i < _number_of_buckets; i++) {
-    buckets[i] = vector<bucket>(bucket_amount[i]);
-}
-vector<float> SPA(matrix_size);
-vector<int> offset(_number_of_buckets);
-
- */
 
 // nt - number of threads
 // nb - number of buskets
@@ -63,8 +44,8 @@ template <typename T>
 void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
                 const SparseVector<T> *_x,
                 DenseVector<T> *_y,
-                int _number_of_buckets, int number_of_threads,
-                int *bucket_amount, int **offset_, bucket<T> **buckets, float *SPA, int *offset)
+                int _number_of_buckets, int _number_of_threads,
+                int *bucket_amount, int *offset_, lablas::backend::bucket<T> *buckets, float *SPA, int *offset)
 {
     double merging_entries, estimating_buckets, filling_buckets, overall_time, matrix_prop, preparing_for_filling_buckets;
 
@@ -72,16 +53,18 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
 
     double t3 = omp_get_wtime();
 
-    VNT nz, matrix_size;
+    VNT nz, matrix_size, matrix_nz;
     _x->get_nnz(&nz);
     _matrix_csc->get_size(&matrix_size);
+    matrix_nz = _matrix_csc->get_nnz();
+    long long max_number_of_insertions = matrix_size * nz;
 
     const ENT *col_ptr = _matrix_csc->get_row_ptr(); // we assume csr of AT is equal to csc of A
     const VNT *row_ids = _matrix_csc->get_col_ids(); // we assume csr of AT is equal to csc of A
 
 
     omp_set_dynamic(0);     // Explicitly disable dynamic teams
-    omp_set_num_threads(number_of_threads); // Use 1 threads for all consecutive parallel regions
+    omp_set_num_threads(_number_of_threads); // Use 1 threads for all consecutive parallel regions
 
     double t4 = omp_get_wtime();
 
@@ -89,7 +72,7 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
 
 
     t3 = omp_get_wtime();
-    vector<vector<int>> Boffset = estimate_buckets(_matrix_csc, _x, _number_of_buckets, number_of_threads);
+    vector<vector<int>> Boffset = estimate_buckets(_matrix_csc, _x, _number_of_buckets, _number_of_threads);
     t4 = omp_get_wtime();
 
     estimating_buckets = t4 - t3;
@@ -104,7 +87,7 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
     // We need to fill the matrix Boffset in order to make synchronization free insertions in step 1
 
 //    vector<int> bucket_amount(_number_of_buckets); // Stores how many insertions will be made in i-th bucket
-//    vector<vector<int>> offset_(_number_of_buckets, vector<int>(number_of_threads));
+//    vector<vector<int>> offset_(_number_of_buckets, vector<int>(_number_of_threads));
 
     double t6 = omp_get_wtime();
 
@@ -113,9 +96,9 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
     t5 = omp_get_wtime();
 
     for (int bucket_number = 0; bucket_number < _number_of_buckets; bucket_number++) {
-        for (int thread_number = 0; thread_number < number_of_threads; thread_number++) {
+        for (int thread_number = 0; thread_number < _number_of_threads; thread_number++) {
             if (thread_number)
-                offset_[bucket_number][thread_number] = offset_[bucket_number][thread_number - 1] + Boffset[thread_number - 1][bucket_number];
+                *(offset_ + bucket_number * _number_of_threads + thread_number) = *(offset_ + bucket_number * _number_of_threads + thread_number - 1) + Boffset[thread_number - 1][bucket_number];
             bucket_amount[bucket_number] += Boffset[thread_number][bucket_number];
         }
     }
@@ -160,7 +143,8 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
                 // Implementing synchronization free insertion below
                 // Boffset[i][j] - amount, i - thread, j - bucket
                 // offset - how many elements have been inserted in the bucket by other threads
-                buckets[bucket_index][offset_[bucket_index][cur_thread_number] + (insertions[bucket_index])++] = {row_ids[j], mul}; // insertion
+                int off = *(offset_ + bucket_index * _number_of_threads + cur_thread_number);
+                *(buckets + bucket_index * max_number_of_insertions + off + insertions[bucket_index]++) = {row_ids[j], mul}; // insertion
             }
         }
     }
@@ -189,15 +173,15 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
         vector<int> uind; // uing - unique indices in the number_of_bucket-th bucket
 
         // Step 2. Merging entries in each bucket.
-        for (int i = 0; i < buckets[number_of_bucket].size(); i++) {
-            int row = buckets[number_of_bucket][i].row;
+        for (int i = 0; i < bucket_amount[number_of_bucket]; i++) {
+            int row = (buckets + number_of_bucket * max_number_of_insertions + i)->row;
             SPA[row] = INF; // Initializing with a value of INF
             // in order to know whether a row have been to the uind vector or not
         }
         // Accumulating values in a row and getting unique indices
-        for (int i = 0; i < buckets[number_of_bucket].size(); i++) {
-            int row = buckets[number_of_bucket][i].row;
-            float val = buckets[number_of_bucket][i].val;
+        for (int i = 0; i < bucket_amount[number_of_bucket]; i++) {
+            int row = (buckets + number_of_bucket * max_number_of_insertions + i)->row;
+            float val = (buckets + number_of_bucket * max_number_of_insertions + i)->val;
             if (SPA[row] == INF) {
                 uind.push_back(row);
                 SPA[row] = val;
@@ -209,16 +193,13 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
             offset[number_of_bucket] += offset[number_of_bucket - 1] + bucket_amount[number_of_bucket - 1];
         // offset is needed to properly fill the final vector
 
-        // !CHECK!
         for (int i = 0; i < uind.size(); i++) { // filling the final vector
             int ind = uind[i];
             float value = SPA[ind];
             int off = offset[number_of_bucket];
             _y->set_element(SPA[ind], ind);
         }
-        // !CHECK!
     }
-
     t4 = omp_get_wtime();
 
     merging_entries = t4 - t3;

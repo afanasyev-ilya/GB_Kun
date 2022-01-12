@@ -206,9 +206,10 @@ bool operator==(Vector<T>& lhs, Vector<T>& rhs)
 {
     if(lhs.storage != rhs.storage) // storages mismatch, not equal
     {
-        lhs.print();
-        rhs.print();
-        return 0;
+//        lhs.print();
+//        rhs.print();
+    cout << "Different storage!\n";
+    return 0;
     }
     else
     {
