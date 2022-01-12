@@ -315,13 +315,36 @@ LA_Info mxv (Vector<W>*       _w,
     auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
 
     if(_u->get_vector()->is_dense())
-    {
-        backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
-    }
+        backend::SpMV(_matrix->get_matrix(), _u->get_vector(), _w->get_vector(), _desc->get_descriptor(), _accum, _op, mask_t);
     else
     {
-        backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
-        //backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor());
+        //double t1 = omp_get_wtime();
+       // for (int i = 2; i <= 262144; i *= 2) {
+         //   printf("\n\nNumber of buckets: [ %d ]\n", i);
+            //lablas::Vector<W> v(_u->get_vector()->get_size());
+            backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(),_desc->get_descriptor(), 64);
+        //}
+        //double t2 = omp_get_wtime();
+
+//        printf("\033[0;31m");
+//        printf("SpMSpV time: %lf seconds.\n", t2 - t1);
+//        printf("\033[0m");
+        // TODO remove
+        lablas::Vector<W> check_w(_u->get_vector()->get_size());
+
+        double t3 = omp_get_wtime();
+        backend::SpMV(_matrix->get_matrix(), _u->get_vector(), check_w.get_vector(), _desc->get_descriptor(), _accum, _op, mask_t);
+        double t4 = omp_get_wtime();
+
+        printf("\033[0;34m");
+        printf("SpMV time: %lf seconds.\n", t4 - t3);
+        printf("\033[0m");
+
+        if(check_w == (*_w))
+            cout << "ok" << endl;
+        else
+            cout << "not ok" << endl;
+
     }
 
     return GrB_SUCCESS;
@@ -343,7 +366,7 @@ LA_Info vxm (Vector<W>*       _w,
         return GrB_UNINITIALIZED_OBJECT;
 
     auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
-    backend::VSpM(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
+    backend::VSpM(_matrix->get_matrix(), _u->get_vector(), _w->get_vector(), _desc->get_descriptor(), _accum, _op, mask_t);
 
     return GrB_SUCCESS;
 }
@@ -361,33 +384,19 @@ LA_Info reduce(T *_val,
     if(not_initialized(_u))
         return GrB_UNINITIALIZED_OBJECT;
 
+    Index vector_size = _u->get_vector()->getDense()->get_size();
+    const U* u_vals = _u->get_vector()->getDense()->get_vals();
+
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
+    auto lambda_op = [u_vals] (Index idx)->U
+    {
+        return u_vals[idx];
+    };
+
     T reduce_result = _op.identity();
-    if(_u->get_vector()->is_dense())
-    {
-        Index vector_size = _u->get_vector()->getDense()->get_size();
-        const U* u_vals = _u->get_vector()->getDense()->get_vals();
 
-        auto lambda_op = [u_vals] (Index idx)->U
-        {
-            return u_vals[idx];
-        };
-
-        backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, desc_t);
-    }
-    else
-    {
-        Index nvals = _u->get_vector()->getSparse()->get_nvals();
-        const U* u_vals = _u->get_vector()->getSparse()->get_vals();
-        const Index *ids = _u->get_vector()->getSparse()->get_ids();
-
-        auto lambda_op = [u_vals] (Index idx)->U
-        {
-            return u_vals[idx];
-        };
-        backend::generic_sparse_reduce_op(&reduce_result, ids, nvals, lambda_op, _op, desc_t);
-    }
+    backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, desc_t);
 
     *_val = _accum(*_val, reduce_result);
 
