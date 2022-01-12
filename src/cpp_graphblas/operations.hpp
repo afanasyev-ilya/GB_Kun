@@ -322,7 +322,7 @@ LA_Info mxv (Vector<W>*       _w,
        // for (int i = 2; i <= 262144; i *= 2) {
          //   printf("\n\nNumber of buckets: [ %d ]\n", i);
             //lablas::Vector<W> v(_u->get_vector()->get_size());
-            backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(),_desc->get_descriptor(), 10);
+            backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(),_desc->get_descriptor(), 64);
         //}
         //double t2 = omp_get_wtime();
 

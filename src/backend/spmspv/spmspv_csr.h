@@ -8,7 +8,7 @@
 // nt - number of threads
 // nb - number of buskets
 template <typename T>
-vector<vector<int>> estimate_buckets(const MatrixCSR<T> *matrix, const SparseVector<T> *x, int nb, int nt)
+vector<vector<int>> estimate_buckets(const MatrixCSR<T> *matrix, const SparseVector<T> *x, vector<vector<int>> &Boffset, int nb, int nt)
 {
 
     omp_set_dynamic(0);     // Explicitly disable dynamic teams
@@ -22,7 +22,7 @@ vector<vector<int>> estimate_buckets(const MatrixCSR<T> *matrix, const SparseVec
 
     x->get_nnz(&nz);
     matrix->get_size(&matrix_size);
-    vector<vector<int>> Boffset(nt, vector<int>(nb)); // Boffset is described in the SpmSpv function
+    //vector<vector<int>> Boffset(nt, vector<int>(nb)); // Boffset is described in the SpmSpv function
     
     #pragma omp parallel for schedule(static)
     for (int t = 0; t < nt; t++) {
@@ -72,7 +72,8 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
 
 
     t3 = omp_get_wtime();
-    vector<vector<int>> Boffset = estimate_buckets(_matrix_csc, _x, _number_of_buckets, _number_of_threads);
+    vector<vector<int>> Boffset(_number_of_threads, vector<int>(_number_of_buckets));
+    estimate_buckets(_matrix_csc, _x, Boffset, _number_of_buckets, _number_of_threads);
     t4 = omp_get_wtime();
 
     estimating_buckets = t4 - t3;
