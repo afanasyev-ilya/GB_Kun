@@ -22,6 +22,7 @@ void MatrixCSR<T>::construct_unsorted_csr(const VNT *_row_ids,
 
     resize(_size, _nnz, _target_socket);
 
+    max_degree = 0;
     ENT cur_pos = 0;
     for(VNT i = 0; i < size; i++)
     {
@@ -33,6 +34,9 @@ void MatrixCSR<T>::construct_unsorted_csr(const VNT *_row_ids,
             vals[j] = tmp_vals[i][j - row_ptr[i]];
         }
         cur_pos += tmp_col_ids[i].size();
+
+        if(tmp_col_ids[i].size() > max_degree)
+            max_degree = tmp_col_ids[i].size();
     }
 }
 

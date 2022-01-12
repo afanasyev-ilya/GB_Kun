@@ -166,10 +166,9 @@ void SubgraphSegment<T>::construct_blocks(VNT _block_number, size_t _block_size)
 
     for(VNT i = 0; i < _block_number; i++)
     {
-        block_starts[i] = 0;
-        block_ends[i] = 0;
+        block_starts[i] = -1;
+        block_ends[i] = -1;
     }
-
 
     for(VNT i = 1; i < size - 1; i++)
     {
@@ -185,6 +184,14 @@ void SubgraphSegment<T>::construct_blocks(VNT _block_number, size_t _block_size)
     }
 
     block_ends[block_nums[size - 1]] = size;
+
+    for(VNT i = 0; i < _block_number; i++)
+    {
+        if(block_starts[i] == -1) // is unset
+            block_starts[i] = block_ends[i];
+        if(block_ends[i] == -1) // is unset
+            block_ends[i] = block_starts[i];
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -220,6 +227,8 @@ SubgraphSegment<T>::~SubgraphSegment()
     MemoryAPI::free_array(block_starts);
     MemoryAPI::free_array(block_ends);
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
 void SubgraphSegment<T>::construct_load_balancing()

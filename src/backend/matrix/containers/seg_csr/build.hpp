@@ -29,15 +29,15 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
         subgraphs[seg_id].add_edge(_row_ids[i], _col_ids[i], _vals[i]);
     }
 
-    size_t merge_block_size = 16*1024; // 64 KB
-    merge_blocks_number = (size - 1)/merge_block_size + 1;
-    /*merge_blocks_number = omp_get_max_threads();
+    /*size_t merge_block_size = 16*1024; // 64 KB
+    merge_blocks_number = (size - 1)/merge_block_size + 1;*/
+    merge_blocks_number = omp_get_max_threads()*2; // 2 for load balancing
     size_t merge_block_size = (_size - 1) / merge_blocks_number + 1;
-    while(merge_block_size > 64*1024)
+    while(merge_block_size > 32*1024)
     {
         merge_blocks_number *= 2;
         merge_block_size = (_size - 1) / merge_blocks_number + 1;
-    }*/
+    }
 
     // prepare merge blocks
     for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)

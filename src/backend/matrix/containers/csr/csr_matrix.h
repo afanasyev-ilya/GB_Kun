@@ -74,6 +74,8 @@ public:
     VNT *get_col_ids() {return col_ids;};
     const VNT *get_col_ids() const {return col_ids;};
 
+    VNT get_max_degree() const {return max_degree;};
+
     ENT get_degree(VNT _row) {return row_ptr[_row + 1] - row_ptr[_row];};
 private:
     VNT size;
@@ -82,6 +84,8 @@ private:
     ENT *row_ptr;
     T *vals;
     VNT *col_ids;
+
+    VNT max_degree;
 
     static const int vg_num = 9; // 9 is best currently
     VertexGroup vertex_groups[vg_num];

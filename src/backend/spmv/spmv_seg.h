@@ -182,6 +182,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             shared_vector[i] = identity_val;
         }
 
+        #pragma omp for schedule(guided, 1)
         for(VNT cur_block = 0; cur_block < _matrix->merge_blocks_number; cur_block++)
         {
             for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
@@ -193,7 +194,6 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
                 VNT block_start = segment->block_starts[cur_block];
                 VNT block_end = segment->block_ends[cur_block];
 
-                #pragma omp for schedule(static)
                 for(VNT i = block_start; i < block_end; i++)
                 {
                     shared_vector[conversion_indexes[i]] = add_op(shared_vector[conversion_indexes[i]], buffer[i]);
@@ -206,7 +206,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         {
             y_vals[i] = _accum(y_vals[i], shared_vector[i]);
         }
-    };*/
+    }*/
 
     /*#pragma omp parallel // non cache aware scatter merge
     {
@@ -236,24 +236,6 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         }
     }*/
 
-    /*#pragma omp parallel // non cache aware scatter merge
-    {
-        #pragma omp for
-        for(VNT row = 0; row < _matrix->size; row++)
-        {
-            Y val = identity_val;
-            for(int pos = 0; pos < _matrix->gather_data[row].size(); pos++)
-            {
-                int seg_id = _matrix->gather_data[row][pos].first;
-                VNT index = _matrix->gather_data[row][pos].second;
-                SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
-                Y *buffer = (Y*)segment->vertex_buffer;
-                val = add_op(val, buffer[index]);
-            }
-            y_vals[row] = _accum(y_vals[row], val);
-        }
-    }*/
-
     #pragma omp parallel // non cache aware scatter merge
     {
         #pragma omp for
@@ -272,7 +254,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         }
     }
     t2 = omp_get_wtime();
-    cout << "gather unrolled merge time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "cache aware merge time: " << (t2 - t1)*1000 << " ms" << endl;
 
     //cout << "compare: " << (t2 - t1)*1000 << "(edge proc) vs " << (t4 - t3)*1000 << "(cache-aware) vs " << (t6 - t5)*1000 << "(usual merge)" << endl;
 }

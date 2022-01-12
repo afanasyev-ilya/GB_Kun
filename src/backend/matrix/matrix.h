@@ -254,7 +254,7 @@ void Matrix<T>::build(const VNT *_row_indices,
 
     transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
 
-    workspace = new Workspace(get_nrows(), get_ncols());
+    workspace = new Workspace(get_nrows(), get_ncols(), csc_data->get_max_degree());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
