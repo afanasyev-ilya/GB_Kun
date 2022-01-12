@@ -6,7 +6,7 @@ namespace lablas{
 namespace backend {
 
 template <typename T>
-    class MatrixSegmentedCSR;
+class MatrixSegmentedCSR;
 
 template <typename T>
 class SubgraphSegment
@@ -24,6 +24,8 @@ public:
     void construct_csr();
 
     void construct_blocks(VNT _block_number, size_t _block_size);
+
+    void construct_load_balancing();
 private:
     vector<VNT> tmp_row_ids;
     vector<VNT> tmp_col_ids;
@@ -41,6 +43,9 @@ private:
 
     VNT *block_starts;
     VNT *block_ends;
+
+    static const int vg_num = 9; // 9 is best currently
+    VertexGroup vertex_groups[vg_num];
 
     template <typename A, typename X, typename Y, typename BinaryOpTAccum, typename SemiringT>
     friend void SpMV(const MatrixSegmentedCSR<A> *_matrix,
@@ -214,6 +219,33 @@ SubgraphSegment<T>::~SubgraphSegment()
     MemoryAPI::free_array(conversion_to_full);
     MemoryAPI::free_array(block_starts);
     MemoryAPI::free_array(block_ends);
+}
+
+template<typename T>
+void SubgraphSegment<T>::construct_load_balancing()
+{
+    ENT step = 16;
+    ENT first = 4;
+    vertex_groups[0].set_thresholds(0, first);
+    for(int i = 1; i < (vg_num - 1); i++)
+    {
+        vertex_groups[i].set_thresholds(first, first*step);
+        first *= step;
+    }
+    vertex_groups[vg_num - 1].set_thresholds(first, INT_MAX);
+
+    for(VNT row = 0; row < size; row++)
+    {
+        ENT connections_count = row_ptr[row + 1] - row_ptr[row];
+        for(int vg = 0; vg < vg_num; vg++)
+            if(vertex_groups[vg].in_range(connections_count))
+                vertex_groups[vg].push_back(row);
+    }
+
+    for(int i = 0; i < vg_num; i++)
+    {
+        vertex_groups[i].finalize_creation(0); // TODO target socket of graph
+    }
 }
 
 }

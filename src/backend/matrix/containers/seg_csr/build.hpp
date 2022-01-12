@@ -4,7 +4,7 @@ namespace backend{
 
 bool custome_compare(const std::pair<int, ENT> &p1, const std::pair<int, ENT> &p2)
 {
-    return p1.second < p2.second;
+    return p1.second > p2.second;
 }
 
 template <typename T>
@@ -54,8 +54,30 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
 
     std::sort( std::begin(sorted_segments), std::end(sorted_segments), custome_compare );
 
-    for(auto i: sorted_segments)
-        cout << ")) " << i.first << " " << i.second << endl;
+    //for(auto i: sorted_segments)
+    //    cout << ")) " << i.first << " " << i.second << endl;
+
+    int largest_segment = sorted_segments[0].first;
+    subgraphs[largest_segment].construct_load_balancing();
+
+    gather_data.resize(size);
+    for(int seg_id = 0; seg_id < num_segments; seg_id++)
+    {
+        SubgraphSegment<T> *segment = &(subgraphs[seg_id]);
+        VNT *conversion_indexes = segment->conversion_to_full;
+
+        for(VNT i = 0; i < segment->size; i++)
+        {
+            gather_data[conversion_indexes[i]].push_back(make_pair(seg_id, i));
+        }
+    }
+
+    double avg_buf_size = 0;
+    for(VNT i = 0; i < _size; i++)
+    {
+        avg_buf_size += gather_data[i].size();
+    }
+    cout << "avg_buf_size " << avg_buf_size / _size << endl;
 
     cout << endl << endl;
 }
