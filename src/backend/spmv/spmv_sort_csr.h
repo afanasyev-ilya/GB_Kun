@@ -5,28 +5,32 @@
 namespace lablas {
 namespace backend {
 
-template <typename T, typename SemiringT>
-void SpMV(MatrixSortCSR<T> *_matrix,
-          const DenseVector<T> *_x,
-          DenseVector<T> *_y,
+template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+void SpMV(MatrixSortCSR<A> *_matrix,
+          const DenseVector<X> *_x,
+          DenseVector<Y> *_y,
+          BinaryOpTAccum _accum,
           SemiringT op)
 {
-    const T *x_vals = _x->get_vals();
-    T *y_vals = _y->get_vals();
+    const X *x_vals = _x->get_vals();
+    Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);
+    auto identity_val = op.identity();
 
     #pragma omp parallel
     {
         #pragma omp for schedule(static, 256)
         for(VNT row = 0; row < _matrix->size; row++)
         {
+            Y res = identity_val;
             for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
                 VNT col = _matrix->col_ids[j];
-                T val = _matrix->vals[j];
-                y_vals[row] = add_op(y_vals[row], mul_op(val, x_vals[col])) ;
+                A val = _matrix->vals[j];
+                res = add_op(res, mul_op(val, x_vals[col])) ;
             }
+            y_vals[row] = _accum(y_vals[row], res);
         }
     };
 }

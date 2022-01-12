@@ -136,10 +136,11 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
 
     const VNT mask_nvals = _mask->get_nvals();
     const VNT *mask_ids = _mask->get_ids();
+    const M* mask_vals = _mask->get_vals();
 
     Desc_value mask_field;
     _desc->get(GrB_MASK, &mask_field);
-    if (mask_field != GrB_SCMP)
+    if (mask_field != GrB_STR_COMP)
     {
         #pragma omp parallel
         {
@@ -160,20 +161,24 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
     else
     {
         Index *dense_mask = _workspace->get_mask_conversion();
-        memset(dense_mask, 0, _matrix->size);
-        #pragma omp parallel for
-        for(VNT i = 0; i < mask_nvals; i++)
-        {
-            VNT row = mask_ids[i];
-            dense_mask[row] = 1;
-        }
 
         #pragma omp parallel
         {
+            #pragma omp for
+            for(VNT i = 0; i < _matrix->size; i++)
+                dense_mask[i] = 1;
+
+            #pragma omp for
+            for(VNT i = 0; i < mask_nvals; i++)
+            {
+                VNT row = mask_ids[i];
+                dense_mask[row] = 0;
+            }
+
             #pragma omp for schedule(guided, 1)
             for(VNT row = 0; row < _matrix->size; row++)
             {
-                bool mask_val = !dense_mask[row];
+                bool mask_val = dense_mask[row];
                 if(mask_val)
                 {
                     Y res = identity_val;
@@ -201,7 +206,8 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
                 BinaryOpTAccum _accum,
                 SemiringT op,
                 const DenseVector<M> *_mask,
-                Descriptor *_desc)
+                Descriptor *_desc,
+                Workspace *_workspace)
 {
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
@@ -209,12 +215,21 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
+    /*if(x_vals == y_vals)
+    {
+        X *tmp_vals = (X*)_workspace->get_first_socket_vector();
+        #pragma omp parallel for
+        for(VNT i = 0; i < _matrix->size; i++)
+            tmp_vals[i] = x_vals[i];
+        x_vals = tmp_vals;
+    }*/
+
     const M *mask_vals = _mask->get_vals();
     bool use_comp_mask;
 
     Desc_value mask_field;
     _desc->get(GrB_MASK, &mask_field);
-    if (mask_field == GrB_SCMP)
+    if (mask_field == GrB_STR_COMP)
     {
         use_comp_mask = true;
     }
@@ -254,7 +269,8 @@ void SpMV_all_active(const MatrixCSR<A> *_matrix,
                      DenseVector<Y> *_y,
                      BinaryOpTAccum _accum,
                      SemiringT op,
-                     Descriptor *_desc)
+                     Descriptor *_desc,
+                     Workspace *_workspace)
 {
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();

@@ -19,6 +19,9 @@ struct LAVSegment
     ENT nnz;
     VNT size;
 
+    VNT min_col_id;
+    VNT max_col_id;
+
     void free()
     {
         delete []row_ptr;
@@ -36,7 +39,8 @@ public:
 
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket = 0);
     void print() const {};
-    void get_size(VNT* _size) const {
+    void get_size(VNT* _size) const
+    {
         *_size = size;
     }
 
@@ -61,10 +65,13 @@ private:
                                 LAVSegment<T> *_cur_segment,
                                 ENT _total_nnz);
 
-    template<typename Y, typename SemiringT>
-    friend void SpMV(const MatrixLAV<Y> *_matrix,
-                     const DenseVector<Y> *_x,
-                     DenseVector<Y> *_y, SemiringT op);
+    template <typename A, typename X, typename Y, typename BinaryOpTAccum, typename SemiringT>
+    friend void SpMV(const MatrixLAV<A> *_matrix,
+                     const DenseVector<X> *_x,
+                     DenseVector<Y> *_y,
+                     BinaryOpTAccum _accum,
+                     SemiringT op,
+                     Workspace *_workspace);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

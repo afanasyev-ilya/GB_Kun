@@ -4,10 +4,10 @@
 
 Parser::Parser()
 {
-    scale = 19;
-    avg_degree = 12;
-    synthetic_graph_type = RMAT_GRAPH;
-    storage_format = CSR;
+    scale = 12;
+    avg_degree = 15;
+    synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
+    storage_format = CSR_SEG;
     no_check = false;
     out_file_name = "kun_out.mtx";
     file_name = "lj.mtx";

@@ -43,10 +43,11 @@ private:
     bool is_non_zero(VNT _row, VNT _col);
     T get(VNT _row, VNT _col) const;
 
-    template <typename N, typename SemiringT>
-    friend void SpMV(MatrixSortCSR<N> *_matrix,
-                     const DenseVector<N> *_x,
-                     DenseVector<N> *_y,
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void SpMV(MatrixSortCSR<A> *_matrix,
+                     const DenseVector<X> *_x,
+                     DenseVector<Y> *_y,
+                     BinaryOpTAccum _accum,
                      SemiringT op);
 };
 

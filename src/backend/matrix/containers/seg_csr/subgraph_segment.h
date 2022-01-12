@@ -6,7 +6,7 @@ namespace lablas{
 namespace backend {
 
 template <typename T>
-    class MatrixSegmentedCSR;
+class MatrixSegmentedCSR;
 
 template <typename T>
 class SubgraphSegment
@@ -24,6 +24,8 @@ public:
     void construct_csr();
 
     void construct_blocks(VNT _block_number, size_t _block_size);
+
+    void construct_load_balancing();
 private:
     vector<VNT> tmp_row_ids;
     vector<VNT> tmp_col_ids;
@@ -42,10 +44,16 @@ private:
     VNT *block_starts;
     VNT *block_ends;
 
-    template<typename Y, typename SemiringT>
-    friend void SpMV(const MatrixSegmentedCSR<Y> *_matrix,
-                     const DenseVector<Y> *_x,
-                     DenseVector<Y> *_y, SemiringT op);
+    static const int vg_num = 9; // 9 is best currently
+    VertexGroup vertex_groups[vg_num];
+
+    template <typename A, typename X, typename Y, typename BinaryOpTAccum, typename SemiringT>
+    friend void SpMV(const MatrixSegmentedCSR<A> *_matrix,
+                     const DenseVector<X> *_x,
+                     DenseVector<Y> *_y,
+                     BinaryOpTAccum _accum,
+                     SemiringT op,
+                     Workspace *_workspace);
 
     template <typename Y>
     friend class MatrixSegmentedCSR;
@@ -156,6 +164,12 @@ void SubgraphSegment<T>::construct_blocks(VNT _block_number, size_t _block_size)
         block_nums[i] = large_graph_vertex / _block_size;
     }
 
+    for(VNT i = 0; i < _block_number; i++)
+    {
+        block_starts[i] = -1;
+        block_ends[i] = -1;
+    }
+
     block_starts[block_nums[0]] = 0;
 
     for(VNT i = 1; i < size - 1; i++)
@@ -172,6 +186,19 @@ void SubgraphSegment<T>::construct_blocks(VNT _block_number, size_t _block_size)
     }
 
     block_ends[block_nums[size - 1]] = size;
+
+    for(VNT i = 0; i < _block_number; i++)
+    {
+        if(block_starts[i] == -1) // is unset
+            block_starts[i] = block_ends[i];
+        if(block_ends[i] == -1) // is unset
+            block_ends[i] = block_starts[i];
+    }
+
+    /*for(VNT i = 0; i < _block_number; i++)
+    {
+        cout << block_starts[i] << " -- " << block_ends[i] << endl;
+    }*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,6 +233,35 @@ SubgraphSegment<T>::~SubgraphSegment()
     MemoryAPI::free_array(conversion_to_full);
     MemoryAPI::free_array(block_starts);
     MemoryAPI::free_array(block_ends);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+void SubgraphSegment<T>::construct_load_balancing()
+{
+    ENT step = 16;
+    ENT first = 4;
+    vertex_groups[0].set_thresholds(0, first);
+    for(int i = 1; i < (vg_num - 1); i++)
+    {
+        vertex_groups[i].set_thresholds(first, first*step);
+        first *= step;
+    }
+    vertex_groups[vg_num - 1].set_thresholds(first, INT_MAX);
+
+    for(VNT row = 0; row < size; row++)
+    {
+        ENT connections_count = row_ptr[row + 1] - row_ptr[row];
+        for(int vg = 0; vg < vg_num; vg++)
+            if(vertex_groups[vg].in_range(connections_count))
+                vertex_groups[vg].push_back(row);
+    }
+
+    for(int i = 0; i < vg_num; i++)
+    {
+        vertex_groups[i].finalize_creation(0); // TODO target socket of graph
+    }
 }
 
 }

@@ -33,8 +33,10 @@ int main(int argc, char **argv) {
 
         LAGraph_Graph<int> graph(matrix);
 
-        //LG_BreadthFirstSearch_vanilla(&levels, &parents, &graph, source_vertex, true);
-        GraphBlast_BFS(&levels, &graph, source_vertex);
+        SAVE_STATS(GraphBlast_BFS(&levels, &graph, source_vertex),
+                   "BFS", (sizeof(float)*2 + sizeof(size_t)), 1, (graph.AT));
+
+        //GraphBlast_BFS(&levels, &graph, source_vertex);
 
         if(parser.check())
         {

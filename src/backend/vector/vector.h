@@ -58,25 +58,25 @@ public:
 
     DenseVector<T>* getDense()
     {
-        force_to_dense();
+        (const_cast <Vector<T>*> (this))->force_to_dense();
         return (DenseVector<T>*)main_container;
     }
 
     SparseVector<T>* getSparse()
     {
-        force_to_sparse();
+        (const_cast <Vector<T>*> (this))->force_to_sparse();
         return (SparseVector<T>*)main_container;
     }
 
     const DenseVector<T>* getDense() const
     {
-        force_to_dense();
+        (const_cast <Vector<T>*> (this))->force_to_dense();
         return (DenseVector<T>*)main_container;
     }
 
     const SparseVector<T>* getSparse() const
     {
-        force_to_sparse();
+        (const_cast <Vector<T>*> (this))->force_to_sparse();
         return (SparseVector<T>*)main_container;
     }
 

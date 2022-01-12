@@ -315,30 +315,19 @@ LA_Info mxv (Vector<W>*       _w,
     auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
 
     if(_u->get_vector()->is_dense())
-        backend::SpMV(_matrix->get_matrix(), _u->get_vector(), _w->get_vector(), _desc->get_descriptor(), _accum, _op, mask_t);
+        backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
     else
     {
-        //double t1 = omp_get_wtime();
-       // for (int i = 2; i <= 262144; i *= 2) {
-         //   printf("\n\nNumber of buckets: [ %d ]\n", i);
-            //lablas::Vector<W> v(_u->get_vector()->get_size());
-            backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(),_desc->get_descriptor(), 64);
-        //}
-        //double t2 = omp_get_wtime();
+        backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor(), 64);
 
-//        printf("\033[0;31m");
-//        printf("SpMSpV time: %lf seconds.\n", t2 - t1);
-//        printf("\033[0m");
-        // TODO remove
         lablas::Vector<W> check_w(_u->get_vector()->get_size());
 
         double t3 = omp_get_wtime();
-        backend::SpMV(_matrix->get_matrix(), _u->get_vector(), check_w.get_vector(), _desc->get_descriptor(), _accum, _op, mask_t);
+        backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), check_w.get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
         double t4 = omp_get_wtime();
 
-        printf("\033[0;34m");
-        printf("SpMV time: %lf seconds.\n", t4 - t3);
-        printf("\033[0m");
+        //_w->print();
+        //check_w->print();
 
         if(check_w == (*_w))
             cout << "ok" << endl;
@@ -366,7 +355,7 @@ LA_Info vxm (Vector<W>*       _w,
         return GrB_UNINITIALIZED_OBJECT;
 
     auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
-    backend::VSpM(_matrix->get_matrix(), _u->get_vector(), _w->get_vector(), _desc->get_descriptor(), _accum, _op, mask_t);
+    backend::VSpM(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
 
     return GrB_SUCCESS;
 }

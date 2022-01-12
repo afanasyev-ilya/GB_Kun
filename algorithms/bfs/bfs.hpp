@@ -56,25 +56,21 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
     // parent BFS
     do
     {
-        cout << " ------------------- " << endl;
         // assign levels: l_level<s(frontier)> = current_level
-        GrB_TRY( GrB_assign(l_level, frontier, NULL, current_level, GrB_ALL, n, &desc) );
+        GrB_TRY( GrB_assign(l_level, frontier, NULL, current_level, GrB_ALL, n, GrB_DESC_S) );
         l_level->print();
         ++current_level;
 
         // frontier = kth level of the BFS
         // mask is l_parent if computing parent, l_level if computing just level
-        cout << "mask ";
-        mask->print();
-        desc.set(GrB_MASK, GrB_DEFAULT);
-        GrB_TRY( GrB_vxm(frontier, mask, NULL, lablas::LogicalOrAndSemiring<bool>(), frontier, A, &desc) );
-        cout << "frontier after vxm ";
+        GrB_TRY( GrB_vxm(frontier, mask, NULL, lablas::LogicalOrAndSemiring<bool>(), frontier, A, GrB_DESC_RSC) );
         frontier->print();
 
         // done if frontier is empty
         GrB_TRY( GrB_Vector_nvals(&nvals, frontier) );
     } while (nvals > 0);
 
+    l_level->force_to_dense();
 
     (*level ) = l_level;
     return (0);
@@ -96,26 +92,26 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
 
     double t1 = omp_get_wtime();
 
-    GrB_TRY(GrB_assign(f1, MASK_NULL, NULL, 0, GrB_ALL, n, NULL));
-    GrB_TRY(GrB_assign(f2, MASK_NULL, NULL, 0, GrB_ALL, n, NULL));
-    GrB_TRY(GrB_assign(v, MASK_NULL, NULL, 0, GrB_ALL, n, NULL));
+    GrB_TRY(GrB_assign(f1, MASK_NULL, NULL, 0, GrB_ALL, n, GrB_NULL));
+    GrB_TRY(GrB_assign(f2, MASK_NULL, NULL, 0, GrB_ALL, n, GrB_NULL));
+    GrB_TRY(GrB_assign(v, MASK_NULL, NULL, 0, GrB_ALL, n, GrB_NULL));
     GrB_TRY (GrB_Vector_setElement(f1, 1, src)) ;
 
     int iter = 1;
     int succ = 0;
+    cout << "------------------------------ alg started ------------------------------------ " << endl;
     do {
-        GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, NULL));
+        GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, GrB_NULL));
 
-        desc.set(GrB_MASK, GrB_SCMP);
-        GrB_TRY( GrB_vxm(f2, v, NULL, lablas::LogicalOrAndSemiring<int>(), f1, A, &desc));
-        desc.set(GrB_MASK, GrB_DEFAULT);
+        GrB_TRY( GrB_vxm(f2, v, NULL, lablas::LogicalOrAndSemiring<int>(), f1, A, GrB_DESC_SC));
 
         std::swap(f1, f2);
 
-        GrB_TRY (GrB_reduce (&succ, NULL, GrB_PLUS_MONOID_INT32, f1, NULL)) ;
+        GrB_TRY (GrB_reduce (&succ, NULL, GrB_PLUS_MONOID_INT32, f1, GrB_NULL)) ;
 
         iter++;
     } while(succ > 0);
+    cout << "------------------------------ alg done ------------------------------------ " << endl;
 
     v->force_to_dense();
     *levels = v;

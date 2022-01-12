@@ -66,3 +66,12 @@ enum GrB_Type
 // monoids
 #define GrB_PLUS_MONOID_FP32 lablas::PlusMonoid<float>()
 #define GrB_PLUS_MONOID_INT32 lablas::PlusMonoid<int>()
+
+
+// descriptors
+
+#define GrB_NULL (&lablas::GrB_NULL)
+#define GrB_DESC_RSC (&lablas::GrB_DESC_RSC)
+#define GrB_DESC_C (&lablas::GrB_DESC_C)
+#define GrB_DESC_S (&lablas::GrB_DESC_S)
+#define GrB_DESC_SC (&lablas::GrB_DESC_SC)

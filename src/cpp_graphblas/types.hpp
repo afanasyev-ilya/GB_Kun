@@ -8,40 +8,39 @@
             GrB_DENSE};
 
     enum Desc_field {GrB_MASK,
-            GrB_OUTP,
-            GrB_INP0,
-            GrB_INP1,
-            GrB_MODE,
-            GrB_TA,
-            GrB_TB,
-            GrB_NT,
-            GrB_MXVMODE,
-            GrB_TOL,
-            GrB_BACKEND,
-            GrB_NDESCFIELD};
+                    GrB_OUTPUT,
+                    GrB_INP0,
+                    GrB_INP1,
+                    GrB_MODE,
+                    GrB_TA,
+                    GrB_TB,
+                    GrB_NT,
+                    GrB_MXVMODE,
+                    GrB_TOL,
+                    GrB_BACKEND,
+                    GrB_NDESCFIELD};
 
-    enum Desc_value {GrB_SCMP,               // for GrB_MASK
-            GrB_REPLACE,            // for GrB_OUTP
-            GrB_TRAN,               // for GrB_INP0, GrB_INP1
-            GrB_DEFAULT,
-            GrB_CUSPARSE,           // for SpMV, SpMM
-            GrB_CUSPARSE2,
-            GrB_FIXEDROW,
-            GrB_FIXEDCOL,
-            GrB_MERGEPATH  =    9,
-            GrB_PUSHPULL   =   10,  // for GrB_MXVMODE
-            GrB_PUSHONLY   =   11,  // for GrB_MXVMODE
-            GrB_PULLONLY   =   12,  // for GrB_MXVMODE
-            GrB_SEQUENTIAL =   13,  // for GrB_BACKEND
-            GrB_CUDA       =   14,  // for GrB_BACKEND
-            GrB_8          =    8,  // for GrB_TA, GrB_TB, GrB_NT
-            GrB_16         =   16,  // for GrB_TOL
-            GrB_32         =   32,
-            GrB_64         =   64,
-            GrB_128        =  128,
-            GrB_256        =  256,
-            GrB_512        =  512,
-            GrB_1024       = 1024};
+    enum Desc_value {reserved = 0,
+                    GrB_REPLACE = 1, // for GrB_OUTP
+                    GrB_COMP = 2, // for GrB_MASK
+                    GrB_TRAN = 3, // for GrB_INP0, GrB_INP1
+                    GrB_STRUCTURE = 4, // for GrB_MASK
+                    GrB_STR_COMP = 5, // for GrB_MASK, combination
+                    GrB_DEFAULT = 6,
+                    GrB_FIXEDROW,
+                    GrB_PUSHPULL   =   10,  // for GrB_MXVMODE
+                    GrB_PUSHONLY   =   11,  // for GrB_MXVMODE
+                    GrB_PULLONLY   =   12,  // for GrB_MXVMODE
+                    GrB_SEQUENTIAL =   13,  // for GrB_BACKEND
+                    GrB_CUDA       =   14,  // for GrB_BACKEND
+                    GrB_8          =    8,  // for GrB_TA, GrB_TB, GrB_NT
+                    GrB_16         =   16,  // for GrB_TOL
+                    GrB_32         =   32,
+                    GrB_64         =   64,
+                    GrB_128        =  128,
+                    GrB_256        =  256,
+                    GrB_512        =  512,
+                    GrB_1024       = 1024};
 
 
     typedef enum {

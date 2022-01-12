@@ -132,7 +132,10 @@ public:
         return coldegrees;
     }
 
-    Workspace *get_workspace() {return workspace;};
+    Workspace *get_workspace() const
+    {
+        return (const_cast <Matrix<T>*> (this))->workspace;
+    };
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
@@ -194,26 +197,50 @@ void Matrix<T>::build(const VNT *_row_indices,
     } else if (_format == LAV) {
         data = new MatrixLAV<T>;
         transposed_data = new MatrixLAV<T>;
+
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        data_socket_dub = new MatrixLAV<T>;
+        #endif
         cout << "Using LAV matrix format" << endl;
     } else if (_format == COO) {
         transposed_data = new MatrixCOO<T>;
         data = new MatrixCOO<T>;
+
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        data_socket_dub = new MatrixCOO<T>;
+        #endif
         cout << "Using COO matrix format" << endl;
     } else if (_format == CSR_SEG) {
         data = new MatrixSegmentedCSR<T>;
         transposed_data = new MatrixSegmentedCSR<T>;
+
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        data_socket_dub = new MatrixSegmentedCSR<T>;
+        #endif
         cout << "Using CSR_SEG matrix format" << endl;
     } else if (_format == VECT_GROUP_CSR) {
         data = new MatrixVectGroupCSR<T>;
         transposed_data = new MatrixVectGroupCSR<T>;
+
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        data_socket_dub = new MatrixVectGroupCSR<T>;
+        #endif
         cout << "Using MatrixVectGroupCSR matrix format" << endl;
     } else if (_format == SELL_C) {
         data = new MatrixSellC<T>;
         transposed_data = new MatrixSellC<T>;
+
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        data_socket_dub = new MatrixSellC<T>;
+        #endif
         cout << "Using SellC matrix format" << endl;
     } else if(_format == SORTED_CSR) {
         data = new MatrixSortCSR<T>;
         transposed_data = new MatrixSortCSR<T>;
+
+        #ifdef __USE_SOCKET_OPTIMIZATIONS__
+        data_socket_dub = new MatrixSortCSR<T>;
+        #endif
         cout << "Using SortedCSR matrix format" << endl;
     }
     else {
@@ -227,7 +254,7 @@ void Matrix<T>::build(const VNT *_row_indices,
 
     transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
 
-    workspace = new Workspace(get_nrows(), get_ncols());
+    workspace = new Workspace(get_nrows(), get_ncols(), csc_data->get_max_degree());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
