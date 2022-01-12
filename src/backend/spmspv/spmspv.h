@@ -27,8 +27,10 @@ void SpMSpV(const Matrix<T> *_matrix,
     long long max_number_of_insertions = nz*matrix_size;
 
     int nt = 32;
+    long long spmspv_buffer_size = sizeof(int) * (2*nb + nt * nb) + sizeof(float) * (matrix_size) + sizeof(bucket<T>) * (nb * max_number_of_insertions);
+    cout << spmspv_buffer_size / 1e6 << " MB" << endl;
     //auto v = _matrix->get_workspace()->get_spmspv_buffer();
-    auto v = (char *)calloc(1, sizeof(int) * (2*nb + nt * nb) + sizeof(float) * (matrix_size) + sizeof(bucket<T>) * (nb * max_number_of_insertions));
+    auto v = (char *)calloc(1, spmspv_buffer_size);
     int memory_offset = 0;
     auto bucket_amount = (int *)(v + memory_offset);
     memory_offset += nb * sizeof(int);
@@ -44,6 +46,8 @@ void SpMSpV(const Matrix<T> *_matrix,
     SpMSpV_csr((MatrixCSR<T> *) _matrix->get_csc(), _x, _y->getDense(), (int)nb, (int)nt,
                (int *)bucket_amount, (int *)offset_, (bucket<T> *)buckets, (float*)SPA, (int*)offset);
 
+    free(v);
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,7 +59,7 @@ void SpMSpV_alloc(const Matrix<T> *_matrix,
                   Descriptor *_desc,
                   int nb)
 {
-
+    SpMSpV_csr_old((MatrixCSR<T> *) _matrix->get_csc(), _x, _y->getDense(), (int)nb);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

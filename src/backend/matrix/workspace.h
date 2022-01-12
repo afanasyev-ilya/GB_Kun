@@ -19,7 +19,7 @@ public:
 
         size_t max_number_of_insertions = (0.1*vector_size) * max_nz_in_col;
         size_t spmspv_buffer_size = sizeof(int) * (2*nb + nt * nb) + sizeof(float) * (vector_size) + (sizeof(double) + sizeof(VNT)) * (nb * max_number_of_insertions);
-        cout << spmspv_buffer_size / 1e6 << " MB" << endl;
+        //cout << spmspv_buffer_size / 1e6 << " MB" << endl;
         MemoryAPI::allocate_array(&spmspv_buffer, spmspv_buffer_size);
     }
 
