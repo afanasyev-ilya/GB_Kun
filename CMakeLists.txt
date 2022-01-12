@@ -81,3 +81,6 @@ target_include_directories(pr PRIVATE)
 
 add_executable(gen gen.cpp)
 target_include_directories(gen PRIVATE)
+
+add_executable(sparse_test sparse_test.cpp)
+target_include_directories(sparse_test PRIVATE)
