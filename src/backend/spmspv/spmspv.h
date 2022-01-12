@@ -11,18 +11,23 @@ struct bucket {
     T val;
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
 void SpMSpV(const Matrix<T> *_matrix,
             const SparseVector<T> *_x,
             Vector<T> *_y,
-            Descriptor *_desc, int nb)
+            Descriptor *_desc,
+            int nb)
 {
     VNT matrix_size, nz;
     _matrix->get_csc()->get_size(&matrix_size);
     _x->get_nnz(&nz);
-    long long max_number_of_insertions = matrix_size * nz;
+    //long long max_number_of_insertions = nz*_matrix->get_csc()->get_max_degree();
+    long long max_number_of_insertions = nz*matrix_size;
 
     int nt = 32;
+    //auto v = _matrix->get_workspace()->get_spmspv_buffer();
     auto v = (char *)calloc(1, sizeof(int) * (2*nb + nt * nb) + sizeof(float) * (matrix_size) + sizeof(bucket<T>) * (nb * max_number_of_insertions));
     int memory_offset = 0;
     auto bucket_amount = (int *)(v + memory_offset);
@@ -40,6 +45,20 @@ void SpMSpV(const Matrix<T> *_matrix,
                (int *)bucket_amount, (int *)offset_, (bucket<T> *)buckets, (float*)SPA, (int*)offset);
 
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void SpMSpV_alloc(const Matrix<T> *_matrix,
+                  const SparseVector<T> *_x,
+                  Vector<T> *_y,
+                  Descriptor *_desc,
+                  int nb)
+{
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "spmspv_csr.h"
 
