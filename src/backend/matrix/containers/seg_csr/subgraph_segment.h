@@ -170,6 +170,8 @@ void SubgraphSegment<T>::construct_blocks(VNT _block_number, size_t _block_size)
         block_ends[i] = -1;
     }
 
+    block_starts[block_nums[0]] = 0;
+
     for(VNT i = 1; i < size - 1; i++)
     {
         VNT prev_block = block_nums[i - 1];
@@ -192,6 +194,11 @@ void SubgraphSegment<T>::construct_blocks(VNT _block_number, size_t _block_size)
         if(block_ends[i] == -1) // is unset
             block_ends[i] = block_starts[i];
     }
+
+    /*for(VNT i = 0; i < _block_number; i++)
+    {
+        cout << block_starts[i] << " -- " << block_ends[i] << endl;
+    }*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

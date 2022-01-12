@@ -15,6 +15,7 @@ public:
         MemoryAPI::numa_aware_alloc(&prefetched_vector, vector_size, 0); // TODO maybe on both sockets
 
         size_t spmspv_buffer_size = 1/*TODO*/;
+        cout << max_nz_in_col << " nnz in col / " << vector_size << endl;
         MemoryAPI::allocate_array(&spmspv_buffer, spmspv_buffer_size);
     }
 
