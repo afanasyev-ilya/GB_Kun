@@ -35,7 +35,11 @@ private:
 
     SubgraphSegment<T> *subgraphs;
     vector<pair<int, ENT>> sorted_segments;
-    vector<vector<std::pair<int, VNT>>> gather_data;
+
+    ENT gather_buffer_size;
+    ENT *gather_ptrs;
+    int *gather_seg_ids;
+    VNT *gather_indexes;
 
     void alloc(VNT _size, ENT _nnz);
     void free();

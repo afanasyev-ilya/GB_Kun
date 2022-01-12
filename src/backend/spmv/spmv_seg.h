@@ -236,7 +236,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         }
     }*/
 
-    #pragma omp parallel // non cache aware scatter merge
+    /*#pragma omp parallel // non cache aware scatter merge
     {
         #pragma omp for
         for(VNT row = 0; row < _matrix->size; row++)
@@ -252,9 +252,27 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             }
             y_vals[row] = _accum(y_vals[row], val);
         }
+    }*/
+
+    #pragma omp parallel // non cache aware scatter merge
+    {
+        #pragma omp for
+        for(VNT row = 0; row < _matrix->size; row++)
+        {
+            Y val = identity_val;
+            for(ENT pos = _matrix->gather_ptrs[row]; pos <_matrix->gather_ptrs[row + 1]; pos++)
+            {
+                int seg_id = _matrix->gather_seg_ids[pos];
+                VNT index = _matrix->gather_indexes[pos];
+                SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
+                Y *buffer = (Y*)segment->vertex_buffer;
+                val = add_op(val, buffer[index]);
+            }
+            y_vals[row] = _accum(y_vals[row], val);
+        }
     }
     t2 = omp_get_wtime();
-    cout << "gather merge time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "gather unrolled merge time: " << (t2 - t1)*1000 << " ms" << endl;
 
     //cout << "compare: " << (t2 - t1)*1000 << "(edge proc) vs " << (t4 - t3)*1000 << "(cache-aware) vs " << (t6 - t5)*1000 << "(usual merge)" << endl;
 }

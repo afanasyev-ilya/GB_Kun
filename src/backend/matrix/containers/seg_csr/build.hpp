@@ -21,8 +21,8 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
     cout << "Using " << num_segments << " segments..." << endl;
     cout << "Seg size " << segment_size*sizeof(T)/1e3 << " KB" << endl;
 
+    // create segments (must be reworked based on created CSR)
     subgraphs = new SubgraphSegment<T>[num_segments];
-
     for(ENT i = 0; i < _nnz; i++)
     {
         int seg_id = _col_ids[i]/segment_size;
@@ -39,6 +39,7 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
         merge_block_size = (_size - 1) / merge_blocks_number + 1;
     }*/
 
+    // prepare merge blocks
     for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
     {
         subgraphs[cur_seg].sort_by_row_id();
@@ -52,14 +53,13 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
         sorted_segments.push_back(make_pair(cur_seg, subgraphs[cur_seg].nnz));
     }
 
+    // do load balancing optimization for the largest segment
     std::sort( std::begin(sorted_segments), std::end(sorted_segments), custome_compare );
-
-    //for(auto i: sorted_segments)
-    //    cout << ")) " << i.first << " " << i.second << endl;
-
     int largest_segment = sorted_segments[0].first;
     subgraphs[largest_segment].construct_load_balancing();
 
+    // creating gather vectors
+    vector<vector<std::pair<int, VNT>>> gather_data;
     gather_data.resize(size);
     for(int seg_id = 0; seg_id < num_segments; seg_id++)
     {
@@ -72,12 +72,31 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
         }
     }
 
-    double avg_buf_size = 0;
+    // creating unrolled structures for gather merge
+    gather_buffer_size = 0;
     for(VNT i = 0; i < _size; i++)
     {
-        avg_buf_size += gather_data[i].size();
+        gather_buffer_size += gather_data[i].size();
     }
-    cout << "avg_buf_size " << avg_buf_size / _size << endl;
+    cout << "avg row buffer length: " << ((double)gather_buffer_size) / _size << " (elements)" << endl;
+    cout << "avg degree of graph was " << ((double)nnz) / size << " (elements)" << endl;
+
+    MemoryAPI::allocate_array(&gather_ptrs, size + 1);
+    MemoryAPI::allocate_array(&gather_seg_ids, gather_buffer_size);
+    MemoryAPI::allocate_array(&gather_indexes, gather_buffer_size);
+
+    ENT cur_pos = 0;
+    for(VNT i = 0; i < size; i++)
+    {
+        gather_ptrs[i] = cur_pos;
+        gather_ptrs[i + 1] = cur_pos + gather_data[i].size();
+        for(ENT j = gather_ptrs[i]; j < gather_ptrs[i + 1]; j++)
+        {
+            gather_seg_ids[j] = gather_data[i][j - gather_ptrs[i]].first;
+            gather_indexes[j] = gather_data[i][j - gather_ptrs[i]].second;
+        }
+        cur_pos += gather_data[i].size();
+    }
 
     cout << endl << endl;
 }
