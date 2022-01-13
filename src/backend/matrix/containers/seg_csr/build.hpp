@@ -4,7 +4,7 @@ namespace backend{
 
 bool custome_compare(const std::pair<int, ENT> &p1, const std::pair<int, ENT> &p2)
 {
-    return p1.second > p2.second;
+    return p1.second < p2.second;
 }
 
 template <typename T>
@@ -16,8 +16,6 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
     cout << size << endl;
     VNT segment_size = 512 * 1024 / sizeof(T);
     num_segments = (size - 1) / segment_size + 1;
-    //num_segments = (omp_get_max_threads())*4; // since 4x for load balancing
-    //VNT segment_size = (size - 1)/num_segments + 1;
     cout << "Using " << num_segments << " segments..." << endl;
     cout << "Seg size " << segment_size*sizeof(T)/1e3 << " KB" << endl;
 
@@ -58,8 +56,25 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
 
     // do load balancing optimization for the largest segment
     std::sort( std::begin(sorted_segments), std::end(sorted_segments), custome_compare );
-    int largest_segment = sorted_segments[0].first;
-    subgraphs[largest_segment].construct_load_balancing();
+
+    ENT sum_edges = 0;
+    load_balanced_threshold = 0;
+    for(int seg_idx = num_segments - 1; seg_idx >= 0; seg_idx--)
+    {
+        int seg_id = sorted_segments[seg_idx].first;
+
+        sum_edges += subgraphs[seg_id].nnz;
+
+        if(sum_edges < _nnz/4) // 25% of total edges
+        {
+            subgraphs[seg_id].construct_load_balancing();
+            load_balanced_threshold = seg_idx;
+        }
+        else
+            break;
+    }
+
+    cout << "load balanced threshold : " << load_balanced_threshold << " / " << num_segments << endl;
 }
 }
 }

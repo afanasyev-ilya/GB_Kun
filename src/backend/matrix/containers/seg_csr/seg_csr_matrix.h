@@ -35,6 +35,7 @@ private:
 
     SubgraphSegment<T> *subgraphs;
     vector<pair<int, ENT>> sorted_segments;
+    int load_balanced_threshold;
 
     void alloc(VNT _size, ENT _nnz);
     void free();

@@ -44,10 +44,27 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         }
     }*/
 
-    int load_balanced_threshold = 1;
     #pragma omp parallel // parallelism within different segments
     {
-        for(int seg_idx = 0; seg_idx < load_balanced_threshold; seg_idx++)
+        for(int seg_idx = 0; seg_idx < _matrix->load_balanced_threshold; seg_idx++)
+        {
+            int seg_id = _matrix->sorted_segments[seg_idx].first;
+            SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
+            Y *buffer = (Y*)segment->vertex_buffer;
+
+            #pragma omp for nowait schedule(static)
+            for(VNT i = 0; i < segment->size; i++)
+            {
+                Y res = identity_val;
+                for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
+                {
+                    res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
+                }
+                buffer[i] = res;
+            }
+        }
+
+        for(int seg_idx = _matrix->load_balanced_threshold; seg_idx < _matrix->num_segments; seg_idx++)
         {
             int seg_id = _matrix->sorted_segments[seg_idx].first;
             SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
@@ -58,7 +75,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
                 const VNT *vertices = segment->vertex_groups[vg].get_data();
                 VNT vertex_group_size = segment->vertex_groups[vg].get_size();
 
-                #pragma omp for nowait schedule(guided, 1)
+                #pragma omp for nowait schedule(guided, 256)
                 for(VNT idx = 0; idx < vertex_group_size; idx++)
                 {
                     VNT row = vertices[idx];
@@ -69,24 +86,6 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
                     }
                     buffer[row] = res;
                 }
-            }
-        }
-
-        for(int seg_idx = load_balanced_threshold; seg_idx < _matrix->num_segments; seg_idx++)
-        {
-            int seg_id = _matrix->sorted_segments[seg_idx].first;
-            SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
-            Y *buffer = (Y*)segment->vertex_buffer;
-
-            #pragma omp for nowait schedule(guided, 1024)
-            for(VNT i = 0; i < segment->size; i++)
-            {
-                Y res = identity_val;
-                for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
-                {
-                    res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
-                }
-                buffer[i] = res;
             }
         }
     }
