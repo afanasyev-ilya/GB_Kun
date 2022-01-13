@@ -171,20 +171,17 @@ void SubgraphSegment<T>::construct_blocks(VNT _block_number, size_t _block_size)
     }
 
     block_starts[block_nums[0]] = 0;
-
-    for(VNT i = 1; i < size - 1; i++)
+    for(VNT i = 0; i < size - 1; i++)
     {
-        VNT prev_block = block_nums[i - 1];
-        VNT cur_block = block_nums[i];
-        VNT next_block = block_nums[i + 1];
+        VNT first = block_nums[i];
+        VNT second = block_nums[i + 1];
 
-        if(cur_block != prev_block)
-            block_starts[cur_block] = i;
-
-        if(cur_block != next_block)
-            block_ends[cur_block] = i + 1;
+        if(first != second)
+        {
+            block_ends[first] = i + 1;
+            block_starts[second] = i + 1;
+        }
     }
-
     block_ends[block_nums[size - 1]] = size;
 
     for(VNT i = 0; i < _block_number; i++)
@@ -195,8 +192,7 @@ void SubgraphSegment<T>::construct_blocks(VNT _block_number, size_t _block_size)
             block_ends[i] = block_starts[i];
     }
 
-    ENT sum_len = 0;
-    for(VNT bl = 0; bl < _block_number; bl++)
+    /*for(VNT bl = 0; bl < _block_number; bl++)
     {
         VNT min_v = INT_MAX, max_v = 0;
 
@@ -206,19 +202,12 @@ void SubgraphSegment<T>::construct_blocks(VNT _block_number, size_t _block_size)
             VNT rem_v = conversion_to_full[loc_v];
             min_v = min(min_v, rem_v);
             max_v = max(max_v, rem_v);
-            sum_len++;
         }
         VNT size_v = max_v - min_v;
         if(block_starts[bl] != block_ends[bl])
         {
             cout << "block: " << bl << " size " << size_v * sizeof(T) / 1e3 << " KB" << endl;
         }
-    }
-    cout << " sum_len " << sum_len << endl;
-
-    /*for(VNT i = 0; i < _block_number; i++)
-    {
-        cout << block_starts[i] << " -- " << block_ends[i] << endl;
     }*/
 }
 

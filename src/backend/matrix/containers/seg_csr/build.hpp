@@ -33,7 +33,7 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
     merge_blocks_number = (size - 1)/merge_block_size + 1;*/
     merge_blocks_number = omp_get_max_threads()*2; // 2 for load balancing
     size_t merge_block_size = (_size - 1) / merge_blocks_number + 1;
-    while(merge_block_size > (64*1024/ sizeof(T)))
+    while(merge_block_size > (32*1024/ sizeof(T)))
     {
         merge_blocks_number *= 2;
         merge_block_size = (_size - 1) / merge_blocks_number + 1;
@@ -60,48 +60,6 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
     std::sort( std::begin(sorted_segments), std::end(sorted_segments), custome_compare );
     int largest_segment = sorted_segments[0].first;
     subgraphs[largest_segment].construct_load_balancing();
-
-    // creating gather vectors
-    vector<vector<std::pair<int, VNT>>> gather_data;
-    gather_data.resize(size);
-    for(int seg_id = 0; seg_id < num_segments; seg_id++)
-    {
-        SubgraphSegment<T> *segment = &(subgraphs[seg_id]);
-        VNT *conversion_indexes = segment->conversion_to_full;
-
-        for(VNT i = 0; i < segment->size; i++)
-        {
-            gather_data[conversion_indexes[i]].push_back(make_pair(seg_id, i));
-        }
-    }
-
-    // creating unrolled structures for gather merge
-    gather_buffer_size = 0;
-    for(VNT i = 0; i < _size; i++)
-    {
-        gather_buffer_size += gather_data[i].size();
-    }
-    cout << "avg row buffer length: " << ((double)gather_buffer_size) / _size << " (elements)" << endl;
-    cout << "avg degree of graph was " << ((double)nnz) / size << " (elements)" << endl;
-
-    MemoryAPI::allocate_array(&gather_ptrs, size + 1);
-    MemoryAPI::allocate_array(&gather_seg_ids, gather_buffer_size);
-    MemoryAPI::allocate_array(&gather_indexes, gather_buffer_size);
-
-    ENT cur_pos = 0;
-    for(VNT i = 0; i < size; i++)
-    {
-        gather_ptrs[i] = cur_pos;
-        gather_ptrs[i + 1] = cur_pos + gather_data[i].size();
-        for(ENT j = gather_ptrs[i]; j < gather_ptrs[i + 1]; j++)
-        {
-            gather_seg_ids[j] = gather_data[i][j - gather_ptrs[i]].first;
-            gather_indexes[j] = gather_data[i][j - gather_ptrs[i]].second;
-        }
-        cur_pos += gather_data[i].size();
-    }
-
-    cout << endl << endl;
 }
 }
 }

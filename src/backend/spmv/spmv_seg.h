@@ -225,6 +225,8 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             #pragma omp for schedule(static)
             for(VNT i = 0; i < segment->size; i++)
             {
+                //if(conversion_indexes[i] == 5915)
+                //    cout << i << " || " << " seg id " << seg_id << "| " << buffer[i] << " + " << shared_vector[conversion_indexes[i]] << " = " << shared_vector[conversion_indexes[i]] + buffer[i] << endl;
                 shared_vector[conversion_indexes[i]] = add_op(shared_vector[conversion_indexes[i]], buffer[i]);
             }
         }
@@ -236,23 +238,6 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         }
     }*/
 
-    /*#pragma omp parallel // non cache aware scatter merge
-    {
-        #pragma omp for
-        for(VNT row = 0; row < _matrix->size; row++)
-        {
-            Y val = identity_val;
-            for(ENT pos = _matrix->gather_ptrs[row]; pos <_matrix->gather_ptrs[row + 1]; pos++)
-            {
-                int seg_id = _matrix->gather_seg_ids[pos];
-                VNT index = _matrix->gather_indexes[pos];
-                SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
-                Y *buffer = (Y*)segment->vertex_buffer;
-                val = add_op(val, buffer[index]);
-            }
-            y_vals[row] = _accum(y_vals[row], val);
-        }
-    }*/
     t2 = omp_get_wtime();
     cout << "cache aware correct merge time: " << (t2 - t1)*1000 << " ms" << endl;
 

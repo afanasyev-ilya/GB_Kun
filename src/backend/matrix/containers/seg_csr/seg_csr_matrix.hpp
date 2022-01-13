@@ -34,9 +34,6 @@ template <typename T>
 void MatrixSegmentedCSR<T>::free()
 {
     delete []subgraphs;
-    MemoryAPI::free_array(gather_ptrs);
-    MemoryAPI::free_array(gather_seg_ids);
-    MemoryAPI::free_array(gather_indexes);
 }
 }
 }
