@@ -212,7 +212,7 @@ void Matrix<T>::build(const VNT *_row_indices,
         cout << "Using COO matrix format" << endl;
     } else if (_format == CSR_SEG) {
         data = new MatrixSegmentedCSR<T>;
-        transposed_data = new MatrixSegmentedCSR<T>; //TODO will be needed
+        transposed_data = new MatrixSegmentedCSR<T>;
 
         #ifdef __USE_SOCKET_OPTIMIZATIONS__
         data_socket_dub = new MatrixSegmentedCSR<T>;

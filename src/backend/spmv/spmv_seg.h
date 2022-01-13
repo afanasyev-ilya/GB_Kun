@@ -52,7 +52,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
             Y *buffer = (Y*)segment->vertex_buffer;
 
-            #pragma omp for nowait schedule(static)
+            #pragma omp for nowait schedule(guided, 1024)
             for(VNT i = 0; i < segment->size; i++)
             {
                 Y res = identity_val;
@@ -75,7 +75,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
                 const VNT *vertices = segment->vertex_groups[vg].get_data();
                 VNT vertex_group_size = segment->vertex_groups[vg].get_size();
 
-                #pragma omp for nowait schedule(guided, 256)
+                #pragma omp for nowait schedule(guided, 1024)
                 for(VNT idx = 0; idx < vertex_group_size; idx++)
                 {
                     VNT row = vertices[idx];

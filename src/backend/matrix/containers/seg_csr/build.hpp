@@ -58,20 +58,19 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
     std::sort( std::begin(sorted_segments), std::end(sorted_segments), custome_compare );
 
     ENT sum_edges = 0;
-    load_balanced_threshold = 0;
+    load_balanced_threshold = num_segments;
     for(int seg_idx = num_segments - 1; seg_idx >= 0; seg_idx--)
     {
         int seg_id = sorted_segments[seg_idx].first;
 
-        sum_edges += subgraphs[seg_id].nnz;
-
-        if(sum_edges < _nnz/4) // 25% of total edges
+        if(sum_edges < 2) // 25% of total edges
         {
             subgraphs[seg_id].construct_load_balancing();
             load_balanced_threshold = seg_idx;
         }
         else
             break;
+        sum_edges++;
     }
 
     cout << "load balanced threshold : " << load_balanced_threshold << " / " << num_segments << endl;
