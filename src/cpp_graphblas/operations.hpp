@@ -318,7 +318,7 @@ LA_Info mxv (Vector<W>*       _w,
         backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
     else
     {
-        int number_of_buckets = 64 * 4;
+        int number_of_buckets = 64 * 2;
         cout << "[ NUMBER_OF_BUCKETS = " << number_of_buckets << " ]" << endl;
 
         backend::SpMSpV_alloc(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor(), number_of_buckets);
