@@ -78,7 +78,10 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
             subgraphs[seg_id].schedule_type = GUIDED;
 
         if(subgraphs[seg_id].nnz > 0.15*_nnz)
+        {
             subgraphs[seg_id].load_balanced_type = MANY_GROUPS;
+            subgraphs[seg_id].construct_load_balancing();
+        }
         else
             subgraphs[seg_id].load_balanced_type = ONE_GROUP;
 

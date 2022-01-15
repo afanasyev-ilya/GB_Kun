@@ -276,7 +276,7 @@ template<typename T>
 void SubgraphSegment<T>::construct_load_balancing()
 {
     ENT step = 4;
-    ENT first = 2;
+    ENT first = 4;
     vertex_groups[0].set_thresholds(0, first);
     for(int i = 1; i < (vg_num - 1); i++)
     {
