@@ -8,18 +8,6 @@
 namespace lablas{
 namespace backend {
 
-enum ScheduleType
-{
-    STATIC = 0,
-    GUIDED = 1
-};
-
-enum LoadBalancedType
-{
-    ONE_GROUP = 0,
-    MANY_GROUPS = 1
-};
-
 template <typename T>
 class MatrixSegmentedCSR;
 
@@ -48,8 +36,6 @@ private:
     SubgraphSegment<T> *subgraphs;
     vector<pair<int, ENT>> sorted_segments;
     int load_balanced_threshold;
-    vector<ScheduleType> schedule_type;
-    vector<LoadBalancedType> load_balanced_type;
 
     void alloc(VNT _size, ENT _nnz);
     void free();

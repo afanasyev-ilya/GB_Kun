@@ -5,6 +5,22 @@
 namespace lablas{
 namespace backend {
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum ScheduleType
+{
+    STATIC = 0,
+    GUIDED = 1
+};
+
+enum LoadBalancedType
+{
+    ONE_GROUP = 0,
+    MANY_GROUPS = 1
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
 class MatrixSegmentedCSR;
 
@@ -46,8 +62,11 @@ private:
 
     VNT first_col, last_col;
 
-    static const int vg_num = 9; // 9 is best currently
+    static const int vg_num = 6; // 9 is best currently
     VertexGroup vertex_groups[vg_num];
+
+    ScheduleType schedule_type;
+    LoadBalancedType load_balanced_type;
 
     template <typename A, typename X, typename Y, typename BinaryOpTAccum, typename SemiringT>
     friend void SpMV(const MatrixSegmentedCSR<A> *_matrix,
@@ -256,8 +275,8 @@ SubgraphSegment<T>::~SubgraphSegment()
 template<typename T>
 void SubgraphSegment<T>::construct_load_balancing()
 {
-    ENT step = 16;
-    ENT first = 4;
+    ENT step = 4;
+    ENT first = 2;
     vertex_groups[0].set_thresholds(0, first);
     for(int i = 1; i < (vg_num - 1); i++)
     {
