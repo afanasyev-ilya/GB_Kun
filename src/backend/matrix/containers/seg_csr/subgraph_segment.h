@@ -44,6 +44,8 @@ private:
     VNT *block_starts;
     VNT *block_ends;
 
+    VNT first_col, last_col;
+
     static const int vg_num = 9; // 9 is best currently
     VertexGroup vertex_groups[vg_num];
 
@@ -142,10 +144,14 @@ void SubgraphSegment<T>::construct_csr()
     for (VNT i = 0; i < size; i++)
         row_ptr[i + 1] += row_ptr[i];
 
+    first_col = size;
+    last_col = 0;
     for (ENT i = 0; i < nnz; i++)
     {
         col_ids[i] = tmp_col_ids[i];
         vals[i] = tmp_vals[i];
+        first_col = min(first_col, col_ids[i]);
+        last_col = max(last_col, col_ids[i]);
     }
 }
 

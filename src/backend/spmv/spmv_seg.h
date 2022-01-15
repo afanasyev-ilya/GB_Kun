@@ -20,6 +20,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     auto identity_val = op.identity();
 
     Y *shared_vector = (Y*)_workspace->get_first_socket_vector();
+    Y *tmp_vec = (Y*)_workspace->get_prefetched_vector();
 
     double t1 = omp_get_wtime();
 
@@ -52,7 +53,13 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
             Y *buffer = (Y*)segment->vertex_buffer;
 
-            #pragma omp for nowait schedule(guided, 1024)
+            /*#pragma omp for nowait schedule(static)
+            for(VNT i = segment->first_col; i < segment->last_col; i++)
+            {
+                tmp_vec[i - segment->first_col] = x_vals[i];
+            }*/
+
+            #pragma omp for nowait schedule(static)
             for(VNT i = 0; i < segment->size; i++)
             {
                 Y res = identity_val;
@@ -74,6 +81,12 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             {
                 const VNT *vertices = segment->vertex_groups[vg].get_data();
                 VNT vertex_group_size = segment->vertex_groups[vg].get_size();
+
+                /*#pragma omp for nowait schedule(static)
+                for(VNT i = segment->first_col; i < segment->last_col; i++)
+                {
+                    tmp_vec[i - segment->first_col] = x_vals[i];
+                }*/
 
                 #pragma omp for nowait schedule(guided, 1024)
                 for(VNT idx = 0; idx < vertex_group_size; idx++)
@@ -169,8 +182,8 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         }
     }*/
     double t2 = omp_get_wtime();
-    cout << "inner 5 time: " << (t2 - t1)*1000 << " ms" << endl;
-    cout << "inner 5 BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    cout << "inner (guided) time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "inner (guided) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
     t1 = omp_get_wtime();
     #pragma omp parallel // cache aware scatter merge

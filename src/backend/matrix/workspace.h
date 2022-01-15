@@ -13,14 +13,6 @@ public:
         MemoryAPI::numa_aware_alloc(&second_socket_vector, vector_size, 1);
 
         MemoryAPI::numa_aware_alloc(&prefetched_vector, vector_size, 0); // TODO maybe on both sockets
-
-        int nb = 512;
-        int nt = omp_get_max_threads();
-
-        size_t max_number_of_insertions = (vector_size) * max_nz_in_col;
-        size_t spmspv_buffer_size = sizeof(int) * (2*nb + nt * nb) + sizeof(float) * (vector_size) + (sizeof(double) + sizeof(VNT)) * (nb * max_number_of_insertions);
-        cout << spmspv_buffer_size / 1e6 << " MB" << endl;
-        MemoryAPI::allocate_array(&spmspv_buffer, spmspv_buffer_size);
     }
 
     ~Workspace()
@@ -29,7 +21,6 @@ public:
         MemoryAPI::free_array(first_socket_vector);
         MemoryAPI::free_array(second_socket_vector);
         MemoryAPI::free_array(prefetched_vector);
-        MemoryAPI::free_array(spmspv_buffer);
     }
 
     Index *get_mask_conversion() { return mask_conversion; };
