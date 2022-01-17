@@ -321,7 +321,6 @@ LA_Info mxv (Vector<W>*       _w,
         int number_of_buckets = 64 * 2;
         cout << "[ NUMBER_OF_BUCKETS = " << number_of_buckets << " ]" << endl;
 
-        backend::SpMSpV_alloc(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor(), number_of_buckets);
         backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor(), number_of_buckets);
 
         lablas::Vector<W> check_w(_u->get_vector()->get_size());
@@ -331,7 +330,7 @@ LA_Info mxv (Vector<W>*       _w,
         double t4 = omp_get_wtime();
 
         printf("\033[0;34m");
-        printf("SPMV time: %lf seconds.\n", t4 - t3);
+        printf("SPMV time: %lf ms.\n", (t4 - t3) * 1e3);
         printf("\033[0m");
 
         //_w->print();

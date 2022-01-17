@@ -70,7 +70,7 @@ STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" headers_list "${headers_list}")
 
 file(MAKE_DIRECTORY scripts)
 
-add_executable(bfs bfs.cpp)
+add_executable(bfs bfs.cpp src/backend/spmspv/ь.cpp)
 target_include_directories(bfs PRIVATE)
 
 add_executable(spmv spmv.cpp)
