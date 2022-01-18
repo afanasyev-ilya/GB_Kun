@@ -696,7 +696,7 @@ void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_contain
             }
             if(tid == 1)
             {
-                process_portion(proc_src_ids, proc_src_ids, csr_matrix, csc_matrix, ln_pos - READ_PORTION_SIZE, nnz);
+                process_portion(proc_src_ids, proc_dst_ids, csr_matrix, csc_matrix, ln_pos - READ_PORTION_SIZE, nnz);
             }
 
             #pragma omp barrier
@@ -709,7 +709,7 @@ void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_contain
 
         if(tid == 1)
         {
-            process_portion(proc_src_ids, proc_src_ids, csr_matrix, csc_matrix, ln_pos - READ_PORTION_SIZE, nnz);
+            process_portion(proc_src_ids, proc_dst_ids, csr_matrix, csc_matrix, ln_pos - READ_PORTION_SIZE, nnz);
         }
     }
 
@@ -717,7 +717,27 @@ void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_contain
     t2 = omp_get_wtime();
     cout << "CSR generation + C-style file read time: " << t2 - t1 << " sec" << endl;
 
-    for()
+    for(int i = 0; i < 10; i++)
+    {
+        for(int j = 0; j < csr_matrix[i].size(); j++)
+        {
+            int src_id = i;
+            int dst_id = csr_matrix[i][j];
+            bool found = false;
+            for(int k = 0; k < tmp_nnz; k++)
+            {
+                if((src_id == _edges_container.src_ids[k]) && (dst_id == _edges_container.dst_ids[k]))
+                {
+                    cout << src_id << " " << dst_id << " found at pos " << k << endl;
+                    found = true;
+                    break;
+                }
+            }
+
+            if(found == false)
+                cout << src_id << " " << dst_id << " NOT FOUND " << tmp_nnz << endl;
+        }
+    }
 }
 
 
