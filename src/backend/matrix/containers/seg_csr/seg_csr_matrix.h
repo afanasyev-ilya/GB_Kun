@@ -20,9 +20,8 @@ public:
 
     void build(VNT _num_rows, ENT _nnz, const ENT *_row_ptr, const VNT *_col_ids, const T *_vals, int _socket);
     void print() const {};
-    void get_size(VNT* _size) const {
-        *_size = size;
-    }
+
+    void get_size(VNT* _size) const { *_size = size; }
 
     ENT get_nnz() const {return nnz;};
 private:
