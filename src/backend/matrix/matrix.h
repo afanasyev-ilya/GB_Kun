@@ -52,33 +52,21 @@ public:
     }
 
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    MatrixContainer<T>* get_data_dub() {
-        return data_socket_dub;
-    }
+    MatrixContainer<T>* get_data_dub() { return data_socket_dub; }
 
-    MatrixContainer<T>* get_data_dub() const {
-        return data_socket_dub;
-    }
+    MatrixContainer<T>* get_data_dub() const { return data_socket_dub; }
     #endif
 
     const MatrixCSR<T> *get_csr() const { return csr_data; };
     const MatrixCSR<T> *get_csc() const { return csc_data; };
 
-    const MatrixContainer<T>* get_data() const {
-        return data;
-    }
+    const MatrixContainer<T>* get_data() const { return data; }
 
-    MatrixContainer<T>* get_transposed_data() {
-        return transposed_data;
-    }
+    MatrixContainer<T>* get_transposed_data() { return transposed_data; }
 
-    const MatrixContainer<T>* get_transposed_data() const {
-        return transposed_data;
-    }
+    const MatrixContainer<T>* get_transposed_data() const { return transposed_data; }
 
-    void get_nrows(VNT* _nrows) const {
-        csr_data->get_size(_nrows);
-    }
+    void get_nrows(VNT* _nrows) const { csr_data->get_size(_nrows); }
 
     VNT get_nrows() const {
         VNT nrows;
@@ -96,27 +84,15 @@ public:
         return ncols;
     }
 
-    void print() const
-    {
-        data->print();
-    }
+    void print() const { data->print(); }
 
     ENT get_nnz() const {return csr_data->get_nnz();};
 
-    ENT* get_rowdegrees()
-    {
-        return rowdegrees;
-    }
+    ENT* get_rowdegrees() { return rowdegrees; }
 
-    ENT* get_coldegrees()
-    {
-        return coldegrees;
-    }
+    ENT* get_coldegrees() { return coldegrees; }
 
-    Workspace *get_workspace() const
-    {
-        return (const_cast <Matrix<T>*> (this))->workspace;
-    };
+    Workspace *get_workspace() const { return (const_cast <Matrix<T>*> (this))->workspace; };
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
