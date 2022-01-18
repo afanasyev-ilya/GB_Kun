@@ -5,7 +5,7 @@ namespace backend {
 
 class Workspace {
 public:
-    Workspace(Index _nrows, Index _ncols, Index max_nz_in_col)
+    Workspace(Index _nrows, Index _ncols)
     {
         Index vector_size = max(_nrows, _ncols);
         MemoryAPI::allocate_array(&mask_conversion, vector_size);

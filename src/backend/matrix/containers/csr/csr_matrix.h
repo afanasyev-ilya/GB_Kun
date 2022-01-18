@@ -83,7 +83,7 @@ public:
     void deep_copy(MatrixCSR<T> *_copy, int _target_socket = -1);
 
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _target_socket = 0);
-    void build(vector<vector<VNT>> &_tmp_csr_matrix, int _socket = 0);
+    void build(vector<vector<pair<VNT, T>>> &_tmp_csr_matrix, int _socket = 0);
 
     void print() const;
 
@@ -97,8 +97,6 @@ public:
     VNT *get_col_ids() {return col_ids;};
     const VNT *get_col_ids() const {return col_ids;};
 
-    VNT get_max_degree() const {return max_degree;};
-
     ENT get_degree(VNT _row) {return row_ptr[_row + 1] - row_ptr[_row];};
 private:
     VNT size;
@@ -108,8 +106,6 @@ private:
     T *vals;
     VNT *col_ids;
 
-    VNT max_degree;
-
     static const int vg_num = 9; // 9 is best currently
     VertexGroup vertex_groups[vg_num];
 
@@ -118,9 +114,6 @@ private:
     void alloc(VNT _size, ENT _nnz, int _target_socket);
     void free();
     void resize(VNT _size, ENT _nnz, int _target_socket);
-
-    void construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz,
-                                int _target_socket);
 
     bool is_non_zero(VNT _row, VNT _col);
     T get(VNT _row, VNT _col) const;

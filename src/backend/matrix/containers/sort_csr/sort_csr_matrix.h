@@ -13,7 +13,7 @@ public:
     ~MatrixSortCSR();
 
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _target_socket = 0);
-    void build(vector<vector<VNT>> &_tmp_csr_matrix, int _socket = 0) {};
+    void build(vector<vector<pair<VNT, T>>> &_tmp_csr_matrix, int _socket = 0) {};
 
     void print() const;
 

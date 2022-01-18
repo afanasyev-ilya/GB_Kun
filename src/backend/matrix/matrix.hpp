@@ -68,10 +68,11 @@ void read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, ENT _nnz
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template<typename T>
 void process_portion(const VNT *_src_ids,
                      const VNT *_dst_ids,
-                     vector<vector<VNT>> &_csr_matrix,
-                     vector<vector<VNT>> &_csc_matrix,
+                     vector<vector<pair<VNT, T>>> &_csr_matrix,
+                     vector<vector<pair<VNT, T>>> &_csc_matrix,
                      ENT _ln_pos,
                      ENT _nnz)
 {
@@ -81,9 +82,10 @@ void process_portion(const VNT *_src_ids,
         {
             VNT row = _src_ids[i] - 1;
             VNT col = _dst_ids[i] - 1;
+            T val = EDGE_VAL;
 
-            _csr_matrix[row].push_back(col);
-            _csc_matrix[col].push_back(row);
+            _csr_matrix[row].push_back(make_pair(col, val));
+            _csc_matrix[col].push_back(make_pair(col, val));
         }
     }
 }
@@ -92,8 +94,8 @@ void process_portion(const VNT *_src_ids,
 
 template<typename T>
 void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
-                                        vector<vector<VNT>> &_csr_matrix,
-                                        vector<vector<VNT>> &_csc_matrix)
+                                        vector<vector<pair<VNT, T>>> &_csr_matrix,
+                                        vector<vector<pair<VNT, T>>> &_csc_matrix)
 {
     double t1, t2;
     t1 = omp_get_wtime();
@@ -229,7 +231,7 @@ void Matrix<T>::init_optimized_structures()
     t2 = omp_get_wtime();
     cout << "creating optimized representation time: " << t2 - t1 << " sec" << endl;
 
-    workspace = new Workspace(get_nrows(), get_ncols(), csc_data->get_max_degree());
+    workspace = new Workspace(get_nrows(), get_ncols());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -262,8 +264,8 @@ template<typename T>
 void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
 {
     // read mtx file and get tmp representations of csr and csc matrix
-    vector<vector<VNT>> csr_tmp_matrix;
-    vector<vector<VNT>> csc_tmp_matrix;
+    vector<vector<pair<VNT, T>>> csr_tmp_matrix;
+    vector<vector<pair<VNT, T>>> csc_tmp_matrix;
     read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
 
     double t1 = omp_get_wtime();

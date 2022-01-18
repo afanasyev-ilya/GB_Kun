@@ -112,8 +112,8 @@ private:
     ENT *rowdegrees, *coldegrees;
 
     void read_mtx_file_pipelined(const string &_mtx_file_name,
-                                 vector<vector<VNT>> &_csr_matrix,
-                                 vector<vector<VNT>> &_csc_matrix);
+                                 vector<vector<pair<VNT, T>>> &_csr_matrix,
+                                 vector<vector<pair<VNT, T>>> &_csc_matrix);
 
     void init_optimized_structures();
 };

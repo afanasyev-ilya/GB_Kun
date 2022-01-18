@@ -57,7 +57,6 @@ void MatrixCSR<T>::deep_copy(MatrixCSR<T> *_copy, int _target_socket)
         _target_socket = _copy->target_socket;
     this->resize(_copy->size, _copy->nnz, _target_socket);
 
-    this->max_degree = _copy->max_degree;
     MemoryAPI::copy(this->row_ptr, _copy->row_ptr, _copy->size + 1);
     MemoryAPI::copy(this->vals, _copy->vals, _copy->nnz);
     MemoryAPI::copy(this->col_ids, _copy->col_ids, _copy->nnz);
