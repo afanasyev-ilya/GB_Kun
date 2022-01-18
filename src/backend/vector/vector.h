@@ -11,14 +11,6 @@
 namespace lablas {
 namespace backend {
 
-template <typename T>
-void ptr_swap(T *& _a, T *& _b)
-{
-    T* c = _a;
-    _a = _b;
-    _b = c;
-}
-
 template<typename T>
 class Vector {
 public:

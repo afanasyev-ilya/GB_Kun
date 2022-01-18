@@ -6,6 +6,16 @@
 #define EDGE_VAL 1
 
 template <typename T>
+void ptr_swap(T *& _a, T *& _b)
+{
+    T* c = _a;
+    _a = _b;
+    _b = c;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
 void GraphGenerationAPI::generate_synthetic_graph(EdgeListContainer<T> &_edges_container, Parser &_parser)
 {
     VNT scale = _parser.get_scale();
@@ -506,10 +516,50 @@ void GraphGenerationAPI::init_from_txt_file(EdgeListContainer<T> &_edges_contain
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include <stdio.h>
+#include <stdlib.h>
+
+#define READ_PORTION_SIZE 1024
+
+void read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT &_ln_pos, ENT _nnz)
+{
+    for(size_t ln = _ln_pos; ln < min(_nnz, _ln_pos + READ_PORTION_SIZE); ln++)
+    {
+        size_t src_id = 0, dst_id = 0;
+        fscanf(_fp, "%ld %ld", &src_id, &dst_id);
+        _src_ids[ln - _ln_pos] = src_id;
+        _dst_ids[ln - _ln_pos] = dst_id;
+    }
+    _ln_pos += 1024;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void process_portion(const VNT *_src_ids,
+                     const VNT *_dst_ids,
+                     vector<vector<VNT>> &_csr_matrix,
+                     vector<vector<VNT>> &_csc_matrix,
+                     ENT _ln_pos,
+                     ENT _nnz)
+{
+    for(size_t i = 0; i < READ_PORTION_SIZE; i++)
+    {
+        if((_ln_pos + i) < _nnz)
+        {
+            VNT row = _src_ids[i];
+            VNT col = _dst_ids[i];
+            _csr_matrix[row].push_back(col);
+            _csc_matrix[col].push_back(row);
+        }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
 void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_container, string _mtx_file_name)
 {
-    cout << "reading from mtx file" << endl;
+    double t1, t2;
     ifstream infile(_mtx_file_name.c_str());
     if (!infile.is_open())
         throw "can't open file during convert";
@@ -535,12 +585,16 @@ void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_contain
         throw "Error: is not a square matrix";
     }
 
+    t1 = omp_get_wtime();
     _edges_container.vertices_count = rows;
     _edges_container.edges_count = nnz;
     _edges_container.src_ids.resize(nnz);
     _edges_container.dst_ids.resize(nnz);
     _edges_container.edge_vals.resize(nnz);
+    t2 = omp_get_wtime();
+    cout << "edges list alloc time: " << t2 - t1 << " sec" << endl;
 
+    t1 = omp_get_wtime();
     ENT i = 0;
     unsigned int seed = int(time(NULL));
     while (getline(infile, line))
@@ -556,6 +610,114 @@ void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_contain
     }
 
     infile.close();
+    t2 = omp_get_wtime();
+    cout << "C++ style file read time: " << t2 - t1 << " sec" << endl;
+
+    FILE *fp;
+    fp = fopen(_mtx_file_name.c_str(), "r");
+    char header_line[1024];
+    fgets(header_line, 1024, fp);
+    string header(header_line);
+    if(header.find("%%MatrixMarket matrix coordinate pattern general") == std::string::npos)
+    {
+        throw "Error: is not a mtx file";
+    }
+
+    size_t tmp_rows = 0, tmp_cols = 0, tmp_nnz = 0;
+    fscanf(fp, "%ld %ld %ld", &tmp_rows, &tmp_cols, &tmp_nnz);
+
+    if(tmp_rows != tmp_cols)
+    {
+        throw "Error: is not a square matrix";
+    }
+
+    _edges_container.vertices_count = tmp_rows;
+    _edges_container.edges_count = tmp_nnz;
+    _edges_container.src_ids.resize(tmp_nnz);
+    _edges_container.dst_ids.resize(tmp_nnz);
+    _edges_container.edge_vals.resize(tmp_nnz);
+
+    t1 = omp_get_wtime();
+    for(size_t ln = 0; ln < tmp_nnz; ln++)
+    {
+        size_t src_id = 0, dst_id = 0;
+        fscanf(fp, "%ld %ld", &src_id, &dst_id);
+
+        _edges_container.src_ids[i] = src_id - 1;
+        _edges_container.dst_ids[i] = dst_id - 1;
+        _edges_container.edge_vals[i] = EDGE_VAL;
+    }
+
+    fclose(fp);
+    t2 = omp_get_wtime();
+    cout << "C-style file read time: " << t2 - t1 << " sec" << endl;
+
+
+    t1 = omp_get_wtime();
+    fp = fopen(_mtx_file_name.c_str(), "r");
+    fgets(header_line, 1024, fp);
+    header = header_line;
+    if(header.find("%%MatrixMarket matrix coordinate pattern general") == std::string::npos)
+    {
+        throw "Error: is not a mtx file";
+    }
+
+    tmp_rows = 0, tmp_cols = 0, tmp_nnz = 0;
+    fscanf(fp, "%ld %ld %ld", &tmp_rows, &tmp_cols, &tmp_nnz);
+
+    VNT *proc_src_ids, *proc_dst_ids;
+    VNT *read_src_ids, *read_dst_ids;
+    MemoryAPI::allocate_array(&proc_src_ids, READ_PORTION_SIZE);
+    MemoryAPI::allocate_array(&proc_dst_ids, READ_PORTION_SIZE);
+    MemoryAPI::allocate_array(&read_src_ids, READ_PORTION_SIZE);
+    MemoryAPI::allocate_array(&read_dst_ids, READ_PORTION_SIZE);
+
+    ENT ln_pos = 0;
+
+    vector<vector<VNT>> csr_matrix(tmp_rows);
+    vector<vector<VNT>> csc_matrix(tmp_cols);
+
+    #pragma omp parallel num_threads(2) shared(ln_pos)
+    {
+        int tid = omp_get_thread_num();
+
+        if(tid == 0)
+        {
+            read_portion(fp, proc_src_ids, proc_dst_ids, ln_pos, (ENT)tmp_nnz);
+        }
+
+        while(ln_pos < tmp_nnz)
+        {
+            #pragma omp barrier
+
+            if(tid == 0)
+            {
+                read_portion(fp, read_src_ids, read_dst_ids, ln_pos, (ENT)tmp_nnz);
+            }
+            if(tid == 1)
+            {
+                process_portion(proc_src_ids, proc_src_ids, csr_matrix, csc_matrix, ln_pos - READ_PORTION_SIZE, nnz);
+            }
+
+            #pragma omp barrier
+
+            ptr_swap(read_src_ids, proc_src_ids);
+            ptr_swap(read_dst_ids, proc_dst_ids);
+
+            #pragma omp barrier
+        }
+
+        if(tid == 1)
+        {
+            process_portion(proc_src_ids, proc_src_ids, csr_matrix, csc_matrix, ln_pos - READ_PORTION_SIZE, nnz);
+        }
+    }
+
+    fclose(fp);
+    t2 = omp_get_wtime();
+    cout << "CSR generation + C-style file read time: " << t2 - t1 << " sec" << endl;
+
+    for()
 }
 
 

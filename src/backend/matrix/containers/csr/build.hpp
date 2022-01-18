@@ -45,13 +45,7 @@ void MatrixCSR<T>::construct_unsorted_csr(const VNT *_row_ids,
 template <typename T>
 void MatrixCSR<T>::prepare_vg_lists(int _target_socket)
 {
-    /*vertex_groups[0].set_thresholds(0, 8);
-    vertex_groups[1].set_thresholds(8, 16);
-    vertex_groups[2].set_thresholds(16, 64);
-    vertex_groups[3].set_thresholds(64, 128);
-    vertex_groups[4].set_thresholds(128, 256);
-    vertex_groups[5].set_thresholds(256, INT_MAX);*/
-
+    // set thresholds
     ENT step = 16;
     ENT first = 4;
     vertex_groups[0].set_thresholds(0, first);
@@ -62,16 +56,7 @@ void MatrixCSR<T>::prepare_vg_lists(int _target_socket)
     }
     vertex_groups[vg_num - 1].set_thresholds(first, INT_MAX);
 
-    /*vertex_groups[0].set_thresholds(0, 4);
-    vertex_groups[1].set_thresholds(4, 8);
-    vertex_groups[2].set_thresholds(8, 16);
-    vertex_groups[3].set_thresholds(16, 32);
-    vertex_groups[4].set_thresholds(32, 64);
-    vertex_groups[5].set_thresholds(64, 128);
-    vertex_groups[6].set_thresholds(128, 256);
-    vertex_groups[7].set_thresholds(256, 512);
-    vertex_groups[8].set_thresholds(512, INT_MAX);*/
-
+    // push back vertices to each group using O|V| work
     for(VNT row = 0; row < size; row++)
     {
         ENT connections_count = row_ptr[row + 1] - row_ptr[row];
@@ -80,11 +65,11 @@ void MatrixCSR<T>::prepare_vg_lists(int _target_socket)
                 vertex_groups[vg].push_back(row);
     }
 
+    // create optimized representation for each socket
     for(int i = 0; i < vg_num; i++)
     {
         vertex_groups[i].finalize_creation(_target_socket);
     }
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
