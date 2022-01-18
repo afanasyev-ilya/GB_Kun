@@ -24,112 +24,116 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     double t1 = omp_get_wtime();
 
     int cores_num = omp_get_max_threads();
-    /*#pragma omp parallel // parallelism between different segments
-    {
-        #pragma omp for schedule(dynamic, 1)
-        for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
-        {
-            SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
-            Y *buffer = (Y*)segment->vertex_buffer;
 
-            for(VNT i = 0; i < segment->size; i++)
+    if(_matrix->num_segments >= 2*cores_num)
+    {
+        cout << "using private segment policy" << endl;
+
+        #pragma omp parallel // parallelism between different segments
+        {
+            #pragma omp for schedule(dynamic, 1)
+            for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
             {
-                Y res = identity_val;
-                for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
+                SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
+                Y *buffer = (Y*)segment->vertex_buffer;
+
+                for(VNT i = 0; i < segment->size; i++)
                 {
-                    res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
+                    Y res = identity_val;
+                    for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
+                    {
+                        res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
+                    }
+                    buffer[i] = res;
                 }
-                buffer[i] = res;
             }
         }
-    }*/
-
-    #pragma omp parallel // parallelism within different segments
+    }
+    else
     {
-        for(int s = 0; s < _matrix->num_segments; s++)
+        cout << "using shared segment policy" << endl;
+
+        #pragma omp parallel // parallelism within different segments
         {
-            int seg_id = _matrix->sorted_segments[s].first;
-
-            SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
-            Y *buffer = (Y*)segment->vertex_buffer;
-
-            /*#pragma omp for nowait schedule(static)
-            for(VNT i = segment->first_col; i < segment->last_col; i++)
+            for(int s = 0; s < _matrix->num_segments; s++)
             {
-                tmp_vec[i - segment->first_col] = x_vals[i];
-            }*/
+                int seg_id = _matrix->sorted_segments[s].first;
 
-            if(segment->schedule_type == STATIC)
-            {
-                if(segment->load_balanced_type == ONE_GROUP)
+                SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
+                Y *buffer = (Y*)segment->vertex_buffer;
+
+                if(segment->schedule_type == STATIC)
                 {
-                    #pragma omp for nowait schedule(static)
-                    for(VNT i = 0; i < segment->size; i++)
+                    if(segment->load_balanced_type == ONE_GROUP)
                     {
-                        Y res = identity_val;
-                        for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
-                        {
-                            res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
-                        }
-                        buffer[i] = res;
-                    }
-                }
-
-                if(segment->load_balanced_type == MANY_GROUPS)
-                {
-                    for(int vg = 0; vg < segment->vg_num; vg++)
-                    {
-                        const VNT *vertices = segment->vertex_groups[vg].get_data();
-                        VNT vertex_group_size = segment->vertex_groups[vg].get_size();
-
                         #pragma omp for nowait schedule(static)
-                        for(VNT idx = 0; idx < vertex_group_size; idx++)
+                        for(VNT i = 0; i < segment->size; i++)
                         {
-                            VNT row = vertices[idx];
                             Y res = identity_val;
-                            for(ENT j = segment->row_ptr[row]; j < segment->row_ptr[row + 1]; j++)
+                            for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
                             {
                                 res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
                             }
-                            buffer[row] = res;
+                            buffer[i] = res;
+                        }
+                    }
+
+                    if(segment->load_balanced_type == MANY_GROUPS)
+                    {
+                        for(int vg = 0; vg < segment->vg_num; vg++)
+                        {
+                            const VNT *vertices = segment->vertex_groups[vg].get_data();
+                            VNT vertex_group_size = segment->vertex_groups[vg].get_size();
+
+                            #pragma omp for nowait schedule(static)
+                            for(VNT idx = 0; idx < vertex_group_size; idx++)
+                            {
+                                VNT row = vertices[idx];
+                                Y res = identity_val;
+                                for(ENT j = segment->row_ptr[row]; j < segment->row_ptr[row + 1]; j++)
+                                {
+                                    res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
+                                }
+                                buffer[row] = res;
+                            }
                         }
                     }
                 }
-            }
 
-            if(segment->schedule_type == GUIDED)
-            {
-                if(segment->load_balanced_type == ONE_GROUP)
+                if(segment->schedule_type == GUIDED)
                 {
-                    #pragma omp for nowait schedule(guided)
-                    for(VNT i = 0; i < segment->size; i++)
+                    if(segment->load_balanced_type == ONE_GROUP)
                     {
-                        Y res = identity_val;
-                        for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
+                        #pragma omp for nowait schedule(guided)
+                        for(VNT i = 0; i < segment->size; i++)
                         {
-                            res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
-                        }
-                        buffer[i] = res;
-                    }
-                }
-
-                if(segment->load_balanced_type == MANY_GROUPS)
-                {
-                    for(int vg = 0; vg < segment->vg_num; vg++)
-                    {
-                        const VNT *vertices = segment->vertex_groups[vg].get_data();
-                        VNT vertex_group_size = segment->vertex_groups[vg].get_size();
-
-                        #pragma omp for nowait schedule(guided, 1024)
-                        for(VNT idx = 0; idx < vertex_group_size; idx++)
-                        {
-                            VNT row = vertices[idx];
                             Y res = identity_val;
-                            for(ENT j = segment->row_ptr[row]; j < segment->row_ptr[row + 1]; j++)
+                            for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
                             {
                                 res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
                             }
-                            buffer[row] = res;
+                            buffer[i] = res;
+                        }
+                    }
+
+                    if(segment->load_balanced_type == MANY_GROUPS)
+                    {
+                        for(int vg = 0; vg < segment->vg_num; vg++)
+                        {
+                            const VNT *vertices = segment->vertex_groups[vg].get_data();
+                            VNT vertex_group_size = segment->vertex_groups[vg].get_size();
+
+                            #pragma omp for nowait schedule(guided, 1024)
+                            for(VNT idx = 0; idx < vertex_group_size; idx++)
+                            {
+                                VNT row = vertices[idx];
+                                Y res = identity_val;
+                                for(ENT j = segment->row_ptr[row]; j < segment->row_ptr[row + 1]; j++)
+                                {
+                                    res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
+                                }
+                                buffer[row] = res;
+                            }
                         }
                     }
                 }
@@ -216,8 +220,8 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         }
     }*/
     double t2 = omp_get_wtime();
-    cout << "inner (new groups) time: " << (t2 - t1)*1000 << " ms" << endl;
-    cout << "inner (new groups) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    cout << "inner (seg) time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "inner (seg) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
     t1 = omp_get_wtime();
     #pragma omp parallel // cache aware scatter merge

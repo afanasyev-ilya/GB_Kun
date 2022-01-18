@@ -33,6 +33,9 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
 
     VNT segment_size = SEG_CSR_CACHE_BLOCK_SIZE / sizeof(T);
     num_segments = (size - 1) / segment_size + 1;
+    //num_segments = 48*4;
+    //VNT segment_size = (size - 1)/num_segments + 1;
+
     cout << "Using " << num_segments << " segments..." << endl;
     cout << "Seg size " << segment_size*sizeof(T)/1e3 << " KB" << endl;
 
