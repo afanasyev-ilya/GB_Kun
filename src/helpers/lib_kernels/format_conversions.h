@@ -34,12 +34,17 @@ void vector_of_vectors_to_csr(vector<vector<pair<VNT, T>>> &_tmp_mat,
     {
         _row_ptr[i] = cur_pos;
         _row_ptr[i + 1] = cur_pos + _tmp_mat[i].size();
+        cur_pos += _tmp_mat[i].size();
+    }
+
+    #pragma omp parallel for schedule(guided, 1024)
+    for(VNT i = 0; i < _tmp_mat.size(); i++)
+    {
         for(ENT j = _row_ptr[i]; j < _row_ptr[i + 1]; j++)
         {
             _col_ids[j] = _tmp_mat[i][j - _row_ptr[i]].first;
             _vals[j] = _tmp_mat[i][j - _row_ptr[i]].second;
         }
-        cur_pos += _tmp_mat[i].size();
     }
 }
 

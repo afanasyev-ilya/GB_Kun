@@ -2,10 +2,14 @@
 namespace lablas{
 namespace backend{
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool custome_compare(const std::pair<int, ENT> &p1, const std::pair<int, ENT> &p2)
 {
     return p1.second < p2.second;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double percent_diff(double _val1, double _val2)
 {
@@ -14,13 +18,19 @@ double percent_diff(double _val1, double _val2)
     return abs_dif / max_val;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
-void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket)
+void MatrixSegmentedCSR<T>::build(VNT _num_rows,
+                                  ENT _nnz,
+                                  const ENT *_row_ptr,
+                                  const VNT *_col_ids,
+                                  const T *_vals,
+                                  int _socket)
 {
-    size = _size;
+    size = _num_rows;
     nnz = _nnz;
 
-    cout << size << endl;
     VNT segment_size = SEG_CSR_CACHE_BLOCK_SIZE / sizeof(T);
     num_segments = (size - 1) / segment_size + 1;
     cout << "Using " << num_segments << " segments..." << endl;
@@ -28,18 +38,24 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
 
     // create segments (must be reworked based on created CSR)
     subgraphs = new SubgraphSegment<T>[num_segments];
-    for(ENT i = 0; i < _nnz; i++)
+    for(VNT row = 0; row < _num_rows; row++)
     {
-        int seg_id = _col_ids[i]/segment_size;
-        subgraphs[seg_id].add_edge(_row_ids[i], _col_ids[i], _vals[i]);
+        for(ENT j = _row_ptr[row]; j < _row_ptr[row + 1]; j++)
+        {
+            VNT col = _col_ids[j];
+            T val = _vals[j];
+
+            int seg_id = col/segment_size;
+            subgraphs[seg_id].add_edge(row, col, val);
+        }
     }
 
     merge_blocks_number = omp_get_max_threads()*2; // 2 for load balancing
-    size_t merge_block_size = (_size - 1) / merge_blocks_number + 1;
+    size_t merge_block_size = (size - 1) / merge_blocks_number + 1;
     while(merge_block_size > (SEG_CSR_MERGE_BLOCK_SIZE/ sizeof(T)))
     {
         merge_blocks_number *= 2;
-        merge_block_size = (_size - 1) / merge_blocks_number + 1;
+        merge_block_size = (size - 1) / merge_blocks_number + 1;
     }
 
     cout << "merge blocks count : " << merge_blocks_number << endl;
@@ -60,15 +76,15 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
     std::sort( std::begin(sorted_segments), std::end(sorted_segments), custome_compare );
 
 
-    cout << "avg graph degree: " << ((double)_nnz)/_size << endl;
+    cout << "avg graph degree: " << ((double)nnz)/size << endl;
     cout << "avg avg degree: " << avg_avg_degree << endl;
     for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
     {
         int seg_id = sorted_segments[cur_seg].first;
         cout << "seg " << seg_id<< " stats || ";
         cout << "size (vertices) = " << subgraphs[seg_id].size << "(" <<
-             100.0*(double)subgraphs[seg_id].size/_size << "%)" << ", nnz (edges) = " << subgraphs[seg_id].nnz << " (" <<
-             100.0*(double)subgraphs[seg_id].nnz/_nnz << "%) ";
+             100.0*(double)subgraphs[seg_id].size/size << "%)" << ", nnz (edges) = " << subgraphs[seg_id].nnz << " (" <<
+             100.0*(double)subgraphs[seg_id].nnz/nnz << "%) ";
         cout << "avg degree: " << (double)subgraphs[seg_id].nnz / subgraphs[seg_id].size << endl;
 
         double seg_avg_degree = (double)subgraphs[seg_id].nnz / subgraphs[seg_id].size;
@@ -77,7 +93,7 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
         else
             subgraphs[seg_id].schedule_type = GUIDED;
 
-        if(subgraphs[seg_id].nnz > 0.15*_nnz)
+        if(subgraphs[seg_id].nnz > 0.15*nnz)
         {
             subgraphs[seg_id].load_balanced_type = MANY_GROUPS;
             subgraphs[seg_id].construct_load_balancing();
@@ -88,6 +104,9 @@ void MatrixSegmentedCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, cons
         cout << "balancing: " << subgraphs[seg_id].schedule_type << " " << subgraphs[seg_id].load_balanced_type << endl;
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -18,8 +18,7 @@ public:
     MatrixSegmentedCSR();
     ~MatrixSegmentedCSR();
 
-    void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket = 0);
-    void build(vector<vector<pair<VNT, T>>> &_tmp_csr_matrix, int _socket = 0) {};
+    void build(VNT _num_rows, ENT _nnz, const ENT *_row_ptr, const VNT *_col_ids, const T *_vals, int _socket);
     void print() const {};
     void get_size(VNT* _size) const {
         *_size = size;

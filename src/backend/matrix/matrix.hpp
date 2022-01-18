@@ -208,20 +208,16 @@ void Matrix<T>::init_optimized_structures()
         #endif
         cout << "Using CSR matrix format as optimized representation" << endl;
     }
-    else if (_format == CSR_SEG) {
-        /*data = new MatrixSegmentedCSR<T>;
+    else if (_format == CSR_SEG)
+    {
+        data = new MatrixSegmentedCSR<T>;
         transposed_data = new MatrixSegmentedCSR<T>;
+        ((MatrixSegmentedCSR<T>*)data)->build(csr_data->get_num_rows(), csr_data->get_nnz(), csr_data->get_row_ptr(), csr_data->get_col_ids(),
+                    csr_data->get_vals(), 0);
+        ((MatrixSegmentedCSR<T>*)transposed_data)->build(csc_data->get_num_rows(), csc_data->get_nnz(), csc_data->get_row_ptr(), csc_data->get_col_ids(),
+                    csc_data->get_vals(), 0);
 
-        #ifdef __USE_SOCKET_OPTIMIZATIONS__
-        data_socket_dub = new MatrixSegmentedCSR<T>;
-        #endif
-
-        data->build(_row_indices, _col_indices, _values, _size, _nnz, 0);
-        #ifdef __USE_SOCKET_OPTIMIZATIONS__
-        if(_format == CSR)
-            data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nnz, 1);
-        #endif
-        transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);*/
+        data_socket_dub = NULL;
         cout << "Using CSR_SEG matrix format as optimized representation" << endl;
     }
     else
