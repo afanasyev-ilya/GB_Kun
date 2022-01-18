@@ -521,7 +521,9 @@ void GraphGenerationAPI::init_from_txt_file(EdgeListContainer<T> &_edges_contain
 
 #define READ_PORTION_SIZE 1024
 
-void read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT &_ln_pos, ENT _nnz)
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, ENT _nnz)
 {
     for(size_t ln = _ln_pos; ln < min(_nnz, _ln_pos + READ_PORTION_SIZE); ln++)
     {
@@ -530,7 +532,6 @@ void read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT &_ln_pos, ENT _nn
         _src_ids[ln - _ln_pos] = src_id;
         _dst_ids[ln - _ln_pos] = dst_id;
     }
-    _ln_pos += 1024;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -546,8 +547,9 @@ void process_portion(const VNT *_src_ids,
     {
         if((_ln_pos + i) < _nnz)
         {
-            VNT row = _src_ids[i];
-            VNT col = _dst_ids[i];
+            VNT row = _src_ids[i] - 1;
+            VNT col = _dst_ids[i] - 1;
+
             _csr_matrix[row].push_back(col);
             _csc_matrix[col].push_back(row);
         }
@@ -684,6 +686,7 @@ void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_contain
         if(tid == 0)
         {
             read_portion(fp, proc_src_ids, proc_dst_ids, ln_pos, (ENT)tmp_nnz);
+            ln_pos += READ_PORTION_SIZE;
         }
 
         while(ln_pos < tmp_nnz)
@@ -701,8 +704,12 @@ void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_contain
 
             #pragma omp barrier
 
-            ptr_swap(read_src_ids, proc_src_ids);
-            ptr_swap(read_dst_ids, proc_dst_ids);
+            if(tid == 0)
+            {
+                ptr_swap(read_src_ids, proc_src_ids);
+                ptr_swap(read_dst_ids, proc_dst_ids);
+                ln_pos += READ_PORTION_SIZE;
+            }
 
             #pragma omp barrier
         }
@@ -717,27 +724,65 @@ void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_contain
     t2 = omp_get_wtime();
     cout << "CSR generation + C-style file read time: " << t2 - t1 << " sec" << endl;
 
-    for(int i = 0; i < 10; i++)
+    int cor = 0;
+    int ec = 0;
+    for(int i = 0; i < 100; i++)
     {
-        for(int j = 0; j < csr_matrix[i].size(); j++)
+        int s = rand()%tmp_rows;
+        for(int j = 0; j < csr_matrix[s].size(); j++)
         {
-            int src_id = i;
-            int dst_id = csr_matrix[i][j];
+            int src_id = s;
+            int dst_id = csr_matrix[s][j];
             bool found = false;
             for(int k = 0; k < tmp_nnz; k++)
             {
                 if((src_id == _edges_container.src_ids[k]) && (dst_id == _edges_container.dst_ids[k]))
                 {
-                    cout << src_id << " " << dst_id << " found at pos " << k << endl;
+                    cor++;
                     found = true;
                     break;
                 }
             }
 
             if(found == false)
+            {
+                ec++;
                 cout << src_id << " " << dst_id << " NOT FOUND " << tmp_nnz << endl;
+            }
         }
     }
+    cout << "cor " << cor << endl;
+    cout << "ec " << ec << endl;
+
+    cor = 0;
+    ec = 0;
+    for(int i = 0; i < 1000; i++)
+    {
+        int k = rand()%tmp_nnz;
+
+        int s = _edges_container.src_ids[k];
+        int d = _edges_container.dst_ids[k];
+
+        bool found = false;
+        for(int j = 0; j < csr_matrix[s].size(); j++)
+        {
+            if(csr_matrix[s][j] == d)
+            {
+                cor++;
+                found = true;
+                break;
+            }
+        }
+
+        if(found == false)
+        {
+            ec++;
+            cout << s << " " << d << " NOT FOUND rev ? " << tmp_nnz << endl;
+        }
+    }
+
+    cout << "cor bkw " << cor << endl;
+    cout << "ec bkw " << ec << endl;
 }
 
 
