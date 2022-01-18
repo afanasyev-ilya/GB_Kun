@@ -24,23 +24,38 @@ void edges_list_to_vector_of_vectors(const VNT *_row_ids,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void vector_of_vectors_to_csr(vector<vector<pair<VNT, T>>> &_vec,
+void vector_of_vectors_to_csr(vector<vector<pair<VNT, T>>> &_tmp_mat,
                               ENT *_row_ptr,
                               VNT *_col_ids,
                               T *_vals)
 {
     ENT cur_pos = 0;
-    for(VNT i = 0; i < _vec.size(); i++)
+    for(VNT i = 0; i < _tmp_mat.size(); i++)
     {
         _row_ptr[i] = cur_pos;
-        _row_ptr[i + 1] = cur_pos + _vec[i].size();
+        _row_ptr[i + 1] = cur_pos + _tmp_mat[i].size();
         for(ENT j = _row_ptr[i]; j < _row_ptr[i + 1]; j++)
         {
-            _col_ids[j] = _vec[i][j - _row_ptr[i]].first;
-            _vals[j] = _vec[i][j - _row_ptr[i]].second;
+            _col_ids[j] = _tmp_mat[i][j - _row_ptr[i]].first;
+            _vals[j] = _tmp_mat[i][j - _row_ptr[i]].second;
         }
-        cur_pos += _vec[i].size();
+        cur_pos += _tmp_mat[i].size();
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+ENT estimate_nnz_in_vector_of_vectors(vector<vector<pair<VNT, T>>> &_tmp_mat)
+{
+    ENT nnz = 0;
+    #pragma omp parallel for reduction(+: nnz)
+    for(VNT i = 0; i < _tmp_mat.size(); i++)
+    {
+        nnz += _tmp_mat[i].size();
+    }
+    return nnz;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

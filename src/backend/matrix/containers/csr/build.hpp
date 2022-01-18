@@ -49,10 +49,13 @@ void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::build(vector<vector<pair<VNT, T>>> &_tmp_csr_matrix, int _target_socket)
+void MatrixCSR<T>::build(vector<vector<pair<VNT, T>>> &_tmp_csr, int _target_socket)
 {
-    cout << "im here" << endl;
-    throw "error";
+    resize(_tmp_csr.size(), estimate_nnz_in_vector_of_vectors(_tmp_csr), _target_socket);
+
+    vector_of_vectors_to_csr(_tmp_csr, row_ptr, col_ids, vals);
+
+    prepare_vg_lists(_target_socket);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
