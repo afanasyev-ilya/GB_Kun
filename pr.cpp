@@ -10,21 +10,15 @@ int main(int argc, char **argv) {
         VNT scale = parser.get_scale();
         VNT avg_deg = parser.get_avg_degree();
 
-        EdgeListContainer<float> el;
-        GraphGenerationAPI::generate_synthetic_graph(el, parser);
-
         lablas::Descriptor desc;
 
         lablas::Matrix<float> matrix;
-
-        /* TODO clearance of ELC vectors in order to free storage */
-        const std::vector<VNT> src_ids(el.src_ids);
-        const std::vector<VNT> dst_ids(el.dst_ids);
-        std::vector<float> edge_vals(el.edge_vals);
-
         matrix.set_preferred_matrix_format(parser.get_storage_format());
-        LA_Info info = matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
-        lablas::Vector<float> levels(el.vertices_count);
+        init_matrix(matrix, parser);
+
+        GrB_Index size;
+        matrix.get_nrows(&size);
+        lablas::Vector<float> levels(size);
 
         LAGraph_Graph<float> graph(matrix);
 
@@ -33,7 +27,6 @@ int main(int argc, char **argv) {
 
         SAVE_STATS(LAGraph_VertexCentrality_PageRankGAP(&centrality, &graph, &iters_taken),
                    "Page_Rank", (sizeof(float)*2 + sizeof(size_t)), iters_taken, (graph.AT));
-
 
         delete centrality;
     }

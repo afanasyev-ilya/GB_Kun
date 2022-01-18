@@ -14,7 +14,7 @@ function benchmark_graph {
     export OMP_PROC_BIND=close
     export OMP_PLACES=cores
 
-    $app_name -graph mtx $graph_path -format CSR > dump.txt
+    $app_name -graph mtx $graph_path -format CSR_SEG > dump.txt
 
     python3 ./analize_data.py --graph=$graph_path
 }
@@ -35,8 +35,8 @@ echo "Writing output to "$xls_name" file..."
 rm $xls_name
 rm perf_dict.pkl
 
-declare -a apps=("spmv")
-declare -a graphs=("flick.mtx" "lj.mtx" "ork.mtx" "pock.mtx" "rmat_20_16.mtx" "dbpedia.mtx" "youtube.mtx" "rmat_21_16.mtx" "rmat_22_16.mtx" "ru_21_16.mtx" "ru_22_16.mtx")
+declare -a apps=("pr")
+declare -a graphs=("flick.mtx" "lj.mtx" "ork.mtx" "pock.mtx" "rmat_20_16.mtx" "youtube.mtx" "rmat_21_16.mtx" "rmat_22_16.mtx" "ru_21_16.mtx" "ru_22_16.mtx")
 
 for app in "${apps[@]}"
 do

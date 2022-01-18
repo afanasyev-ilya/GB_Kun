@@ -57,12 +57,15 @@ Matrix<T>::~Matrix()
 
 void read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, ENT _nnz)
 {
-    for(size_t ln = _ln_pos; ln < min(_nnz, _ln_pos + MTX_READ_PARTITION_SIZE); ln++)
+    ENT end_pos = _ln_pos + MTX_READ_PARTITION_SIZE;
+    for(size_t ln = _ln_pos; ln < min(_nnz, end_pos); ln++)
     {
-        size_t src_id = 0, dst_id = 0;
-        fscanf(_fp, "%ld %ld", &src_id, &dst_id);
+        long long int src_id = -2, dst_id = -2;
+        fscanf(_fp, "%lld %lld", &src_id, &dst_id);
         _src_ids[ln - _ln_pos] = src_id;
         _dst_ids[ln - _ln_pos] = dst_id;
+        if(src_id <= 0 || dst_id <= 0)
+            cout << "Error in read_portion, <= 0 src/dst ids" << endl;
     }
 }
 
@@ -85,7 +88,7 @@ void process_portion(const VNT *_src_ids,
             T val = EDGE_VAL;
 
             _csr_matrix[row].push_back(make_pair(col, val));
-            _csc_matrix[col].push_back(make_pair(col, val));
+            _csc_matrix[col].push_back(make_pair(row, val));
         }
     }
 }
@@ -108,8 +111,8 @@ void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
         throw "Error: is not a mtx file";
     }
 
-    size_t tmp_rows = 0, tmp_cols = 0, tmp_nnz = 0;
-    fscanf(fp, "%ld %ld %ld", &tmp_rows, &tmp_cols, &tmp_nnz);
+    long long int tmp_rows = 0, tmp_cols = 0, tmp_nnz = 0;
+    fscanf(fp, "%lld %lld %lld", &tmp_rows, &tmp_cols, &tmp_nnz);
 
     VNT *proc_src_ids, *proc_dst_ids;
     VNT *read_src_ids, *read_dst_ids;
@@ -143,7 +146,8 @@ void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
             }
             if(tid == 1)
             {
-                process_portion(proc_src_ids, proc_dst_ids, _csr_matrix, _csc_matrix, ln_pos - MTX_READ_PARTITION_SIZE, tmp_nnz);
+                process_portion(proc_src_ids, proc_dst_ids, _csr_matrix, _csc_matrix,
+                                ln_pos - MTX_READ_PARTITION_SIZE, tmp_nnz);
             }
 
             #pragma omp barrier
@@ -162,6 +166,8 @@ void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
         {
             process_portion(proc_src_ids, proc_dst_ids, _csr_matrix, _csc_matrix, ln_pos - MTX_READ_PARTITION_SIZE, tmp_nnz);
         }
+
+        #pragma omp barrier
     }
 
     MemoryAPI::free_array(proc_src_ids);

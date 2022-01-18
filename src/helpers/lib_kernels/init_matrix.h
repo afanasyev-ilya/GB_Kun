@@ -37,7 +37,7 @@ void init_matrix(lablas::Matrix<T> &_matrix, Parser &_parser)
 
         const std::vector<VNT> src_ids(edges_container.src_ids);
         const std::vector<VNT> dst_ids(edges_container.dst_ids);
-        std::vector<float> edge_vals(edges_container.edge_vals);
+        std::vector<T> edge_vals(edges_container.edge_vals);
 
         _matrix.build(&src_ids, &dst_ids, &edge_vals, edges_container.vertices_count, GrB_NULL_POINTER);
     }

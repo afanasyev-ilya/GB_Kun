@@ -1,8 +1,5 @@
 #pragma once
 
-#define VNT Index
-#define ENT Index
-
 #define INF 1000000000
 
 // nt - number of threads
