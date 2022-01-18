@@ -80,7 +80,7 @@ public:
     MatrixCSR();
     ~MatrixCSR();
 
-    void deep_copy(MatrixCSR<T> &_copy_matrix, int _target_socket = -1);
+    void deep_copy(MatrixCSR<T> *_copy, int _target_socket = -1);
 
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _target_socket = 0);
     void print() const;

@@ -51,20 +51,20 @@ void MatrixCSR<T>::resize(VNT _size, ENT _nnz, int _target_socket)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::deep_copy(MatrixCSR<T> &_copy, int _target_socket)
+void MatrixCSR<T>::deep_copy(MatrixCSR<T> *_copy, int _target_socket)
 {
     if(_target_socket == -1)
-        _target_socket = _copy.target_socket;
-    this->resize(_copy._size, _copy._nnz, _target_socket);
+        _target_socket = _copy->target_socket;
+    this->resize(_copy->size, _copy->nnz, _target_socket);
 
-    this->max_degree = _copy.max_degree;
-    MemoryAPI::copy(this->row_ptr, _copy.row_ptr, _copy.size + 1);
-    MemoryAPI::copy(this->vals, _copy.vals, _copy.nnz);
-    MemoryAPI::copy(this->col_ids, _copy.col_ids, _copy.nnz);
+    this->max_degree = _copy->max_degree;
+    MemoryAPI::copy(this->row_ptr, _copy->row_ptr, _copy->size + 1);
+    MemoryAPI::copy(this->vals, _copy->vals, _copy->nnz);
+    MemoryAPI::copy(this->col_ids, _copy->col_ids, _copy->nnz);
 
     for(int vg = 0; vg < vg_num; vg++)
     {
-        this->vertex_groups[vg].deep_copy(_copy.vertex_groups[vg], _target_socket);
+        this->vertex_groups[vg].deep_copy(_copy->vertex_groups[vg], _target_socket);
     }
 }
 
