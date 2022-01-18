@@ -62,11 +62,16 @@ void Matrix<T>::build(const VNT *_row_indices,
                       const VNT _size, // todo remove
                       const ENT _nnz)
 {
+
     // CSR data creation
+    double t1, t2;
+    t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
     csr_data->build(_row_indices, _col_indices, _values, _size, _nnz, 0);
     csc_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
+    t2 = omp_get_wtime();
+    cout << "csr creation time: " << t2 - t1 << " sec" << endl;
 
     MemoryAPI::allocate_array(&rowdegrees, get_nrows());
     MemoryAPI::allocate_array(&coldegrees, get_ncols());
@@ -83,19 +88,18 @@ void Matrix<T>::build(const VNT *_row_indices,
         coldegrees[i] = csc_data->get_degree(i);
     }
 
+    t1 = omp_get_wtime();
     // optimized representation creation
     if (_format == CSR)
     {
-        data = new MatrixCSR<T>;
-        transposed_data = new MatrixCSR<T>;
-        ((MatrixCSR<T>*)data)->deep_copy((MatrixCSR<T>*)csr_data, 0);
-        ((MatrixCSR<T>*)transposed_data)->deep_copy((MatrixCSR<T>*)csc_data, 0);
+        data = NULL;
+        transposed_data = NULL;
 
         #ifdef __USE_SOCKET_OPTIMIZATIONS__
         data_socket_dub = new MatrixCSR<T>;;
         ((MatrixCSR<T>*)data_socket_dub)->deep_copy((MatrixCSR<T>*)csr_data, 1);
         #endif
-        cout << "Using CSR matrix format" << endl;
+        cout << "Using CSR matrix format as optimized representation" << endl;
     }
     else if (_format == LAV)
     {
@@ -112,7 +116,7 @@ void Matrix<T>::build(const VNT *_row_indices,
             data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nnz, 1);
         #endif
         transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
-        cout << "Using LAV matrix format" << endl;
+        cout << "Using LAV matrix format as optimized representation" << endl;
     }
     else if (_format == COO)
     {
@@ -129,7 +133,7 @@ void Matrix<T>::build(const VNT *_row_indices,
             data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nnz, 1);
         #endif
         transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
-        cout << "Using COO matrix format" << endl;
+        cout << "Using COO matrix format as optimized representation" << endl;
     }
     else if (_format == CSR_SEG) {
         data = new MatrixSegmentedCSR<T>;
@@ -145,7 +149,7 @@ void Matrix<T>::build(const VNT *_row_indices,
             data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nnz, 1);
         #endif
         transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
-        cout << "Using CSR_SEG matrix format" << endl;
+        cout << "Using CSR_SEG matrix format as optimized representation" << endl;
     }
     else if (_format == VECT_GROUP_CSR) {
         data = new MatrixVectGroupCSR<T>;
@@ -162,9 +166,10 @@ void Matrix<T>::build(const VNT *_row_indices,
         #endif
         transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
 
-        cout << "Using MatrixVectGroupCSR matrix format" << endl;
+        cout << "Using MatrixVectGroupCSR matrix format as optimized representation" << endl;
     }
-    else if (_format == SELL_C) {
+    else if (_format == SELL_C)
+    {
         data = new MatrixSellC<T>;
         transposed_data = new MatrixSellC<T>;
 
@@ -180,7 +185,7 @@ void Matrix<T>::build(const VNT *_row_indices,
 
         transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
 
-        cout << "Using SellC matrix format" << endl;
+        cout << "Using SellC matrix format as optimized representation" << endl;
     }
     else if(_format == SORTED_CSR)
     {
@@ -198,11 +203,14 @@ void Matrix<T>::build(const VNT *_row_indices,
         #endif
         transposed_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
 
-        cout << "Using SortedCSR matrix format" << endl;
+        cout << "Using SortedCSR matrix format as optimized representation" << endl;
     }
-    else {
+    else
+    {
         throw "Error: unsupported format in Matrix<T>::build";
     }
+    t2 = omp_get_wtime();
+    cout << "creating optimized representation time: " << t2 - t1 << " sec" << endl;
 
     workspace = new Workspace(get_nrows(), get_ncols(), csc_data->get_max_degree());
 }
