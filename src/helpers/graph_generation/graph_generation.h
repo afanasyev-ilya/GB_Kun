@@ -60,9 +60,6 @@ public:
 
     template <typename T>
     static void init_from_mtx_file(EdgeListContainer<T> &_edges_container, string _mtx_file_name);
-
-    template <typename T>
-    static void generate_synthetic_graph(EdgeListContainer<T> &_edges_container, Parser &_parser);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

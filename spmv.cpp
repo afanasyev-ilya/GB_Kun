@@ -23,27 +23,22 @@ void test_spmv(int argc, char **argv)
     Parser parser;
     parser.parse_args(argc, argv);
 
-    EdgeListContainer<T> el;
-    GraphGenerationAPI::generate_synthetic_graph(el, parser);
-
     lablas::Descriptor desc;
 
     lablas::Matrix<T> matrix;
-    /* TODO clearance of ELC vectors in order to free storage */
-    const std::vector<VNT> src_ids(el.src_ids);
-    const std::vector<VNT> dst_ids(el.dst_ids);
-    std::vector<T> edge_vals(el.edge_vals);
     matrix.set_preferred_matrix_format(parser.get_storage_format());
-    LA_Info info = matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
+    init_matrix(matrix, parser);
 
-    lablas::Vector<T> w(el.vertices_count);
-    lablas::Vector<T> u(el.vertices_count);
+    GrB_Index size;
+    matrix.get_nrows(&size);
+    lablas::Vector<T> w(size);
+    lablas::Vector<T> u(size);
 
     #define MASK_NULL static_cast<const lablas::Vector<T>*>(NULL)
 
     vector<GrB_Index> nnz_subset;
-    for(Index i = 0; i < ceil(el.vertices_count/100); i++)
-        nnz_subset.push_back(rand() % el.vertices_count);
+    for(Index i = 0; i < ceil(size); i++)
+        nnz_subset.push_back(rand() % size);
 
     u.fill(1.0);
     w.fill(1.0);
@@ -73,8 +68,9 @@ void test_spmv(int argc, char **argv)
     {
         lablas::Matrix<T> check_matrix;
         check_matrix.set_preferred_matrix_format(CSR);
-        check_matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
-        lablas::Vector<T> w_check(el.vertices_count);
+        init_matrix(check_matrix, parser);
+
+        lablas::Vector<T> w_check(size);
 
         u.fill(1.0);
         w_check.fill(1.0);

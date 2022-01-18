@@ -30,6 +30,8 @@ public:
                const VNT _size,
                const ENT _nnz);
 
+    void init_from_mtx(const string &_mtx_file_name);
+
     /* CSR, COO...*/
     LA_Info set_preferred_matrix_format(MatrixStorageFormat format) {
         _format = format;
@@ -108,6 +110,12 @@ private:
     Workspace *workspace;
 
     ENT *rowdegrees, *coldegrees;
+
+    void read_mtx_file_pipelined(const string &_mtx_file_name,
+                                 vector<vector<VNT>> &_csr_matrix,
+                                 vector<vector<VNT>> &_csc_matrix);
+
+    void init_optimized_structures();
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

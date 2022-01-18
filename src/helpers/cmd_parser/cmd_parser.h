@@ -22,7 +22,13 @@ public:
     
     VNT get_scale() { return scale; };
     VNT get_avg_degree() { return avg_degree; };
-    bool check() { return !no_check; };
+    bool check()
+    {
+        if(get_synthetic_graph_type() == MTX_GRAPH)
+            return !no_check;
+        else
+            return false;
+    };
     string get_file_name(){return file_name;};
     string get_out_file_name() {return out_file_name;};
 

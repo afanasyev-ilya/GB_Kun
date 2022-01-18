@@ -79,6 +79,11 @@ public:
         return GrB_SUCCESS;
     }
 
+    void init_from_mtx(const string &_mtx_name)
+    {
+        _matrix.init_from_mtx(_mtx_name);
+    }
+
     void print() const
     {
         _matrix.print();
