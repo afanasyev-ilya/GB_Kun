@@ -20,7 +20,6 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     auto identity_val = op.identity();
 
     Y *shared_vector = (Y*)_workspace->get_first_socket_vector();
-    Y *tmp_vec = (Y*)_workspace->get_prefetched_vector();
 
     double t1 = omp_get_wtime();
 

@@ -84,6 +84,27 @@ void MatrixSortCSR<T>::construct_csr(const VNT *_row_ids,
         cur_pos += tmp_col_ids[old_row].size();
     }
 
+    /*int part_size = 2;
+
+    while((part_size <= 8192) && (part_size < _size))
+    {
+        ENT cnt = 0;
+        for(VNT x = 0; x < part_size; x++)
+        {
+            for(VNT y = 0; y < part_size; y++)
+            {
+                T val = get(x, y);
+                if(val != 0)
+                    cnt++;
+            }
+        }
+        cout << cnt << " " << part_size*part_size << " | " << _nnz << endl;
+        cout << "dense percent: " << (100.0*cnt) / (part_size * part_size) << " % for part = " << part_size << endl;
+        cout << "perc of all: " << (100.0*cnt) / _nnz << " % of all edges" << endl;
+        cout << sizeof(T)*part_size*part_size/1e9 << " GB is size of dense part" << endl << endl;
+        part_size *= 2;
+    }*/
+
     MemoryAPI::free_array(col_frequencies);
     MemoryAPI::free_array(row_frequencies);
     MemoryAPI::free_array(col_conversion_indexes);

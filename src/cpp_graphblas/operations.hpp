@@ -318,22 +318,7 @@ LA_Info mxv (Vector<W>*       _w,
         backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
     else
     {
-        backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor(), 64);
-
-        lablas::Vector<W> check_w(_u->get_vector()->get_size());
-
-        double t3 = omp_get_wtime();
-        backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), check_w.get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
-        double t4 = omp_get_wtime();
-
-        //_w->print();
-        //check_w->print();
-
-        if(check_w == (*_w))
-            cout << "ok" << endl;
-        else
-            cout << "not ok" << endl;
-
+        backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
     }
 
     return GrB_SUCCESS;
