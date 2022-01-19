@@ -68,24 +68,28 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
 
     t1 = omp_get_wtime();
     // construct CSRs and prepare merge blocks
-    double avg_avg_degree = 0;
     for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
     {
-        subgraphs[cur_seg].sort_by_row_id();
         subgraphs[cur_seg].construct_csr();
-        sorted_segments.push_back(make_pair(cur_seg, subgraphs[cur_seg].nnz));
-        avg_avg_degree += ((double)subgraphs[cur_seg].nnz / subgraphs[cur_seg].size)/num_segments;
     }
     t2 = omp_get_wtime();
-    cout << "converting subgraphs to CSR time: " << t2 - t1 << " sec" << endl;
+    cout << "converting subgraphs to CSR time (without sort): " << t2 - t1 << " sec" << endl;
 
     t1 = omp_get_wtime();
+    #pragma omp parallel for schedule(dynamic, 1)
     for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
     {
         subgraphs[cur_seg].construct_blocks(merge_blocks_number, merge_block_size);
     }
     t2 = omp_get_wtime();
     cout << "constructing merge blocks time: " << t2 - t1 << " sec" << endl;
+
+    double avg_avg_degree = 0;
+    for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
+    {
+        sorted_segments.push_back(make_pair(cur_seg, subgraphs[cur_seg].nnz));
+        avg_avg_degree += ((double) subgraphs[cur_seg].nnz / subgraphs[cur_seg].size) / num_segments;
+    }
 
     t1 = omp_get_wtime();
     // do load balancing optimization for the largest segment

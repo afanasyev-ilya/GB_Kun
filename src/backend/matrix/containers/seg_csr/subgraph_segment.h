@@ -33,8 +33,6 @@ public:
 
     void add_edge(VNT _row_id, VNT _col_id, T _val);
 
-    void sort_by_row_id();
-
     void dump();
 
     void construct_csr();
@@ -93,36 +91,11 @@ void SubgraphSegment<T>::add_edge(VNT _row_id, VNT _col_id, T _val)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void SubgraphSegment<T>::sort_by_row_id()
-{
-    ENT nnz = tmp_col_ids.size();
-    ENT *sort_indexes;
-    MemoryAPI::allocate_array(&sort_indexes, nnz);
-    for(ENT i = 0; i < nnz; i++)
-        sort_indexes[i] = i;
-
-    VNT *tmp_ptr = tmp_row_ids.data();
-
-    std::sort(sort_indexes, sort_indexes + nnz,
-              [tmp_ptr](int index1, int index2)
-              {
-                  return tmp_ptr[index1] < tmp_ptr[index2];
-              });
-
-    reorder(tmp_row_ids.data(), sort_indexes, nnz);
-    reorder(tmp_col_ids.data(), sort_indexes, nnz);
-    reorder(tmp_vals.data(), sort_indexes, nnz);
-
-    MemoryAPI::free_array(sort_indexes);
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template<typename T>
 void SubgraphSegment<T>::construct_csr()
 {
     nnz = tmp_row_ids.size();
 
+    double t1 = omp_get_wtime();
     size = 0;
     map<VNT, VNT> conv;
     for(ENT i = 0; i < nnz; i++)
@@ -133,6 +106,8 @@ void SubgraphSegment<T>::construct_csr()
             size++;
         }
     }
+    double t2 = omp_get_wtime();
+    cout << "map creation time: " << (t2 - t1) << " sec" << endl;
 
     MemoryAPI::allocate_array(&row_ptr, size + 1);
     MemoryAPI::allocate_array(&col_ids, nnz);
@@ -150,6 +125,7 @@ void SubgraphSegment<T>::construct_csr()
     for(VNT i = 0; i < size; i++)
         conversion_to_full[i] = 0;
 
+    t1 = omp_get_wtime();
     for (ENT i = 0; i < nnz; i++)
     {
         row_ptr[conv[tmp_row_ids[i]] + 1]++;
@@ -159,6 +135,8 @@ void SubgraphSegment<T>::construct_csr()
 
         conversion_to_full[row_in_seg] = row_in_full;
     }
+    t2 = omp_get_wtime();
+    cout << "row ptr cnt time: " << (t2 - t1) << " sec" << endl;
 
     for (VNT i = 0; i < size; i++)
         row_ptr[i + 1] += row_ptr[i];
