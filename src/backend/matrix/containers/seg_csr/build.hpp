@@ -64,7 +64,7 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
         }
     }
     t2 = omp_get_wtime();
-    cout << "subgraphs adding edges: " << t2 - t1 << " sec" << endl;
+    cout << "subgraphs adding edges time: " << t2 - t1 << " sec" << endl;
 
     t1 = omp_get_wtime();
     // construct CSRs and prepare merge blocks
@@ -73,12 +73,19 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
     {
         subgraphs[cur_seg].sort_by_row_id();
         subgraphs[cur_seg].construct_csr();
-        subgraphs[cur_seg].construct_blocks(merge_blocks_number, merge_block_size);
         sorted_segments.push_back(make_pair(cur_seg, subgraphs[cur_seg].nnz));
         avg_avg_degree += ((double)subgraphs[cur_seg].nnz / subgraphs[cur_seg].size)/num_segments;
     }
     t2 = omp_get_wtime();
-    cout << "converting subgraphs to CSR and merge blocks construction: " << t2 - t1 << " sec" << endl;
+    cout << "converting subgraphs to CSR time: " << t2 - t1 << " sec" << endl;
+
+    t1 = omp_get_wtime();
+    for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
+    {
+        subgraphs[cur_seg].construct_blocks(merge_blocks_number, merge_block_size);
+    }
+    t2 = omp_get_wtime();
+    cout << "constructing merge blocks time: " << t2 - t1 << " sec" << endl;
 
     t1 = omp_get_wtime();
     // do load balancing optimization for the largest segment
@@ -112,7 +119,7 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
         cout << "balancing: " << subgraphs[seg_id].schedule_type << " " << subgraphs[seg_id].load_balanced_type << endl;*/
     }
     t2 = omp_get_wtime();
-    cout << "doing load balancing: " << t2 - t1 << " sec" << endl;
+    cout << "doing load balancing time: " << t2 - t1 << " sec" << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
