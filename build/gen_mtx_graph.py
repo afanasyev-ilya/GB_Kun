@@ -46,8 +46,8 @@ def main():
                     if row == 0 or col == 0:
                         starts_from_zero = True
 
-    nrows = max_row + 1
-    ncols = max_col + 1
+    nrows = max(max_row + 1, max_col + 1)
+    ncols = max(max_row + 1, max_col + 1)
     nnz = int(len(edge_freqs.keys()))
     print("nrows: " + str(nrows))
     print("ncols: " + str(ncols))
