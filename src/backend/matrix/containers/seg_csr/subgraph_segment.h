@@ -38,7 +38,7 @@ public:
     void construct_csr();
 
     void construct_blocks(VNT _block_number, size_t _block_size);
-    void init_buffer();
+    void init_buffer_and_copy_edges();
 
     void construct_load_balancing();
 private:
@@ -58,8 +58,6 @@ private:
 
     VNT *block_starts;
     VNT *block_ends;
-
-    VNT first_col, last_col;
 
     static const int vg_num = 6; // 9 is best currently
     VertexGroup vertex_groups[vg_num];
@@ -96,7 +94,6 @@ void SubgraphSegment<T>::construct_csr()
 {
     nnz = tmp_row_ids.size();
 
-    double t1 = omp_get_wtime();
     size = 0;
     map<VNT, VNT> conv;
     for(ENT i = 0; i < nnz; i++)
@@ -107,8 +104,6 @@ void SubgraphSegment<T>::construct_csr()
             size++;
         }
     }
-    double t2 = omp_get_wtime();
-    cout << "map creation time: " << (t2 - t1) << " sec" << endl;
 
     MemoryAPI::allocate_array(&row_ptr, size + 1);
     MemoryAPI::allocate_array(&col_ids, nnz);
@@ -121,7 +116,6 @@ void SubgraphSegment<T>::construct_csr()
     for(VNT i = 0; i < size; i++)
         conversion_to_full[i] = 0;
 
-    t1 = omp_get_wtime();
     ENT prev = 0;
     for (ENT i = 1; i < nnz + 1; i++)
     {
@@ -136,34 +130,28 @@ void SubgraphSegment<T>::construct_csr()
             prev = i;
         }
     }
-    t2 = omp_get_wtime();
-    cout << "row ptr cnt time: " << (t2 - t1) << " sec" << endl;
-
     for (VNT i = 0; i < size; i++)
         row_ptr[i + 1] += row_ptr[i];
-
-    first_col = size;
-    last_col = 0;
-    for (ENT i = 0; i < nnz; i++)
-    {
-        col_ids[i] = tmp_col_ids[i];
-        vals[i] = tmp_vals[i];
-        first_col = min(first_col, col_ids[i]);
-        last_col = max(last_col, col_ids[i]);
-    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void SubgraphSegment<T>::init_buffer()
+void SubgraphSegment<T>::init_buffer_and_copy_edges()
 {
     MemoryAPI::allocate_array(&vertex_buffer, size);
+
     #pragma omp parallel for schedule(static) // cache-aware alloc
     for(VNT i = 0; i < size; i++)
         vertex_buffer[i] = 0;
-}
 
+    #pragma omp parallel for schedule(static)
+    for (ENT i = 0; i < nnz; i++)
+    {
+        col_ids[i] = tmp_col_ids[i];
+        vals[i] = tmp_vals[i];
+    }
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

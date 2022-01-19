@@ -68,12 +68,18 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
 
     t1 = omp_get_wtime();
     // construct CSRs and prepare merge blocks
+    #pragma omp parallel for schedule(dynamic, 1)
     for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
     {
         subgraphs[cur_seg].construct_csr();
     }
     t2 = omp_get_wtime();
     cout << "converting subgraphs to CSR time (without sort): " << t2 - t1 << " sec" << endl;
+
+    for(int cur_seg = 0; cur_seg < num_segments; cur_seg++) // WARNING! can't be parallel, num-aware alloc inside
+    {
+        subgraphs[cur_seg].init_buffer_and_copy_edges();
+    }
 
     t1 = omp_get_wtime();
     #pragma omp parallel for schedule(dynamic, 1)
@@ -83,11 +89,6 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
     }
     t2 = omp_get_wtime();
     cout << "constructing merge blocks time: " << t2 - t1 << " sec" << endl;
-
-    for(int cur_seg = 0; cur_seg < num_segments; cur_seg++) // WARNING! can't be parallel, num-aware alloc inside
-    {
-        subgraphs[cur_seg].init_buffer();
-    }
 
     double avg_avg_degree = 0;
     for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
@@ -128,7 +129,7 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
         cout << "balancing: " << subgraphs[seg_id].schedule_type << " " << subgraphs[seg_id].load_balanced_type << endl;*/
     }
     t2 = omp_get_wtime();
-    cout << "doing load balancing time: " << t2 - t1 << " sec" << endl;
+    cout << "doing load balancing time: " << t2 - t1 << " sec" << endl << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
