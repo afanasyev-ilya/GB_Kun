@@ -122,14 +122,19 @@ void SubgraphSegment<T>::construct_csr()
         conversion_to_full[i] = 0;
 
     t1 = omp_get_wtime();
-    for (ENT i = 0; i < nnz; i++)
+    ENT prev = 0;
+    for (ENT i = 1; i < nnz + 1; i++)
     {
-        row_ptr[conv[tmp_row_ids[i]] + 1]++;
+        if( (i == (nnz)) || (tmp_row_ids[i] != tmp_row_ids[i - 1]) )
+        {
+            VNT connections_count = i - prev;
+            row_ptr[conv[tmp_row_ids[i - 1]] + 1] += connections_count;
+            VNT row_in_full = tmp_row_ids[i - 1];
+            VNT row_in_seg = conv[tmp_row_ids[i - 1]];
 
-        VNT row_in_full = tmp_row_ids[i];
-        VNT row_in_seg = conv[tmp_row_ids[i]];
-
-        conversion_to_full[row_in_seg] = row_in_full;
+            conversion_to_full[row_in_seg] = row_in_full;
+            prev = i;
+        }
     }
     t2 = omp_get_wtime();
     cout << "row ptr cnt time: " << (t2 - t1) << " sec" << endl;
