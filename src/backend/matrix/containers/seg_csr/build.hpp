@@ -84,6 +84,11 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
     t2 = omp_get_wtime();
     cout << "constructing merge blocks time: " << t2 - t1 << " sec" << endl;
 
+    for(int cur_seg = 0; cur_seg < num_segments; cur_seg++) // WARNING! can't be parallel, num-aware alloc inside
+    {
+        subgraphs[cur_seg].init_buffer();
+    }
+
     double avg_avg_degree = 0;
     for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
     {

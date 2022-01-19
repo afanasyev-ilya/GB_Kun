@@ -38,6 +38,7 @@ public:
     void construct_csr();
 
     void construct_blocks(VNT _block_number, size_t _block_size);
+    void init_buffer();
 
     void construct_load_balancing();
 private:
@@ -100,7 +101,7 @@ void SubgraphSegment<T>::construct_csr()
     map<VNT, VNT> conv;
     for(ENT i = 0; i < nnz; i++)
     {
-        if(conv.find(tmp_row_ids[i]) == conv.end())
+        if((i >= 1 && (tmp_row_ids[i] != tmp_row_ids[i - 1])) || (i == 0))
         {
             conv[tmp_row_ids[i]] = size;
             size++;
@@ -113,11 +114,6 @@ void SubgraphSegment<T>::construct_csr()
     MemoryAPI::allocate_array(&col_ids, nnz);
     MemoryAPI::allocate_array(&vals, nnz);
     MemoryAPI::allocate_array(&conversion_to_full, size);
-    MemoryAPI::allocate_array(&vertex_buffer, size);
-
-    #pragma omp parallel for schedule(static) // cache-aware alloc
-    for(VNT i = 0; i < size; i++)
-        vertex_buffer[i] = 0;
 
     for(VNT i = 0; i < size + 1; i++)
         row_ptr[i] = 0;
@@ -151,6 +147,18 @@ void SubgraphSegment<T>::construct_csr()
         last_col = max(last_col, col_ids[i]);
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+void SubgraphSegment<T>::init_buffer()
+{
+    MemoryAPI::allocate_array(&vertex_buffer, size);
+    #pragma omp parallel for schedule(static) // cache-aware alloc
+    for(VNT i = 0; i < size; i++)
+        vertex_buffer[i] = 0;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
