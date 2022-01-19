@@ -34,11 +34,20 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
 
     VNT segment_size = SEG_CSR_CACHE_BLOCK_SIZE / sizeof(T);
     num_segments = (size - 1) / segment_size + 1;
-    //num_segments = 48*4;
-    //VNT segment_size = (size - 1)/num_segments + 1;
-
     cout << "Using " << num_segments << " segments..." << endl;
     cout << "Seg size " << segment_size*sizeof(T)/1e3 << " KB" << endl;
+
+    merge_blocks_number = omp_get_max_threads()*2; // 2 for load balancing
+    size_t merge_block_size = (size - 1) / merge_blocks_number + 1;
+    while(merge_block_size > (SEG_CSR_MERGE_BLOCK_SIZE/ sizeof(T)))
+    {
+        merge_blocks_number *= 2;
+        merge_block_size = (size - 1) / merge_blocks_number + 1;
+    }
+
+    cout << "merge blocks count : " << merge_blocks_number << endl;
+    cout << "merge_block_size : " << merge_block_size*sizeof(T) / 1024 << " KB" << endl;
+
 
     // create segments (must be reworked based on created CSR)
     t1 = omp_get_wtime();
@@ -56,17 +65,6 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
     }
     t2 = omp_get_wtime();
     cout << "subgraphs adding edges: " << t2 - t1 << " sec" << endl;
-
-    merge_blocks_number = omp_get_max_threads()*2; // 2 for load balancing
-    size_t merge_block_size = (size - 1) / merge_blocks_number + 1;
-    while(merge_block_size > (SEG_CSR_MERGE_BLOCK_SIZE/ sizeof(T)))
-    {
-        merge_blocks_number *= 2;
-        merge_block_size = (size - 1) / merge_blocks_number + 1;
-    }
-
-    cout << "merge blocks count : " << merge_blocks_number << endl;
-    cout << "merge_block_size : " << merge_block_size*sizeof(T) / 1024 << " KB" << endl;
 
     t1 = omp_get_wtime();
     // construct CSRs and prepare merge blocks
