@@ -6,6 +6,11 @@ namespace backend{
 template <typename T>
 MatrixSegmentedCSR<T>::MatrixSegmentedCSR()
 {
+    num_segments = 1;
+    size = 1;
+    nnz = 1;
+    merge_blocks_number = 1;
+    load_balanced_threshold = 1;
     alloc(1, 1);
 }
 
@@ -24,8 +29,6 @@ void MatrixSegmentedCSR<T>::alloc(VNT _size, ENT _nnz)
 {
     this->size = _size;
     this->nnz = _nnz;
-
-    // TODO
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +38,7 @@ void MatrixSegmentedCSR<T>::free()
 {
     delete []subgraphs;
 }
+
 }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
