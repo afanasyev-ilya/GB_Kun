@@ -48,7 +48,6 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
     cout << "merge blocks count : " << merge_blocks_number << endl;
     cout << "merge_block_size : " << merge_block_size*sizeof(T) / 1024 << " KB" << endl;
 
-
     // create segments (must be reworked based on created CSR)
     t1 = omp_get_wtime();
     subgraphs = new SubgraphSegment<T>[num_segments];
