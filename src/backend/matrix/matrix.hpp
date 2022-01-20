@@ -226,6 +226,18 @@ void Matrix<T>::init_optimized_structures()
         data_socket_dub = NULL;
         cout << "Using CSR_SEG matrix format as optimized representation" << endl;
     }
+    else if (_format == COO)
+    {
+        data = new MatrixCOO<T>;
+        transposed_data = new MatrixCOO<T>;
+        ((MatrixCOO<T>*)data)->build(csr_data->get_num_rows(), csr_data->get_nnz(), csr_data->get_row_ptr(), csr_data->get_col_ids(),
+                                     csr_data->get_vals(), 0);
+        ((MatrixCOO<T>*)transposed_data)->build(csc_data->get_num_rows(), csc_data->get_nnz(), csc_data->get_row_ptr(), csc_data->get_col_ids(),
+                                                csc_data->get_vals(), 0);
+
+        data_socket_dub = NULL;
+        cout << "Using COO matrix format as optimized representation" << endl;
+    }
     else
     {
         throw "Error: unsupported format in Matrix<T>::build";
