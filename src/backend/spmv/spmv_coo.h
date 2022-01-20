@@ -33,6 +33,8 @@ void SpMV(const MatrixCOO<A> *_matrix,
             buffer[row] = identity_val;
         }
 
+        #pragma omp barrier
+
         #pragma simd
         #pragma ivdep
         #pragma vector
@@ -43,6 +45,8 @@ void SpMV(const MatrixCOO<A> *_matrix,
             A val = _matrix->vals[i];
             buffer[row] = add_op(buffer[row], mul_op(val, x_vals[col])) ;
         }
+
+        #pragma omp barrier
 
         #pragma omp for schedule(static)
         for(VNT row = 0; row < _matrix->size; row++)

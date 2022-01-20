@@ -41,7 +41,7 @@ void MatrixCOO<T>::build(VNT _num_rows, ENT _nnz, const ENT *_row_ptr, const VNT
     }
 
     bool use_cache_blocking = true;
-    if(use_cache_blocking) // do cache blocking optimization with block size equal to L1 or LLC partition
+    if(true) // do cache blocking optimization with block size equal to L1 or LLC partition
     {
         ENT *sort_indexes;
         MemoryAPI::allocate_array(&sort_indexes, _nnz);
