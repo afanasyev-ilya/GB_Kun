@@ -31,6 +31,7 @@ void SpMV(const MatrixSellC<A> *_matrix,
 
     Y *buffer = (Y*)_workspace->get_first_socket_vector();
 
+    double t1 = omp_get_wtime();
     #pragma omp parallel
     {
         #pragma omp for schedule(static)
@@ -58,9 +59,10 @@ void SpMV(const MatrixSellC<A> *_matrix,
                 }
             }
         }
-
-
     }
+    double t2 = omp_get_wtime();
+    cout << "inner (cell c) time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "inner (cell c) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
     if(_matrix->sigma > 1)
     {

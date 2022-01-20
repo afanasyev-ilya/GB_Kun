@@ -3,11 +3,17 @@ project(GB_Kun)
 include(ProcessorCount)
 ProcessorCount(N)
 
+message("${CMAKE_CXX_COMPILER_ID}")
+
 message(STATUS "Number of cores: ${N}")
 if(N EQUAL 48 OR N EQUAL 64 OR N EQUAL 96 OR N EQUAL 128)
     set(CMAKE_CXX_STANDARD 14)
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++14 -fno-trapping-math -fopenmp-simd -fopenmp  -ffreestanding -ffast-math -march=armv8.2-a -mtune=tsv110 -fpermissive")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++14 -fno-trapping-math -fopenmp-simd -fopenmp  -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays")
+endif()
+
+if(N EQUAL 56)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fopenmp -O3 -fopenmp -mparallel -mretain-list-vector")
 else ()
     set(CMAKE_CXX_STANDARD 14)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fopenmp -fpermissive")
