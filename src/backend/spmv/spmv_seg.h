@@ -25,7 +25,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
 
     int cores_num = omp_get_max_threads();
 
-    if(_matrix->num_segments >= 2*cores_num)
+    if(_matrix->num_segments >= 4*cores_num)
     {
         cout << "using private segment policy" << endl;
 
