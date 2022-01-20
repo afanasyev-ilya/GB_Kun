@@ -39,6 +39,7 @@ void MatrixSortCSR<T>::free()
     MemoryAPI::free_array(col_ids);
     MemoryAPI::free_array(vals);
     MemoryAPI::free_array(tmp_buffer);
+    MemoryAPI::free_array(col_backward_conversion);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

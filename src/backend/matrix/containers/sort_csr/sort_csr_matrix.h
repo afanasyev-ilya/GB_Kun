@@ -38,6 +38,8 @@ private:
     T *vals;
     VNT *col_ids;
 
+    VNT *col_backward_conversion;
+
     double *tmp_buffer;
 
     int target_socket;

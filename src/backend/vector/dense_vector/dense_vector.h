@@ -71,7 +71,7 @@ bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
     VNT error_count = 0;
     for(VNT i = 0; i < lhs.size; i++)
     {
-        if(fabs(lhs.vals[i] - rhs.vals[i]) > 0.001 && lhs.vals[i] < 100000)
+        if(fabs(lhs.vals[i] - rhs.vals[i]) > 0.001)
         {
             if(error_count < 10)
                 cout << "Error in " << i << " : " << lhs.vals[i] << " " << rhs.vals[i] << endl;

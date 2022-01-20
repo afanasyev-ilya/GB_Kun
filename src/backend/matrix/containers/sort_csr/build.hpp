@@ -18,7 +18,7 @@ void MatrixSortCSR<T>::build(VNT *_row_degrees,
     nnz = _nnz;
     target_socket = _target_socket;
 
-    VNT *col_conversion_indexes, *row_conversion_indexes, *col_backward_conversion;
+    VNT *col_conversion_indexes, *row_conversion_indexes;
     MemoryAPI::allocate_array(&col_conversion_indexes, size);
     MemoryAPI::allocate_array(&row_conversion_indexes, size);
     MemoryAPI::allocate_array(&col_backward_conversion, size);
@@ -60,11 +60,9 @@ void MatrixSortCSR<T>::build(VNT *_row_degrees,
         row_ptr[row + 1] = connections_count;
     }
 
-    ENT sum = 0;
-    for(VNT row = 0; row < size + 1; row++)
+    for(VNT row = 1; row < size + 1; row++)
     {
-        row_ptr[row] = sum;
-        sum += row_ptr[row];
+        row_ptr[row] += row_ptr[row - 1];
     }
 
     #pragma omp parallel for schedule(guided, 1024)
@@ -76,7 +74,7 @@ void MatrixSortCSR<T>::build(VNT *_row_degrees,
         for(ENT j = 0; j < connections_count; j++)
         {
             VNT old_col_id = _col_ids[_row_ptr[old_row] + j];
-            VNT old_val = _vals[_row_ptr[old_row] + j];
+            T old_val = _vals[_row_ptr[old_row] + j];
 
             VNT new_col_id = col_backward_conversion[old_col_id];
             col_ids[row_ptr[row] + j] = new_col_id;
@@ -109,7 +107,6 @@ void MatrixSortCSR<T>::build(VNT *_row_degrees,
 
     MemoryAPI::free_array(col_conversion_indexes);
     MemoryAPI::free_array(row_conversion_indexes);
-    MemoryAPI::free_array(col_backward_conversion);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
