@@ -12,7 +12,13 @@ public:
     MatrixSellC();
     ~MatrixSellC();
 
-    void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket = 0);
+    void build(VNT _nrows,
+               VNT _ncols,
+               ENT _nnz,
+               const ENT *_row_ptr,
+               const VNT *_col_ids,
+               const T *_vals,
+               int _target_socket = 0);
 
     void print() const;
     ENT get_nnz() const {return nnz;};

@@ -249,14 +249,33 @@ void Matrix<T>::init_optimized_structures()
                                          csr_data->get_row_ptr(),
                                          csr_data->get_col_ids(),
                                          csr_data->get_vals(), 0);
-        ((MatrixSortCSR<T>*)transposed_data)->build(rowdegrees,
-                                                    coldegrees,
-                                                    csr_data->get_num_rows(),
-                                                    csr_data->get_num_cols(),
+        ((MatrixSortCSR<T>*)transposed_data)->build(coldegrees, rowdegrees,
+                                                    csc_data->get_num_rows(),
+                                                    csc_data->get_num_cols(),
                                                     csc_data->get_nnz(),
                                                     csc_data->get_row_ptr(),
                                                     csc_data->get_col_ids(),
                                                     csc_data->get_vals(), 0);
+
+        data_socket_dub = NULL;
+        cout << "Using COO matrix format as optimized representation" << endl;
+    }
+    else if (_format == SELL_C)
+    {
+        data = new MatrixSellC<T>;
+        transposed_data = new MatrixSellC<T>;
+        ((MatrixSellC<T>*)data)->build(csr_data->get_num_rows(),
+                                       csr_data->get_num_cols(),
+                                       csr_data->get_nnz(),
+                                       csr_data->get_row_ptr(),
+                                       csr_data->get_col_ids(),
+                                       csr_data->get_vals(), 0);
+        ((MatrixSellC<T>*)transposed_data)->build(csc_data->get_num_rows(),
+                                                  csc_data->get_num_cols(),
+                                                  csc_data->get_nnz(),
+                                                  csc_data->get_row_ptr(),
+                                                  csc_data->get_col_ids(),
+                                                  csc_data->get_vals(), 0);
 
         data_socket_dub = NULL;
         cout << "Using COO matrix format as optimized representation" << endl;

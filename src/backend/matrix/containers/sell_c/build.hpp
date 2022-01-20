@@ -22,54 +22,32 @@ void MatrixSellC<T>::print_connections(VNT _row)
     cout << "max diff: " << max_dif << ", " << (double)max_dif/size << endl;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
-void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket)
+void MatrixSellC<T>::build(VNT _nrows,
+                           VNT _ncols,
+                           ENT _nnz,
+                           const ENT *_row_ptr,
+                           const VNT *_col_ids,
+                           const T *_vals,
+                           int _target_socket)
 {
     nnz = _nnz;
-    size = _size;
+    size = _nrows;
 
-    int *col_unsorted;
-    T *vals_unsorted;
+    MemoryAPI::allocate_array(&row_ptr, size + 1);
+    MemoryAPI::allocate_array(&nnz_per_row, size);
+    MemoryAPI::allocate_array(&col_ids, nnz);
+    MemoryAPI::allocate_array(&vals, nnz);
 
-    //permute the col and val according to row
-    ENT* perm = new ENT[nnz];
-    for(ENT idx = 0; idx < nnz; ++idx)
-    {
-        perm[idx] = idx;
-    }
+    MemoryAPI::copy(row_ptr, _row_ptr, size);
+    MemoryAPI::copy(col_ids, _col_ids, nnz);
+    MemoryAPI::copy(vals, _vals, nnz);
 
-    sort_perm(_row_ids, perm, nnz);
-
-    col_ids = new VNT[nnz];
-    vals = new T[nnz];
-
-    for(ENT idx = 0; idx < nnz; ++idx)
-    {
-        col_ids[idx] = _col_ids[perm[idx]];
-        vals[idx] = _vals[perm[idx]];
-    }
-
-    row_ptr = new VNT[size+1];
-
-    nnz_per_row = new VNT[size];
-    for(VNT i = 0; i < size; ++i)
-    {
-        nnz_per_row[i] = 0;
-    }
-
-    //count nnz per row
-    for(ENT i = 0; i < nnz; ++i)
-    {
-        ++nnz_per_row[_row_ids[i]];
-    }
-
-    row_ptr[0] = 0;
-    for(VNT i = 0; i < size; ++i)
-    {
-        row_ptr[i+1] = row_ptr[i] + nnz_per_row[i];
-    }
-
-    delete[] perm;
+    #pragma omp parallel for
+    for(int i = 0; i < size; i++)
+        nnz_per_row[i] = row_ptr[i + 1] - row_ptr[i];
 
     NUMA_init();
 

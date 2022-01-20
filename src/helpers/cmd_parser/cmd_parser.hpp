@@ -7,7 +7,7 @@ Parser::Parser()
     scale = 12;
     avg_degree = 15;
     synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
-    storage_format = SORTED_CSR;
+    storage_format = SELL_C;
     no_check = false;
     out_file_name = "kun_out.mtx";
     file_name = "lj.mtx";
