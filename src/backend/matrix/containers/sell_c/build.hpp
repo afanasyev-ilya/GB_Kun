@@ -14,8 +14,8 @@ void MatrixSellC<T>::print_connections(VNT _row)
     cout << "vert " << _row << " is connected to : ";
     for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
     {
-        if(abs(i - col_ids[i]) > max_dif)
-            max_dif = abs(i - col_ids[i]);
+        if(std::abs(i - col_ids[i]) > max_dif)
+            max_dif = std::abs(i - col_ids[i]);
         cout << col_ids[i] << " ";
     }
     cout << endl;
@@ -23,27 +23,27 @@ void MatrixSellC<T>::print_connections(VNT _row)
 }
 
 template <typename T>
-void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
+void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket)
 {
-    nz = _nz;
+    nnz = _nnz;
     size = _size;
 
     int *col_unsorted;
     T *vals_unsorted;
 
     //permute the col and val according to row
-    ENT* perm = new ENT[nz];
-    for(ENT idx = 0; idx < nz; ++idx)
+    ENT* perm = new ENT[nnz];
+    for(ENT idx = 0; idx < nnz; ++idx)
     {
         perm[idx] = idx;
     }
 
-    sort_perm(_row_ids, perm, nz);
+    sort_perm(_row_ids, perm, nnz);
 
-    col_ids = new VNT[nz];
-    vals = new T[nz];
+    col_ids = new VNT[nnz];
+    vals = new T[nnz];
 
-    for(ENT idx = 0; idx < nz; ++idx)
+    for(ENT idx = 0; idx < nnz; ++idx)
     {
         col_ids[idx] = _col_ids[perm[idx]];
         vals[idx] = _vals[perm[idx]];
@@ -51,22 +51,22 @@ void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_v
 
     row_ptr = new VNT[size+1];
 
-    nz_per_row = new VNT[size];
+    nnz_per_row = new VNT[size];
     for(VNT i = 0; i < size; ++i)
     {
-        nz_per_row[i] = 0;
+        nnz_per_row[i] = 0;
     }
 
     //count nnz per row
-    for(ENT i = 0; i < nz; ++i)
+    for(ENT i = 0; i < nnz; ++i)
     {
-        ++nz_per_row[_row_ids[i]];
+        ++nnz_per_row[_row_ids[i]];
     }
 
     row_ptr[0] = 0;
     for(VNT i = 0; i < size; ++i)
     {
-        row_ptr[i+1] = row_ptr[i] + nz_per_row[i];
+        row_ptr[i+1] = row_ptr[i] + nnz_per_row[i];
     }
 
     delete[] perm;
@@ -83,8 +83,8 @@ void MatrixSellC<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_v
 template<typename T>
 void MatrixSellC<T>::NUMA_init()
 {
-    T* new_vals = new T[nz];
-    VNT* new_col_is = new VNT[nz];
+    T* new_vals = new T[nnz];
+    VNT* new_col_is = new VNT[nnz];
     ENT* new_row_ptrs = new ENT[size+1];
 
     //NUMA init
@@ -133,14 +133,14 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad)
         for(VNT sigmaChunk=0; sigmaChunk<nSigmaChunks; ++sigmaChunk)
         {
             VNT *perm_begin = &(sigmaPerm[sigmaChunk*sigma]);
-            sort_perm(nz_per_row, perm_begin, sigma);
+            sort_perm(nnz_per_row, perm_begin, sigma);
         }
 
         VNT restSigmaChunk = size%sigma;
         if(restSigmaChunk > C)
         {
             VNT *perm_begin = &(sigmaPerm[nSigmaChunks*sigma]);
-            sort_perm(nz_per_row, perm_begin, restSigmaChunk);
+            sort_perm(nnz_per_row, perm_begin, restSigmaChunk);
         }
 
         VNT *sigmaInvPerm = new VNT[size];
@@ -176,7 +176,7 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad)
     //find chunkLen
     for(VNT chunk = 0; chunk < nchunks; ++chunk)
     {
-        int maxRowLen = 0;
+        ENT maxRowLen = 0;
         for(VNT rowInChunk = 0; rowInChunk < C; ++rowInChunk)
         {
             VNT row = chunk*C + rowInChunk;
@@ -271,9 +271,9 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad)
 template<typename T>
 void MatrixSellC<T>::permute(VNT *perm, VNT*  invPerm)
 {
-    T* newVal = new T[nz];
+    T* newVal = new T[nnz];
     ENT* newRowPtr = new ENT[size+1];
-    VNT* newCol = new VNT[nz];
+    VNT* newCol = new VNT[nnz];
 
     newRowPtr[0] = 0;
 
@@ -291,7 +291,7 @@ void MatrixSellC<T>::permute(VNT *perm, VNT*  invPerm)
     {
         //row permutation
         VNT permRow = perm[row];
-        nz_per_row[row] = (row_ptr[permRow+1]-row_ptr[permRow]);
+        nnz_per_row[row] = (row_ptr[permRow+1]-row_ptr[permRow]);
         for(ENT idx=row_ptr[permRow]; idx<row_ptr[permRow+1]; ++idx)
         {
             ++permIdx;

@@ -2,7 +2,6 @@
 #define GB_KUN_MATRIX_HPP
 
 #include "../backend/matrix/matrix.h"
-#include "../helpers/utils.hpp"
 #include "types.hpp"
 #include <vector>
 #include "../backend/la_backend.h"
@@ -31,21 +30,29 @@ public:
         return _matrix.set_preferred_matrix_format(_format);
     }
 
-    LA_Info get_nrows(Index* size) const{
-        _matrix.get_nrows(size);
+    LA_Info get_nrows(Index* _nrows) const{
+        *_nrows = _matrix.get_nrows();
         return GrB_SUCCESS;
     }
 
-    Index get_nrows() const{
-        Index size = 0;
-        _matrix.get_nrows(&size);
-        return size;
+    LA_Info get_ncols(Index* _ncols) const{
+        *_ncols = _matrix.get_ncols();
+        return GrB_SUCCESS;
     }
 
-    Index nrows() const{
-        Index size = 0;
-        _matrix.get_nrows(&size);
-        return size;
+    LA_Info get_nvals(Index* _nvals) const{
+        *_nvals = _matrix.get_nnz();
+        return GrB_SUCCESS;
+    }
+
+    Index* get_rowdegrees()
+    {
+        return _matrix.get_rowdegrees();
+    }
+
+    Index* get_coldegrees()
+    {
+        return _matrix.get_coldegrees();
     }
 
     template <typename BinaryOpT>
@@ -65,11 +72,16 @@ public:
         if (row_indices->size() != col_indices ->size()) {
             return GrB_DIMENSION_MISMATCH;
         }
-        /* doubling nvlas because _nz = nvals in implementation - TODO remove*/
+        /* doubling nvlas because _nnz = nvals in implementation - TODO remove*/
         if (!row_indices->empty()) {
             _matrix.build(row_indices->data(), col_indices->data(), values->data(), nvals, row_indices->size());
         }
         return GrB_SUCCESS;
+    }
+
+    void init_from_mtx(const string &_mtx_name)
+    {
+        _matrix.init_from_mtx(_mtx_name);
     }
 
     void print() const
@@ -78,7 +90,6 @@ public:
     }
 
     Index get_nnz() const {return _matrix.get_nnz();};
-
 private:
     backend::Matrix<T> _matrix;
 };

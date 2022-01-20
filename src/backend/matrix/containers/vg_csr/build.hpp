@@ -1,12 +1,12 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixVectGroupCSR<T>::construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz)
+void MatrixVectGroupCSR<T>::construct_unsorted_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz)
 {
     vector<vector<VNT>> tmp_col_ids(_size);
     vector<vector<T>> tmp_vals(_size);
 
-    for(ENT i = 0; i < _nz; i++)
+    for(ENT i = 0; i < _nnz; i++)
     {
         VNT row = _row_ids[i];
         VNT col = _col_ids[i];
@@ -15,7 +15,7 @@ void MatrixVectGroupCSR<T>::construct_unsorted_csr(const VNT *_row_ids, const VN
         tmp_vals[row].push_back(val);
     }
 
-    resize(_size, _nz);
+    resize(_size, _nnz);
 
     ENT cur_pos = 0;
     for(VNT i = 0; i < size; i++)
@@ -63,10 +63,10 @@ void MatrixVectGroupCSR<T>::create_vertex_groups()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixVectGroupCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nz, int _socket)
+void MatrixVectGroupCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket)
 {
-    resize(_size, _nz);
-    construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nz);
+    resize(_size, _nnz);
+    construct_unsorted_csr(_row_ids, _col_ids, _vals, _size, _nnz);
     create_vertex_groups();
 }
 

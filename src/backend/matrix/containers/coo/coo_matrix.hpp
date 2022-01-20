@@ -17,14 +17,19 @@ MatrixCOO<T>::~MatrixCOO()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCOO<T>::alloc(VNT _size, ENT _nz)
+void MatrixCOO<T>::alloc(VNT _size, ENT _nnz)
 {
     this->size = _size;
-    this->nz = _nz;
+    this->nnz = _nnz;
 
-    MemoryAPI::allocate_array(&row_ids, this->nz);
-    MemoryAPI::allocate_array(&col_ids, this->nz);
-    MemoryAPI::allocate_array(&vals, this->nz);
+    int num_threads = omp_get_max_threads();
+
+    MemoryAPI::allocate_array(&row_ids, this->nnz);
+    MemoryAPI::allocate_array(&col_ids, this->nnz);
+    MemoryAPI::allocate_array(&vals, this->nnz);
+
+    MemoryAPI::allocate_array(&thread_bottom_border, num_threads);
+    MemoryAPI::allocate_array(&thread_top_border, num_threads);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,15 +40,18 @@ void MatrixCOO<T>::free()
     MemoryAPI::free_array(row_ids);
     MemoryAPI::free_array(col_ids);
     MemoryAPI::free_array(vals);
+
+    MemoryAPI::free_array(thread_bottom_border);
+    MemoryAPI::free_array(thread_top_border);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCOO<T>::resize(VNT _size, ENT _nz)
+void MatrixCOO<T>::resize(VNT _size, ENT _nnz)
 {
     this->free();
-    this->alloc(_size, _nz);
+    this->alloc(_size, _nnz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

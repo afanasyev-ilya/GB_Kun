@@ -7,7 +7,7 @@ CSRVertexGroup<T>::CSRVertexGroup()
 {
     max_size = 1;
     size = 1;
-    total_nz = 0;
+    total_nnz = 0;
     MemoryAPI::allocate_array(&ids, size);
 }
 
@@ -18,10 +18,10 @@ void CSRVertexGroup<T>::copy(CSRVertexGroup & _other_group)
 {
     this->size = _other_group.size;
     this->max_size = _other_group.size;
-    this->total_nz = _other_group.total_nz;
+    this->total_nnz = _other_group.total_nnz;
     this->resize(this->max_size);
-    this->min_nz = _other_group.min_nz;
-    this->max_nz = _other_group.max_nz;
+    this->min_nnz = _other_group.min_nnz;
+    this->max_nnz = _other_group.max_nnz;
 
     MemoryAPI::copy(this->ids, _other_group.ids, this->size);
 }
@@ -29,9 +29,9 @@ void CSRVertexGroup<T>::copy(CSRVertexGroup & _other_group)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool CSRVertexGroup<T>::id_in_range(VNT _src_id, VNT _nz_count)
+bool CSRVertexGroup<T>::id_in_range(VNT _src_id, VNT _nnz_count)
 {
-    if ((_nz_count >= min_nz) && (_nz_count < max_nz))
+    if ((_nnz_count >= min_nnz) && (_nnz_count < max_nnz))
         return true;
     else
         return false;
@@ -97,29 +97,29 @@ void CSRVertexGroup<T>::build(MatrixVectGroupCSR<T> *_matrix, VNT _bottom, VNT _
     VNT matrix_size = _matrix->size;
 
     VNT local_group_size = 0;
-    ENT local_group_total_nz = 0;
+    ENT local_group_total_nnz = 0;
 
-    min_nz = _bottom;
-    max_nz = _top;
+    min_nnz = _bottom;
+    max_nnz = _top;
 
     for(VNT src_id = 0; src_id < matrix_size; src_id++)
     {
-        VNT nz_count = _matrix->get_nz_in_row(src_id);
-        if((nz_count >= _bottom) && (nz_count < _top))
+        VNT nnz_count = _matrix->get_nnz_in_row(src_id);
+        if((nnz_count >= _bottom) && (nnz_count < _top))
         {
-            local_group_total_nz += nz_count;
+            local_group_total_nnz += nnz_count;
             local_group_size++;
         }
     }
 
     resize(local_group_size);
-    total_nz = local_group_total_nz;
+    total_nnz = local_group_total_nnz;
 
     VNT vertex_pos = 0;
     for(VNT src_id = 0; src_id < matrix_size; src_id++)
     {
-        VNT nz_count = _matrix->get_nz_in_row(src_id);
-        if((nz_count >= _bottom) && (nz_count < _top))
+        VNT nnz_count = _matrix->get_nnz_in_row(src_id);
+        if((nnz_count >= _bottom) && (nnz_count < _top))
         {
             this->ids[vertex_pos] = src_id;
             vertex_pos++;

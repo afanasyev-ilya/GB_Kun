@@ -2,34 +2,35 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "workspace.h"
 #include "containers/matrix_container.h"
 #include "../../cpp_graphblas/types.hpp"
 #include "../../helpers/cmd_parser/parser_options.h"
 #include "../la_backend.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace lablas {
 namespace backend {
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
 class Matrix {
 public:
-    Matrix() : _format(CSR) {};
-    Matrix(Index ncols, Index nrows) : _format(CSR) {};
+    Matrix();
 
-    ~Matrix() {
-        delete data;
-        #ifdef __USE_SOCKET_OPTIMIZATIONS__
-        delete data_socket_dub;
-        #endif
-        delete transposed_data;
-    };
+    Matrix(Index ncols, Index nrows);
+
+    ~Matrix();
 
     void build(const VNT *_row_indices,
                const VNT *_col_indices,
                const T *_values,
                const VNT _size,
-               const ENT _nz);
+               const ENT _nnz);
+
+    void init_from_mtx(const string &_mtx_file_name);
 
     /* CSR, COO...*/
     LA_Info set_preferred_matrix_format(MatrixStorageFormat format) {
@@ -43,14 +44,8 @@ public:
     };
 
     /* Dense or Sparse*/
-    LA_Info setStorage(Storage mat_type) {
-        mat_type_ = mat_type;
-        return GrB_SUCCESS;
-    };
-
-    /* Dense or Sparse*/
     LA_Info get_storage(Storage *mat_type) const {
-        *mat_type = mat_type_;
+        *mat_type = GrB_SPARSE;
         return GrB_SUCCESS;
     };
 
@@ -58,91 +53,76 @@ public:
         return data;
     }
 
-    const MatrixContainer<T>* get_data() const {
-        return data;
+    #ifdef __USE_SOCKET_OPTIMIZATIONS__
+    MatrixContainer<T>* get_data_dub() { return data_socket_dub; }
+
+    MatrixContainer<T>* get_data_dub() const { return data_socket_dub; }
+    #endif
+
+    const MatrixCSR<T> *get_csr() const { return csr_data; };
+    const MatrixCSR<T> *get_csc() const { return csc_data; };
+
+    const MatrixContainer<T>* get_data() const { return data; }
+
+    MatrixContainer<T>* get_transposed_data() { return transposed_data; }
+
+    const MatrixContainer<T>* get_transposed_data() const { return transposed_data; }
+
+    void get_nrows(VNT* _nrows) const { csr_data->get_size(_nrows); }
+
+    VNT get_nrows() const {
+        VNT nrows;
+        csr_data->get_size(&nrows);
+        return nrows;
     }
 
-    MatrixContainer<T>* get_transposed_data() {
-        return transposed_data;
+    void get_ncols(VNT* _ncols) const {
+        csr_data->get_size(_ncols);
     }
 
-    const MatrixContainer<T>* get_transposed_data() const {
-        return transposed_data;
+    VNT get_ncols() const {
+        VNT ncols;
+        csr_data->get_size(&ncols);
+        return ncols;
     }
 
-    void get_nrows(VNT* _size) const {
-        if (_format == CSR) {
-            data->get_size(_size);
-        }
-    }
+    void print() const { data->print(); }
 
-    void print() const
-    {
-        data->print();
-    }
+    ENT get_nnz() const {return csr_data->get_nnz();};
 
-    ENT get_nnz() const {return data->get_nnz();};
+    ENT* get_rowdegrees() { return rowdegrees; }
 
+    ENT* get_coldegrees() { return coldegrees; }
+
+    Workspace *get_workspace() const { return (const_cast <Matrix<T>*> (this))->workspace; };
 private:
     MatrixContainer<T> *data;
+    MatrixContainer<T> *transposed_data;
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
     MatrixContainer<T> *data_socket_dub;
     #endif
 
-    MatrixContainer<T> *transposed_data;
+    MatrixCSR<T> *csr_data;
+    MatrixCSR<T> *csc_data;
 
     MatrixStorageFormat _format;
-    Storage mat_type_;
-};
 
+    Workspace *workspace;
+
+    ENT *rowdegrees, *coldegrees;
+
+    void read_mtx_file_pipelined(const string &_mtx_file_name,
+                                 vector<vector<pair<VNT, T>>> &_csr_matrix,
+                                 vector<vector<pair<VNT, T>>> &_csc_matrix);
+
+    void init_optimized_structures();
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template<typename T>
-void Matrix<T>::build(const VNT *_row_indices,
-                      const VNT *_col_indices,
-                      const T *_values,
-                      const VNT _size, // todo remove
-                      const ENT _nz) {
-    if (_format == CSR) {
-        data = new MatrixCSR<T>;
-        #ifdef __USE_SOCKET_OPTIMIZATIONS__
-        data_socket_dub = new MatrixCSR<T>;
-        #endif
+#include "matrix.hpp"
 
-        transposed_data = new MatrixCSR<T>;
-        cout << "Using CSR matrix format" << endl;
-    } else if (_format == LAV) {
-        data = new MatrixLAV<T>;
-        transposed_data = new MatrixLAV<T>;
-        cout << "Using LAV matrix format" << endl;
-    } else if (_format == COO) {
-        transposed_data = new MatrixCOO<T>;
-        data = new MatrixCOO<T>;
-        cout << "Using COO matrix format" << endl;
-    } else if (_format == CSR_SEG) {
-        data = new MatrixSegmentedCSR<T>;
-        transposed_data = new MatrixSegmentedCSR<T>;
-        cout << "Using CSR_SEG matrix format" << endl;
-    } else if (_format == VECT_GROUP_CSR) {
-        data = new MatrixVectGroupCSR<T>;
-        transposed_data = new MatrixVectGroupCSR<T>;
-        cout << "Using MatrixVectGroupCSR matrix format" << endl;
-    } else if (_format == SELL_C) {
-        data = new MatrixSellC<T>;
-        transposed_data = new MatrixSellC<T>;
-        cout << "Using SellC matrix format" << endl;
-    }
-    else {
-        throw "Error: unsupported format in Matrix<T>::build";
-    }
-    data->build(_row_indices, _col_indices, _values, _size, _nz, 0);
-    #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    data_socket_dub->build(_row_indices, _col_indices, _values, _size, _nz, 1);
-    #endif
+}
+}
 
-    transposed_data->build(_col_indices, _row_indices, _values, _size, _nz, 0);
-}
-}
-}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

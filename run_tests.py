@@ -83,9 +83,9 @@ if __name__ == "__main__":
 
     options, args = parser.parse_args()
 
-    if os.path.exists("./output/perf.txt"):
+    if os.path.exists("scripts/perf.txt"):
         os.remove("./output/perf.txt")
-    if os.path.exists("./output/bw.txt"):
+    if os.path.exists("scripts/bw.txt"):
         os.remove("./output/bw.txt")
     for scale in range(int(options.first_scale), int(options.last_scale) + 1):
         params = "-s " + str(scale) + " -e 16 " + " -format " + options.graph_format + " -no-check" +\
@@ -94,8 +94,8 @@ if __name__ == "__main__":
 
     print("\n")
     print("bandwidth stats (GB/s):")
-    print_file("./output/bw.txt")
+    print_file("scripts/bw.txt")
     print("\n")
     print("performance stats (GFLOP/s):")
-    print_file("./output/perf.txt")
+    print_file("scripts/perf.txt")
 

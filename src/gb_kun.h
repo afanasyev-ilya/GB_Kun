@@ -13,10 +13,11 @@
 #include <sstream>
 #include <string>
 #include <list>
+#include <cassert>
 
 #include <omp.h>
 
-typedef int Index;
+typedef long long Index;
 
 using namespace std;
 
@@ -27,6 +28,7 @@ using namespace std;
 #include "helpers/graph_generation/graph_generation.h"
 #include "helpers/parallel_primitives/primitives.h"
 #include "helpers/stats/stats.h"
+#include "helpers/lib_kernels/format_conversions.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -34,18 +36,30 @@ template <typename T>
 class DenseVector;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// backend
 
 #include "backend/descriptor/descriptor.h"
 
 #include "backend/vector/vector.h"
 #include "backend/matrix/matrix.h"
 #include "backend/spmv/spmv.h"
+#include "backend/spmspv/spmspv.h"
 
-#include "cpp_graphblas/matrix.hpp"
-#include "cpp_graphblas/vector.hpp"
-#include "cpp_graphblas/descriptor.hpp"
-#include "cpp_graphblas/types.hpp"
-#include "cpp_graphblas/dimensions.hpp"
-#include "cpp_graphblas/operations.hpp"
+#include "backend/operations/operations.h"
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// cpp interfaces
+
+#include "cpp_graphblas/cpp_graphblas.h"
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// cblas interfaces
+
+#include "cblas_wrappers/cblas_wrappers.h"
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "helpers/lib_kernels/init_matrix.h"
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

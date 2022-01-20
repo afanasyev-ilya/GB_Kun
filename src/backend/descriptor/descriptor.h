@@ -12,16 +12,13 @@ namespace backend{
 class Descriptor
 {
 public:
-    explicit Descriptor() : desc_{ GrB_DEFAULT, GrB_DEFAULT, GrB_DEFAULT, GrB_DEFAULT,
-                                          GrB_FIXEDROW, GrB_32, GrB_32, GrB_128, GrB_PUSHPULL,
-                                          GrB_16, GrB_CUDA}, tmp_buffer(nullptr), debug_flag(false)
+    explicit Descriptor() : debug_flag(false)
     {
-        MemoryAPI::allocate_array(&tmp_buffer, _matrix_size);
+        for(auto & i : desc_)
+            i = GrB_DEFAULT;
     }
-    ~Descriptor()
-    {
-        MemoryAPI::free_array(tmp_buffer);
-    }
+
+    ~Descriptor() = default;
 
     LA_Info set(Desc_field field, Desc_value value) {
         desc_[field] = value;
@@ -33,17 +30,12 @@ public:
         return GrB_SUCCESS;
     }
 
-    double* get_buffer() {
-        return tmp_buffer;
-    }
-
     bool debug() const{
         return debug_flag;
     }
 
 private:
-    double *tmp_buffer;
-    Desc_value desc_[GrB_NDESCFIELD];
+    Desc_value desc_[GrB_NDESCFIELD]{};
     bool debug_flag;
 };
 

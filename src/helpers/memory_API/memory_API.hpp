@@ -17,6 +17,51 @@ void MemoryAPI::allocate_array(T **_ptr, size_t _size)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
+void MemoryAPI::numa_aware_alloc(T **_ptr, size_t _size, int _target_socket)
+{
+    *_ptr = (T*)malloc(_size*sizeof(T));
+
+    int max_threads = omp_get_max_threads();
+    if(max_threads == 2*THREADS_PER_SOCKET)
+    {
+        #pragma omp parallel num_threads(2*THREADS_PER_SOCKET)
+        {
+            size_t sock = omp_get_thread_num() / THREADS_PER_SOCKET;
+            size_t tid = omp_get_thread_num() % THREADS_PER_SOCKET;
+
+            size_t work_per_thread = (_size - 1)/THREADS_PER_SOCKET + 1;
+            if(sock == _target_socket)
+            {
+                for(size_t i = tid*work_per_thread; i < min((tid+1)*work_per_thread, _size); i++)
+                {
+                    (*_ptr)[i] = 0;
+                }
+            }
+        }
+    }
+    else if(omp_get_max_threads() == THREADS_PER_SOCKET)
+    {
+        #pragma omp parallel for num_threads(THREADS_PER_SOCKET)
+        for(size_t i = 0; i < _size; i++)
+        {
+            (*_ptr)[i] = 0;
+        }
+    }
+    else
+    {
+        #pragma omp parallel for
+        for(size_t i = 0; i < _size; i++)
+        {
+            (*_ptr)[i] = 0;
+        }
+    }
+
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
 void MemoryAPI::allocate_host_array(T **_ptr, size_t _size)
 {
     *_ptr = (T*)malloc(_size*sizeof(T));

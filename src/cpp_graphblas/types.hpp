@@ -8,40 +8,39 @@
             GrB_DENSE};
 
     enum Desc_field {GrB_MASK,
-            GrB_OUTP,
-            GrB_INP0,
-            GrB_INP1,
-            GrB_MODE,
-            GrB_TA,
-            GrB_TB,
-            GrB_NT,
-            GrB_MXVMODE,
-            GrB_TOL,
-            GrB_BACKEND,
-            GrB_NDESCFIELD};
+                    GrB_OUTPUT,
+                    GrB_INP0,
+                    GrB_INP1,
+                    GrB_MODE,
+                    GrB_TA,
+                    GrB_TB,
+                    GrB_NT,
+                    GrB_MXVMODE,
+                    GrB_TOL,
+                    GrB_BACKEND,
+                    GrB_NDESCFIELD};
 
-    enum Desc_value {GrB_SCMP,               // for GrB_MASK
-            GrB_REPLACE,            // for GrB_OUTP
-            GrB_TRAN,               // for GrB_INP0, GrB_INP1
-            GrB_DEFAULT,
-            GrB_CUSPARSE,           // for SpMV, SpMM
-            GrB_CUSPARSE2,
-            GrB_FIXEDROW,
-            GrB_FIXEDCOL,
-            GrB_MERGEPATH  =    9,
-            GrB_PUSHPULL   =   10,  // for GrB_MXVMODE
-            GrB_PUSHONLY   =   11,  // for GrB_MXVMODE
-            GrB_PULLONLY   =   12,  // for GrB_MXVMODE
-            GrB_SEQUENTIAL =   13,  // for GrB_BACKEND
-            GrB_CUDA       =   14,  // for GrB_BACKEND
-            GrB_8          =    8,  // for GrB_TA, GrB_TB, GrB_NT
-            GrB_16         =   16,  // for GrB_TOL
-            GrB_32         =   32,
-            GrB_64         =   64,
-            GrB_128        =  128,
-            GrB_256        =  256,
-            GrB_512        =  512,
-            GrB_1024       = 1024};
+    enum Desc_value {reserved = 0,
+                    GrB_REPLACE = 1, // for GrB_OUTP
+                    GrB_COMP = 2, // for GrB_MASK
+                    GrB_TRAN = 3, // for GrB_INP0, GrB_INP1
+                    GrB_STRUCTURE = 4, // for GrB_MASK
+                    GrB_STR_COMP = 5, // for GrB_MASK, combination
+                    GrB_DEFAULT = 6,
+                    GrB_FIXEDROW,
+                    GrB_PUSHPULL   =   10,  // for GrB_MXVMODE
+                    GrB_PUSHONLY   =   11,  // for GrB_MXVMODE
+                    GrB_PULLONLY   =   12,  // for GrB_MXVMODE
+                    GrB_SEQUENTIAL =   13,  // for GrB_BACKEND
+                    GrB_CUDA       =   14,  // for GrB_BACKEND
+                    GrB_8          =    8,  // for GrB_TA, GrB_TB, GrB_NT
+                    GrB_16         =   16,  // for GrB_TOL
+                    GrB_32         =   32,
+                    GrB_64         =   64,
+                    GrB_128        =  128,
+                    GrB_256        =  256,
+                    GrB_512        =  512,
+                    GrB_1024       = 1024};
 
 
     typedef enum {
@@ -87,33 +86,63 @@
 //        };
 namespace lablas{
 
-template <typename D1, typename D2 = D1>
+        template <typename D1, typename D2 = D1>
         struct Identity {
-            inline D2 operator()(D1 input) const { return input; }
+            inline D2 operator()(const D1 input) const { return input; }
         };
-template <typename T_out>
+
+        template <typename T_out>
         struct plus {
-            inline T_out operator()(T_out lhs, T_out rhs) {
+            inline T_out operator()(const T_out lhs, const T_out rhs) const {
                 return lhs + rhs;
             }
         };
-template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct minus {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
+                return lhs - rhs;
+            }
+        };
+
+        template <typename T_out>
+        struct abs {
+            inline T_out operator()(const T_out arg) const {
+                return std::abs(arg);
+            }
+        };
+
+        template <typename T>
+        struct div {
+            inline T operator()(const T lhs, const T rhs) const {
+                return lhs / rhs;
+            }
+        };
+
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct multiplies {
-            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
                 return lhs * rhs;
             }
         };
 
-template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct first {
-            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
                 return lhs;
             }
         };
 
-template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct second {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
+                return rhs;
+            }
+        };
+
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct minimum {
-            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
                 if (lhs < rhs){
                     return lhs;
                 } else {
@@ -122,10 +151,35 @@ template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
             }
         };
 
-template <typename T_in1 = bool, typename T_in2 = bool, typename T_out = bool>
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct maximum {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
+                if (lhs > rhs){
+                    return lhs;
+                } else {
+                    return rhs;
+                }
+            }
+        };
+
+        template <typename T_in1 = bool, typename T_in2 = bool, typename T_out = bool>
         struct logical_and {
-            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
                 return lhs && rhs;
+            }
+        };
+
+        template <typename T_in1 = bool, typename T_in2 = bool, typename T_out = bool>
+        struct logical_or {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
+                return lhs || rhs;
+            }
+        };
+
+        template <typename T_in1, typename T_in2=T_in1, typename T_out=T_in1>
+        struct GrB_ONEB_T {
+            inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
+                return (T_out)1;
             }
         };
 
@@ -148,9 +202,9 @@ REGISTER_MONOID(PlusMonoid, plus, 0)
 REGISTER_MONOID(LogicalOrMonoid, logical_or, false)
 
 REGISTER_MONOID(FirstWinsMonoid, first, 0)
+REGISTER_MONOID(SecondWinsMonoid, second, 0)
 
 REGISTER_MONOID(FirstMin, minimum, 0)
-
 
 // Semiring generator macro provided by Scott McMillan
 #define REGISTER_SEMIRING(SR_NAME, ADD_MONOID, MULT_BINARYOP)             \
@@ -175,6 +229,8 @@ REGISTER_SEMIRING(PlusMultipliesSemiring, PlusMonoid, multiplies)
 REGISTER_SEMIRING(LogicalOrAndSemiring, LogicalOrMonoid, logical_and)
 REGISTER_SEMIRING(FirstWinsSemiring, FirstWinsMonoid, multiplies)
 REGISTER_SEMIRING(FirstMinSemiring, FirstMin, multiplies)
+REGISTER_SEMIRING(PlusSecondSemiring, PlusMonoid, second)
+REGISTER_SEMIRING(StructuralBool, LogicalOrMonoid, GrB_ONEB_T)
 
 template <typename SemiringT>
 struct AdditiveMonoidFromSemiring {

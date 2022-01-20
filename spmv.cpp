@@ -8,49 +8,56 @@ void save_to_file(const string &_file_name, double _stat)
     stat_file.close();
 }
 
+void report_num_threads(int level)
+{
+    #pragma omp single
+    {
+        printf("Level %d: number of threads in the team - %d\n",
+               level, omp_get_num_threads());
+    }
+}
+
 template<typename T>
 void test_spmv(int argc, char **argv)
 {
-    //print_omp_stats();
     Parser parser;
     parser.parse_args(argc, argv);
-
-    EdgeListContainer<T> el;
-    GraphGenerationAPI::generate_synthetic_graph(el, parser);
 
     lablas::Descriptor desc;
 
     lablas::Matrix<T> matrix;
-    /* TODO clearance of ELC vectors in order to free storage */
-    const std::vector<VNT> src_ids(el.src_ids);
-    const std::vector<VNT> dst_ids(el.dst_ids);
-    std::vector<T> edge_vals(el.edge_vals);
     matrix.set_preferred_matrix_format(parser.get_storage_format());
-    LA_Info info = matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
+    init_matrix(matrix, parser);
 
-    lablas::Vector<T> w(el.vertices_count);
-    lablas::Vector<T> u(el.vertices_count);
+    GrB_Index size;
+    matrix.get_nrows(&size);
+    lablas::Vector<T> w(size);
+    lablas::Vector<T> u(size);
 
-    w.fill(0.0);
+    #define MASK_NULL static_cast<const lablas::Vector<T>*>(NULL)
+
+    vector<GrB_Index> nnz_subset;
+    for(Index i = 0; i < ceil(size); i++)
+        nnz_subset.push_back(rand() % size);
+
     u.fill(1.0);
+    w.fill(1.0);
+    GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, 10, &(nnz_subset[0]), nnz_subset.size(), NULL));
+    GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
 
-    lablas::mxv<T, T, T, T>(&w, NULL, nullptr, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
-
-    int num_runs = 100;
+    int num_runs = 10;
     double avg_time = 0;
     for(int run = 0; run < num_runs; run++)
     {
-        // lablas::PlusMultipliesSemiring<T>()
-        w.fill(0.0);
-        u.fill(1.0);
-        double t1 = omp_get_wtime();
-        lablas::mxv<T, T, T, T>(&w, NULL, nullptr, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
-        double t2 = omp_get_wtime();
+        w.fill(1.0);
+
+        SAVE_STATS(GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);,
+                   "SPMV", (sizeof(float)*2 + sizeof(size_t)), 1, &matrix);
         avg_time += (t2 - t1) / num_runs;
     }
 
     double perf = 2.0*matrix.get_nnz()/(avg_time*1e9);
-    double bw = (3.0*sizeof(T)+sizeof(VNT))*matrix.get_nnz()/(avg_time*1e9);
+    double bw = (2.0*sizeof(T)+sizeof(Index))*matrix.get_nnz()/(avg_time*1e9);
     cout << "SPMV time: " << avg_time*1000 << " ms" << endl;
     cout << "SPMV perf: " << perf << " GFlop/s" << endl;
     cout << "SPMV BW: " << bw << " GB/s" << endl;
@@ -61,12 +68,15 @@ void test_spmv(int argc, char **argv)
     {
         lablas::Matrix<T> check_matrix;
         check_matrix.set_preferred_matrix_format(CSR);
-        check_matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
-        lablas::Vector<T> w_check(el.vertices_count);
+        init_matrix(check_matrix, parser);
+
+        lablas::Vector<T> w_check(size);
 
         u.fill(1.0);
-        w_check.fill(0.0);
-        lablas::mxv<T, T, T, T>(&w_check, NULL, nullptr, lablas::PlusMultipliesSemiring<T>(), &check_matrix, &u, &desc);
+        w_check.fill(1.0);
+        GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, 10, &(nnz_subset[0]), nnz_subset.size(), NULL));
+
+        GrB_mxv(&w_check, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &check_matrix, &u, &desc);
 
         if(w == w_check)
         {
@@ -77,12 +87,14 @@ void test_spmv(int argc, char **argv)
             cout << "Vectors are NOT equal" << endl;
         }
     }
+
+    #undef MASK_NULL
 }
 
 int main(int argc, char **argv) {
     try
     {
-        test_spmv<double>(argc, argv);
+        test_spmv<float>(argc, argv);
     }
     catch (string error)
     {

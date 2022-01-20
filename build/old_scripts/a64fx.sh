@@ -22,25 +22,15 @@ export LD_LIBRARY_PATH=/home/z44377r/ARM/gcc_latest/lib64:$LD_LIBRARY_PATH
 g++ --version
 which g++
 
-cmake -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ .
-make clean
-make
+cmake -D CMAKE_C_COMPILER=/home/z44377r/ARM/gcc_latest/bin/gcc -D CMAKE_CXX_COMPILER=/home/z44377r/ARM/gcc_latest/bin/g++ ../
+make spmv
 
-export OMP_NUM_THREADS=64
+# FCCpx -Kfast,openmp -Nfjomplib -mcmodel=large -Koptmsg=2 -D_A64FX -Kzfill saxpy.cpp -o saxpy.bin
+
+export OMP_NUM_THREADS=48
 export OMP_PROC_BIND=close
 export OMP_PLACES=cores
 
-#./spmv -s $1 -e 32 -type $2 -format $3
+#./saxpy.bin
 
-./spmv -s 21 -e 32 -type RU -format CSR
-./spmv -s 21 -e 32 -type RMAT -format CSR
-./spmv -graph RW ./lj.mtx -format CSR
-
-#./spmv -s 20 -e 32 -type RU -format CSR
-#./spmv -graph RW ./lj.mtx -format CSR
-#./spmv -graph RW ./lj.mtx -format CSR_SEG
-#./spmv -graph RW ./lj.mtx -format SIGMA
-
-#./spmv -s 20 -e 32 -type RU -format CSR_SEG
-
-#./spmv -s 21 -e 27 -type RU -format CSR_SEG
+./spmv -graph mtx ./pets.mtx -format CSR

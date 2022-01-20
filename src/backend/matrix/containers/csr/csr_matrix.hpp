@@ -4,7 +4,7 @@ template <typename T>
 MatrixCSR<T>::MatrixCSR()
 {
     target_socket = 0;
-    alloc(1, 1);
+    alloc(1, 1, target_socket);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -18,14 +18,15 @@ MatrixCSR<T>::~MatrixCSR()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::alloc(VNT _size, ENT _nz)
+void MatrixCSR<T>::alloc(VNT _size, ENT _nnz, int _target_socket)
 {
     this->size = _size;
-    this->nz = _nz;
+    this->nnz = _nnz;
+    target_socket = _target_socket;
 
-    MemoryAPI::allocate_array(&row_ptr, this->size + 1);
-    MemoryAPI::allocate_array(&col_ids, this->nz);
-    MemoryAPI::allocate_array(&vals, this->nz);
+    MemoryAPI::numa_aware_alloc(&row_ptr, this->size + 1, _target_socket);
+    MemoryAPI::numa_aware_alloc(&col_ids, this->nnz, _target_socket);
+    MemoryAPI::numa_aware_alloc(&vals, this->nnz, _target_socket);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,10 +42,29 @@ void MatrixCSR<T>::free()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::resize(VNT _size, ENT _nz)
+void MatrixCSR<T>::resize(VNT _size, ENT _nnz, int _target_socket)
 {
     this->free();
-    this->alloc(_size, _nz);
+    this->alloc(_size, _nnz, _target_socket);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MatrixCSR<T>::deep_copy(MatrixCSR<T> *_copy, int _target_socket)
+{
+    if(_target_socket == -1)
+        _target_socket = _copy->target_socket;
+    this->resize(_copy->size, _copy->nnz, _target_socket);
+
+    MemoryAPI::copy(this->row_ptr, _copy->row_ptr, _copy->size + 1);
+    MemoryAPI::copy(this->vals, _copy->vals, _copy->nnz);
+    MemoryAPI::copy(this->col_ids, _copy->col_ids, _copy->nnz);
+
+    for(int vg = 0; vg < vg_num; vg++)
+    {
+        this->vertex_groups[vg].deep_copy(_copy->vertex_groups[vg], _target_socket);
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,6 +98,8 @@ T MatrixCSR<T>::get(VNT _row, VNT _col) const
 template <typename T>
 void MatrixCSR<T>::print() const
 {
+    cout << "--------------------\n";
+    cout << "MATRIX: [ " << endl;
     for(VNT row = 0; row < size; row++)
     {
         for(VNT col = 0; col < size; col++)
@@ -86,6 +108,27 @@ void MatrixCSR<T>::print() const
         }
         cout << endl;
     }
+    cout << "]\n";
+    cout << "--------------------\n";
+    cout << "nnz: " << nnz << endl;
+
+    Index size_ = 0;
+    get_size(&size_);
+    cout << "row_ptr: [ ";
+    for (int i = 0; i < size_ + 1; i++)
+    {
+        cout << row_ptr[i] << " ";
+    }
+
+    cout << "col_ids: [ ";
+    for (int i = 0; i < get_nnz(); i++)
+    {
+        cout << col_ids[i] << " ";
+    }
+    cout << "]\n";
+    cout << endl;
+    cout << "]" << endl;
+    cout << "--------------------\n";
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

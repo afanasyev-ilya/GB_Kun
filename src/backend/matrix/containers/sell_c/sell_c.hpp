@@ -7,12 +7,12 @@ namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T> void sort_perm(T *arr, int *perm, int len, bool rev=false)
+template <typename T> void sort_perm(T *arr, ENT *perm, ENT len, bool rev=false)
 {
     if(rev == false) {
-        std::stable_sort(perm+0, perm+len, [&](const int& a, const int& b) {return (arr[a] < arr[b]);});
+        std::stable_sort(perm+0, perm+len, [&](const ENT& a, const ENT& b) {return (arr[a] < arr[b]);});
     } else {
-        std::stable_sort(perm+0, perm+len, [&](const int& a, const int& b) {return (arr[a] > arr[b]); });
+        std::stable_sort(perm+0, perm+len, [&](const ENT& a, const ENT& b) {return (arr[a] > arr[b]); });
     }
 }
 
@@ -31,7 +31,7 @@ template <typename T> void sort_perm_v(T *arr, int *perm, int len, bool rev=fals
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-MatrixSellC<T>::MatrixSellC():size(0), nz(0), vals(NULL), row_ptr(NULL), col_ids(NULL), chunkLen(NULL), chunkPtr(NULL), colSellC(NULL), valSellC(NULL), unrollFac(1), C(1)
+MatrixSellC<T>::MatrixSellC():size(0), nnz(0), vals(NULL), row_ptr(NULL), col_ids(NULL), chunkLen(NULL), chunkPtr(NULL), colSellC(NULL), valSellC(NULL), unrollFac(1), C(1)
 {
     #pragma omp parallel
     {
@@ -39,7 +39,7 @@ MatrixSellC<T>::MatrixSellC():size(0), nz(0), vals(NULL), row_ptr(NULL), col_ids
     }
     rcmPerm = NULL;
     rcmInvPerm = NULL;
-    nz_per_row = NULL;
+    nnz_per_row = NULL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,9 +68,9 @@ MatrixSellC<T>::~MatrixSellC()
     if(valSellC)
         delete[] valSellC;
 
-    if(nz_per_row)
+    if(nnz_per_row)
     {
-        delete[] nz_per_row;
+        delete[] nnz_per_row;
     }
 }
 
@@ -107,17 +107,17 @@ void MatrixSellC<T>::print() const
 template <typename T>
 void MatrixSellC<T>::print_stats()
 {
-    ENT cell_c_nz = 0;
+    ENT cell_c_nnz = 0;
     for(VNT chunk=0; chunk<nchunks; ++chunk)
     {
-        cell_c_nz += chunkLen[chunk]*C;
+        cell_c_nnz += chunkLen[chunk]*C;
     }
 
     cout << endl << " -------------------- " << endl;
     cout << "SellC matrix stats" << endl;
     cout << "Num rows: " << size << " (vertices)" << endl;
-    cout << "nz: " << nz << " (edges)" << endl;
-    cout << "SellC nz: " << cell_c_nz << ", growing factor - " << (double)cell_c_nz/nz << endl;
+    cout << "nnz: " << nnz << " (edges)" << endl;
+    cout << "SellC nnz: " << cell_c_nnz << ", growing factor - " << (double)cell_c_nnz/nnz << endl;
     cout << "Cache size: " << size * sizeof(T) / 1e6 << " MB indirectly array" << endl;
     cout << " -------------------- " << endl << endl;
 }

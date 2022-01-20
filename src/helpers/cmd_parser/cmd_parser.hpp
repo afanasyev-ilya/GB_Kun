@@ -4,11 +4,12 @@
 
 Parser::Parser()
 {
-    scale = 10;
-    avg_degree = 8;
-    synthetic_graph_type = RMAT_GRAPH;
+    scale = 12;
+    avg_degree = 15;
+    synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
     storage_format = CSR;
     no_check = false;
+    out_file_name = "kun_out.mtx";
     file_name = "lj.mtx";
 }
 
@@ -24,6 +25,11 @@ void Parser::parse_args(int _argc, char **_argv)
         if ((option == "-scale") || (option == "-s"))
         {
             scale = atoi(_argv[++i]);
+        }
+
+        if ((option == "-out") || (option == "-outfile"))
+        {
+            out_file_name = string(_argv[++i]);
         }
 
         if((option == "-graph") || (option == "-type"))
@@ -51,6 +57,13 @@ void Parser::parse_args(int _argc, char **_argv)
                 option = _argv[++i];
                 file_name = string(option);
             }
+
+            if ((option == "mtx") || (option == "MTX"))
+            {
+                synthetic_graph_type = MTX_GRAPH;
+                option = _argv[++i];
+                file_name = string(option);
+            }
         }
 
         if ((option == "-edges") || (option == "-e"))
@@ -74,6 +87,8 @@ void Parser::parse_args(int _argc, char **_argv)
                 storage_format = VECT_GROUP_CSR;
             else if(option == "SELL_C" || option == "SIGMA")
                 storage_format = SELL_C;
+            else if(option == "SORT")
+                storage_format = SORTED_CSR;
         }
 
         if(option == "-no-check")

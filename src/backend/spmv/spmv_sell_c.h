@@ -118,7 +118,7 @@ void SpMV(const MatrixSellC<T> *_matrix,
         }
     }
 
-    //cout << "cnt: " << cnt << " vs " << _matrix->nz << " " << (double) cnt / _matrix->nz << endl;*/
+    //cout << "cnt: " << cnt << " vs " << _matrix->nnz << " " << (double) cnt / _matrix->nnz << endl;*/
 }
 #endif
 

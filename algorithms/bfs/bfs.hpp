@@ -1,58 +1,132 @@
-#ifndef GB_KUN_BFS_HPP
-#define GB_KUN_BFS_HPP
-
 #pragma once
 #include "../../src/gb_kun.h"
-namespace lablas {
-namespace algorithm {
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void bfs(Vector<float>*       v,
-         const Matrix<float>* A,
-         Index                source,
-         Descriptor*          desc)
+#define GrB_Matrix lablas::Matrix<int>*
+#define GrB_Vector lablas::Vector<int>*
+#define MASK_NULL static_cast<const lablas::Vector<int>*>(NULL)
+
+int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
+                                  GrB_Vector *parent,
+                                  LAGraph_Graph<int> *G,
+                                  GrB_Index src,
+                                  bool pushpull)
 {
+    //--------------------------------------------------------------------------
+    // check inputs
+    //--------------------------------------------------------------------------
 
-    VNT A_nrows;
-    A->get_nrows(&A_nrows);
+    lablas::Vector<bool> *frontier = NULL;     // the current frontier
+    GrB_Vector l_parent = NULL;     // parent vector
+    GrB_Vector l_level = NULL;      // level vector
+    lablas::Descriptor desc;
 
-    // Visited vector (use float for now)
-    v->fill(0);
+    //--------------------------------------------------------------------------
+    // get the problem size and properties
+    //--------------------------------------------------------------------------
+    GrB_Matrix A = G->A;
 
-    // Frontier vectors (use float for now)
-    Vector<float> f1(A_nrows);
-    Vector<float> f2(A_nrows);
-    const Vector<float> f3(A_nrows);
+    GrB_Index n;
+    GrB_TRY( GrB_Matrix_nrows (&n, A) );
+    assert(src < n && "invalid source node");
 
-    f1.fill(0);
-    f2.fill(0);
-    f1.set_element(1.f, source);
+    // only the level is needed
 
-    float iter;
-    float succ = 0.f;
-    Index unvisited = A_nrows;
-    float max_iter = 10.0;
+    // create a sparse boolean vector frontier, and set frontier(src) = true
+    GrB_TRY (GrB_Vector_new(&frontier, GrB_BOOL, n)) ;
+    GrB_TRY (GrB_Vector_setElement(frontier, true, src)) ;
+    frontier->print();
 
-    for (iter = 1; iter <= 100; ++iter) {
-        unvisited -= static_cast<int>(succ);
+    // create the level vector. v(i) is the level of node i
+    // v (src) = 0 denotes the source node
+    GrB_TRY (GrB_Vector_new(&l_level, GrB_INT32, n)) ;
 
-        assign<float, float, float, Index>(v, &f1, nullptr, iter, NULL, A_nrows,
-                                           desc);
+    //--------------------------------------------------------------------------
+    // BFS traversal and label the nodes
+    //--------------------------------------------------------------------------
+    GrB_Index nq = 1; // number of nodes in the current level
+    GrB_Index last_nq = 0;
+    GrB_Index current_level = 1;
+    GrB_Index nvals = 1;
 
-        /* GrB_DEFAULT for straight mask, GrB_SCMP for complementary */
-        desc->set(GrB_MASK, GrB_DEFAULT);
+    // {!mask} is the set of unvisited nodes
+    GrB_Vector mask = l_level ;
 
-        vxm<float, float, float, float>(&f2, v, nullptr,
-                                        LogicalOrAndSemiring<float>(), A, &f1, desc);
+    // parent BFS
+    do
+    {
+        // assign levels: l_level<s(frontier)> = current_level
+        GrB_TRY( GrB_assign(l_level, frontier, NULL, current_level, GrB_ALL, n, GrB_DESC_S) );
+        l_level->print();
+        ++current_level;
 
-        f2.swap(&f1);
+        // frontier = kth level of the BFS
+        // mask is l_parent if computing parent, l_level if computing just level
+        GrB_TRY( GrB_vxm(frontier, mask, NULL, lablas::LogicalOrAndSemiring<bool>(), frontier, A, GrB_DESC_RSC) );
+        frontier->print();
 
-        reduce<float, float>(&succ, nullptr, PlusMonoid<float>(), &f1, desc);
-        if (succ == 0)
-            break;
-    }
+        // done if frontier is empty
+        GrB_TRY( GrB_Vector_nvals(&nvals, frontier) );
+    } while (nvals > 0);
+
+    l_level->force_to_dense();
+
+    (*level ) = l_level;
+    return (0);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
+{
+    lablas::Descriptor desc;
+    GrB_Matrix A = G->A;
+    GrB_Index n;
+    GrB_TRY( GrB_Matrix_nrows (&n, A) );
+
+    GrB_Vector f1 = NULL, *f2 = NULL, *v = NULL;
+    GrB_TRY(GrB_Vector_new(&f1, GrB_INT32, n));
+    GrB_TRY(GrB_Vector_new(&f2, GrB_INT32, n));
+    GrB_TRY(GrB_Vector_new(&v, GrB_INT32, n));
+
+    double t1 = omp_get_wtime();
+
+    GrB_TRY(GrB_assign(f1, MASK_NULL, NULL, 0, GrB_ALL, n, GrB_NULL));
+    GrB_TRY(GrB_assign(f2, MASK_NULL, NULL, 0, GrB_ALL, n, GrB_NULL));
+    GrB_TRY(GrB_assign(v, MASK_NULL, NULL, 0, GrB_ALL, n, GrB_NULL));
+    GrB_TRY (GrB_Vector_setElement(f1, 1, src)) ;
+
+    int iter = 1;
+    int succ = 0;
+    cout << "------------------------------ alg started ------------------------------------ " << endl;
+    do {
+        GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, GrB_NULL));
+
+        GrB_TRY( GrB_vxm(f2, v, NULL, lablas::LogicalOrAndSemiring<int>(), f1, A, GrB_DESC_SC));
+
+        std::swap(f1, f2);
+
+        GrB_TRY (GrB_reduce (&succ, NULL, GrB_PLUS_MONOID_INT32, f1, GrB_NULL)) ;
+
+        iter++;
+    } while(succ > 0);
+    cout << "------------------------------ alg done ------------------------------------ " << endl;
+
+    v->force_to_dense();
+    *levels = v;
+
+    double t2 = omp_get_wtime();
+    cout << "BFS perf: " << A->get_nnz()/((t2 - t1)*1e6) << " MTEPS" << endl;
+
+    GrB_free(&f1);
+    GrB_free(&f2);
+    return 0;
 }
-}
-#endif //GB_KUN_BFS_HPP
+
+#undef GrB_Matrix
+#undef GrB_Vector
+#undef MASK_NULL
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+

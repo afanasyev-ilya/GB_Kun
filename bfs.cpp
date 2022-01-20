@@ -1,7 +1,6 @@
 #include "src/gb_kun.h"
 
 #include "algorithms/bfs/bfs.hpp"
-#include "algorithms/bfs/bfs_td.hpp"
 #include "algorithms/bfs/bfs_traditional.hpp"
 
 int main(int argc, char **argv) {
@@ -12,34 +11,33 @@ int main(int argc, char **argv) {
         VNT scale = parser.get_scale();
         VNT avg_deg = parser.get_avg_degree();
 
-        EdgeListContainer<float> el;
-        GraphGenerationAPI::generate_synthetic_graph(el, parser);
 
         lablas::Descriptor desc;
 
-        lablas::Matrix<float> matrix;
-        /* TODO clearance of ELC vectors in order to free storage */
-        const std::vector<VNT> src_ids(el.src_ids);
-        const std::vector<VNT> dst_ids(el.dst_ids);
-        std::vector<float> edge_vals(el.edge_vals);
-
+        lablas::Matrix<int> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
-        LA_Info info = matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
-        lablas::Vector<float> levels(el.vertices_count);
+        init_matrix(matrix, parser);
 
-        VNT source_vertex = rand() % matrix.get_nrows();
-        lablas::algorithm::bfs(&levels, &matrix, source_vertex, &desc);
+        Index nrows;
+        matrix.get_nrows(&nrows);
+        Index source_vertex = rand() % nrows;
+
+        lablas::Vector<int> *parents = NULL, *levels = NULL;
+
+        LAGraph_Graph<int> graph(matrix);
+
+        SAVE_STATS(GraphBlast_BFS(&levels, &graph, source_vertex),
+                   "BFS", (sizeof(float)*2 + sizeof(size_t)), 1, (graph.AT));
+
+        //GraphBlast_BFS(&levels, &graph, source_vertex);
 
         if(parser.check())
         {
-            lablas::Matrix<float> check_matrix;
-            LA_Info info = check_matrix.build(&src_ids, &dst_ids, &edge_vals, el.vertices_count, GrB_NULL_POINTER);
-            check_matrix.set_preferred_matrix_format(CSR);
-            lablas::Vector<float> check_levels(check_matrix.get_nrows());
+            lablas::Vector<int> check_levels(nrows);
 
-            lablas::algorithm::bfs_traditional(&check_levels, &check_matrix, source_vertex);
+            lablas::algorithm::bfs_traditional(&check_levels, &matrix, source_vertex);
 
-            if(levels == check_levels)
+            if((*levels) == check_levels)
             {
                 cout << "BFS levels are equal" << endl;
             }
@@ -49,7 +47,10 @@ int main(int argc, char **argv) {
             }
         }
 
-
+        if(levels != NULL)
+            delete levels;
+        if(parents != NULL)
+            delete parents;
     }
     catch (string error)
     {

@@ -2,31 +2,8 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-void GraphGenerationAPI::generate_synthetic_graph(EdgeListContainer<T> &_edges_container, Parser &_parser)
-{
-    VNT scale = _parser.get_scale();
-    VNT avg_deg = _parser.get_avg_degree();
-
-    if(_parser.get_synthetic_graph_type() == RANDOM_UNIFORM_GRAPH)
-    {
-        GraphGenerationAPI::random_uniform(_edges_container,
-                                           pow(2.0, scale),
-                                           avg_deg * pow(2.0, scale));
-    }
-    else if(_parser.get_synthetic_graph_type() == RMAT_GRAPH)
-    {
-        GraphGenerationAPI::RMAT(_edges_container, pow(2.0, scale), avg_deg * pow(2.0, scale), 57, 19, 19, 5);
-    }
-    else if(_parser.get_synthetic_graph_type() == HPCG_GRAPH)
-    {
-        GraphGenerationAPI::HPCG(_edges_container, scale, scale, scale, avg_deg);
-    }
-    else if(_parser.get_synthetic_graph_type() == REAL_WORLD_GRAPH)
-    {
-        GraphGenerationAPI::init_from_txt_file(_edges_container, _parser.get_file_name(), DIRECTED_GRAPH);
-    }
-}
+//#define EDGE_VAL (((float) rand_r(&seed)) / (float) RAND_MAX)
+#define EDGE_VAL 1
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -89,7 +66,11 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
     int max_id_val = vertices_count;
     rng_api.generate_array_of_random_values<VNT>(src_ids, directed_edges_count, max_id_val);
     rng_api.generate_array_of_random_values<VNT>(dst_ids, directed_edges_count, max_id_val);
-    rng_api.generate_array_of_random_values<T>(vals, directed_edges_count, 1.0);
+    //rng_api.generate_array_of_random_values<T>(vals, directed_edges_count, 1.0);
+    unsigned int seed = int(time(NULL)) * omp_get_thread_num();
+    #pragma omp parallel for
+    for(ENT i = 0; i < directed_edges_count; i++)
+        vals[i] = (((float) rand_r(&seed)) / (float) RAND_MAX);
 
     if(!_direction_type)
     {
@@ -190,7 +171,7 @@ void GraphGenerationAPI::RMAT(EdgeListContainer<T> &_edges_container,
 
             src_ids[cur_edge] = from;
             dst_ids[cur_edge] = to;
-            vals[cur_edge] = ((float) rand_r(&seed)) / (float) RAND_MAX;
+            vals[cur_edge] = (((float) rand_r(&seed)) / (float) RAND_MAX);
             
             if(!_direction_type)
             {
@@ -209,26 +190,26 @@ void GraphGenerationAPI::RMAT(EdgeListContainer<T> &_edges_container,
 
 template <typename T>
 void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
-                               VNT _nx, VNT _ny, VNT _nz, ENT _edge_factor)
+                               VNT _nx, VNT _ny, VNT _nnz, ENT _edge_factor)
 {
     cout << "Creating HPCG matrix" << endl;
-    int numberOfNonzerosPerRow = 27; // We are approximating a 27-point finite element/volume/difference 3D stencil
-    int numberOfRows = _nx*_ny*_nz;
+    int numberOfNonnzerosPerRow = 27; // We are approximating a 27-point finite element/volume/difference 3D stencil
+    int numberOfRows = _nx*_ny*_nnz;
 
     int size = numberOfRows;
-    int nz = numberOfRows * numberOfNonzerosPerRow;
+    int nnz = numberOfRows * numberOfNonnzerosPerRow;
 
     // Allocate arrays that are of length localNumberOfRows
-    int * nonzerosInRow = new int[numberOfRows];
+    int * nonnzerosInRow = new int[numberOfRows];
     int ** mtxInd = new int*[numberOfRows];
     T ** matrixValues = new T*[numberOfRows];
 
-    int *col_ = new int[numberOfNonzerosPerRow*numberOfRows];
-    T *val_ = new T[sizeof(T)*numberOfNonzerosPerRow*numberOfRows];
+    int *col_ = new int[numberOfNonnzerosPerRow*numberOfRows];
+    T *val_ = new T[sizeof(T)*numberOfNonnzerosPerRow*numberOfRows];
 
-    int* boundaryRows = new int[_nx*_ny*_nz - (_nx-2)*(_ny-2)*(_nz-2)];
+    int* boundaryRows = new int[_nx*_ny*_nnz - (_nx-2)*(_ny-2)*(_nnz-2)];
 
-    if ( col_ == NULL || val_ == NULL || nonzerosInRow == NULL || boundaryRows == NULL
+    if ( col_ == NULL || val_ == NULL || nonnzerosInRow == NULL || boundaryRows == NULL
          || mtxInd == NULL || matrixValues == NULL)
     {
         return;
@@ -246,7 +227,7 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
         }
 
         #pragma omp for nowait
-        for (int z = 1; z < _nz - 1; z++) {
+        for (int z = 1; z < _nnz - 1; z++) {
             for (int x = 0; x < _nx; x++) {
                 boundaryRows[_ny*_nx + 2*(z-1)*(_nx+_ny-2) + x ] = z*_ny*_nx + x;
                 numOfBoundaryRows++;
@@ -266,20 +247,20 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
         #pragma omp for nowait
         for (int y = 0; y < _ny; y++) {
             for (int x = 0; x < _nx; x++) {
-                boundaryRows[_ny*_nx + 2*(_nz-2)*(_nx+_ny-2) + y*_nx + x] = ((_nz - 1)*_ny + y)*_nx + x;
+                boundaryRows[_ny*_nx + 2*(_nnz-2)*(_nx+_ny-2) + y*_nx + x] = ((_nnz - 1)*_ny + y)*_nx + x;
                 numOfBoundaryRows++;
             }
         }
     }
 
-    int numberOfNonzeros = 0;
+    int numberOfNonnzeros = 0;
 
-    #pragma omp parallel reduction(+:numberOfNonzeros)
+    #pragma omp parallel reduction(+:numberOfNonnzeros)
     {
         int ithr = omp_get_thread_num();
         int nthr = omp_get_num_threads();
 
-        int works = (_nz - 2)*(_ny - 2);
+        int works = (_nnz - 2)*(_ny - 2);
         int begin = ((ithr  )*works)/nthr;
         int end   = ((ithr+1)*works)/nthr;
         for (int i = begin; i < end; i++)
@@ -290,9 +271,9 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
             for (int ix=1; ix<_nx-1; ix++)
             {
                 int currentLocalRow = iz*_nx*_ny+iy*_nx+ix;
-                mtxInd[currentLocalRow]      = col_ + currentLocalRow*numberOfNonzerosPerRow;
-                matrixValues[currentLocalRow] = val_ + currentLocalRow*numberOfNonzerosPerRow;
-                char numberOfNonzerosInRow = 0;
+                mtxInd[currentLocalRow]      = col_ + currentLocalRow*numberOfNonnzerosPerRow;
+                matrixValues[currentLocalRow] = val_ + currentLocalRow*numberOfNonnzerosPerRow;
+                char numberOfNonnzerosInRow = 0;
                 T * currentValuePointer = matrixValues[currentLocalRow]; // Pointer to current value in current row
                 int  * currentIndexPointerL = mtxInd[currentLocalRow]; // Pointer to current index in current row
                 for (int sz=-1; sz<=1; sz++) {
@@ -322,9 +303,9 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
                     currentIndexPointerL += 9;
                 } // end sz loop
                 *(currentValuePointer - 14) = 26.0;
-                numberOfNonzerosInRow += 27;
-                nonzerosInRow[currentLocalRow] = numberOfNonzerosInRow;
-                numberOfNonzeros += numberOfNonzerosInRow; // Protect this with an atomic
+                numberOfNonnzerosInRow += 27;
+                nonnzerosInRow[currentLocalRow] = numberOfNonnzerosInRow;
+                numberOfNonnzeros += numberOfNonnzerosInRow; // Protect this with an atomic
             } // end ix loop
         }
 
@@ -337,7 +318,7 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
             int ix = currentLocalRow%_nx;
 
             int sz_begin = std::max<int>(-1, -iz);
-            int sz_end = std::min<int>(1, _nz - iz - 1);
+            int sz_end = std::min<int>(1, _nnz - iz - 1);
 
             int sy_begin = std::max<int>(-1, -iy);
             int sy_end = std::min<int>(1, _ny - iy - 1);
@@ -346,9 +327,9 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
             int sx_end = std::min<int>(1, _nx - ix - 1);
 
 
-            mtxInd[currentLocalRow]      = col_ + currentLocalRow*numberOfNonzerosPerRow;
-            matrixValues[currentLocalRow] = val_ + currentLocalRow*numberOfNonzerosPerRow;
-            char numberOfNonzerosInRow = 0;
+            mtxInd[currentLocalRow]      = col_ + currentLocalRow*numberOfNonnzerosPerRow;
+            matrixValues[currentLocalRow] = val_ + currentLocalRow*numberOfNonnzerosPerRow;
+            char numberOfNonnzerosInRow = 0;
             T * currentValuePointer = matrixValues[currentLocalRow]; // Pointer to current value in current row
             int  * currentIndexPointerL = mtxInd[currentLocalRow];
             for (int sz=sz_begin; sz<=sz_end; sz++) {
@@ -361,20 +342,20 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
                             *currentValuePointer++ = -1.0;
                         }
                         *currentIndexPointerL++ = col;
-                        numberOfNonzerosInRow++;
+                        numberOfNonnzerosInRow++;
                     } // end sx loop
                 } // end sy loop
             } // end sz loop
-            nonzerosInRow[currentLocalRow] = numberOfNonzerosInRow;
-            numberOfNonzeros += numberOfNonzerosInRow; // Protect this with an atomic
+            nonnzerosInRow[currentLocalRow] = numberOfNonnzerosInRow;
+            numberOfNonnzeros += numberOfNonnzerosInRow; // Protect this with an atomic
         }
     }
 
     _edges_container.vertices_count = numberOfRows;
-    _edges_container.edges_count = numberOfNonzeros;
-    _edges_container.src_ids.resize(numberOfNonzeros);
-    _edges_container.dst_ids.resize(numberOfNonzeros);
-    _edges_container.edge_vals.resize(numberOfNonzeros);
+    _edges_container.edges_count = numberOfNonnzeros;
+    _edges_container.src_ids.resize(numberOfNonnzeros);
+    _edges_container.dst_ids.resize(numberOfNonnzeros);
+    _edges_container.edge_vals.resize(numberOfNonnzeros);
 
     // get pointers
     VNT *src_ids = _edges_container.src_ids.data();
@@ -384,7 +365,7 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
     long long k = 0;
     for(int i=0; i<numberOfRows; ++i)
     {
-        for(int j=0; j<nonzerosInRow[i];++j)
+        for(int j=0; j<nonnzerosInRow[i];++j)
         {
             src_ids[k] = i;
             dst_ids[k] = (mtxInd[i])[j];
@@ -398,7 +379,7 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
     delete [] val_;
     delete [] mtxInd;
     delete [] matrixValues;
-    delete [] nonzerosInRow;
+    delete [] nonnzerosInRow;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -470,7 +451,7 @@ void GraphGenerationAPI::init_from_txt_file(EdgeListContainer<T> &_edges_contain
     {
         _edges_container.src_ids[i] = tmp_src_ids[i];
         _edges_container.dst_ids[i] = tmp_dst_ids[i];
-        _edges_container.edge_vals[i] = ((float) rand_r(&seed)) / (float) RAND_MAX;
+        _edges_container.edge_vals[i] = EDGE_VAL;
     }
 
     // validate
@@ -490,9 +471,107 @@ void GraphGenerationAPI::init_from_txt_file(EdgeListContainer<T> &_edges_contain
         }
     }
 
-    random_shuffle_edges(_edges_container);
-
     infile.close();
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_container, string _mtx_file_name)
+{
+    double t1, t2;
+    ifstream infile(_mtx_file_name.c_str());
+    if (!infile.is_open())
+        throw "can't open file during convert";
+
+    VNT vertices_count = 0;
+    ENT edges_count = 0;
+    string line;
+    getline(infile, line); // read first line
+
+    if (line.find("%%MatrixMarket matrix coordinate pattern general") == std::string::npos)
+    {
+        throw "Error: is not a mtx file";
+    }
+
+    getline(infile, line);
+
+    istringstream iss(line);
+    VNT rows = 0; VNT cols = 0; ENT nnz = 0;
+    iss >> rows >> cols >> nnz;
+
+    if(rows != cols)
+    {
+        throw "Error: is not a square matrix";
+    }
+
+    t1 = omp_get_wtime();
+    _edges_container.vertices_count = rows;
+    _edges_container.edges_count = nnz;
+    _edges_container.src_ids.resize(nnz);
+    _edges_container.dst_ids.resize(nnz);
+    _edges_container.edge_vals.resize(nnz);
+    t2 = omp_get_wtime();
+    cout << "edges list alloc time: " << t2 - t1 << " sec" << endl;
+
+    t1 = omp_get_wtime();
+    ENT i = 0;
+    unsigned int seed = int(time(NULL));
+    while (getline(infile, line))
+    {
+        istringstream iss(line);
+        VNT src_id = 0, dst_id = 0;
+        iss >> src_id >> dst_id;
+
+        _edges_container.src_ids[i] = src_id - 1;
+        _edges_container.dst_ids[i] = dst_id - 1;
+        _edges_container.edge_vals[i] = EDGE_VAL;
+        i++;
+    }
+
+    infile.close();
+    t2 = omp_get_wtime();
+    cout << "C++ style file read time: " << t2 - t1 << " sec" << endl;
+
+    FILE *fp;
+    fp = fopen(_mtx_file_name.c_str(), "r");
+    char header_line[1024];
+    fgets(header_line, 1024, fp);
+    string header(header_line);
+    if(header.find("%%MatrixMarket matrix coordinate pattern general") == std::string::npos)
+    {
+        throw "Error: is not a mtx file";
+    }
+
+    size_t tmp_rows = 0, tmp_cols = 0, tmp_nnz = 0;
+    fscanf(fp, "%ld %ld %ld", &tmp_rows, &tmp_cols, &tmp_nnz);
+
+    if(tmp_rows != tmp_cols)
+    {
+        throw "Error: is not a square matrix";
+    }
+
+    _edges_container.vertices_count = tmp_rows;
+    _edges_container.edges_count = tmp_nnz;
+    _edges_container.src_ids.resize(tmp_nnz);
+    _edges_container.dst_ids.resize(tmp_nnz);
+    _edges_container.edge_vals.resize(tmp_nnz);
+
+    t1 = omp_get_wtime();
+    for(size_t ln = 0; ln < tmp_nnz; ln++)
+    {
+        size_t src_id = 0, dst_id = 0;
+        fscanf(fp, "%ld %ld", &src_id, &dst_id);
+
+        _edges_container.src_ids[i] = src_id - 1;
+        _edges_container.dst_ids[i] = dst_id - 1;
+        _edges_container.edge_vals[i] = EDGE_VAL;
+    }
+
+    fclose(fp);
+    t2 = omp_get_wtime();
+    cout << "C-style file read time: " << t2 - t1 << " sec" << endl;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
