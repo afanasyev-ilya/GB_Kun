@@ -45,6 +45,8 @@ void SpMV(const MatrixSellC<A> *_matrix,
             for(VNT j=0; j<_matrix->chunkLen[chunk]; j=j+P)
             {
                 ENT idx = _matrix->chunkPtr[chunk]+j*C;
+                #pragma ivdep
+                #pragma vector
                 for(VNT rowInChunk=0; rowInChunk<C; ++rowInChunk)
                 {
                     if((chunk*C+rowInChunk) < _matrix->size)
@@ -57,11 +59,18 @@ void SpMV(const MatrixSellC<A> *_matrix,
             }
         }
 
-        #pragma omp for
-        for(VNT row = 0; row < _matrix->size; row++)
-        {
-            y_vals[row] = _accum(y_vals[row], buffer[row]);
-        }
+
+    }
+
+    if(_matrix->sigma > 1)
+    {
+        reorder(buffer, _matrix->sigmaInvPerm, _matrix->size);
+    }
+
+    #pragma parallel omp for
+    for(VNT row = 0; row < _matrix->size; row++)
+    {
+        y_vals[row] = _accum(y_vals[row], buffer[row]);
     }
 
 }

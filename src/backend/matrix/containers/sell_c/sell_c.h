@@ -40,10 +40,11 @@ private:
     VNT *colSellC;
     T *valSellC;
 
+    VNT *sigmaPerm, *sigmaInvPerm;
+    VNT sigma;
+
     int unrollFac; //for kernel, just a work-around
     int nthreads;
-
-    void NUMA_init();
 
     void construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad = 1);
     void permute(VNT *perm, VNT* invPerm);

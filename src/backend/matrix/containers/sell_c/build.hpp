@@ -45,50 +45,15 @@ void MatrixSellC<T>::build(VNT _nrows,
     MemoryAPI::copy(col_ids, _col_ids, nnz);
     MemoryAPI::copy(vals, _vals, nnz);
 
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for(int i = 0; i < size; i++)
+    {
         nnz_per_row[i] = row_ptr[i + 1] - row_ptr[i];
+    }
 
-    NUMA_init();
-
-    construct_sell_c_sigma(VECTOR_LENGTH, 1);
+    construct_sell_c_sigma(VECTOR_LENGTH, size/2);
 
     print_stats();
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template<typename T>
-void MatrixSellC<T>::NUMA_init()
-{
-    T* new_vals = new T[nnz];
-    VNT* new_col_is = new VNT[nnz];
-    ENT* new_row_ptrs = new ENT[size+1];
-
-    //NUMA init
-    #pragma omp parallel for schedule(static)
-    for(VNT row = 0; row< size + 1; ++row)
-    {
-        new_row_ptrs[row] = row_ptr[row];
-    }
-    #pragma omp parallel for schedule(static)
-    for(int row=0; row<size; ++row)
-    {
-        for(int idx=new_row_ptrs[row]; idx<new_row_ptrs[row+1]; ++idx)
-        {
-            new_col_is[idx] = col_ids[idx];
-            new_vals[idx] = vals[idx];
-        }
-    }
-
-    //free old _perm_utations
-    delete[] vals;
-    delete[] row_ptr;
-    delete[] col_ids;
-
-    vals = new_vals;
-    row_ptr = new_row_ptrs;
-    col_ids = new_col_is;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,10 +64,13 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad)
     C = chunkHeight;
     P = pad;
 
-    VNT nSigmaChunks = (VNT)(size/(double)sigma);
-    if(sigma > 1)
+    MemoryAPI::allocate_array(&sigmaPerm, size);
+    MemoryAPI::allocate_array(&sigmaInvPerm, size);
+    this->sigma = sigma;
+
+    VNT nSigmaChunks = (VNT)(size/(double)sigma); // number of sigma chinks // TODO - + 1
+    if(sigma > 1) // if sigma == 1 - no rows reordering is performed
     {
-        VNT *sigmaPerm = new VNT[size];
         for(VNT i=0; i<size; ++i)
         {
             sigmaPerm[i] = i;
@@ -111,17 +79,15 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad)
         for(VNT sigmaChunk=0; sigmaChunk<nSigmaChunks; ++sigmaChunk)
         {
             VNT *perm_begin = &(sigmaPerm[sigmaChunk*sigma]);
-            sort_perm(nnz_per_row, perm_begin, sigma);
+            sort_perm(nnz_per_row, perm_begin, sigma, true); // do sorting of rows in each sigma chunk
         }
 
-        VNT restSigmaChunk = size%sigma;
+        VNT restSigmaChunk = size%sigma; // process remider (if size % sigma != 0)
         if(restSigmaChunk > C)
         {
             VNT *perm_begin = &(sigmaPerm[nSigmaChunks*sigma]);
-            sort_perm(nnz_per_row, perm_begin, restSigmaChunk);
+            sort_perm(nnz_per_row, perm_begin, restSigmaChunk, true); // do sorting of last chunk
         }
-
-        VNT *sigmaInvPerm = new VNT[size];
 
         for(VNT i=0; i<size; ++i)
         {
@@ -129,9 +95,6 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad)
         }
 
         permute(sigmaPerm, sigmaInvPerm);
-
-        delete[] sigmaPerm;
-        delete[] sigmaInvPerm;
     }
 
     nchunks = (VNT)(size/(double)C);
@@ -186,7 +149,6 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad)
         chunkPtr[i+1] = chunkPtr[i] + C*chunkLen[i];
     }
 
-
     #pragma omp parallel for schedule(static)
     for(VNT chunk=0; chunk<nchunks; ++chunk)
     {
@@ -196,7 +158,7 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad)
             {
                 if(C == size)
                 {
-                    colSellC[chunkPtr[chunk]+idx*C+rowInChunk] = chunk*C + rowInChunk;//ELLPACK of Fujitsu needs it this way (the rowIndex)
+                    colSellC[chunkPtr[chunk]+idx*C+rowInChunk] = chunk*C + rowInChunk;
                 }
                 else
                 {

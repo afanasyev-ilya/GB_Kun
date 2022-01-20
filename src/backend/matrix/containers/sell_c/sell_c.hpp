@@ -9,22 +9,13 @@ namespace backend {
 
 template <typename T> void sort_perm(T *arr, ENT *perm, ENT len, bool rev=false)
 {
-    if(rev == false) {
+    if(rev == false)
+    {
         std::stable_sort(perm+0, perm+len, [&](const ENT& a, const ENT& b) {return (arr[a] < arr[b]);});
-    } else {
-        std::stable_sort(perm+0, perm+len, [&](const ENT& a, const ENT& b) {return (arr[a] > arr[b]); });
     }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//for debugging
-template <typename T> void sort_perm_v(T *arr, int *perm, int len, bool rev=false)
-{
-    if(rev == false) {
-        std::stable_sort(perm+0, perm+len, [&](const int& a, const int& b) {printf("comparing arr[%d] = %d, arr[%d] = %d\n", a, arr[a], b, arr[b]); return (arr[a] < arr[b]);});
-    } else {
-        std::stable_sort(perm+0, perm+len, [&](const int& a, const int& b) {printf("comparing arr[%d] = %d, arr[%d] = %d\n", a, arr[a], b, arr[b]); return (arr[a] > arr[b]); });
+    else
+    {
+        std::stable_sort(perm+0, perm+len, [&](const ENT& a, const ENT& b) {return (arr[a] > arr[b]); });
     }
 }
 
@@ -72,6 +63,9 @@ MatrixSellC<T>::~MatrixSellC()
     {
         delete[] nnz_per_row;
     }
+
+    MemoryAPI::free_array(sigmaPerm);
+    MemoryAPI::free_array(sigmaInvPerm);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
