@@ -258,7 +258,7 @@ void Matrix<T>::init_optimized_structures()
                                                     csc_data->get_vals(), 0);
 
         data_socket_dub = NULL;
-        cout << "Using COO matrix format as optimized representation" << endl;
+        cout << "Using SORTED CSR matrix format as optimized representation" << endl;
     }
     else if (_format == SELL_C)
     {
@@ -278,7 +278,7 @@ void Matrix<T>::init_optimized_structures()
                                                   csc_data->get_vals(), 0);
 
         data_socket_dub = NULL;
-        cout << "Using COO matrix format as optimized representation" << endl;
+        cout << "Using SELL-C matrix format as optimized representation" << endl;
     }
     else
     {

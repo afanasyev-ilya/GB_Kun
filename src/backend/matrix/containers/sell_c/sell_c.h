@@ -53,11 +53,13 @@ private:
     void print_stats();
     void print_connections(VNT _row);
 
-    template <typename Y, typename SemiringT>
-    void SpMV(const MatrixSellC<Y> *_matrix,
-              const DenseVector<Y> *_x,
-              DenseVector<Y> *_y,
-              SemiringT op);
+    template <typename A, typename X, typename Y, typename BinaryOpTAccum, typename SemiringT>
+    friend void SpMV(const MatrixSellC<A> *_matrix,
+                     const DenseVector<X> *_x,
+                     DenseVector<Y> *_y,
+                     BinaryOpTAccum _accum,
+                     SemiringT op,
+                     Workspace *_workspace);
 };
 
 }
