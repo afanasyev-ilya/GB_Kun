@@ -164,7 +164,8 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
 
     a1 = omp_get_wtime();
 
-    T *SPA = (T*)_workspace->get_first_socket_vector(); // SPA -  a sparse accumulator
+    //T *SPA = (T*)_workspace->get_first_socket_vector(); // SPA -  a sparse accumulator
+
     // The SPA vector is essentially a final vector-answer, but it is dense and we will have to transform it in sparse vector
     vector<int> offset(_number_of_buckets);
 
@@ -175,6 +176,7 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
     cnt = 0;
     #pragma omp parallel
     {
+        map<VNT, T>SPA;
         int local_cnt = 0;
         #pragma omp for schedule(dynamic, 1)
         for (int number_of_bucket = 0;
@@ -206,7 +208,7 @@ void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
                 local_cnt += sizeof(int) * 3;  // REMOVE!!!
 
             }
-            // offset is needed to properly fil§l the final vector
+            // offset is needed to properly fill the final vector
 
             local_cnt += uind.size() * (sizeof(int) * 2 + sizeof(float) * 3);
             for (int i = 0; i < uind.size(); i++) { // filling the final vector

@@ -318,7 +318,7 @@ LA_Info mxv (Vector<W>*       _w,
         backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
     else
     {
-        int number_of_buckets = 64 * 2;
+        int number_of_buckets = 64 * 8;
         cout << "[ NUMBER_OF_BUCKETS = " << number_of_buckets << " ]" << endl;
 
         backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor(), number_of_buckets);
@@ -332,6 +332,11 @@ LA_Info mxv (Vector<W>*       _w,
         printf("\033[0;34m");
         printf("SPMV time: %lf ms.\n", (t4 - t3) * 1e3);
         printf("\033[0m");
+        double bytes_per_flop = (sizeof(float)*2 + sizeof(size_t));
+        int nvals = _matrix->get_nnz();
+        double bw = nvals * bytes_per_flop/((t4 - t3)*1e9);
+        printf("SPMV BW: %lf GB/s.\n", bw);
+
 
         //_w->print();
         //check_w->print();
