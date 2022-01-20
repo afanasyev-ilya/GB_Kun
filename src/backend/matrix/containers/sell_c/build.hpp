@@ -41,7 +41,7 @@ void MatrixSellC<T>::build(VNT _nrows,
     MemoryAPI::allocate_array(&col_ids, nnz);
     MemoryAPI::allocate_array(&vals, nnz);
 
-    MemoryAPI::copy(row_ptr, _row_ptr, size);
+    MemoryAPI::copy(row_ptr, _row_ptr, size + 1);
     MemoryAPI::copy(col_ids, _col_ids, nnz);
     MemoryAPI::copy(vals, _vals, nnz);
 
