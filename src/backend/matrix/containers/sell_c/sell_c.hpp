@@ -88,6 +88,7 @@ void MatrixSellC<T>::print() const
 {
     for(VNT row = 0; row < size; row++)
     {
+        cout << row + 1 << ") ";
         for(VNT col = 0; col < size; col++)
         {
             cout << get(row, col) << " ";

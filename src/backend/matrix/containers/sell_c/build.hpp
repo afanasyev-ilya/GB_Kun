@@ -45,13 +45,13 @@ void MatrixSellC<T>::build(VNT _nrows,
     MemoryAPI::copy(col_ids, _col_ids, nnz);
     MemoryAPI::copy(vals, _vals, nnz);
 
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for(int i = 0; i < size; i++)
     {
         nnz_per_row[i] = row_ptr[i + 1] - row_ptr[i];
     }
 
-    construct_sell_c_sigma(VECTOR_LENGTH, size/2);
+    construct_sell_c_sigma(VECTOR_LENGTH, size/16);
 
     print_stats();
 }
@@ -94,7 +94,9 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad)
             sigmaInvPerm[sigmaPerm[i]] = i;
         }
 
+        //print();
         permute(sigmaPerm, sigmaInvPerm);
+        //print();
     }
 
     nchunks = (VNT)(size/(double)C);
@@ -209,7 +211,7 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixSellC<T>::permute(VNT *perm, VNT*  invPerm)
+void MatrixSellC<T>::permute(VNT *perm, VNT* invPerm)
 {
     T* newVal = new T[nnz];
     ENT* newRowPtr = new ENT[size+1];
@@ -249,7 +251,7 @@ void MatrixSellC<T>::permute(VNT *perm, VNT*  invPerm)
         {
             //permute column-wise also
             newVal[permIdx] = vals[idx];
-            newCol[permIdx] = invPerm[col_ids[idx]];
+            newCol[permIdx] = col_ids[idx];//invPerm[col_ids[idx]];
         }
     }
 
