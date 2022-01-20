@@ -33,8 +33,13 @@ private:
 
     void resize(VNT _size, ENT _nnz);
 
-    template <typename Y, typename SemiringT>
-    friend void SpMV(const MatrixCOO<Y> *_matrix, const DenseVector<Y> *_x, DenseVector<Y> *_y, SemiringT op);
+    template <typename A, typename X, typename Y, typename BinaryOpTAccum, typename SemiringT>
+    friend void SpMV(const MatrixCOO<A> *_matrix,
+                     const DenseVector<X> *_x,
+                     DenseVector<Y> *_y,
+                     BinaryOpTAccum _accum,
+                     SemiringT _op,
+                     Workspace *_workspace);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
