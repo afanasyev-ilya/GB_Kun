@@ -18,5 +18,7 @@
 #define SEG_CSR_CACHE_BLOCK_SIZE (512*1024)
 #define SEG_CSR_MERGE_BLOCK_SIZE (32*1024)
 
+#define __USE_NEC_SX_AURORA__
+
 
 

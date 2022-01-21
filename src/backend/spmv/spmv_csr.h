@@ -284,8 +284,11 @@ void SpMV_all_active(const MatrixCSR<A> *_matrix,
         {
             const VNT *vertices = _matrix->vertex_groups[vg].get_data();
             VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
-
+            #ifdef __USE_NEC_SX_AURORA__
+            #pragma omp for schedule(guided, 1)
+            #else
             #pragma omp for nowait schedule(guided, 1)
+            #endif
             for(VNT idx = 0; idx < vertex_group_size; idx++)
             {
                 VNT row = vertices[idx];

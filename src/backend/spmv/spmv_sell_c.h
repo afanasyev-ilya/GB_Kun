@@ -36,15 +36,26 @@ void SpMV(const MatrixSellC<A> *_matrix,
     double t1 = omp_get_wtime();
     #pragma omp parallel
     {
+        Y res_reg[VECTOR_LENGTH];
+        #pragma _NEC vreg(res_reg)
+
+        #pragma _NEC vector
+        for(int i = 0; i < VECTOR_LENGTH; i++)
+        {
+            res_reg[i] = 0;
+        }
+
         #pragma _NEC novector
-        #pragma omp for schedule(static, 4)
+        #pragma omp for schedule(static, 8)
         for(VNT chunk=0; chunk < _matrix->nchunks; ++chunk)
         {
+            #pragma _NEC cncall
+            #pragma _NEC ivdep
             #pragma _NEC vector
+            #pragma _NEC gather_reorder
             for(VNT rowInChunk=0; rowInChunk < C; ++rowInChunk)
             {
-                if((chunk*C+rowInChunk) < _matrix->size)
-                    buffer[chunk*C+rowInChunk] = op.identity();
+                res_reg[rowInChunk] = op.identity();
             }
 
             ENT idx = _matrix->chunkPtr[chunk];
@@ -63,11 +74,21 @@ void SpMV(const MatrixSellC<A> *_matrix,
                     {
                         A mat_val = _matrix->valSellC[idx+rowInChunk];
                         VNT col_id = _matrix->colSellC[idx+rowInChunk];
-                        buffer[chunk*C+rowInChunk] = add_op(buffer[chunk*C+rowInChunk], mul_op(mat_val, x_vals[col_id])) ;
+                        res_reg[rowInChunk] = add_op(res_reg[rowInChunk], mul_op(mat_val, x_vals[col_id])) ;
                     }
                 }
                 idx += C;
             }
+
+            #pragma _NEC cncall
+            #pragma _NEC ivdep
+            #pragma _NEC vector
+            #pragma _NEC gather_reorder
+            for(VNT rowInChunk=0; rowInChunk < C; ++rowInChunk)
+            {
+                buffer[chunk*C+rowInChunk] = res_reg[rowInChunk];
+            }
+
         }
     }
     double t2 = omp_get_wtime();
