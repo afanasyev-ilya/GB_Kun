@@ -51,7 +51,7 @@ void MatrixSellC<T>::build(VNT _nrows,
         nnz_per_row[i] = row_ptr[i + 1] - row_ptr[i];
     }
 
-    construct_sell_c_sigma(VECTOR_LENGTH, size/16);
+    construct_sell_c_sigma(VECTOR_LENGTH, size/32);
 
     print_stats();
 }
@@ -94,9 +94,7 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT sigma, VNT pad)
             sigmaInvPerm[sigmaPerm[i]] = i;
         }
 
-        //print();
         permute(sigmaPerm, sigmaInvPerm);
-        //print();
     }
 
     nchunks = (VNT)(size/(double)C);

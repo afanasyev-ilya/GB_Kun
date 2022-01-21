@@ -4,6 +4,8 @@
 #define GrB_Vector lablas::Vector<float>*
 #define MASK_NULL static_cast<const lablas::Vector<float>*>(NULL)
 
+// code taken form LAGraph
+// add lecense
 int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(i): GAP-style pagerank of node i
                                           // inputs:
                                           LAGraph_Graph<float> *G,        // input graph
