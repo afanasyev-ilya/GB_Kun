@@ -142,9 +142,9 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT _sigma, VNT pad
         }
 
         VNT first_chunk_row = (chunk*C);
-        bool in_sigma_front = (first_chunk_row % sigma) < (sigma * 0.1);
+        bool in_sigma_front = (first_chunk_row % sigma) < (sigma * 0.2);
 
-        if((maxRowLen*C >= 2*csr_nnz_in_chunk) && (in_sigma_front))
+        if((maxRowLen*C >= 2*csr_nnz_in_chunk) && (csr_nnz_in_chunk > 1024))
         {
             cout << "problems is chunk " << chunk << " / " << nchunks << " : " << maxRowLen*C << " made from "
                  << csr_nnz_in_chunk << " nnz, " << ((double)maxRowLen)*C/csr_nnz_in_chunk << " times larger" << endl;

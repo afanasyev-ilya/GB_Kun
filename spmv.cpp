@@ -52,17 +52,18 @@ void test_spmv(int argc, char **argv)
         w.fill(1.0);
 
         double t1 = omp_get_wtime();
-        SAVE_STATS(GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);,
-                   "SPMV", (sizeof(float)*2 + sizeof(size_t)), 1, &matrix);
+        /*SAVE_STATS(GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);,
+                   "SPMV", (sizeof(float)*2 + sizeof(size_t)), 1, &matrix);*/
+        GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
         double t2 = omp_get_wtime();
         avg_time += (t2 - t1) / num_runs;
     }
 
     double perf = 2.0*matrix.get_nnz()/(avg_time*1e9);
     double bw = (2.0*sizeof(T)+sizeof(Index))*matrix.get_nnz()/(avg_time*1e9);
-    cout << "SPMV time: " << avg_time*1000 << " ms" << endl;
-    cout << "SPMV perf: " << perf << " GFlop/s" << endl;
-    cout << "SPMV BW: " << bw << " GB/s" << endl;
+    cout << "SPMV avg time: " << avg_time*1000 << " ms" << endl;
+    cout << "SPMV avg perf: " << perf << " GFlop/s" << endl;
+    cout << "SPMV avg BW: " << bw << " GB/s" << endl;
     save_to_file("./output/perf.txt", perf);
     save_to_file("./output/bw.txt", bw);
 

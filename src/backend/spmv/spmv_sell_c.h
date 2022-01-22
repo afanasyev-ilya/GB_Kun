@@ -31,12 +31,9 @@ void SpMV(const MatrixSellC<A> *_matrix,
 
     Y *buffer = (Y*)_workspace->get_first_socket_vector();
 
-    //cout << "C == " << C << endl;
-
     double t1 = omp_get_wtime();
     #pragma omp parallel
     {
-        ENT loc_cnt = 0;
         Y res_reg[VECTOR_LENGTH];
         #pragma _NEC vreg(res_reg)
 
@@ -60,8 +57,6 @@ void SpMV(const MatrixSellC<A> *_matrix,
                 {
                     res_reg[row_in_chunk] = op.identity();
                 }
-
-                loc_cnt += _matrix->chunkLen[chunk] * C;
 
                 ENT idx = _matrix->chunkPtr[chunk];
                 #pragma _NEC novector
@@ -122,38 +117,29 @@ void SpMV(const MatrixSellC<A> *_matrix,
             }
         }
 
-        /*#pragma omp critical
+        if(_matrix->sigma > 1)
         {
-            cout << " loc cnt: " << (100.0*loc_cnt) / _matrix->nnzSellC << endl;
-        };*/
+            #pragma _NEC cncall
+            #pragma _NEC ivdep
+            #pragma _NEC vovertake
+            #pragma _NEC novob
+            #pragma _NEC vector
+            #pragma omp for
+            for(VNT row = 0; row < _matrix->size; row++)
+                y_vals[row] = _accum(y_vals[row], buffer[_matrix->sigmaInvPerm[row]]);
+        }
+        else
+        {
+            #pragma omp for
+            for(VNT row = 0; row < _matrix->size; row++)
+            {
+                y_vals[row] = _accum(y_vals[row], buffer[row]);
+            }
+        }
     }
     double t2 = omp_get_wtime();
     cout << "inner (cell c) time: " << (t2 - t1)*1000 << " ms" << endl;
     cout << "inner (cell c) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
-
-    t1 = omp_get_wtime();
-    if(_matrix->sigma > 1)
-    {
-        #pragma _NEC cncall
-        #pragma _NEC ivdep
-        #pragma _NEC vovertake
-        #pragma _NEC novob
-        #pragma _NEC vector
-        #pragma omp parallel for
-        for(VNT row = 0; row < _matrix->size; row++)
-            y_vals[row] = _accum(y_vals[row], buffer[_matrix->sigmaInvPerm[row]]);
-    }
-    else
-    {
-        #pragma parallel omp for
-        for(VNT row = 0; row < _matrix->size; row++)
-        {
-            y_vals[row] = _accum(y_vals[row], buffer[row]);
-        }
-    }
-    t2 = omp_get_wtime();
-    cout << "reorder (cell c) time: " << (t2 - t1)*1000 << " ms" << endl;
-    cout << "reorder (cell c) BW: " << _matrix->size * (4.0*sizeof(X) + sizeof(VNT)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 }
 
 }
