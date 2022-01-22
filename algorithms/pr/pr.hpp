@@ -91,6 +91,7 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
 #undef GrB_Vector
 #undef MASK_NULL
 
+// Алгоритм преобразования LAGraph кода графового алгоритма к коду, совместимому с GB_Kun
 // удалить инициализуию LAgraph
 // lablas::Vector<Index>* d_out
 // *

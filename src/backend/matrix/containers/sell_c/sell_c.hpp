@@ -28,8 +28,6 @@ MatrixSellC<T>::MatrixSellC():size(0), nnz(0), vals(NULL), row_ptr(NULL), col_id
     {
         nthreads = omp_get_num_threads();
     }
-    rcmPerm = NULL;
-    rcmInvPerm = NULL;
     nnz_per_row = NULL;
 }
 
@@ -62,6 +60,11 @@ MatrixSellC<T>::~MatrixSellC()
     if(nnz_per_row)
     {
         delete[] nnz_per_row;
+    }
+
+    if(problematic_chunk)
+    {
+        delete []problematic_chunk;
     }
 
     MemoryAPI::free_array(sigmaPerm);
@@ -113,7 +116,11 @@ void MatrixSellC<T>::print_stats()
     cout << "Num rows: " << size << " (vertices)" << endl;
     cout << "nnz: " << nnz << " (edges)" << endl;
     cout << "SellC nnz: " << cell_c_nnz << ", growing factor - " << (double)cell_c_nnz/nnz << endl;
-    cout << "Cache size: " << size * sizeof(T) / 1e6 << " MB indirectly array" << endl;
+    cout << "Cache size: " << size * sizeof(T) / 1e6 << " MB indirectly array" << endl << endl;
+
+    cout << "size: " << size * sizeof(T) / 1e6 << " MB" << endl;
+    cout << "sigma size: " << sigma * sizeof(T) / 1e6 << " MB" << endl;
+    cout << "num sigma segments: " << size/sigma << endl;
     cout << " -------------------- " << endl << endl;
 }
 

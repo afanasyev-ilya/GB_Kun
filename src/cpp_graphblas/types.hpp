@@ -1,5 +1,4 @@
-#ifndef GB_KUN_TYPES_HPP
-#define GB_KUN_TYPES_HPP
+#pragma once
     #include <cstddef>
 
 
@@ -308,5 +307,3 @@ template <typename T_in1, typename T_out = T_in1>
         int seed_;
     };
 }
-
-#endif //GB_KUN_TYPES_HPP

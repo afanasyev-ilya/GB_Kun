@@ -1,5 +1,7 @@
 #pragma once
 
+#define __USE_NEC_SX_AURORA__
+
 #define VNT Index
 #define ENT Index
 #define CHECK_PRINT_NUM 16 // 2^4 graph is fully printed
@@ -18,7 +20,10 @@
 #define SEG_CSR_CACHE_BLOCK_SIZE (512*1024)
 #define SEG_CSR_MERGE_BLOCK_SIZE (32*1024)
 
-#define __USE_NEC_SX_AURORA__
 
-
+#ifdef __USE_NEC_SX_AURORA__
+#define LLC_CACHE_SIZE (16*1024*1024)
+#else
+#define LLC_CACHE_SIZE (64*1024*1024)
+#endif
 

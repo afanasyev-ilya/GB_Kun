@@ -50,47 +50,73 @@ void SpMV(const MatrixSellC<A> *_matrix,
         #pragma omp for schedule(static, 8)
         for(VNT chunk=0; chunk < _matrix->nchunks; ++chunk)
         {
-            #pragma _NEC cncall
-            #pragma _NEC ivdep
-            #pragma _NEC vector
-            #pragma _NEC gather_reorder
-            for(VNT rowInChunk=0; rowInChunk < C; ++rowInChunk)
-            {
-                res_reg[rowInChunk] = op.identity();
-            }
-
-            loc_cnt += _matrix->chunkLen[chunk] * C;
-
-            ENT idx = _matrix->chunkPtr[chunk];
-            #pragma _NEC novector
-            for(VNT j=0; j<_matrix->chunkLen[chunk]; j=j+P)
+            if(!_matrix->problematic_chunk[chunk]) // if usual Sell-C chunk, use Sell-C processing
             {
                 #pragma _NEC cncall
                 #pragma _NEC ivdep
-                #pragma _NEC vovertake
-                #pragma _NEC novob
                 #pragma _NEC vector
                 #pragma _NEC gather_reorder
-                for(VNT rowInChunk=0; rowInChunk<C; ++rowInChunk)
+                for(VNT row_in_chunk=0; row_in_chunk < C; ++row_in_chunk)
                 {
-                    if((chunk*C+rowInChunk) < _matrix->size)
-                    {
-                        A mat_val = _matrix->valSellC[idx+rowInChunk];
-                        VNT col_id = _matrix->colSellC[idx+rowInChunk];
-                        res_reg[rowInChunk] = add_op(res_reg[rowInChunk], mul_op(mat_val, x_vals[col_id])) ;
-                    }
+                    res_reg[row_in_chunk] = op.identity();
                 }
-                idx += C;
+
+                loc_cnt += _matrix->chunkLen[chunk] * C;
+
+                ENT idx = _matrix->chunkPtr[chunk];
+                #pragma _NEC novector
+                for(VNT j=0; j<_matrix->chunkLen[chunk]; j=j+P)
+                {
+                    #pragma _NEC cncall
+                    #pragma _NEC ivdep
+                    #pragma _NEC vovertake
+                    #pragma _NEC novob
+                    #pragma _NEC vector
+                    #pragma _NEC gather_reorder
+                    for(VNT row_in_chunk=0; row_in_chunk<C; ++row_in_chunk)
+                    {
+                        if((chunk*C+row_in_chunk) < _matrix->size)
+                        {
+                            A mat_val = _matrix->valSellC[idx+row_in_chunk];
+                            VNT col_id = _matrix->colSellC[idx+row_in_chunk];
+                            res_reg[row_in_chunk] = add_op(res_reg[row_in_chunk], mul_op(mat_val, x_vals[col_id])) ;
+                        }
+                    }
+                    idx += C;
+                }
+
+                #pragma _NEC cncall
+                #pragma _NEC ivdep
+                #pragma _NEC vector
+                #pragma _NEC gather_reorder
+                for(VNT row_in_chunk=0; row_in_chunk < C; ++row_in_chunk)
+                {
+                    buffer[chunk*C+row_in_chunk] = res_reg[row_in_chunk];
+                }
+            }
+            else // if problematic Sell-C chunk, use CSR processing
+            {
+                #pragma _NEC novector
+                for(VNT row_in_chunk = 0; row_in_chunk < C; ++row_in_chunk)
+                {
+                    Y res= identity_val;
+                    VNT row = chunk*C+row_in_chunk;
+                    #pragma _NEC cncall
+                    #pragma _NEC ivdep
+                    #pragma _NEC vovertake
+                    #pragma _NEC novob
+                    #pragma _NEC vector
+                    #pragma _NEC gather_reorder
+                    for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                    {
+                        VNT col = _matrix->col_ids[j];
+                        X val = _matrix->vals[j];
+                        res = add_op(res, mul_op(val, x_vals[col]));
+                    }
+                    buffer[row] = res;
+                }
             }
 
-            #pragma _NEC cncall
-            #pragma _NEC ivdep
-            #pragma _NEC vector
-            #pragma _NEC gather_reorder
-            for(VNT rowInChunk=0; rowInChunk < C; ++rowInChunk)
-            {
-                buffer[chunk*C+rowInChunk] = res_reg[rowInChunk];
-            }
         }
 
         /*#pragma omp critical
@@ -102,6 +128,7 @@ void SpMV(const MatrixSellC<A> *_matrix,
     cout << "inner (cell c) time: " << (t2 - t1)*1000 << " ms" << endl;
     cout << "inner (cell c) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
+    t1 = omp_get_wtime();
     if(_matrix->sigma > 1)
     {
         #pragma _NEC cncall
@@ -121,6 +148,9 @@ void SpMV(const MatrixSellC<A> *_matrix,
             y_vals[row] = _accum(y_vals[row], buffer[row]);
         }
     }
+    t2 = omp_get_wtime();
+    cout << "reorder (cell c) time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "reorder (cell c) BW: " << _matrix->size * (4.0*sizeof(X) + sizeof(VNT)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 }
 
 }

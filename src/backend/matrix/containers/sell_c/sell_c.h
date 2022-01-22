@@ -24,24 +24,26 @@ public:
     ENT get_nnz() const {return nnz;};
     void get_size(VNT* _size) const { *_size = size; };
 private:
-    int size, nnz;
+    VNT size;
+    ENT nnz;
 
     ENT *row_ptr;
     VNT *col_ids, *nnz_per_row;
     T *vals;
-    VNT *rcmPerm, *rcmInvPerm;
+
+    VNT sigma;
 
     VNT C;
     VNT P;
 
     VNT nchunks, nnzSellC;
     VNT *chunkLen;
+    int *problematic_chunk;
     ENT *chunkPtr;
     VNT *colSellC;
     T *valSellC;
 
     VNT *sigmaPerm, *sigmaInvPerm;
-    VNT sigma;
 
     int unrollFac; //for kernel, just a work-around
     int nthreads;
