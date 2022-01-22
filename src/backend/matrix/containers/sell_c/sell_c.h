@@ -38,7 +38,7 @@ private:
 
     VNT nchunks, nnzSellC;
     VNT *chunkLen;
-    int *problematic_chunk;
+    std::vector<VNT> problematic_chunks;
     ENT *chunkPtr;
     VNT *colSellC;
     T *valSellC;

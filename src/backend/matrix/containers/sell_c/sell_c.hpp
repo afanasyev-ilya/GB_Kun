@@ -62,11 +62,6 @@ MatrixSellC<T>::~MatrixSellC()
         delete[] nnz_per_row;
     }
 
-    if(problematic_chunk)
-    {
-        delete []problematic_chunk;
-    }
-
     MemoryAPI::free_array(sigmaPerm);
     MemoryAPI::free_array(sigmaInvPerm);
 }

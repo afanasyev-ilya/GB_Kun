@@ -50,7 +50,7 @@ void SpMV(const MatrixSellC<A> *_matrix,
         #pragma omp for schedule(static, 8)
         for(VNT chunk=0; chunk < _matrix->nchunks; ++chunk)
         {
-            if(!_matrix->problematic_chunk[chunk]) // if usual Sell-C chunk, use Sell-C processing
+            if(_matrix->chunkLen[chunk] > 0) // if usual Sell-C or non-empty chunk, use Sell-C processing
             {
                 #pragma _NEC cncall
                 #pragma _NEC ivdep
@@ -94,29 +94,32 @@ void SpMV(const MatrixSellC<A> *_matrix,
                     buffer[chunk*C+row_in_chunk] = res_reg[row_in_chunk];
                 }
             }
-            else // if problematic Sell-C chunk, use CSR processing
-            {
-                #pragma _NEC novector
-                for(VNT row_in_chunk = 0; row_in_chunk < C; ++row_in_chunk)
-                {
-                    Y res= identity_val;
-                    VNT row = chunk*C+row_in_chunk;
-                    #pragma _NEC cncall
-                    #pragma _NEC ivdep
-                    #pragma _NEC vovertake
-                    #pragma _NEC novob
-                    #pragma _NEC vector
-                    #pragma _NEC gather_reorder
-                    for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
-                    {
-                        VNT col = _matrix->col_ids[j];
-                        X val = _matrix->vals[j];
-                        res = add_op(res, mul_op(val, x_vals[col]));
-                    }
-                    buffer[row] = res;
-                }
-            }
+        }
 
+        #pragma _NEC novector
+        for(VNT ind = 0; ind < _matrix->problematic_chunks.size(); ind++) // now process problematic chunks
+        {
+            VNT chunk = _matrix->problematic_chunks[ind];
+
+            #pragma _NEC novector
+            for(VNT row_in_chunk = 0; row_in_chunk < C; ++row_in_chunk)
+            {
+                Y res= identity_val;
+                VNT row = chunk*C+row_in_chunk;
+                #pragma _NEC cncall
+                #pragma _NEC ivdep
+                #pragma _NEC vovertake
+                #pragma _NEC novob
+                #pragma _NEC vector
+                #pragma _NEC gather_reorder
+                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                {
+                    VNT col = _matrix->col_ids[j];
+                    X val = _matrix->vals[j];
+                    res = add_op(res, mul_op(val, x_vals[col]));
+                }
+                buffer[row] = res;
+            }
         }
 
         /*#pragma omp critical

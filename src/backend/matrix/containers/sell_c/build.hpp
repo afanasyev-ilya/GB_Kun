@@ -111,7 +111,6 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT _sigma, VNT pad
     }
 
     chunkLen = new VNT[nchunks];
-    problematic_chunk = new int[nchunks];
     chunkPtr = new ENT[nchunks+1];
 
     #pragma omp parallel for schedule(static)
@@ -130,7 +129,7 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT _sigma, VNT pad
         for(VNT rowInChunk = 0; rowInChunk < C; ++rowInChunk)
         {
             VNT row = chunk*C + rowInChunk;
-            if(row<size)
+            if(row < size)
             {
                 maxRowLen = std::max(maxRowLen, row_ptr[row+1]-row_ptr[row]);
                 csr_nnz_in_chunk += row_ptr[row+1]-row_ptr[row];
@@ -142,20 +141,22 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT _sigma, VNT pad
             maxRowLen = ((VNT)(maxRowLen/(double)P)+1)*P;
         }
 
-        if((maxRowLen*C >= 2*csr_nnz_in_chunk) && (csr_nnz_in_chunk > 1024))
+        VNT first_chunk_row = (chunk*C);
+        bool in_sigma_front = (first_chunk_row % sigma) < (sigma * 0.1);
+
+        if((maxRowLen*C >= 2*csr_nnz_in_chunk) && (in_sigma_front))
         {
             cout << "problems is chunk " << chunk << " / " << nchunks << " : " << maxRowLen*C << " made from "
                  << csr_nnz_in_chunk << " nnz, " << ((double)maxRowLen)*C/csr_nnz_in_chunk << " times larger" << endl;
 
             chunkLen[chunk] = 0;
             nnzSellC += 0;
-            problematic_chunk[chunk] = 1;
+            problematic_chunks.push_back(chunk);
         }
         else
         {
             chunkLen[chunk] = maxRowLen;
             nnzSellC += maxRowLen*C;
-            problematic_chunk[chunk] = 0;
         }
     }
 
@@ -196,7 +197,7 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT _sigma, VNT pad
 
     for(VNT chunk=0; chunk<nchunks; ++chunk)
     {
-        if(!problematic_chunk[chunk])
+        if(chunkLen[chunk] > 0)
         {
             for(VNT rowInChunk=0; rowInChunk<C; ++rowInChunk)
             {
