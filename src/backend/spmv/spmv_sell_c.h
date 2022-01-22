@@ -31,11 +31,12 @@ void SpMV(const MatrixSellC<A> *_matrix,
 
     Y *buffer = (Y*)_workspace->get_first_socket_vector();
 
-    cout << "C = " << C << endl;
+    //cout << "C == " << C << endl;
 
     double t1 = omp_get_wtime();
     #pragma omp parallel
     {
+        ENT loc_cnt = 0;
         Y res_reg[VECTOR_LENGTH];
         #pragma _NEC vreg(res_reg)
 
@@ -57,6 +58,8 @@ void SpMV(const MatrixSellC<A> *_matrix,
             {
                 res_reg[rowInChunk] = op.identity();
             }
+
+            loc_cnt += _matrix->chunkLen[chunk] * C;
 
             ENT idx = _matrix->chunkPtr[chunk];
             #pragma _NEC novector
@@ -88,8 +91,12 @@ void SpMV(const MatrixSellC<A> *_matrix,
             {
                 buffer[chunk*C+rowInChunk] = res_reg[rowInChunk];
             }
-
         }
+
+        /*#pragma omp critical
+        {
+            cout << " loc cnt: " << (100.0*loc_cnt) / _matrix->nnzSellC << endl;
+        };*/
     }
     double t2 = omp_get_wtime();
     cout << "inner (cell c) time: " << (t2 - t1)*1000 << " ms" << endl;
@@ -97,13 +104,22 @@ void SpMV(const MatrixSellC<A> *_matrix,
 
     if(_matrix->sigma > 1)
     {
-        reorder(buffer, _matrix->sigmaInvPerm, _matrix->size);
+        #pragma _NEC cncall
+        #pragma _NEC ivdep
+        #pragma _NEC vovertake
+        #pragma _NEC novob
+        #pragma _NEC vector
+        #pragma omp parallel for
+        for(VNT row = 0; row < _matrix->size; row++)
+            y_vals[row] = _accum(y_vals[row], buffer[_matrix->sigmaInvPerm[row]]);
     }
-
-    #pragma parallel omp for
-    for(VNT row = 0; row < _matrix->size; row++)
+    else
     {
-        y_vals[row] = _accum(y_vals[row], buffer[row]);
+        #pragma parallel omp for
+        for(VNT row = 0; row < _matrix->size; row++)
+        {
+            y_vals[row] = _accum(y_vals[row], buffer[row]);
+        }
     }
 }
 
