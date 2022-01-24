@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
         LAGraph_Graph<int> graph(matrix);
 
         SAVE_TEPS(GraphBlast_BFS(&levels, &graph, source_vertex),
-                   "BFS", (graph.AT));
+                   "BFS", 1,(graph.AT));
 
         if(parser.check())
         {

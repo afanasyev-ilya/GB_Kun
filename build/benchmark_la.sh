@@ -1,3 +1,5 @@
+#!/bin/sh
+
 function quit {
   exit
 }
