@@ -10,18 +10,21 @@ int main(int argc, char **argv) {
         VNT scale = parser.get_scale();
         VNT avg_deg = parser.get_avg_degree();
 
-
         lablas::Descriptor desc;
 
-        lablas::Matrix<int> matrix;
+        lablas::Matrix<float> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
         init_matrix(matrix, parser);
 
-        Index nrows;
-        matrix.get_nrows(&nrows);
-        Index source_vertex = rand() % nrows;
+        GrB_Index size;
+        matrix.get_nrows(&size);
+        lablas::Vector<float> levels(size);
 
         LAGraph_Graph<float> graph(matrix);
+
+        lablas::Vector<float> v(size);
+
+        lablas::sssp(&v, graph.A, 0, NULL, 100);
 
     }
     catch (string error)

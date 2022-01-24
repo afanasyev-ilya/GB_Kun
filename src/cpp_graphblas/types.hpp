@@ -77,12 +77,6 @@
     LA_Info;
 
 
-//template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
-//        struct plus {
-//            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
-//                return lhs + rhs;
-//            }
-//        };
 namespace lablas{
 
         template <typename D1, typename D2 = D1>

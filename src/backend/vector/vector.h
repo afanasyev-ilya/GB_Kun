@@ -138,9 +138,13 @@ public:
                    Index _nvals)
     {
         swap_to_sparse();
-        auto *sparse_vec = ((SparseVector<T>*)main_container)->build(_indices, _values, _nvals);
+        ((SparseVector<T>*)main_container)->build(_indices, _values, _nvals);
+
+        SparseVector<T>* sparse_vec = ((SparseVector<T>*)main_container);
+
         sparse_vec->fill_with_zeros();
-        return sparse_vec->build(_indices, _values, _nvals);
+        sparse_vec->build(_indices, _values, _nvals);
+        return GrB_SUCCESS;
     }
 
     LA_Info build(const T*    _values,
@@ -169,6 +173,14 @@ public:
     VNT get_size() const
     {
         return main_container->get_size();
+    }
+
+    void swap(Vector *_another)
+    {
+        ptr_swap(this->main_container, _another->main_container);
+        ptr_swap(this->secondary_container, _another->secondary_container);
+        std::swap(this->nnz, _another->nnz);
+        std::swap(this->storage, _another->storage);
     }
 private:
     VNT nnz;
