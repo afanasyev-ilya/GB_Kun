@@ -5,19 +5,19 @@ function quit() {
 }
 
 function benchmark_graph() {
-  #prefix="/home/afanasyev/LAGraph/src/benchmark/mtx_graphs"
-  prefix="./data/"
+  prefix="/home/afanasyev/LAGraph/src/benchmark/mtx_graphs"
+  #prefix="./data/"
   app_name="./"$1
   graph_name=$2
   graph_path=$prefix"/"$graph_name
 
   rm perf_stats.txt
 
-  #export OMP_NUM_THREADS=48
-  #export OMP_PROC_BIND=close
-  #export OMP_PLACES=cores
+  export OMP_NUM_THREADS=48
+  export OMP_PROC_BIND=close
+  export OMP_PLACES=cores
 
-  $app_name -graph mtx $graph_path -format SIGMA >dump.txt
+  $app_name -graph mtx $graph_path -format SIGMA > dump.txt
 
   python3 ./analize_data.py --graph=$graph_path
 }

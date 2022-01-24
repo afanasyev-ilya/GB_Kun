@@ -85,6 +85,9 @@ target_include_directories(spmv PRIVATE)
 add_executable(pr pr.cpp)
 target_include_directories(pr PRIVATE)
 
+add_executable(sssp sssp.cpp)
+target_include_directories(sssp PRIVATE)
+
 add_executable(gen gen.cpp)
 target_include_directories(gen PRIVATE)
 
