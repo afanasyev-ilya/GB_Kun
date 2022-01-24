@@ -17,7 +17,7 @@ function benchmark_graph() {
   export OMP_PROC_BIND=close
   export OMP_PLACES=cores
 
-  $app_name -graph mtx $graph_path -format SIGMA > dump.txt
+  $app_name -graph mtx $graph_path -format CSR > dump.txt
 
   python3 ./analize_data.py --graph=$graph_path
 }
@@ -37,11 +37,11 @@ rm $xls_name
 rm perf_dict.pkl
 
 declare -a apps=("pr")
-declare -a graphs=("flick.mtx" "pock.mtx" "youtube.mtx" "lj.mtx" "trackers.mtx" "wiki_ru.mtx" "us_est.mtx" "us_ctr.mtx" "zhishi.mtx")
-# declare -a graphs=("flick.mtx" "lj.mtx" "ork.mtx" "pets.mtx" "pock.mtx"
-# "youtube.mtx" "wiki_sv.mtx" "zhishi.mtx" "dbpedia.mtx" "trackers.mtx" "twitter.mtx"
-# "rmat_20_16.mtx" "rmat_21_16.mtx" "rmat_22_16.mtx"
-# "ru_21_16.mtx" "ru_22_16.mtx" "ru_24_16.mtx")
+#declare -a graphs=("flick.mtx" "pock.mtx" "youtube.mtx" "lj.mtx" "trackers.mtx" "wiki_ru.mtx" "us_est.mtx" "us_ctr.mtx" "zhishi.mtx")
+declare -a graphs=("flick.mtx" "lj.mtx" "ork.mtx" "pets.mtx" "pock.mtx"
+ "youtube.mtx" "wiki_sv.mtx" "zhishi.mtx" "dbpedia.mtx" "trackers.mtx" "twitter.mtx"
+ "rmat_20_16.mtx" "rmat_21_16.mtx" "rmat_22_16.mtx"
+ "ru_21_16.mtx" "ru_22_16.mtx" "ru_24_16.mtx")
 
 for app in "${apps[@]}"; do
   for graph in "${graphs[@]}"; do

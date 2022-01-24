@@ -90,9 +90,16 @@ namespace lablas{
             inline D2 operator()(const D1 input) const { return input; }
         };
 
-        template <typename T_out>
+        /*template <typename T_out>
         struct plus {
             inline T_out operator()(const T_out lhs, const T_out rhs) const {
+                return lhs + rhs;
+            }
+        };*/
+
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct plus {
+            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
                 return lhs + rhs;
             }
         };
@@ -199,9 +206,10 @@ inline T_out operator()(T_out lhs, T_out rhs) const    \
 
 REGISTER_MONOID(PlusMonoid, plus, 0)
 REGISTER_MONOID(LogicalOrMonoid, logical_or, false)
-
+REGISTER_MONOID(MinimumMonoid, minimum, std::numeric_limits<T_out>::max())
 REGISTER_MONOID(FirstWinsMonoid, first, 0)
 REGISTER_MONOID(SecondWinsMonoid, second, 0)
+REGISTER_MONOID(CustomLessMonoid, less, std::numeric_limits<T_out>::max());
 
 REGISTER_MONOID(FirstMin, minimum, 0)
 
@@ -230,6 +238,11 @@ REGISTER_SEMIRING(FirstWinsSemiring, FirstWinsMonoid, multiplies)
 REGISTER_SEMIRING(FirstMinSemiring, FirstMin, multiplies)
 REGISTER_SEMIRING(PlusSecondSemiring, PlusMonoid, second)
 REGISTER_SEMIRING(StructuralBool, LogicalOrMonoid, GrB_ONEB_T)
+REGISTER_SEMIRING(MinimumPlusSemiring, MinimumMonoid, plus)
+REGISTER_SEMIRING(CustomLessPlusSemiring, CustomLessMonoid, plus)
+// MinimumPlusSemiring
+// CustomLessPlusSemiring
+
 
 template <typename SemiringT>
 struct AdditiveMonoidFromSemiring {

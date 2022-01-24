@@ -285,7 +285,7 @@ void SpMV_all_active(const MatrixCSR<A> *_matrix,
             const VNT *vertices = _matrix->vertex_groups[vg].get_data();
             VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
             #ifdef __USE_NEC_SX_AURORA__
-            #pragma omp for schedule(guided, 1)
+            #pragma omp for schedule(static)
             #else
             #pragma omp for nowait schedule(guided, 1)
             #endif

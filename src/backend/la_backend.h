@@ -1,6 +1,7 @@
 #pragma once
 
-#define __USE_NEC_SX_AURORA__
+//#define __USE_NEC_SX_AURORA__
+#define __USE_KUNPENG__
 
 #define VNT Index
 #define ENT Index

@@ -18,7 +18,7 @@ public:
 
     LA_Info build(const std::vector<Index>* indices,
                   const std::vector<T>*     values,
-               Index  nvals)
+                  Index  nvals)
     {
         if (indices == NULL || values == NULL) return GrB_NULL_POINTER;
         if (nvals == 0) return GrB_INVALID_VALUE;
