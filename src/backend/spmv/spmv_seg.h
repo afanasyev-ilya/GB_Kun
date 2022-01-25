@@ -223,7 +223,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     cout << "inner (seg) time: " << (t2 - t1)*1000 << " ms" << endl;
     cout << "inner (seg) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
-    t1 = omp_get_wtime();
+    double t3 = omp_get_wtime();
     #pragma omp parallel // cache aware scatter merge
     {
         #pragma omp for
@@ -232,7 +232,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             shared_vector[i] = identity_val;
         }
 
-        #pragma omp for schedule(guided, 1)
+        #pragma omp for schedule(static, 1)
         for(VNT cur_block = 0; cur_block < _matrix->merge_blocks_number; cur_block++)
         {
             for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
@@ -275,8 +275,6 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             #pragma omp for schedule(static)
             for(VNT i = 0; i < segment->size; i++)
             {
-                //if(conversion_indexes[i] == 5915)
-                //    cout << i << " || " << " seg id " << seg_id << "| " << buffer[i] << " + " << shared_vector[conversion_indexes[i]] << " = " << shared_vector[conversion_indexes[i]] + buffer[i] << endl;
                 shared_vector[conversion_indexes[i]] = add_op(shared_vector[conversion_indexes[i]], buffer[i]);
             }
         }
@@ -288,8 +286,10 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         }
     }*/
 
-    t2 = omp_get_wtime();
-    cout << "cache aware correct merge time: " << (t2 - t1)*1000 << " ms" << endl;
+    double t4 = omp_get_wtime();
+    cout << "merge time: " << (t4 - t3)*1000 << " ms" << endl;
+    cout << "wall spmv time: " << (t4 - t1)*1000 << " ms" << endl;
+    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t4 - t1)*1e9) << " GB/s" << endl << endl;
 
     //cout << "compare: " << (t2 - t1)*1000 << "(edge proc) vs " << (t4 - t3)*1000 << "(cache-aware) vs " << (t6 - t5)*1000 << "(usual merge)" << endl;
 }
