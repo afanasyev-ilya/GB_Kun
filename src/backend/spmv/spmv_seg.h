@@ -224,67 +224,74 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     cout << "inner (seg) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
     double t3 = omp_get_wtime();
-    #pragma omp parallel // cache aware scatter merge
+    if(_matrix->merge_blocks_number >= 4*cores_num)
     {
-        #pragma omp for
-        for(VNT i = 0; i < _matrix->size; i++)
+        cout << "using cache-aware merge" << endl;
+        #pragma omp parallel // cache aware scatter merge
         {
-            shared_vector[i] = identity_val;
-        }
+            #pragma omp for
+            for(VNT i = 0; i < _matrix->size; i++)
+            {
+                shared_vector[i] = identity_val;
+            }
 
-        #pragma omp for schedule(static, 1)
-        for(VNT cur_block = 0; cur_block < _matrix->merge_blocks_number; cur_block++)
+            #pragma omp for schedule(static, 1)
+            for(VNT cur_block = 0; cur_block < _matrix->merge_blocks_number; cur_block++)
+            {
+                for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
+                {
+                    SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
+                    Y *buffer = (Y*)segment->vertex_buffer;
+                    VNT *conversion_indexes = segment->conversion_to_full;
+
+                    VNT block_start = segment->block_starts[cur_block];
+                    VNT block_end = segment->block_ends[cur_block];
+
+                    for(VNT i = block_start; i < block_end; i++)
+                    {
+                        shared_vector[conversion_indexes[i]] = add_op(shared_vector[conversion_indexes[i]], buffer[i]);
+                    }
+                }
+            }
+
+            #pragma omp for
+            for(VNT i = 0; i < _matrix->size; i++)
+            {
+                y_vals[i] = _accum(y_vals[i], shared_vector[i]);
+            }
+        }
+    }
+    else
+    {
+        cout << "using simple merge" << endl;
+        #pragma omp parallel // non cache aware scatter merge
         {
+            #pragma omp for
+            for(VNT i = 0; i < _matrix->size; i++)
+            {
+                shared_vector[i] = identity_val;
+            }
+
             for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
             {
                 SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
                 Y *buffer = (Y*)segment->vertex_buffer;
                 VNT *conversion_indexes = segment->conversion_to_full;
 
-                VNT block_start = segment->block_starts[cur_block];
-                VNT block_end = segment->block_ends[cur_block];
-
-                for(VNT i = block_start; i < block_end; i++)
+                #pragma omp for schedule(static)
+                for(VNT i = 0; i < segment->size; i++)
                 {
                     shared_vector[conversion_indexes[i]] = add_op(shared_vector[conversion_indexes[i]], buffer[i]);
                 }
             }
-        }
 
-        #pragma omp for
-        for(VNT i = 0; i < _matrix->size; i++)
-        {
-            y_vals[i] = _accum(y_vals[i], shared_vector[i]);
-        }
-    }
-
-    /*#pragma omp parallel // non cache aware scatter merge
-    {
-        #pragma omp for
-        for(VNT i = 0; i < _matrix->size; i++)
-        {
-            shared_vector[i] = identity_val;
-        }
-
-        for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
-        {
-            SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
-            Y *buffer = (Y*)segment->vertex_buffer;
-            VNT *conversion_indexes = segment->conversion_to_full;
-
-            #pragma omp for schedule(static)
-            for(VNT i = 0; i < segment->size; i++)
+            #pragma omp for
+            for(VNT i = 0; i < _matrix->size; i++)
             {
-                shared_vector[conversion_indexes[i]] = add_op(shared_vector[conversion_indexes[i]], buffer[i]);
+                y_vals[i] = _accum(y_vals[i], shared_vector[i]);
             }
         }
-
-        #pragma omp for
-        for(VNT i = 0; i < _matrix->size; i++)
-        {
-            y_vals[i] = _accum(y_vals[i], shared_vector[i]);
-        }
-    }*/
+    }
 
     double t4 = omp_get_wtime();
     cout << "merge time: " << (t4 - t3)*1000 << " ms" << endl;

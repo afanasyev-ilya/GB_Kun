@@ -103,16 +103,19 @@ void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
     double t1, t2;
     t1 = omp_get_wtime();
     FILE *fp = fopen(_mtx_file_name.c_str(), "r");
-    char header_line[1024];
-    fgets(header_line, 1024, fp);
-    string header(header_line);
-    if(header.find("%%MatrixMarket matrix coordinate pattern general") == std::string::npos)
+    char header_line[4096];
+
+    while(true)
     {
-        throw "Error: is not a mtx file";
+        fgets(header_line, 4096, fp);
+        if(header_line[0] != '%')
+            break;
     }
 
     long long int tmp_rows = 0, tmp_cols = 0, tmp_nnz = 0;
-    fscanf(fp, "%lld %lld %lld", &tmp_rows, &tmp_cols, &tmp_nnz);
+    sscanf(header_line, "%lld %lld %lld", &tmp_rows, &tmp_cols, &tmp_nnz);
+    string hd_str(header_line);
+    cout << "started reading, header is : " << hd_str << endl;
 
     VNT *proc_src_ids, *proc_dst_ids;
     VNT *read_src_ids, *read_dst_ids;
