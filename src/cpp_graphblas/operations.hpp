@@ -318,10 +318,21 @@ LA_Info mxv (Vector<W>*       _w,
         backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
     else
     {
-        int number_of_buckets = 64 * 8;
+        int number_of_buckets = 64 * 4;
         cout << "[ NUMBER_OF_BUCKETS = " << number_of_buckets << " ]" << endl;
 
+        ofstream out1("spmspv.txt", ofstream::app);
+        ofstream out2("spmv.txt", ofstream::app);
+//
+//        FILE *f1 = fopen("spmspv.txt", "a");
+//        FILE *f2 = fopen("spmv.txt", "a");
+
+        double t1 = omp_get_wtime();
         backend::SpMSpV(_matrix->get_matrix(), _u->get_vector()->getSparse(), _w->get_vector(), _desc->get_descriptor(), number_of_buckets);
+        double t2 = omp_get_wtime();
+        // fprintf(f1, "%lf\n", (t2 - t1) * 1e3);
+        out1 << (t2 - t1) * 1e3 << endl;
+        printf("SPMSPV time: %lf ms.\n", (t2 - t1) * 1e3);
 
         lablas::Vector<W> check_w(_u->get_vector()->get_size());
 
@@ -329,6 +340,8 @@ LA_Info mxv (Vector<W>*       _w,
         backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), check_w.get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
         double t4 = omp_get_wtime();
 
+        //fprintf(f2, "%lf\n", (t4 - t3) * 1e3);
+        out2 << (t4 - t3) * 1e3 << endl;
         printf("\033[0;34m");
         printf("SPMV time: %lf ms.\n", (t4 - t3) * 1e3);
         printf("\033[0m");
@@ -336,7 +349,6 @@ LA_Info mxv (Vector<W>*       _w,
         int nvals = _matrix->get_nnz();
         double bw = nvals * bytes_per_flop/((t4 - t3)*1e9);
         printf("SPMV BW: %lf GB/s.\n", bw);
-
 
         //_w->print();
         //check_w->print();
