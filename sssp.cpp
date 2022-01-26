@@ -10,8 +10,6 @@ int main(int argc, char **argv) {
         VNT scale = parser.get_scale();
         VNT avg_deg = parser.get_avg_degree();
 
-        lablas::Descriptor desc;
-
         lablas::Matrix<float> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
         init_matrix(matrix, parser);
@@ -24,7 +22,8 @@ int main(int argc, char **argv) {
 
         lablas::Vector<float> v(size);
 
-        lablas::sssp(&v, graph.A, 0, NULL, 100);
+        lablas::Descriptor desc;
+        lablas::sssp(&v, graph.A, 0, &desc, 100);
 
     }
     catch (string error)

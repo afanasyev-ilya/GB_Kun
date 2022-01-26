@@ -183,6 +183,13 @@ namespace lablas{
             }
         };
 
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = bool>
+        struct less {
+            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+                return lhs < rhs;
+            }
+        };
+
 // Monoid generator macro provided by Scott McMillan.
 #define REGISTER_MONOID(M_NAME, BINARYOP, IDENTITY)                          \
 template <typename T_out>                                                    \
@@ -204,7 +211,6 @@ REGISTER_MONOID(MinimumMonoid, minimum, std::numeric_limits<T_out>::max())
 REGISTER_MONOID(FirstWinsMonoid, first, 0)
 REGISTER_MONOID(SecondWinsMonoid, second, 0)
 REGISTER_MONOID(CustomLessMonoid, less, std::numeric_limits<T_out>::max());
-
 REGISTER_MONOID(FirstMin, minimum, 0)
 
 // Semiring generator macro provided by Scott McMillan

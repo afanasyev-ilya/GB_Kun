@@ -29,8 +29,6 @@ void sssp(Vector<float>*       v,
     Vector<float> f1(A_nrows);
     Vector<float> f2(A_nrows);
 
-    v->print();
-
     f1.fill(std::numeric_limits<float>::max());
     f1.set_element(0.f, s);
 
@@ -41,18 +39,24 @@ void sssp(Vector<float>*       v,
     Index f1_nvals = 1;
     float succ = 1.f;
 
+    v->print();
+    f1.print();
+
     for (iter = 1; iter <= _max_iter; ++iter)
     {
         vxm<float, float, float, float>(&f2, nullptr, second<Index, float, Index>(),
                                         MinimumPlusSemiring<float>(), &f1, A, desc);
 
+        cout << "f2: ";
+        f2.print();
+
         //eWiseMult<float, float, float, float>(&m, GrB_NULL, GrB_NULL,
         //    PlusLessSemiring<float>(), &f2, v, desc);
         eWiseAdd<float, float, float, float>(&m, nullptr, second<Index, float, Index>(),
-                                             lablas::plus<float>(), &f2, v, desc);
+                                             lablas::less<float>(), &f2, v, desc);
 
         eWiseAdd<float, float, float, float>(v, nullptr, second<Index, float, Index>(),
-                                             lablas::plus<float>(), v, &f2, desc);
+                                             lablas::minimum<float>(), v, &f2, desc);
 
         // Similar to BFS, except we need to filter out the unproductive vertices
         // here rather than as part of masked vxm
