@@ -72,9 +72,13 @@ void SpMV(const MatrixSellC<A> *_matrix,
                     {
                         if((chunk*C+row_in_chunk) < _matrix->size)
                         {
-                            A mat_val = _matrix->valSellC[idx+row_in_chunk];
                             VNT col_id = _matrix->colSellC[idx+row_in_chunk];
-                            res_reg[row_in_chunk] = add_op(res_reg[row_in_chunk], mul_op(mat_val, x_vals[col_id])) ;
+
+                            if(col_id != -1)
+                            {
+                                A mat_val = _matrix->valSellC[idx+row_in_chunk];
+                                res_reg[row_in_chunk] = add_op(res_reg[row_in_chunk], mul_op(mat_val, x_vals[col_id])) ;
+                            }
                         }
                     }
                     idx += C;

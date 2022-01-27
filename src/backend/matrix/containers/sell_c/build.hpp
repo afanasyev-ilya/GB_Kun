@@ -194,6 +194,10 @@ void MatrixSellC<T>::construct_sell_c_sigma(VNT chunkHeight, VNT _sigma, VNT pad
         }
     }
 
+    for(ENT i = 0; i < nnzSellC; i++)
+    {
+        colSellC[i] = -1;
+    }
 
     for(VNT chunk=0; chunk<nchunks; ++chunk)
     {

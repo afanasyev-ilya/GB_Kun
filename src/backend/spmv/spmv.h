@@ -105,22 +105,7 @@ void VSpM(const Matrix<A> *_matrix,
         }
         else if(format == SELL_C)
         {
-            cout << "doing check" << endl;
-            DenseVector<Y> check(_matrix->get_nrows());
-            for(int i = 0; i < _matrix->get_nrows(); i++)
-                check.get_vals()[i] = _y->get_vals()[i];
-
-
             SpMV(((MatrixSellC<A> *)_matrix->get_transposed_data()), _x, _y, _accum, _op, _matrix->get_workspace());
-
-
-            SpMV_all_active_diff_vectors(_matrix->get_csc(), _x, &check, _accum, _op, _desc, _matrix->get_workspace());
-            if(check == (*_y)) {
-                cout << "well its ok" << endl;
-            }
-            else {
-                cout << "problem occured!" << endl;
-            }
         }
         else if(format == CSR_SEG)
         {
