@@ -29,7 +29,10 @@ void DenseVector<T>::print() const
 {
     for(VNT i = 0; i < size; i++)
     {
-        cout << vals[i] << " ";
+        if(fabs(vals[i]) >= 1000000/*std::numeric_limits<T>::max()*/)
+            cout << "inf" << " ";
+        else
+            cout << vals[i] << " ";
     }
     cout << endl;
 }

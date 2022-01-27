@@ -86,7 +86,7 @@ public:
         return ncols;
     }
 
-    void print() const { data->print(); }
+    void print() const { csr_data->print(); }
 
     ENT get_nnz() const {return csr_data->get_nnz();};
 

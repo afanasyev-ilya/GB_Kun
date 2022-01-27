@@ -121,13 +121,22 @@ private:
     T get(VNT _row, VNT _col) const;
 
     template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
-    friend void SpMV_all_active(const MatrixCSR<A> *_matrix,
-                                const DenseVector<X> *_x,
-                                DenseVector<Y> *_y,
-                                BinaryOpTAccum _accum,
-                                SemiringT op,
-                                Descriptor *_desc,
-                                Workspace *_workspace);
+    friend void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
+                                             const DenseVector <X> *_x,
+                                             DenseVector <Y> *_y,
+                                             BinaryOpTAccum _accum,
+                                             SemiringT op,
+                                             Descriptor *_desc,
+                                             Workspace *_workspace);
+
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
+                                             const DenseVector <X> *_x,
+                                             DenseVector <Y> *_y,
+                                             BinaryOpTAccum _accum,
+                                             SemiringT op,
+                                             Descriptor *_desc,
+                                             Workspace *_workspace);
 
     template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_dense(const MatrixCSR<A> *_matrix,

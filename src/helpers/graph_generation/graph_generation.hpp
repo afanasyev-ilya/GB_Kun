@@ -70,7 +70,7 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
     unsigned int seed = int(time(NULL)) * omp_get_thread_num();
     #pragma omp parallel for
     for(ENT i = 0; i < directed_edges_count; i++)
-        vals[i] = rand()%9 + 1;
+        vals[i] = EDGE_VAL;
 
     if(!_direction_type)
     {
@@ -171,7 +171,7 @@ void GraphGenerationAPI::RMAT(EdgeListContainer<T> &_edges_container,
 
             src_ids[cur_edge] = from;
             dst_ids[cur_edge] = to;
-            vals[cur_edge] = (((float) rand_r(&seed)) / (float) RAND_MAX);
+            vals[cur_edge] = EDGE_VAL;
             
             if(!_direction_type)
             {

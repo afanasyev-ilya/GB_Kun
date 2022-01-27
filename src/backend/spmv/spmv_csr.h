@@ -264,13 +264,13 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
-void SpMV_all_active(const MatrixCSR<A> *_matrix,
-                     const DenseVector<X> *_x,
-                     DenseVector<Y> *_y,
-                     BinaryOpTAccum _accum,
-                     SemiringT op,
-                     Descriptor *_desc,
-                     Workspace *_workspace)
+void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
+                                  const DenseVector<X> *_x,
+                                  DenseVector<Y> *_y,
+                                  BinaryOpTAccum _accum,
+                                  SemiringT op,
+                                  Descriptor *_desc,
+                                  Workspace *_workspace)
 {
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
@@ -303,6 +303,67 @@ void SpMV_all_active(const MatrixCSR<A> *_matrix,
                 }
                 y_vals[row] = _accum(y_vals[row], res);
             }
+        }
+    }
+
+    double t2 = omp_get_wtime();
+    cout << "wall spmv time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
+                                  const DenseVector<X> *_x,
+                                  DenseVector<Y> *_y,
+                                  BinaryOpTAccum _accum,
+                                  SemiringT op,
+                                  Descriptor *_desc,
+                                  Workspace *_workspace)
+{
+    const X *x_vals = _x->get_vals();
+    Y *y_vals = _y->get_vals();
+    auto add_op = extractAdd(op);
+    auto mul_op = extractMul(op);
+    auto identity_val = op.identity();
+
+    Y *buffer = (Y*)_workspace->get_first_socket_vector();
+
+    double t1 = omp_get_wtime();
+
+    #pragma omp parallel
+    {
+        for(int vg = 0; vg < _matrix->vg_num; vg++)
+        {
+            const VNT *vertices = _matrix->vertex_groups[vg].get_data();
+            VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
+            #ifdef __USE_NEC_SX_AURORA__
+            #pragma omp for schedule(static)
+            #else
+            #pragma omp for nowait schedule(guided, 1)
+            #endif
+            for(VNT idx = 0; idx < vertex_group_size; idx++)
+            {
+                VNT row = vertices[idx];
+                Y res = identity_val;
+                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                {
+                    VNT col = _matrix->col_ids[j];
+                    A val = _matrix->vals[j];
+                    res = add_op(res, mul_op(val, x_vals[col]));
+                }
+                buffer[row] = res;
+                //y_vals[row] = _accum(y_vals[row], res);
+            }
+        }
+
+        #pragma omp barrier // splitting result vector generation is required
+
+        #pragma omp parallel for
+        for(VNT row = 0; row < _matrix->size; row++)
+        {
+            y_vals[row] = _accum(y_vals[row], buffer[row]);
         }
     }
 

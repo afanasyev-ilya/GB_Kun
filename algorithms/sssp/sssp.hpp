@@ -10,7 +10,7 @@ namespace lablas {
     // assign<..., index> ...
     // MinimumPlusSemiring<float>() -> lablas::plus<float, float, float>()
 
-void sssp(Vector<float>*       v,
+/*void sssp(Vector<float>*       v,
           const Matrix<float>* A,
           Index                s,
           Descriptor*          desc,
@@ -39,14 +39,19 @@ void sssp(Vector<float>*       v,
     Index f1_nvals = 1;
     float succ = 1.f;
 
-    v->print();
-    f1.print();
+    A->print();
+
 
     for (iter = 1; iter <= _max_iter; ++iter)
     {
+        cout << "f1: ";
+        f1.print();
+
         vxm<float, float, float, float>(&f2, nullptr, second<Index, float, Index>(),
                                         MinimumPlusSemiring<float>(), &f1, A, desc);
 
+        cout << "v bef: ";
+        v->print();
         cout << "f2: ";
         f2.print();
 
@@ -55,8 +60,14 @@ void sssp(Vector<float>*       v,
         eWiseAdd<float, float, float, float>(&m, nullptr, second<Index, float, Index>(),
                                              lablas::less<float>(), &f2, v, desc);
 
+        cout << "mask: ";
+        m.print();
+
         eWiseAdd<float, float, float, float>(v, nullptr, second<Index, float, Index>(),
                                              lablas::minimum<float>(), v, &f2, desc);
+
+        cout << "v: ";
+        v->print();
 
         // Similar to BFS, except we need to filter out the unproductive vertices
         // here rather than as part of masked vxm
@@ -78,6 +89,26 @@ void sssp(Vector<float>*       v,
     }
 
     v->print();
+}*/
+
+void sssp(Vector<float>*       _distances,
+          const Matrix<float>* _matrix,
+          Index                _source,
+          Descriptor*          _desc,
+          int _max_iter)
+{
+    _distances->fill(std::numeric_limits<float>::max());
+    _distances->set_element(0.f, _source);
+
+    for (int k = 0; k < _matrix->nrows() - 1; ++k)
+    {
+        cout << "before: ";
+        _distances->print();
+        vxm<float, float, float, float>(_distances, NULL, lablas::minimum<float>(),
+                MinimumPlusSemiring<float>(), _distances, _matrix, _desc);
+        cout << "after: ";
+        _distances->print();
+    }
 }
 
 }

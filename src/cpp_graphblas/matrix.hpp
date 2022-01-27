@@ -35,6 +35,14 @@ public:
         return GrB_SUCCESS;
     }
 
+    Index nrows() const{
+        return _matrix.get_nrows();
+    }
+
+    Index ncols() const{
+        return _matrix.get_ncols();
+    }
+
     LA_Info get_ncols(Index* _ncols) const{
         *_ncols = _matrix.get_ncols();
         return GrB_SUCCESS;
