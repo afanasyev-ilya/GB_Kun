@@ -14,6 +14,8 @@
 #include <string>
 #include <list>
 #include <cassert>
+#include <queue>
+#include <functional>
 
 #include <omp.h>
 

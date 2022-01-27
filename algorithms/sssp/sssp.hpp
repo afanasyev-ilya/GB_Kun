@@ -6,9 +6,9 @@ namespace algorithm {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void sssp_bellman_ford(Vector<T> *_distances,
-                       const Matrix<T> *_matrix,
-                       Index _source)
+void sssp_bf_GBTL(Vector<T> *_distances,
+                  const Matrix <T> *_matrix,
+                  Index _source)
 {
     lablas::Descriptor desc;
 
@@ -24,9 +24,9 @@ void sssp_bellman_ford(Vector<T> *_distances,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void sssp_bellman_ford_opt(Vector<T> *_distances,
-                           const Matrix<T> *_matrix,
-                           Index _source)
+void sssp_bf_gbkun(Vector<T> *_distances,
+                   Matrix <T> *_matrix,
+                   Index _source)
 {
     lablas::Descriptor desc;
 
@@ -40,7 +40,8 @@ void sssp_bellman_ford_opt(Vector<T> *_distances,
 
     for(Index k = 0;; k++)
     {
-        vxm<T, T, T, T>(&new_distances, NULL, minimum<T>(), MinimumPlusSemiring<T>(), _distances, _matrix, &desc);
+        SAVE_STATS((vxm<T, T, T, T>(&new_distances, NULL, minimum<T>(), MinimumPlusSemiring<T>(),
+                _distances, _matrix, &desc));, "sssp_vxm", (sizeof(T)*2 + sizeof(size_t)), 1, _matrix);
         eWiseAdd<T, T, T, T>(&mask, NULL, nullptr, less<T>(), &new_distances, _distances, &desc);
 
         T succ = 0;

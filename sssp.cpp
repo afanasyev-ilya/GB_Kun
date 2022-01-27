@@ -23,9 +23,15 @@ int main(int argc, char **argv) {
 
         lablas::Vector<float> distances(size);
 
-        Index source_vertex = rand() % size;
+        Index source_vertex = 0;
 
-        lablas::algorithm::sssp_bellman_ford_opt(&distances, graph.A, source_vertex);
+        int num_tests = 100;
+        for(int i = 0; i < num_tests; i++)
+        {
+            source_vertex = rand() % size;
+            SAVE_TEPS((lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex));,
+                      "sssp", 1, &matrix);
+        }
 
         if(parser.check())
         {

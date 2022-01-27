@@ -1,7 +1,5 @@
 #pragma once
 
-#include <queue>
-
 namespace lablas {
 namespace algorithm {
 

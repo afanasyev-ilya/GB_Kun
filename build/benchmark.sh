@@ -5,17 +5,17 @@ function quit() {
 }
 
 function benchmark_graph() {
-  prefix="/home/afanasyev/LAGraph/src/benchmark/mtx_graphs"
-  #prefix="./data/"
+  #prefix="/home/afanasyev/LAGraph/src/benchmark/mtx_graphs"
+  prefix="/home/afanasievily_251892/data/"
   app_name="./"$1
   graph_name=$2
   graph_path=$prefix"/"$graph_name
 
   rm perf_stats.txt
 
-  export OMP_NUM_THREADS=48
-  export OMP_PROC_BIND=close
-  export OMP_PLACES=cores
+  #export OMP_NUM_THREADS=48
+  #export OMP_PROC_BIND=close
+  #export OMP_PLACES=cores
 
   $app_name -graph mtx $graph_path -format CSR_SEG > dump.txt
 
@@ -36,12 +36,12 @@ echo "Writing output to "$xls_name" file..."
 rm $xls_name
 rm perf_dict.pkl
 
-declare -a apps=("pr")
-#declare -a graphs=("flick.mtx" "pock.mtx" "youtube.mtx" "lj.mtx" "trackers.mtx" "wiki_ru.mtx" "us_est.mtx" "us_ctr.mtx" "zhishi.mtx")
-declare -a graphs=("flick.mtx" "lj.mtx" "ork.mtx" "pets.mtx" "pock.mtx"
- "youtube.mtx" "wiki_sv.mtx" "zhishi.mtx" "dbpedia.mtx" "trackers.mtx" "twitter.mtx"
- "rmat_20_16.mtx" "rmat_21_16.mtx" "rmat_22_16.mtx"
- "ru_21_16.mtx" "ru_22_16.mtx" "ru_24_16.mtx")
+declare -a apps=("sssp")
+declare -a graphs=("pock.mtx" "youtube.mtx" "lj.mtx" "trackers.mtx" "wiki_ru.mtx" "us_est.mtx" "us_ctr.mtx" "zhishi.mtx")
+#declare -a graphs=("flick.mtx" "lj.mtx" "ork.mtx" "pets.mtx" "pock.mtx"
+# "youtube.mtx" "wiki_sv.mtx" "zhishi.mtx" "dbpedia.mtx" "trackers.mtx" "twitter.mtx"
+# "rmat_20_16.mtx" "rmat_21_16.mtx" "rmat_22_16.mtx"
+# "ru_21_16.mtx" "ru_22_16.mtx" "ru_24_16.mtx")
 
 for app in "${apps[@]}"; do
   for graph in "${graphs[@]}"; do
