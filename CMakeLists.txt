@@ -9,14 +9,14 @@ message("${CMAKE_C_COMPILER}")
 
 if(CMAKE_C_COMPILER MATCHES "ncc")
     message("COMPILING FOR NEC SX-Aurora TSUBASA") # this is needed to test Sell-C and evaluate vectorization efficiency on Kunpeng
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fopenmp -O3 -fopenmp -mparallel -mretain-list-vector")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_NEC_SX_AURORA__ -std=c++14 -fopenmp -O3 -fopenmp -mparallel -mretain-list-vector")
 else ()
     message(STATUS "Number of cores: ${N}")
     if(N EQUAL 48 OR N EQUAL 64 OR N EQUAL 96 OR N EQUAL 128)
         message("COMPILING FOR KUNPENG 920")
         set(CMAKE_CXX_STANDARD 14)
         #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++14 -fno-trapping-math -fopenmp-simd -fopenmp  -ffreestanding -ffast-math -march=armv8.2-a -mtune=tsv110 -fpermissive")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++14 -fno-trapping-math -fopenmp-simd -fopenmp  -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_KUNPENG__ -O3 -std=c++14 -fno-trapping-math -fopenmp-simd -fopenmp  -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays")
     else ()
         message("CLION compilation") # this is for local testing
         set(CMAKE_CXX_STANDARD 14)

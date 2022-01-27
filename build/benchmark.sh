@@ -17,7 +17,7 @@ function benchmark_graph() {
   #export OMP_PROC_BIND=close
   #export OMP_PLACES=cores
 
-  $app_name -graph mtx $graph_path -format CSR_SEG > dump.txt
+  $app_name -graph mtx $graph_path -format SIGMA > dump.txt
 
   python3 ./analize_data.py --graph=$graph_path
 }
