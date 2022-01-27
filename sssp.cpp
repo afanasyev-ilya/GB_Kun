@@ -23,10 +23,9 @@ int main(int argc, char **argv) {
 
         lablas::Vector<float> distances(size);
 
-        Index source_vertex = 0;
+        Index source_vertex = rand() % size;
 
-        lablas::Descriptor desc;
-        lablas::sssp(&distances, graph.A, source_vertex, &desc);
+        lablas::algorithm::sssp_bellman_ford_opt(&distances, graph.A, source_vertex);
 
         if(parser.check())
         {

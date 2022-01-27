@@ -79,6 +79,7 @@ void process_portion(const VNT *_src_ids,
                      ENT _ln_pos,
                      ENT _nnz)
 {
+    unsigned int seed = int(time(NULL));
     for(size_t i = 0; i < MTX_READ_PARTITION_SIZE; i++)
     {
         if((_ln_pos + i) < _nnz)
@@ -273,8 +274,8 @@ void Matrix<T>::init_optimized_structures()
                                        csr_data->get_row_ptr(),
                                        csr_data->get_col_ids(),
                                        csr_data->get_vals(), 0);
-        ((MatrixSellC<T>*)transposed_data)->build(csc_data->get_num_rows(),
-                                                  csc_data->get_num_cols(),
+        ((MatrixSellC<T>*)transposed_data)->build(csc_data->get_num_rows(), // since CSC is used no swap
+                                                  csc_data->get_num_cols(), // compared to prev build
                                                   csc_data->get_nnz(),
                                                   csc_data->get_row_ptr(),
                                                   csc_data->get_col_ids(),
