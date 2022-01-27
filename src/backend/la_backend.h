@@ -5,7 +5,7 @@
 
 #define VNT Index
 #define ENT Index
-#define CHECK_PRINT_NUM 16 // 2^4 graph is fully printed
+#define CHECK_PRINT_NUM 0 // 2^4 graph is fully printed
 
 #define __USE_SOCKET_OPTIMIZATIONS__
 

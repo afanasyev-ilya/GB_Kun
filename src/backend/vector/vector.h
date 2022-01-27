@@ -218,10 +218,8 @@ bool operator==(Vector<T>& lhs, Vector<T>& rhs)
 {
     if(lhs.storage != rhs.storage) // storages mismatch, not equal
     {
-//        lhs.print();
-//        rhs.print();
-    cout << "Different storage!\n";
-    return 0;
+        cout << "Different storage!\n";
+        return 0;
     }
     else
     {
@@ -236,6 +234,12 @@ bool operator==(Vector<T>& lhs, Vector<T>& rhs)
             throw " == for sparse vectors not implemented yet";
         }
     }
+}
+
+template <typename T>
+bool operator!=(Vector<T>& lhs, Vector<T>& rhs)
+{
+    return !(lhs == rhs);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

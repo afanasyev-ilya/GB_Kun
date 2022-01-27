@@ -91,6 +91,12 @@ bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
         return false;
 }
 
+template <typename T>
+bool operator!=(DenseVector<T>& lhs, DenseVector<T>& rhs)
+{
+    return !(lhs == rhs);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "dense_vector.hpp"
