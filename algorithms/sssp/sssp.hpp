@@ -94,8 +94,7 @@ namespace lablas {
 void sssp(Vector<float>*       _distances,
           const Matrix<float>* _matrix,
           Index                _source,
-          Descriptor*          _desc,
-          int _max_iter)
+          Descriptor*          _desc)
 {
     _distances->fill(std::numeric_limits<float>::max());
     _distances->set_element(0.f, _source);

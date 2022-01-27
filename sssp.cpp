@@ -1,6 +1,7 @@
 #include "src/gb_kun.h"
 
 #include "algorithms/sssp/sssp.hpp"
+#include "algorithms/sssp/sssp_traditional.hpp"
 
 int main(int argc, char **argv) {
     try
@@ -20,10 +21,28 @@ int main(int argc, char **argv) {
 
         LAGraph_Graph<float> graph(matrix);
 
-        lablas::Vector<float> v(size);
+        lablas::Vector<float> distances(size);
+
+        Index source_vertex = 0;
 
         lablas::Descriptor desc;
-        lablas::sssp(&v, graph.A, 0, &desc, 100);
+        lablas::sssp(&distances, graph.A, source_vertex, &desc);
+
+        if(parser.check())
+        {
+            lablas::Vector<float> check_distances(size);
+
+            lablas::algorithm::sssp_traditional_dijkstra(&check_distances, &matrix, source_vertex);
+
+            if(distances == check_distances)
+            {
+                cout << "SSSP distances are equal" << endl;
+            }
+            else
+            {
+                cout << "SSSP distances are NOT equal" << endl;
+            }
+        }
 
     }
     catch (string error)
