@@ -8,7 +8,7 @@
 #define CHECK_PRINT_NUM 16 // 2^4 graph is fully printed
 
 #define __USE_SOCKET_OPTIMIZATIONS__
-#define VECTOR_LENGTH 256
+
 #define HUB_VERTICES 131072
 #define CSR_VERTEX_GROUPS_NUM 6
 
@@ -24,7 +24,9 @@
 
 #ifdef __USE_NEC_SX_AURORA__
 #define LLC_CACHE_SIZE (16*1024*1024)
+#define VECTOR_LENGTH 256
 #else
 #define LLC_CACHE_SIZE (64*1024*1024)
+#define VECTOR_LENGTH 4
 #endif
 
