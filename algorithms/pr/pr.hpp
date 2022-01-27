@@ -27,7 +27,7 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
     (*centrality) = NULL ;
     GrB_TRY (GrB_Matrix_nrows (&n, AT)) ;
 
-    const float teleport = (1 - damping) / n ;
+    const float teleport = (1 - damping) / n;
     float rdiff = 1 ;       // first iteration is always done
 
     // r = 1 / n
