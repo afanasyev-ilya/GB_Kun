@@ -1,6 +1,5 @@
 wget http://konect.cc/files/download.tsv.dimacs9-E.tar.bz2
 wget http://konect.cc/files/download.tsv.dimacs9-CTR.tar.bz2
-wget http://konect.cc/files/download.tsv.wikipedia_link_sv.tar.bz2
 wget http://konect.cc/files/download.tsv.wikipedia_link_ru.tar.bz2
 wget http://konect.cc/files/download.tsv.zhishi-all.tar.bz2
 wget http://konect.cc/files/download.tsv.youtube-u-growth.tar.bz2
@@ -8,6 +7,9 @@ wget http://konect.cc/files/download.tsv.orkut-links.tar.bz2
 wget http://konect.cc/files/download.tsv.soc-LiveJournal1.tar.bz2
 wget http://konect.cc/files/download.tsv.soc-pokec-relationships.tar.bz2
 wget http://konect.cc/files/download.tsv.flickr-links.tar.bz2
+wget http://konect.cc/files/download.tsv.wikipedia_link_sv.tar.bz2
+wget http://konect.cc/files/download.tsv.wikipedia_link_it.tar.bz2
+wget http://konect.cc/files/download.tsv.petster-catdog-friend.tar.bz2
 
 for f in *.tar.bz2; do tar -xvf "$f"; done
 

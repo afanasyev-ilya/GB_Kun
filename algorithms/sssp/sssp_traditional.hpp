@@ -29,6 +29,17 @@ void sssp_traditional_dijkstra(Vector <T> *_distances,
     // its distance as 0.
     pq.push(make_pair(0, _source_vertex));
     distance_vals[_source_vertex] = 0;
+    ENT vertices_visited = 0;
+
+    /*cout << "row ptrs: ";
+    for(int i = 0; i < 20; i++)
+        cout << graph->get_row_ptr()[i] << " ";
+    cout << endl;
+
+    cout << "col ptrs: ";
+    for(int i = 0; i < 20; i++)
+        cout << graph->get_col_ids()[i] << " ";
+    cout << endl;*/
 
     /* Looping till priority queue becomes empty (or all
       distances are not finalized) */
@@ -42,9 +53,14 @@ void sssp_traditional_dijkstra(Vector <T> *_distances,
         // in pair)
         int s = pq.top().second;
         pq.pop();
+        vertices_visited++;
 
         Index shift = graph->get_row_ptr()[s];
         Index connections_count = graph->get_row_ptr()[s + 1] - graph->get_row_ptr()[s];
+
+        //cout << "source " << _source_vertex << " vs " << s << endl;
+        //cout << " s" << s << " ccnt = " << connections_count << " | " << graph->get_row_ptr()[s + 1] << " " << graph->get_row_ptr()[s] << endl;
+
         for(Index edge_pos = 0; edge_pos < connections_count; edge_pos++)
         {
             Index v = graph->get_col_ids()[shift + edge_pos];
@@ -59,6 +75,7 @@ void sssp_traditional_dijkstra(Vector <T> *_distances,
             }
         }
     }
+    cout << "SSSP check visited " << vertices_visited << " vertices" << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

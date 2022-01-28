@@ -36,8 +36,8 @@ echo "Writing output to "$xls_name" file..."
 rm $xls_name
 rm perf_dict.pkl
 
-declare -a apps=("sssp")
-declare -a graphs=("pock.mtx" "youtube.mtx" "lj.mtx" "trackers.mtx" "wiki_ru.mtx" "us_est.mtx" "us_ctr.mtx" "zhishi.mtx")
+declare -a apps=("pr")
+declare -a graphs=("us_est.mtx" "youtube.mtx" "flick.mtx" "petster-catdog-friend.mtx" "pock.mtx" "lj.mtx" "zhishi.mtx" "wiki_ru.mtx" "wikipedia_link_it.mtx" "wikipedia_link_sv.mtx" "ork.mtx")
 #declare -a graphs=("flick.mtx" "lj.mtx" "ork.mtx" "pets.mtx" "pock.mtx"
 # "youtube.mtx" "wiki_sv.mtx" "zhishi.mtx" "dbpedia.mtx" "trackers.mtx" "twitter.mtx"
 # "rmat_20_16.mtx" "rmat_21_16.mtx" "rmat_22_16.mtx"

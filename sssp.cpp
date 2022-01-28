@@ -25,13 +25,17 @@ int main(int argc, char **argv) {
 
         Index source_vertex = 0;
 
-        int num_tests = 20;
+        int num_tests = 2;
         for(int i = 0; i < num_tests; i++)
         {
             source_vertex = rand() % size;
-            SAVE_TEPS((lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex));,
-                      "sssp", 1, &matrix);
+            cout << "starting from source: " << source_vertex << endl;
+            /*SAVE_TEPS((lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex));,
+                      "sssp", 1, &matrix);*/
+            lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex);
         }
+
+        cout << "check source vertex: " << source_vertex << endl;
 
         if(parser.check())
         {
