@@ -6,7 +6,7 @@ function quit() {
 
 function benchmark_graph() {
   #prefix="/home/afanasyev/LAGraph/src/benchmark/mtx_graphs"
-  prefix="/home/afanasievily_251892/data/"
+  prefix="./data"
   app_name="./"$1
   graph_name=$2
   graph_path=$prefix"/"$graph_name
@@ -37,7 +37,11 @@ rm $xls_name
 rm perf_dict.pkl
 
 declare -a apps=("pr")
+
+# this is fast testing (small and medium graphs)
 declare -a graphs=("us_est.mtx" "youtube.mtx" "flick.mtx" "petster-catdog-friend.mtx" "pock.mtx" "lj.mtx" "zhishi.mtx" "wiki_ru.mtx" "wikipedia_link_it.mtx" "wikipedia_link_sv.mtx" "ork.mtx")
+
+# this is full testing (all graphs)
 #declare -a graphs=("flick.mtx" "lj.mtx" "ork.mtx" "pets.mtx" "pock.mtx"
 # "youtube.mtx" "wiki_sv.mtx" "zhishi.mtx" "dbpedia.mtx" "trackers.mtx" "twitter.mtx"
 # "rmat_20_16.mtx" "rmat_21_16.mtx" "rmat_22_16.mtx"
