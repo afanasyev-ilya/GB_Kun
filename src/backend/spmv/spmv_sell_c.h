@@ -31,7 +31,7 @@ void SpMV(const MatrixSellC<A> *_matrix,
 
     Y *buffer = (Y*)_workspace->get_first_socket_vector();
 
-    //double t1 = omp_get_wtime();
+    double t1 = omp_get_wtime();
     #pragma omp parallel
     {
         Y res_reg[VECTOR_LENGTH];
@@ -76,7 +76,7 @@ void SpMV(const MatrixSellC<A> *_matrix,
                             if(col_id >= 0)
                             {
                                 A mat_val = _matrix->valSellC[idx+row_in_chunk];
-                                res_reg[row_in_chunk] = add_op(res_reg[row_in_chunk], mul_op(mat_val, x_vals[col_id])) ;
+                                res_reg[row_in_chunk] = add_op(res_reg[row_in_chunk], mul_op(mat_val, x_vals[col_id]));
                             }
                         }
                     }
@@ -102,20 +102,39 @@ void SpMV(const MatrixSellC<A> *_matrix,
             #pragma _NEC novector
             for(VNT row_in_chunk = 0; row_in_chunk < C; ++row_in_chunk)
             {
-                Y res= identity_val;
-                VNT row = chunk*C+row_in_chunk;
-                #pragma _NEC cncall
                 #pragma _NEC ivdep
-                #pragma _NEC vovertake
-                #pragma _NEC novob
-                #pragma _NEC vector
-                #pragma _NEC gather_reorder
-                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                for(VNT i = 0; i < VECTOR_LENGTH; i++)
                 {
-                    VNT col = _matrix->col_ids[j];
-                    X val = _matrix->vals[j];
-                    res = add_op(res, mul_op(val, x_vals[col]));
+                    res_reg[i] = identity_val;
                 }
+
+                VNT row = chunk*C+row_in_chunk;
+
+                #pragma _NEC novector
+                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j += VECTOR_LENGTH)
+                {
+                    #pragma _NEC cncall
+                    #pragma _NEC ivdep
+                    #pragma _NEC vovertake
+                    #pragma _NEC novob
+                    #pragma _NEC vector
+                    #pragma _NEC gather_reorder
+                    for(VNT i = 0; i < VECTOR_LENGTH; i++)
+                    {
+                        if((j + i) < _matrix->row_ptr[row + 1])
+                        {
+                            VNT col = _matrix->col_ids[j + i];
+                            X val = _matrix->vals[j + i];
+                            res_reg[i] = add_op(res_reg[i], mul_op(val, x_vals[col]));
+                        }
+                    }
+                }
+
+                Y res = identity_val;
+                #pragma _NEC vector
+                for(int i = 0; i < VECTOR_LENGTH; i++)
+                    res_reg[i] = add_op(res, res_reg[i]);
+
                 buffer[row] = res;
             }
         }
@@ -145,9 +164,9 @@ void SpMV(const MatrixSellC<A> *_matrix,
             }
         }
     }
-    //double t2 = omp_get_wtime();
-    //cout << "inner (cell c) time: " << (t2 - t1)*1000 << " ms" << endl;
-    //cout << "inner (cell c) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    double t2 = omp_get_wtime();
+    cout << "inner (cell c) time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "inner (cell c) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 }
 
 }
