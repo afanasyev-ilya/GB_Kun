@@ -99,7 +99,6 @@ template <typename T>
 void MatrixCSR<T>::print() const
 {
     cout << "--------------------\n";
-    cout << "MATRIX: [ " << endl;
     for(VNT row = 0; row < size; row++)
     {
         for(VNT col = 0; col < size; col++)
@@ -108,8 +107,9 @@ void MatrixCSR<T>::print() const
         }
         cout << endl;
     }
-    cout << "]\n";
     cout << "--------------------\n";
+    cout << "nrows: " << get_num_rows() << endl;
+    cout << "ncols: " << get_num_cols() << endl;
     cout << "nnz: " << nnz << endl;
 
     Index size_ = 0;
@@ -119,6 +119,7 @@ void MatrixCSR<T>::print() const
     {
         cout << row_ptr[i] << " ";
     }
+    cout << "]\n";
 
     cout << "col_ids: [ ";
     for (int i = 0; i < get_nnz(); i++)
@@ -126,8 +127,7 @@ void MatrixCSR<T>::print() const
         cout << col_ids[i] << " ";
     }
     cout << "]\n";
-    cout << endl;
-    cout << "]" << endl;
+
     cout << "--------------------\n";
 }
 

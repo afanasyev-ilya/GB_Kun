@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 
         Index source_vertex = 0;
 
-        int num_tests = 2;
+        int num_tests = 3;
         for(int i = 0; i < num_tests; i++)
         {
             source_vertex = rand() % size;

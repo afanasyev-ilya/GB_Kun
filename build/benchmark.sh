@@ -36,7 +36,7 @@ echo "Writing output to "$xls_name" file..."
 rm $xls_name
 rm perf_dict.pkl
 
-declare -a apps=("pr")
+declare -a apps=("sssp")
 
 # this is fast testing (small and medium graphs)
 declare -a graphs=("us_est.mtx" "youtube.mtx" "flick.mtx" "petster-catdog-friend.mtx" "pock.mtx" "lj.mtx" "zhishi.mtx" "wiki_ru.mtx" "wikipedia_link_it.mtx" "wikipedia_link_sv.mtx" "ork.mtx")
