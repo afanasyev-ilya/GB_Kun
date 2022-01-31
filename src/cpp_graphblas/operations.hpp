@@ -234,24 +234,7 @@ LA_Info assign(Vector<W>*       _w,
     auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
-    _w->get_vector()->force_to_dense();
-    W* w_vals = _w->get_vector()->getDense()->get_vals(); // can be called since force dense conversion before
-    Index vector_size = _w->get_vector()->getDense()->get_size();
-
-    auto lambda_op = [w_vals, _value] (Index idx)
-    {
-        w_vals[idx] = _value;
-    };
-    LA_Info info;
-    if(_indices == NULL)
-    {
-        info = backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
-    }
-    else
-    {
-        info = backend::indexed_dense_vector_op(mask_t, _indices, _nindices, vector_size, lambda_op, desc_t);
-    }
-    _w->get_vector()->convert_if_required();
+    LA_Info info = backend::assign(_w->get_vector(), mask_t, _accum, _value, _indices, _nindices, desc_t);
     return info;
 }
 
@@ -276,24 +259,7 @@ LA_Info assign(Vector<W>*       _w,
     auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
-    _w->get_vector()->force_to_dense();
-    Index vector_size = _w->get_vector()->getDense()->get_size(); // can be called since force dense conversion before
-    W* w_vals = _w->get_vector()->getDense()->get_vals();
-    U* u_vals = _u->get_vector()->getDense()->get_vals();
-
-    auto lambda_op = [w_vals, u_vals, &_accum](Index idx) {
-        w_vals[idx] = _accum(w_vals[idx], u_vals[idx]);
-    };
-    LA_Info info;
-    if(_indices == NULL)
-    {
-        info = backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
-    }
-    else
-    {
-        info = backend::indexed_dense_vector_op(mask_t, _indices, _nindices, vector_size, lambda_op, desc_t);
-    }
-    _w->get_vector()->convert_if_required();
+    LA_Info info = backend::assign(_w->get_vector(), mask_t, _accum, _u->get_vector(), _indices, _nindices, desc_t);
     return info;
 }
 
