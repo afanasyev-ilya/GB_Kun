@@ -11,7 +11,7 @@ def create_dir(dir_path):
 
 
 def get_binary_path(app_name):
-    return app_name
+    return "./" + app_name
 
 
 def file_exists(path):

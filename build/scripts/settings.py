@@ -41,8 +41,10 @@ common_iterations = 10
 perf_pattern = "AVG_PERF"
 correctness_pattern = "error count:"
 
-GRAPHS_DIR = "./bin/input_graphs/"
-SOURCE_GRAPH_DIR = "./bin/source_graphs/"
+DATASETS_DIR = "./datasets/"
+GRAPHS_DIR = "./datasets/input_graphs/"
+SOURCE_GRAPH_DIR = "./datasets/source_graphs/"
+MTX_GENERATOR_BIN_NAME = "gen"
 
 
 # how to add new graph with new category

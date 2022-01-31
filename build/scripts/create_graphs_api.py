@@ -2,6 +2,7 @@ from .helpers import *
 from .settings import *
 import os.path
 from os import path
+from .mtx_api import gen_mtx_graph
 
 
 # synthetic
@@ -86,11 +87,8 @@ def download_graph(graph_name):
         print("File " + SOURCE_GRAPH_DIR + "/" + all_konect_graphs_data[graph_name]["link"] + ".tar.bz2" + " exists!")
 
 
-def get_path_to_graph(short_name, graph_format, undir = False):
-    if undir:
-        return GRAPHS_DIR + UNDIRECTED_PREFIX + short_name + ".vgraph." + graph_format
-    else:
-        return GRAPHS_DIR + short_name + ".vgraph." + graph_format
+def get_path_to_graph(short_name, graph_format):
+    return GRAPHS_DIR + short_name + "." + graph_format
 
 
 def verify_graph_existence(graph_file_name):
@@ -103,26 +101,21 @@ def verify_graph_existence(graph_file_name):
 
 
 def create_real_world_graph(graph_name):
-    graph_format = "el_container"
+    graph_format = "mtx"
     output_graph_file_name = get_path_to_graph(graph_name, graph_format)
     if not file_exists(output_graph_file_name):
         download_graph(graph_name)
 
         tar_name = SOURCE_GRAPH_DIR + "download.tsv." + all_konect_graphs_data[graph_name]["link"] + ".tar.bz2"
-        cmd = ["tar", "-xjf", tar_name, '-C', "./bin/source_graphs"]
+        cmd = ["tar", "-xjf", tar_name, '-C', SOURCE_GRAPH_DIR]
         subprocess.call(cmd, shell=False, stdout=subprocess.PIPE)
 
         if "unarch_graph_name" in all_konect_graphs_data[graph_name]:
-            source_name = "./bin/source_graphs/" + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["unarch_graph_name"]
+            source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["unarch_graph_name"]
         else:
-            source_name = "./bin/source_graphs/" + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["link"]
+            source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["link"]
 
-        cmd = [get_binary_path("create_vgl_graphs"), "-convert", source_name, "-directed",
-               "-file", output_graph_file_name.replace("."+graph_format, ""), "-format", graph_format]
-        print(' '.join(cmd))
-
-        #TODO
-        #subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE).wait()
+        gen_mtx_graph(source_name, output_graph_file_name)
 
         if verify_graph_existence(output_graph_file_name):
             print("Graph " + output_graph_file_name + " has been created\n")
@@ -131,7 +124,7 @@ def create_real_world_graph(graph_name):
 
 
 def create_synthetic_graph(graph_name):
-    graph_format = "el_container"
+    graph_format = "mtx"
     dat = graph_name.split("_")
     type = dat[1]
     scale = dat[2]
@@ -139,12 +132,11 @@ def create_synthetic_graph(graph_name):
 
     output_graph_file_name = get_path_to_graph(graph_name, graph_format)
     if not file_exists(output_graph_file_name):
-        cmd = [get_binary_path("create_vgl_graphs"), "-s", scale, "-e", edge_factor, "-type", type, "-directed",
-               "-file", output_graph_file_name.replace("."+graph_format, ""), "-format", graph_format]
+        cmd = [get_binary_path(MTX_GENERATOR_BIN_NAME), "-s", scale, "-e", edge_factor, "-type", type,
+               "-outfile", output_graph_file_name]
         print(' '.join(cmd))
 
-        #TODO
-        #subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE).wait()
+        subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE).wait()
 
         if verify_graph_existence(output_graph_file_name):
             print("Graph " + output_graph_file_name + " has been created\n")
@@ -163,8 +155,8 @@ def create_graphs_if_required(list_of_graphs, run_speed_mode):
     create_dir(GRAPHS_DIR)
     create_dir(SOURCE_GRAPH_DIR)
 
-    if not binary_exists("create_vgl_graphs"):
-        make_binary("create_vgl_graphs")
+    if not binary_exists(MTX_GENERATOR_BIN_NAME):
+        make_binary(MTX_GENERATOR_BIN_NAME)
 
     for current_graph in list_of_graphs:
         create_graph(current_graph, run_speed_mode)

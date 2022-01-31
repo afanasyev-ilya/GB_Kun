@@ -68,7 +68,7 @@ def benchmark_and_verify(options, benchmarking_results):
 
 
 def run(options, run_info):
-    create_dir("./bin/")
+    create_dir(DATASETS_DIR)
 
     benchmarking_results = BenchmarkingResults(options.name, options.mode)
 
