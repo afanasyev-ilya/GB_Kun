@@ -6,29 +6,7 @@ import re
 from .export import *
 import time
 from threading import Timer
-
-
-def find_perf_line(output):
-    matched_lines = []
-    for line in output.split("\n"):
-        #print(line)
-        if perf_pattern in line:
-            matched_lines += [line]
-    if not matched_lines:
-        print("Warning! no performance data found in current test.")
-    return matched_lines
-
-
-def extract_perf_val(perf_lines):
-    if len(perf_lines) > 1:
-        print("Warning! multiple performance data found in current test.")
-    for line in perf_lines:
-        value = re.findall("\d+\.\d+", line)
-        if len(value) > 0:
-            return float(value[0])
-        else:
-            print("Warning! perf line does not contain float in current test.")
-    return 0.0
+from .analize_perf_data import *
 
 
 def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, timeout_length):
@@ -36,10 +14,15 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
 
     create_graphs_if_required(list_of_graphs, run_speed_mode)
     common_args = ["-it", str(common_iterations), "-format", graph_format]
+    print(common_args)
 
     algorithms_tested = 0
 
-    for current_args in benchmark_args[app_name]:
+    arguments = [[""]]
+    if app_name in benchmark_args:
+        arguments = benchmark_args[app_name]
+
+    for current_args in arguments:
         benchmarking_results.add_performance_test_name_to_xls_table(app_name, current_args + common_args)
 
         for current_graph in list_of_graphs:
@@ -48,7 +31,12 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
                 print("graph " + current_graph + " is set to be ignored for app " + app_name + "!")
                 continue
 
-            cmd = [get_binary_path(app_name), "-import", get_path_to_graph(current_graph, "el_container", requires_undir_graphs(app_name))] + current_args + common_args
+            try:
+                os.remove(PERF_DATA_FILE)
+            except OSError:
+                pass
+
+            cmd = ["bash", "./benchmark.sh", get_binary_path(app_name), "-graph mtx ", get_path_to_graph(current_graph, "mtx")] + current_args + common_args
             print(' '.join(cmd))
             proc = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             timer = Timer(int(timeout_length), proc.kill)
@@ -59,13 +47,12 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
                 timer.cancel()
 
             output = stdout.decode("utf-8")
+            print(output)
 
-            perf_value = extract_perf_val(find_perf_line(output))
+            perf_dict = analyze_perf_file()
+            print(perf_dict)
 
-            if perf_value == 0.0:
-                perf_value = "TIMED OUT"
-
-            benchmarking_results.add_performance_value_to_xls_table(perf_value, current_graph, app_name)
+            benchmarking_results.add_performance_value_to_xls_table(perf_dict, current_graph, app_name)
             end = time.time()
             if print_timings:
                 print("TIME: " + str(end-start) + " seconds\n")

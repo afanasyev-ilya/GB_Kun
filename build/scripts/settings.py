@@ -13,20 +13,10 @@ UNDIRECTED_PREFIX = "undir_"
 print_timings = True
 
 
-benchmark_args = {"bfs": [ ["-top-down"]],
-                  "sssp": [ ["-push", "-all-active"], ["-pull", "-all-active"] ],
-                  "pr": [ ["-pull"] ],
-                  "cc": [ ["-cv"], ["-bfs-based"] ],
-                  "sswp": [ ["-push"] ],
-                  "rw": [ ["-it", "100", "-wv", "20"] ],
-                  "hits": [ [] ],
-                  "scc": [ [] ],
-                  "coloring": [ [] ],
-                  "tc": [ ["-bfs-based", "-it", "500"], ["-purdoms", "-it", "500"] ],
-                  "mf": [ [] ]}
+benchmark_args = {"bfs": [ ["-top-down"]],}
 
 
-available_formats = ["CSR", "COO"] # TODO
+available_formats = ["CSR", "COO", "CSR_SEG"] # TODO
 
 
 def requires_undir_graphs(app_name):
@@ -45,6 +35,8 @@ DATASETS_DIR = "./datasets/"
 GRAPHS_DIR = "./datasets/input_graphs/"
 SOURCE_GRAPH_DIR = "./datasets/source_graphs/"
 MTX_GENERATOR_BIN_NAME = "gen"
+
+PERF_DATA_FILE = "./perf_stats.txt"
 
 
 # how to add new graph with new category

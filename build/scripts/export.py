@@ -21,7 +21,6 @@ def remove_timed_out(perf_data):
 
 class BenchmarkingResults:
     def __init__(self, name, run_speed_mode):
-        self.performance_data = []
         self.correctness_data = []
         self.run_speed_mode = run_speed_mode
         self.current_graph_format = ""
@@ -64,14 +63,12 @@ class BenchmarkingResults:
         self.worksheet.merge_range(self.line_pos, 0, self.line_pos + self.lines_in_test() - 1, 0,
                                    test_name, self.current_format)
 
-    def add_performance_value_to_xls_table(self, perf_value, graph_name, app_name):
+    def add_performance_value_to_xls_table(self, perf_dict, graph_name, app_name):
         row = int(self.get_row_pos(graph_name))
         col = int(self.get_column_pos(graph_name))
 
         self.worksheet.write(self.line_pos + row, col - 1, graph_name, self.current_format)
-        self.worksheet.write(self.line_pos + row, col, perf_value, self.current_format)
-        self.performance_data.append({"graph_name": graph_name, "app_name": app_name, "perf_val": perf_value,
-                                      "format": self.current_graph_format})
+        self.worksheet.write(self.line_pos + row, col, str(perf_dict), self.current_format)
 
     def add_performance_separator_to_xls_table(self):
         self.line_pos += self.lines_in_test() + 1
