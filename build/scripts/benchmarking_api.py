@@ -23,8 +23,7 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
         arguments = benchmark_args[app_name]
 
     for current_args in arguments:
-        benchmarking_results.add_performance_test_name_to_xls_table(app_name, current_args + common_args)
-
+        first_graph = True
         for current_graph in list_of_graphs:
             start = time.time()
             if app_name in apps_and_graphs_ingore and current_graph in apps_and_graphs_ingore[app_name]:
@@ -52,7 +51,16 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
             perf_dict = analyze_perf_file()
             print(perf_dict)
 
-            benchmarking_results.add_performance_value_to_xls_table(perf_dict, current_graph, app_name)
+            if first_graph:
+                num_part = 0
+                for part_key in perf_dict.keys():
+                    part_data = perf_dict[part_key]
+                    benchmarking_results.add_performance_test_name_to_xls_table(app_name, current_args + common_args,
+                                                                                part_key, num_part)
+                    first_graph = False
+                    num_part += 1
+
+            benchmarking_results.add_performance_value_to_xls_table(perf_dict, current_graph)
             end = time.time()
             if print_timings:
                 print("TIME: " + str(end-start) + " seconds\n")

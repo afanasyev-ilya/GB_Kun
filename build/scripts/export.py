@@ -51,21 +51,22 @@ class BenchmarkingResults:
             self.worksheet.set_column(6 + iter * XLSX_DATA_SHIFT, 8 + iter * XLSX_DATA_SHIFT, data_column_size)
             iter += 1
 
-    def add_performance_test_name_to_xls_table(self, app_name, app_args):
-        test_name = ' '.join([app_name] + app_args)
-        self.worksheet.write(self.line_pos, 0, test_name)
+    def add_performance_test_name_to_xls_table(self, app_name, app_args, part_name, num_part):
+        test_name = ' '.join([app_name] + app_args) + " | " + part_name
+        self.worksheet.write(self.line_pos, num_part * XLSX_DATA_SHIFT, test_name)
         self.current_app_name = app_name
 
-        color = colors[randrange(len(colors))]
-        self.current_format = self.workbook.add_format({'border': 1,
-                                                        'align': 'center',
-                                                        'valign': 'vcenter',
-                                                        'fg_color': color})
+        if num_part == 0:
+            color = colors[randrange(len(colors))]
+            self.current_format = self.workbook.add_format({'border': 1,
+                                                            'align': 'center',
+                                                            'valign': 'vcenter',
+                                                            'fg_color': color})
 
-        self.worksheet.merge_range(self.line_pos, 0, self.line_pos + self.lines_in_test() - 1, 0,
-                                   test_name, self.current_format)
+        self.worksheet.merge_range(self.line_pos, num_part * XLSX_DATA_SHIFT, self.line_pos + self.lines_in_test() - 1,
+                                   num_part * XLSX_DATA_SHIFT, test_name, self.current_format)
 
-    def add_performance_value_to_xls_table(self, perf_dict, graph_name, app_name):
+    def add_performance_value_to_xls_table(self, perf_dict, graph_name):
         row = int(self.get_row_pos(graph_name))
         col = int(self.get_column_pos(graph_name))
 
