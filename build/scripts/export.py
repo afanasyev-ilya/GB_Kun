@@ -11,7 +11,7 @@ data_column_size = 15
 colors = ["#CCFFFF", "#CCFFCC", "#FFFF99", "#FF99FF", "#66CCFF", "#FF9966"]
 
 
-XLSX_DATA_SHIFT = 9
+XLSX_DATA_SHIFT = 10
 
 
 def remove_timed_out(perf_data):
@@ -85,20 +85,20 @@ class BenchmarkingResults:
             if "mxv" in part_key or "vxm" in part_key:
                 perf_suffix = "GFlop/s"
 
-            self.worksheet.write(0, col - 1, "Graph name", header_format)
-            self.worksheet.write(0, col, "Time", header_format)
-            self.worksheet.write(0, col + 1, "Performance", header_format)
-            self.worksheet.write(0, col + 2, "Bandwidth", header_format)
+            self.worksheet.write(self.line_pos - 1, col - 1, "Graph name", header_format)
+            self.worksheet.write(self.line_pos - 1, col, "Time(ms)", header_format)
+            self.worksheet.write(self.line_pos - 1, col + 1, "Perf.("+perf_suffix+")", header_format)
+            self.worksheet.write(self.line_pos - 1, col + 2, "Band.(GB/s)", header_format)
 
             self.worksheet.write(self.line_pos + row, col - 1, graph_name, self.current_format)
-            self.worksheet.write(self.line_pos + row, col, str(time) + " (ms)", self.current_format)
-            self.worksheet.write(self.line_pos + row, col + 1, str(perf) + " " + perf_suffix, self.current_format)
-            self.worksheet.write(self.line_pos + row, col + 2, str(bw) + " (GB/s)", self.current_format)
+            self.worksheet.write(self.line_pos + row, col, time, self.current_format)
+            self.worksheet.write(self.line_pos + row, col + 1, perf, self.current_format)
+            self.worksheet.write(self.line_pos + row, col + 2, bw, self.current_format)
 
             col += XLSX_DATA_SHIFT
 
     def add_performance_separator_to_xls_table(self):
-        self.line_pos += self.lines_in_test() + 1
+        self.line_pos += self.lines_in_test() + 2
 
     def add_correctness_header_to_xls_table(self, graph_format):
         self.worksheet = self.workbook.add_worksheet("Correctness data " + graph_format)
