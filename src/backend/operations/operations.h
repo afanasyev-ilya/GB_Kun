@@ -204,5 +204,33 @@ LA_Info apply(Vector<W>* _w,
     return backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* w = op(w, u[i]) for each i; */
+template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
+LA_Info reduce(T* _val,
+    BinaryOpTAccum _accum,
+    MonoidT _op,
+    const Vector<U>* _u,
+    Descriptor* _desc) {
+
+
+    Index vector_size = _u->getDense()->get_size();
+    const U* u_vals = _u->->getDense()->get_vals();
+
+    auto lambda_op = [u_vals](Index idx)->U
+    {
+        return u_vals[idx];
+    };
+
+    T reduce_result = _op.identity();
+
+    backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, desc_t);
+
+    *_val = _accum(*_val, reduce_result);
+
+    return GrB_SUCCESS;
+}
+
 }
 }

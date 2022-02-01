@@ -272,23 +272,9 @@ LA_Info reduce(T *_val,
     if(not_initialized(_u))
         return GrB_UNINITIALIZED_OBJECT;
 
-    Index vector_size = _u->get_vector()->getDense()->get_size();
-    const U* u_vals = _u->get_vector()->getDense()->get_vals();
-
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
-    auto lambda_op = [u_vals] (Index idx)->U
-    {
-        return u_vals[idx];
-    };
-
-    T reduce_result = _op.identity();
-
-    backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, desc_t);
-
-    *_val = _accum(*_val, reduce_result);
-
-    return GrB_SUCCESS;
+    return backend::reduce(_val, _accum, _op, _u->get_vector(), desc_t);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
