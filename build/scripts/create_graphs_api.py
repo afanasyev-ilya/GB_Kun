@@ -15,6 +15,10 @@ def get_list_of_synthetic_graphs(run_speed_mode):
         return syn_medium_only
     elif run_speed_mode == "large-only":
         return syn_tiny_small_medium
+    elif run_speed_mode == "tiny-small":
+        return syn_tiny_small
+    elif run_speed_mode == "tiny-small-medium":
+        return syn_tiny_small_medium
     elif run_speed_mode == "fastest":
         return syn_fastest
     elif run_speed_mode == "scaling":
