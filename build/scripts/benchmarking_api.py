@@ -53,13 +53,17 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
             #print(perf_dict)
 
             if first_graph:
-                num_part = 0
-                for part_key in perf_dict.keys():
-                    part_data = perf_dict[part_key]
+                if not perf_dict: # in case it timed out
                     benchmarking_results.add_performance_test_name_to_xls_table(app_name, current_args + common_args,
-                                                                                part_key, num_part)
-                    first_graph = False
-                    num_part += 1
+                                                                                0, 0)
+                else:
+                    num_part = 0
+                    for part_key in perf_dict.keys():
+                        part_data = perf_dict[part_key]
+                        benchmarking_results.add_performance_test_name_to_xls_table(app_name, current_args + common_args,
+                                                                                    part_key, num_part)
+                        first_graph = False
+                        num_part += 1
 
             benchmarking_results.add_performance_value_to_xls_table(perf_dict, current_graph)
             end = time.time()

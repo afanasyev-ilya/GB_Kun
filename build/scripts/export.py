@@ -75,28 +75,40 @@ class BenchmarkingResults:
                                                   'valign': 'vcenter',
                                                   'fg_color': '#cce6ff'})
 
-        for part_key in perf_dict.keys():
-            part_data = perf_dict[part_key]
-
-            time = round(float(part_data["time"]), 2) # 2 points in float after point
-            perf = round(float(part_data["perf"]), 2)
-            bw = round(float(part_data["bw"]), 2)
-            perf_suffix = "MTEPS"
-            if "mxv" in part_key or "vxm" in part_key:
-                perf_suffix = "GFlop/s"
-
+        if not perf_dict: # in case it timed out
             self.worksheet.write(self.line_pos - 1, col - 2, "Algorithm", header_format)
             self.worksheet.write(self.line_pos - 1, col - 1, "Graph", header_format)
             self.worksheet.write(self.line_pos - 1, col, "Time(ms)", header_format)
-            self.worksheet.write(self.line_pos - 1, col + 1, "Perf.("+perf_suffix+")", header_format)
+            self.worksheet.write(self.line_pos - 1, col + 1, "Perf.", header_format)
             self.worksheet.write(self.line_pos - 1, col + 2, "Band.(GB/s)", header_format)
 
             self.worksheet.write(self.line_pos + row, col - 1, graph_name, self.current_format)
-            self.worksheet.write(self.line_pos + row, col, time, self.current_format)
-            self.worksheet.write(self.line_pos + row, col + 1, perf, self.current_format)
-            self.worksheet.write(self.line_pos + row, col + 2, bw, self.current_format)
+            self.worksheet.write(self.line_pos + row, col, "TIMED OUT", self.current_format)
+            self.worksheet.write(self.line_pos + row, col + 1, "TIMED OUT", self.current_format)
+            self.worksheet.write(self.line_pos + row, col + 2, "TIMED OUT", self.current_format)
+        else:
+            for part_key in perf_dict.keys():
+                part_data = perf_dict[part_key]
 
-            col += XLSX_DATA_SHIFT
+                time = round(float(part_data["time"]), 2) # 2 points in float after point
+                perf = round(float(part_data["perf"]), 2)
+                bw = round(float(part_data["bw"]), 2)
+                perf_suffix = "MTEPS"
+                if "mxv" in part_key or "vxm" in part_key:
+                    perf_suffix = "GFlop/s"
+
+                self.worksheet.write(self.line_pos - 1, col - 2, "Algorithm", header_format)
+                self.worksheet.write(self.line_pos - 1, col - 1, "Graph", header_format)
+                self.worksheet.write(self.line_pos - 1, col, "Time(ms)", header_format)
+                self.worksheet.write(self.line_pos - 1, col + 1, "Perf.("+perf_suffix+")", header_format)
+                self.worksheet.write(self.line_pos - 1, col + 2, "Band.(GB/s)", header_format)
+
+                self.worksheet.write(self.line_pos + row, col - 1, graph_name, self.current_format)
+                self.worksheet.write(self.line_pos + row, col, time, self.current_format)
+                self.worksheet.write(self.line_pos + row, col + 1, perf, self.current_format)
+                self.worksheet.write(self.line_pos + row, col + 2, bw, self.current_format)
+
+                col += XLSX_DATA_SHIFT
 
     def add_performance_separator_to_xls_table(self):
         self.line_pos += self.lines_in_test() + 2
