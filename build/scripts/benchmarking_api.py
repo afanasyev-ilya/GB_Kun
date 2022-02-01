@@ -50,7 +50,7 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
             #print(output)
 
             perf_dict = analyze_perf_file()
-            print(perf_dict)
+            #print(perf_dict)
 
             if first_graph:
                 num_part = 0

@@ -29,7 +29,7 @@ def requires_undir_graphs(app_name):
 
 common_iterations = 10
 perf_pattern = "AVG_PERF"
-correctness_pattern = "error count:"
+correctness_pattern = "error_count:"
 
 DATASETS_DIR = "./datasets/"
 GRAPHS_DIR = "./datasets/input_graphs/"

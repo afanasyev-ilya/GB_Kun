@@ -24,7 +24,6 @@ def remove_timed_out(perf_data):
 
 class BenchmarkingResults:
     def __init__(self, name, run_speed_mode):
-        self.correctness_data = []
         self.run_speed_mode = run_speed_mode
         self.current_graph_format = ""
 
@@ -52,7 +51,7 @@ class BenchmarkingResults:
             iter += 1
 
     def add_performance_test_name_to_xls_table(self, app_name, app_args, part_name, num_part):
-        test_name = ' '.join([app_name] + app_args) + " | " + part_name
+        test_name = part_name + '\n' + '(' + ' '.join([app_name] + app_args) + ')'
         self.worksheet.write(self.line_pos, num_part * XLSX_DATA_SHIFT, test_name)
         self.current_app_name = app_name
 
@@ -61,7 +60,8 @@ class BenchmarkingResults:
             self.current_format = self.workbook.add_format({'border': 1,
                                                             'align': 'center',
                                                             'valign': 'vcenter',
-                                                            'fg_color': color})
+                                                            'fg_color': color,
+                                                            'text_wrap': 'true'})
 
         self.worksheet.merge_range(self.line_pos, num_part * XLSX_DATA_SHIFT, self.line_pos + self.lines_in_test() - 1,
                                    num_part * XLSX_DATA_SHIFT, test_name, self.current_format)
@@ -116,16 +116,22 @@ class BenchmarkingResults:
         self.line_pos = 1
 
     def add_correctness_test_name_to_xls_table(self, app_name, app_args):
+        color = colors[randrange(len(colors))]
+        self.current_format = self.workbook.add_format({'border': 1,
+                                                       'align': 'center',
+                                                       'valign': 'vcenter',
+                                                       'fg_color': color,
+                                                       'text_wrap': 'true'})
+
         test_name = ' '.join([app_name] + app_args)
-        self.worksheet.write(self.line_pos, 0, test_name)
+        self.worksheet.write(self.line_pos, 0, test_name, self.current_format)
 
     def add_correctness_separator_to_xls_table(self):
         self.line_pos += 1
 
     def add_correctness_value_to_xls_table(self, value, graph_name, app_name):
-        self.worksheet.write(self.line_pos, get_list_of_verification_graphs(self.run_speed_mode).index(graph_name) + 1, value)
-        self.correctness_data.append({"graph_name": graph_name, "app_name": app_name, "correctness_val": value,
-                                      "format": self.current_graph_format})
+        self.worksheet.write(self.line_pos, get_list_of_verification_graphs(self.run_speed_mode).index(graph_name) + 1,
+                             value, self.current_format)
 
     def finalize(self):
         self.workbook.close()

@@ -45,11 +45,12 @@ def verify_app(app_name, benchmarking_results, graph_format, run_speed_mode, tim
                 timer.cancel()
 
             output = stdout.decode("utf-8")
+
             correctness_lines = check_app_correctness(output)
             print(correctness_lines)
 
             if not correctness_lines:  # != []
-                correctness_lines = "TIMED OUT"
+                correctness_lines = "TIMED OUT \n or\n app NOT printing correctness stats"
 
             benchmarking_results.add_correctness_value_to_xls_table(str(correctness_lines), current_graph, app_name)
             end = time.time()
