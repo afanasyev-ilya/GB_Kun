@@ -11,6 +11,9 @@ data_column_size = 15
 colors = ["#CCFFFF", "#CCFFCC", "#FFFF99", "#FF99FF", "#66CCFF", "#FF9966"]
 
 
+XLSX_DATA_SHIFT = 9
+
+
 def remove_timed_out(perf_data):
     cleared_list = []
     for item in perf_data:
@@ -33,21 +36,20 @@ class BenchmarkingResults:
 
     def add_performance_header_to_xls_table(self, graph_format):
         self.worksheet = self.workbook.add_worksheet("Perf " + graph_format)
-        self.line_pos = 0
+        self.line_pos = 1
         self.current_format = self.workbook.add_format({})
         self.current_app_name = ""
         self.current_graph_format = graph_format
 
         # make columns wider
-        self.worksheet.set_column(0, 0, app_name_column_size)
-        self.worksheet.set_column(1, 1, graph_name_column_size)
-        self.worksheet.set_column(2, 2, data_column_size)
-        self.worksheet.set_column(3, 3, graph_name_column_size)
-        self.worksheet.set_column(4, 5, data_column_size)
-        self.worksheet.set_column(5, 5, graph_name_column_size)
-        self.worksheet.set_column(6, 6, data_column_size)
-        self.worksheet.set_column(7, 7, graph_name_column_size)
-        self.worksheet.set_column(8, 8, data_column_size)
+        iter = 0
+        while iter < 3:
+            self.worksheet.set_column(0 + iter * XLSX_DATA_SHIFT, 0 + iter * XLSX_DATA_SHIFT, app_name_column_size)
+            self.worksheet.set_column(1 + iter * XLSX_DATA_SHIFT, 1 + iter * XLSX_DATA_SHIFT, graph_name_column_size)
+            self.worksheet.set_column(2 + iter * XLSX_DATA_SHIFT, 4 + iter * XLSX_DATA_SHIFT, data_column_size)
+            self.worksheet.set_column(5 + iter * XLSX_DATA_SHIFT, 5 + iter * XLSX_DATA_SHIFT, graph_name_column_size)
+            self.worksheet.set_column(6 + iter * XLSX_DATA_SHIFT, 8 + iter * XLSX_DATA_SHIFT, data_column_size)
+            iter += 1
 
     def add_performance_test_name_to_xls_table(self, app_name, app_args):
         test_name = ' '.join([app_name] + app_args)
@@ -67,8 +69,32 @@ class BenchmarkingResults:
         row = int(self.get_row_pos(graph_name))
         col = int(self.get_column_pos(graph_name))
 
-        self.worksheet.write(self.line_pos + row, col - 1, graph_name, self.current_format)
-        self.worksheet.write(self.line_pos + row, col, str(perf_dict), self.current_format)
+        header_format = self.workbook.add_format({'border': 1,
+                                                  'align': 'center',
+                                                  'valign': 'vcenter',
+                                                  'fg_color': '#cce6ff'})
+
+        for part_key in perf_dict.keys():
+            part_data = perf_dict[part_key]
+
+            time = round(float(part_data["time"]), 2) # 2 points in float after point
+            perf = round(float(part_data["perf"]), 2)
+            bw = round(float(part_data["bw"]), 2)
+            perf_suffix = "MTEPS"
+            if "mxv" in part_key or "vxm" in part_key:
+                perf_suffix = "GFlop/s"
+
+            self.worksheet.write(0, col - 1, "Graph name", header_format)
+            self.worksheet.write(0, col, "Time", header_format)
+            self.worksheet.write(0, col + 1, "Performance", header_format)
+            self.worksheet.write(0, col + 2, "Bandwidth", header_format)
+
+            self.worksheet.write(self.line_pos + row, col - 1, graph_name, self.current_format)
+            self.worksheet.write(self.line_pos + row, col, str(time) + " (ms)", self.current_format)
+            self.worksheet.write(self.line_pos + row, col + 1, str(perf) + " " + perf_suffix, self.current_format)
+            self.worksheet.write(self.line_pos + row, col + 2, str(bw) + " (GB/s)", self.current_format)
+
+            col += XLSX_DATA_SHIFT
 
     def add_performance_separator_to_xls_table(self):
         self.line_pos += self.lines_in_test() + 1
@@ -109,7 +135,7 @@ class BenchmarkingResults:
         if graph_name in get_list_of_synthetic_graphs(self.run_speed_mode):
             return 2
         elif graph_name in get_list_of_real_world_graphs(self.run_speed_mode):
-            return 4
+            return 6
         else:
             raise ValueError("Incorrect graph name")
 
