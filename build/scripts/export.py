@@ -76,7 +76,6 @@ class BenchmarkingResults:
                                                   'fg_color': '#cce6ff'})
 
         if not perf_dict: # in case it timed out
-            self.worksheet.write(self.line_pos - 1, col - 2, "Algorithm", header_format)
             self.worksheet.write(self.line_pos - 1, col - 1, "Graph", header_format)
             self.worksheet.write(self.line_pos - 1, col, "Time(ms)", header_format)
             self.worksheet.write(self.line_pos - 1, col + 1, "Perf.", header_format)
@@ -97,7 +96,6 @@ class BenchmarkingResults:
                 if "mxv" in part_key or "vxm" in part_key:
                     perf_suffix = "GFlop/s"
 
-                self.worksheet.write(self.line_pos - 1, col - 2, "Algorithm", header_format)
                 self.worksheet.write(self.line_pos - 1, col - 1, "Graph", header_format)
                 self.worksheet.write(self.line_pos - 1, col, "Time(ms)", header_format)
                 self.worksheet.write(self.line_pos - 1, col + 1, "Perf.("+perf_suffix+")", header_format)

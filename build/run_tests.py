@@ -126,8 +126,8 @@ def main():
                       help="specify an application to test (default all)", default="all")
     parser.add_option('-f', '--formats',
                       action="store", dest="format",
-                      help="specify graph storage format used: "
-                           "all, CSR, COO, TODO ... are currently available (default is CSR)", default="CSR")
+                      help="specify graph storage format used: " +
+                           str(available_formats) + " are currently available (default is CSR)", default="CSR")
     parser.add_option('-s', '--sockets',
                       action="store", dest="sockets",
                       help="set number of sockets used (default 1)", default=1)

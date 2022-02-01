@@ -16,7 +16,7 @@ print_timings = True
 benchmark_args = {"bfs": [ ["-top-down"]],}
 
 
-available_formats = ["CSR", "COO", "CSR_SEG"] # TODO
+available_formats = ["CSR", "COO", "CSR_SEG", "LAV", "SELL_C", "SORT"] # TODO
 
 
 def requires_undir_graphs(app_name):
@@ -56,6 +56,7 @@ all_konect_graphs_data = {
     'soc_livejournal_links': {'link': 'livejournal-links'},
     'soc_twitter_www': {'link': 'twitter'},
     'soc_friendster': {'link': 'friendster'},
+    'soc_flick': {'link': 'flickr-growth'},
 
     'web_stanford': {'link': 'web-Stanford'},
     'web_baidu_internal': {'link': 'zhishi-baidu-internallink'},
@@ -66,6 +67,8 @@ all_konect_graphs_data = {
     'web_dbpedia_links': {'link': 'dbpedia-link'},
     'web_uk_domain_2002': {'link': 'dimacs10-uk-2002'},
     'web_web_trackers': {'link': 'trackers-trackers', 'unarch_graph_name': 'trackers'},
+    'web_wikipedia_links_it': {'link': 'wikipedia_link_it'},
+    'web_wikipedia_links_sv': {'link': 'wikipedia_link_sv'},
 
     'road_colorado': {'link': 'dimacs9-COL'},
     'road_texas': {'link': 'roadNet-TX'},
@@ -82,26 +85,23 @@ all_konect_graphs_data = {
 
 #####################
 
-konect_tiny_only = ['soc_libimseti', 'web_stanford', 'road_colorado', 'soc_catster_dogster', 'soc_youtube_friendships',
-                    'road_texas', 'soc_pokec', 'road_california', 'web_baidu_internal', 'rating_epinions']
+konect_tiny_only = ['road_california', 'soc_catster_dogster', 'soc_libimseti', 'soc_pokec', 'soc_flick']
 syn_tiny_only = ["syn_rmat_18_32", "syn_ru_18_32", "syn_rmat_20_32", "syn_ru_20_32"]
 
 #####################
 
-konect_small_only = ['soc_orkut', 'web_wikipedia_links_fr', 'web_wikipedia_links_ru', 'rating_amazon_ratings',
-                     'road_eastern_usa', 'soc_livejournal', 'soc_livejournal_links', 'road_western_usa', 'web_zhishi']
+konect_small_only = ['soc_livejournal', 'web_zhishi', 'road_full_usa', 'web_wikipedia_links_ru', 'web_wikipedia_links_it']
 syn_small_only = ["syn_rmat_22_32", "syn_ru_22_32"]
 
 #####################
 
-konect_medium_only = ['web_wikipedia_links_en', 'road_central_usa', 'web_dbpedia_links', 'web_uk_domain_2002',
-                      'rating_yahoo_songs']
-syn_medium_only = ["syn_rmat_24_32", "syn_ru_24_32"]
+konect_medium_only = ['web_wikipedia_links_sv', 'soc_orkut', 'web_web_trackers', 'web_dbpedia_links', 'web_uk_domain_2002']
+syn_medium_only = []
 
 #####################
 
-konect_large_only = ['road_full_usa', 'web_web_trackers', 'soc_twitter_www', 'soc_friendster']
-syn_large_only = ["syn_rmat_25_32", "syn_ru_25_32"]
+konect_large_only = ['soc_twitter_www', 'soc_friendster']
+syn_large_only = []
 
 #####################
 
