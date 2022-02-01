@@ -97,6 +97,7 @@ void test_spmv(int argc, char **argv)
 int main(int argc, char **argv) {
     try
     {
+        print_omp_stats();
         test_spmv<float>(argc, argv);
     }
     catch (string error)

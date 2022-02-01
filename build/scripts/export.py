@@ -85,7 +85,8 @@ class BenchmarkingResults:
             if "mxv" in part_key or "vxm" in part_key:
                 perf_suffix = "GFlop/s"
 
-            self.worksheet.write(self.line_pos - 1, col - 1, "Graph name", header_format)
+            self.worksheet.write(self.line_pos - 1, col - 2, "Algorithm", header_format)
+            self.worksheet.write(self.line_pos - 1, col - 1, "Graph", header_format)
             self.worksheet.write(self.line_pos - 1, col, "Time(ms)", header_format)
             self.worksheet.write(self.line_pos - 1, col + 1, "Perf.("+perf_suffix+")", header_format)
             self.worksheet.write(self.line_pos - 1, col + 2, "Band.(GB/s)", header_format)

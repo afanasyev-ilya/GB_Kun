@@ -12,5 +12,4 @@ export OMP_NUM_THREADS=48
 export OMP_PROC_BIND=close
 export OMP_PLACES=cores
 
-${program_name} ${program_args[@]} #> dump.txt
-rm dump.txt
+${program_name} ${program_args[@]}

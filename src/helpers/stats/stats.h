@@ -38,7 +38,7 @@ fclose(my_f);                                                                   
 
 void print_omp_stats()
 {
-    /*#pragma omp parallel
+    #pragma omp parallel
     {
         int thread_num = omp_get_thread_num();
         int cpu_num = sched_getcpu();
@@ -60,9 +60,9 @@ void print_omp_stats()
     }
 
     cout << "Threads used: " << max_thread + 1 << endl;
-    cout << "Largest core used: " << max_core + 1 << " cores" << endl;*/
+    cout << "Largest core used: " << max_core + 1 << " cores" << endl;
 
-    size_t size = 1024*1024*128*8;
+    /*size_t size = 1024*1024*128*8;
     double *a, *b, *c;
     MemoryAPI::allocate_array(&a, size);
     MemoryAPI::allocate_array(&b, size);
@@ -88,5 +88,5 @@ void print_omp_stats()
 
     MemoryAPI::free_array(a);
     MemoryAPI::free_array(b);
-    MemoryAPI::free_array(c);
+    MemoryAPI::free_array(c);*/
 }

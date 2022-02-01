@@ -7,13 +7,14 @@ from .export import *
 import time
 from threading import Timer
 from .analize_perf_data import *
+import collections
 
 
 def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, timeout_length):
     list_of_graphs = get_list_of_all_graphs(run_speed_mode)
 
     create_graphs_if_required(list_of_graphs, run_speed_mode)
-    common_args = ["-it", str(common_iterations), "-format", graph_format]
+    common_args = ["-it", str(common_iterations), "-format", graph_format, "-no-check"]
     print(common_args)
 
     algorithms_tested = 0
@@ -46,7 +47,7 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
                 timer.cancel()
 
             output = stdout.decode("utf-8")
-            print(output)
+            #print(output)
 
             perf_dict = analyze_perf_file()
             print(perf_dict)
