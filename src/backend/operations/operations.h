@@ -33,11 +33,11 @@ LA_Info assign(Vector<W>* _w,
     LA_Info info;
     if (_indices == NULL)
     {
-        info = backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+        info = backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
     }
     else
     {
-        info = backend::indexed_dense_vector_op(mask_t, _indices, _nindices, vector_size, lambda_op, desc_t);
+        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
     return info;
@@ -68,17 +68,141 @@ LA_Info assign(Vector<W>* _w,
     LA_Info info;
     if (_indices == NULL)
     {
-        info = backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+        info = backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
     }
     else
     {
-        info = backend::indexed_dense_vector_op(mask_t, _indices, _nindices, vector_size, lambda_op, desc_t);
+        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
     return info;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* w[i] = mask[i] ^ op(u[i], v[i]) */
+template <typename W, typename M, typename U, typename V, typename BinaryOpTAccum, typename BinaryOpT>
+LA_Info eWiseAdd(Vector<W>* _w,
+    const Vector<M>* _mask,
+    BinaryOpTAccum _accum,
+    BinaryOpT _op,
+    const Vector<U>* _u,
+    const Vector<V>* _v,
+    Descriptor* _desc)
+{
+
+    Index vector_size = _w->getDense()->get_size();
+    auto w_vals = _w->getDense()->get_vals();
+    auto u_vals = _u->getDense()->get_vals();
+    auto v_vals = _v->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, u_vals, v_vals, &_op](Index idx)
+    {
+        w_vals[idx] = _op(u_vals[idx], v_vals[idx]);
+    };
+
+    return backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* w[i] = mask[i] ^ op(u[i], v[i]) */
+template <typename W, typename M, typename U, typename V, typename BinaryOpTAccum, typename BinaryOpT>
+LA_Info eWiseMult(Vector<W>* _w,
+    const Vector<M>* _mask,
+    BinaryOpTAccum _accum,
+    BinaryOpT _op,
+    const Vector<U>* _u,
+    const Vector<V>* _v,
+    Descriptor* _desc)
+{
+
+    Index vector_size = _w->getDense()->get_size();
+    auto w_vals = _w->getDense()->get_vals();
+    auto u_vals = _u->getDense()->get_vals();
+    auto v_vals = _v->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, u_vals, v_vals, &_op](Index idx)
+    {
+        w_vals[idx] = _op(u_vals[idx], v_vals[idx]);
+    };
+
+    return backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* w[i] = mask[i] ^ op(u[i], v[i]) */
+template <typename W, typename M, typename U, typename T, typename BinaryOpTAccum, typename BinaryOpT>
+LA_Info apply(Vector<W>* _w,
+    const Vector<M>* _mask,
+    BinaryOpTAccum _accum,
+    BinaryOpT _op,
+    const T _val,
+    const Vector<U>* _u,
+    Descriptor* _desc)
+{
+
+    Index vector_size = _w->getDense()->get_size();
+    auto w_vals = _w->getDense()->get_vals();
+    auto u_vals = _u->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, u_vals, _val, &_op](Index idx)
+    {
+        w_vals[idx] = _op(_val, u_vals[idx]);
+    };
+
+    return backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* w[i] = mask[i] ^ op(u[i], v[i]) */
+template <typename W, typename M, typename U, typename BinaryOpTAccum, typename UnaryOpT>
+LA_Info apply(Vector<W>* _w,
+    const Vector<M>* _mask,
+    BinaryOpTAccum _accum,
+    UnaryOpT _op,
+    const Vector<U>* _u,
+    Descriptor* _desc)
+{
+
+    Index vector_size = _w->getDense()->get_size();
+    auto w_vals = _w->getDense()->get_vals();
+    auto u_vals = _u->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, u_vals, &_op](Index idx)
+    {
+        w_vals[idx] = _op(u_vals[idx]);
+    };
+
+    return backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* w[i] = mask[i] ^ op(u[i], v[i]) */
+template <typename W, typename M, typename U, typename T, typename BinaryOpTAccum, typename BinaryOpT>
+LA_Info apply(Vector<W>* _w,
+    const Vector<M>* _mask,
+    BinaryOpTAccum _accum,
+    BinaryOpT _op,
+    const Vector<U>* _u,
+    const T _val,
+    Descriptor* _desc)
+{
+
+    Index vector_size = _w->getDense()->get_size();
+    auto w_vals = _w->getDense()->get_vals();
+    auto u_vals = _u->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, u_vals, _val, &_op](Index idx)
+    {
+        w_vals[idx] = _op(u_vals[idx], _val);
+    };
+
+    return backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
+}
 
 }
 }
