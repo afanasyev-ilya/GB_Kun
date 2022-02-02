@@ -111,6 +111,8 @@ private:
     static const int vg_num = 9; // 9 is best currently
     VertexGroup vertex_groups[vg_num];
 
+    VNT *sorted_rows;
+
     int target_socket;
 
     void alloc(VNT _size, ENT _nnz, int _target_socket);
@@ -167,7 +169,17 @@ private:
                                 SemiringT op,
                                 Workspace *_workspace);
 
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void SpMV_all_active_sorted_balancing(const MatrixCSR<A> *_matrix,
+                                                 const DenseVector<X> *_x,
+                                                 DenseVector<Y> *_y,
+                                                 BinaryOpTAccum _accum,
+                                                 SemiringT op,
+                                                 Descriptor *_desc,
+                                                 Workspace *_workspace);
+
     void prepare_vg_lists(int _target_socket);
+    void prepare_sorted_array();
 };
 
 #include "csr_matrix.hpp"

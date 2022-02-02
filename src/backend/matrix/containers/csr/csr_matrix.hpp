@@ -37,6 +37,7 @@ void MatrixCSR<T>::free()
     MemoryAPI::free_array(row_ptr);
     MemoryAPI::free_array(col_ids);
     MemoryAPI::free_array(vals);
+    //MemoryAPI::free_array(sorted_rows);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

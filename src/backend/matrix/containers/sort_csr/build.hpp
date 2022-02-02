@@ -30,13 +30,13 @@ void MatrixSortCSR<T>::build(VNT *_row_degrees,
     }
 
     std::sort(col_conversion_indexes, col_conversion_indexes + size,
-              [_col_degrees](int index1, int index2)
+              [_col_degrees](VNT index1, VNT index2)
               {
                   return _col_degrees[index1] > _col_degrees[index2];
               });
 
     std::sort(row_conversion_indexes, row_conversion_indexes + size,
-              [_row_degrees](int index1, int index2)
+              [_row_degrees](VNT index1, VNT index2)
               {
                   return _row_degrees[index1] > _row_degrees[index2];
               });

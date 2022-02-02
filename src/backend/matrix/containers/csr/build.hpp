@@ -33,6 +33,27 @@ void MatrixCSR<T>::prepare_vg_lists(int _target_socket)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
+void MatrixCSR<T>::prepare_sorted_array()
+{
+    VNT num_rows = this->size; // fix
+    MemoryAPI::allocate_array(&sorted_rows, num_rows);
+    for(VNT i = 0; i < num_rows; i++)
+        sorted_rows[i] = i;
+
+    ENT *local_row_ptr = this->row_ptr;
+
+    std::sort(sorted_rows, sorted_rows + num_rows,
+      [local_row_ptr](VNT index1, VNT index2)
+      {
+          VNT connections1 = local_row_ptr[index1 + 1] - local_row_ptr[index1];
+          VNT connections2 = local_row_ptr[index2 + 1] - local_row_ptr[index2];
+          return connections1 > connections2;
+      });
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
 void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _target_socket)
 {
     vector<vector<pair<VNT, T>>> tmp_csr;
@@ -44,6 +65,8 @@ void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
     vector_of_vectors_to_csr(tmp_csr, row_ptr, col_ids, vals);
 
     prepare_vg_lists(_target_socket);
+
+    prepare_sorted_array();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,6 +79,8 @@ void MatrixCSR<T>::build(vector<vector<pair<VNT, T>>> &_tmp_csr, int _target_soc
     vector_of_vectors_to_csr(_tmp_csr, row_ptr, col_ids, vals);
 
     prepare_vg_lists(_target_socket);
+
+    prepare_sorted_array();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

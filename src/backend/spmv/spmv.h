@@ -48,7 +48,8 @@ void SpMV(const Matrix<A> *_matrix,
                 else
                 {
                     cout << "different vectors case" << endl;
-                    SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                    //SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                    SpMV_all_active_sorted_balancing(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
                 }
             }
             #else
