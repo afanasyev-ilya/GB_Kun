@@ -112,6 +112,7 @@ private:
     VertexGroup vertex_groups[vg_num];
 
     VNT *sorted_rows;
+    VNT large_degree_threshold;
 
     int target_socket;
 
@@ -177,6 +178,15 @@ private:
                                                  SemiringT op,
                                                  Descriptor *_desc,
                                                  Workspace *_workspace);
+
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void SpMV_all_active_static(const MatrixCSR<A> *_matrix,
+                                       const DenseVector<X> *_x,
+                                       DenseVector<Y> *_y,
+                                       BinaryOpTAccum _accum,
+                                       SemiringT op,
+                                       Descriptor *_desc,
+                                       Workspace *_workspace);
 
     void prepare_vg_lists(int _target_socket);
     void prepare_sorted_array();

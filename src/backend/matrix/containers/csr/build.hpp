@@ -49,6 +49,18 @@ void MatrixCSR<T>::prepare_sorted_array()
           VNT connections2 = local_row_ptr[index2 + 1] - local_row_ptr[index2];
           return connections1 > connections2;
       });
+
+    large_degree_threshold = 0;
+    #pragma omp parallel for
+    for(VNT i = 0; i < num_rows - 1; i++)
+    {
+        VNT row = sorted_rows[i];
+        VNT next_row = sorted_rows[i + 1];
+        VNT connections = local_row_ptr[row + 1] - local_row_ptr[row];
+        VNT next_connections = local_row_ptr[row + 1] - local_row_ptr[row];
+        if(connections > 1024 && next_connections <= 1024)
+            large_degree_threshold = i;
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
