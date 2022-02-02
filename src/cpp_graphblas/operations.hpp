@@ -279,6 +279,30 @@ LA_Info reduce(T *_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*!
+ * Extension method
+ * Gather values in vector u from indices (vector index) and store in another
+ * vector w.
+ *   w[i] = u[index[i]]
+ */
+
+template <typename W, typename M, typename U, typename I, typename BinaryOpT>
+LA_Info extract(Vector<W>*       w,
+               const Vector<M>* mask,
+               BinaryOpT        accum,
+               const Vector<U>* u,
+               const Vector<I>* indices,
+               Descriptor*      desc) {
+    if (u == NULL || w == NULL || indices == NULL || desc == NULL)
+        return GrB_UNINITIALIZED_OBJECT;
+
+    auto mask_t = (mask == NULL) ? NULL : mask->get_vector();
+    auto desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
+
+    return backend::extract(w->get_vector(), mask_t, accum, u->get_vector(),
+                                  indices->get_vector(), desc_t);
+}
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

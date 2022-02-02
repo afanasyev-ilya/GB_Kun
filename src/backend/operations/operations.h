@@ -16,7 +16,7 @@ template <typename W, typename M, typename U, typename BinaryOpTAccum>
 LA_Info assign(Vector<W>* _w,
     const Vector<M>* _mask,
     BinaryOpTAccum _accum,
-    U _u,
+    U _value,
     const Index* _indices,
     const Index _nindices,
     Descriptor* _desc) {
@@ -26,8 +26,8 @@ LA_Info assign(Vector<W>* _w,
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
     W* w_vals = _w->getDense()->get_vals();
 
-    auto lambda_op = [w_vals, u_vals, &_accum](Index idx) {
-        w_vals[idx] = _accum(w_vals[idx], _u);
+    auto lambda_op = [w_vals, _value] (Index idx) {
+        w_vals[idx] = _value;
     };
 
     LA_Info info;
@@ -216,7 +216,7 @@ LA_Info reduce(T* _val,
 
 
     Index vector_size = _u->getDense()->get_size();
-    const U* u_vals = _u->->getDense()->get_vals();
+    const U* u_vals = _u->getDense()->get_vals();
 
     auto lambda_op = [u_vals](Index idx)->U
     {
@@ -225,11 +225,34 @@ LA_Info reduce(T* _val,
 
     T reduce_result = _op.identity();
 
-    backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, desc_t);
+    backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, _desc);
 
     *_val = _accum(*_val, reduce_result);
 
     return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* Assume that we have allocated memory in w of size sizeof(indices) */
+template <typename W, typename M, typename U, typename I, typename BinaryOpT>
+LA_Info extract(Vector<W>*       w,
+               const Vector<M>* mask,
+               BinaryOpT        accum,
+               const Vector<U>* u,
+               const Vector<I>* indices,
+               Descriptor*      desc) {
+
+    for (Index i = 0; i < indices->get_size(); i++) {
+        if (indices->is_dense()) {
+            if (u->is_dense()) {
+                w->getDense()->get_vals()[i] = accum(w->getDense()->get_vals()[i], u->getDense()->get_vals());
+            }
+            if (u->is_sparse()) {
+                w->getDense()->get_vals()[i] = accum(w->getDense()->get_vals()[i], u->getSparse()->get_vals());
+            }
+        }
+    }
 }
 
 }
