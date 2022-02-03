@@ -77,7 +77,7 @@ void MatrixCSR<T>::prepare_sorted_array()
         double real_percent = 100.0*((double)core_edges/nnz);
         double supposed_percent = 100.0/cores_num;
 
-        if(fabs(real_percent - supposed_percent) > 5) // if difference is more than 10%, static not ok to use
+        if(fabs(real_percent - supposed_percent) > 5) // if difference is more than 5%, static not ok to use
             static_ok_to_use = false;
     }
     cout << "static is ok to use: " << static_ok_to_use << endl;

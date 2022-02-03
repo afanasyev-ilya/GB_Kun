@@ -101,7 +101,7 @@ public:
 
     ENT get_degree(VNT _row) {return row_ptr[_row + 1] - row_ptr[_row];};
 
-    bool can_use_static_balancing() {return static_ok_to_use;};
+    bool can_use_static_balancing() const {return static_ok_to_use;};
 private:
     VNT size;
     ENT nnz;
