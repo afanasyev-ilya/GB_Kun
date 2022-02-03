@@ -112,9 +112,6 @@ private:
 
     static const int vg_num = 9; // 9 is best currently
     VertexGroup vertex_groups[vg_num];
-
-    VNT *sorted_rows;
-    VNT large_degree_threshold;
     bool static_ok_to_use;
 
     int target_socket;
@@ -183,8 +180,8 @@ private:
                                        Workspace *_workspace);
 
     void prepare_vg_lists(int _target_socket);
-    void prepare_sorted_array();
     void numa_aware_realloc();
+    void check_if_static_can_be_used();
 };
 
 #include "csr_matrix.hpp"

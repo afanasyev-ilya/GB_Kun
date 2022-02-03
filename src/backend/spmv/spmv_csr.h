@@ -103,32 +103,24 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
             in_socket_copy(local_x_vals, x_vals, _matrix->size);
         }
 
-        #pragma omp for nowait schedule(static, 1)
-        for(VNT i = 0; i < _matrix->large_degree_threshold; i++)
+        for(int vg = 0; vg < _matrix->vg_num; vg++)
         {
-            VNT row = _matrix->sorted_rows[i];
-            Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
-            {
-                VNT col = _matrix->col_ids[j];
-                A val = _matrix->vals[j];
-                res = add_op(res, mul_op(val, local_x_vals[col]));
-            }
-            y_vals[row] = _accum(y_vals[row], res);
-        }
+            const VNT *vertices = _matrix->vertex_groups[vg].get_data();
+            VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
 
-        #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
-        for(VNT i = _matrix->large_degree_threshold; i < _matrix->size; i++)
-        {
-            VNT row = _matrix->sorted_rows[i];
-            Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+            #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+            for(VNT idx = 0; idx < vertex_group_size; idx++)
             {
-                VNT col = _matrix->col_ids[j];
-                A val = _matrix->vals[j];
-                res = add_op(res, mul_op(val, local_x_vals[col]));
+                VNT row = vertices[idx];
+                Y res = identity_val;
+                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                {
+                    VNT col = _matrix->col_ids[j];
+                    A val = _matrix->vals[j];
+                    res = add_op(res, mul_op(val, x_vals[col]));
+                }
+                y_vals[row] = _accum(y_vals[row], res);
             }
-            y_vals[row] = _accum(y_vals[row], res);
         }
     }
 }
@@ -331,32 +323,24 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
 
     #pragma omp parallel
     {
-        #pragma omp for nowait schedule(static, 1)
-        for(VNT i = 0; i < _matrix->large_degree_threshold; i++)
+        for(int vg = 0; vg < _matrix->vg_num; vg++)
         {
-            VNT row = _matrix->sorted_rows[i];
-            Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
-            {
-                VNT col = _matrix->col_ids[j];
-                A val = _matrix->vals[j];
-                res = add_op(res, mul_op(val, x_vals[col]));
-            }
-            y_vals[row] = _accum(y_vals[row], res);
-        }
+            const VNT *vertices = _matrix->vertex_groups[vg].get_data();
+            VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
 
-        #pragma omp for nowait schedule(static, 32)
-        for(VNT i = _matrix->large_degree_threshold; i < _matrix->size; i++)
-        {
-            VNT row = _matrix->sorted_rows[i];
-            Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+            #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+            for(VNT idx = 0; idx < vertex_group_size; idx++)
             {
-                VNT col = _matrix->col_ids[j];
-                A val = _matrix->vals[j];
-                res = add_op(res, mul_op(val, x_vals[col]));
+                VNT row = vertices[idx];
+                Y res = identity_val;
+                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                {
+                    VNT col = _matrix->col_ids[j];
+                    A val = _matrix->vals[j];
+                    res = add_op(res, mul_op(val, x_vals[col]));
+                }
+                y_vals[row] = _accum(y_vals[row], res);
             }
-            y_vals[row] = _accum(y_vals[row], res);
         }
     }
 }
@@ -382,32 +366,24 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
 
     #pragma omp parallel
     {
-        #pragma omp for nowait schedule(static, 1)
-        for(VNT i = 0; i < _matrix->large_degree_threshold; i++)
+        for(int vg = 0; vg < _matrix->vg_num; vg++)
         {
-            VNT row = _matrix->sorted_rows[i];
-            Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
-            {
-                VNT col = _matrix->col_ids[j];
-                A val = _matrix->vals[j];
-                res = add_op(res, mul_op(val, x_vals[col]));
-            }
-            buffer[row] = res;
-        }
+            const VNT *vertices = _matrix->vertex_groups[vg].get_data();
+            VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
 
-        #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
-        for(VNT i = _matrix->large_degree_threshold; i < _matrix->size; i++)
-        {
-            VNT row = _matrix->sorted_rows[i];
-            Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+            #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+            for(VNT idx = 0; idx < vertex_group_size; idx++)
             {
-                VNT col = _matrix->col_ids[j];
-                A val = _matrix->vals[j];
-                res = add_op(res, mul_op(val, x_vals[col]));
+                VNT row = vertices[idx];
+                Y res = identity_val;
+                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                {
+                    VNT col = _matrix->col_ids[j];
+                    A val = _matrix->vals[j];
+                    res = add_op(res, mul_op(val, x_vals[col]));
+                }
+                buffer[row] = res;
             }
-            buffer[row] = res;
         }
 
         #pragma omp barrier

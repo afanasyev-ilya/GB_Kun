@@ -33,34 +33,9 @@ void MatrixCSR<T>::prepare_vg_lists(int _target_socket)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::prepare_sorted_array()
+void MatrixCSR<T>::check_if_static_can_be_used()
 {
     VNT num_rows = this->size; // fixme
-    for(VNT i = 0; i < num_rows; i++)
-        sorted_rows[i] = i;
-
-    ENT *local_row_ptr = this->row_ptr;
-
-    std::sort(sorted_rows, sorted_rows + num_rows,
-      [local_row_ptr](VNT index1, VNT index2)
-      {
-          VNT connections1 = local_row_ptr[index1 + 1] - local_row_ptr[index1];
-          VNT connections2 = local_row_ptr[index2 + 1] - local_row_ptr[index2];
-          return connections1 > connections2;
-      });
-
-    large_degree_threshold = 0;
-    VNT threshold = 1024;
-    #pragma omp parallel for
-    for(VNT i = 0; i < num_rows - 1; i++)
-    {
-        VNT row = sorted_rows[i];
-        VNT next_row = sorted_rows[i + 1];
-        VNT connections = row_ptr[row + 1] - row_ptr[row];
-        VNT next_connections = row_ptr[row + 1] - row_ptr[row];
-        if(connections > threshold && next_connections <= threshold)
-            large_degree_threshold = i;
-    }
 
     int cores_num = omp_get_max_threads();
     static_ok_to_use = true;
@@ -81,9 +56,6 @@ void MatrixCSR<T>::prepare_sorted_array()
             static_ok_to_use = false;
     }
     cout << "static is ok to use: " << static_ok_to_use << endl;
-
-    if(cores_num > THREADS_PER_SOCKET) // if both sockets are used
-        numa_aware_realloc();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,19 +66,16 @@ void MatrixCSR<T>::numa_aware_realloc()
     ENT *new_row_ptr;
     T *new_vals;
     VNT *new_col_ids;
-    VNT *new_sorted_rows;
 
     MemoryAPI::allocate_array(&new_row_ptr, this->size + 1);
     MemoryAPI::allocate_array(&new_col_ids, this->nnz);
     MemoryAPI::allocate_array(&new_vals, this->nnz);
-    MemoryAPI::allocate_array(&new_sorted_rows, this->size);
 
     #pragma omp parallel
     {
-        #pragma omp for nowait schedule(static, 1)
+        /*#pragma omp for nowait schedule(static, 1)
         for(VNT i = 0; i < this->large_degree_threshold; i++)
         {
-            new_sorted_rows[i] = this->sorted_rows[i];
             new_row_ptr[i] = this->row_ptr[i];
             //connections_count[i] = this->row_ptr[i + 1] - this->row_ptr[i];
 
@@ -120,7 +89,6 @@ void MatrixCSR<T>::numa_aware_realloc()
         #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
         for(VNT i = this->large_degree_threshold; i < this->size; i++)
         {
-            new_sorted_rows[i] = this->sorted_rows[i];
             new_row_ptr[i] = this->row_ptr[i];
 
             for(ENT j = this->row_ptr[i]; j < this->row_ptr[i + 1]; j++)
@@ -128,20 +96,18 @@ void MatrixCSR<T>::numa_aware_realloc()
                 new_col_ids[j] = this->col_ids[j];
                 new_vals[j] = this->vals[j];
             }
-        }
+        }*/
     }
 
     // free old ones
     MemoryAPI::free_array(row_ptr);
     MemoryAPI::free_array(col_ids);
     MemoryAPI::free_array(vals);
-    MemoryAPI::free_array(sorted_rows);
 
     // copy new pointers into old
     row_ptr = new_row_ptr;
     vals = new_vals;
     col_ids = new_col_ids;
-    sorted_rows = new_sorted_rows;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,7 +125,9 @@ void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
 
     prepare_vg_lists(_target_socket);
 
-    prepare_sorted_array();
+    check_if_static_can_be_used();
+
+    //numa_aware_realloc();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -173,7 +141,9 @@ void MatrixCSR<T>::build(vector<vector<pair<VNT, T>>> &_tmp_csr, int _target_soc
 
     prepare_vg_lists(_target_socket);
 
-    prepare_sorted_array();
+    check_if_static_can_be_used();
+
+    //numa_aware_realloc();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
