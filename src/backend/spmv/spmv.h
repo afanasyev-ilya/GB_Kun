@@ -35,6 +35,7 @@ void SpMV(const Matrix<A> *_matrix,
             #ifdef __USE_SOCKET_OPTIMIZATIONS__
             if(omp_get_max_threads() == THREADS_PER_SOCKET*2)
             {
+                cout << "using old numa aware" << endl;
                 SpMV_numa_aware(((MatrixCSR<A> *) _matrix->get_csr()), ((MatrixCSR<A> *) _matrix->get_data_dub()),
                                 _x, _y, _accum, _op, _matrix->get_workspace());
             }

@@ -332,47 +332,45 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
     auto identity_val = op.identity();
 
     Y *buffer = (Y*)_workspace->get_first_socket_vector();
-
-    double t1 = omp_get_wtime();
-
+    
     #pragma omp parallel
     {
-        for(int vg = 0; vg < _matrix->vg_num; vg++)
+        #pragma omp for nowait schedule(static, 1)
+        for(VNT i = 0; i < _matrix->large_degree_threshold; i++)
         {
-            const VNT *vertices = _matrix->vertex_groups[vg].get_data();
-            VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
-            #ifdef __USE_NEC_SX_AURORA__
-            #pragma omp for schedule(static)
-            #else
-            #pragma omp for nowait schedule(guided, 1)
-            #endif
-            for(VNT idx = 0; idx < vertex_group_size; idx++)
+            VNT row = _matrix->sorted_rows[i];
+            Y res = identity_val;
+            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
             {
-                VNT row = vertices[idx];
-                Y res = identity_val;
-                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
-                {
-                    VNT col = _matrix->col_ids[j];
-                    A val = _matrix->vals[j];
-                    res = add_op(res, mul_op(val, x_vals[col]));
-                }
-                buffer[row] = res;
-                //y_vals[row] = _accum(y_vals[row], res);
+                VNT col = _matrix->col_ids[j];
+                A val = _matrix->vals[j];
+                res = add_op(res, mul_op(val, x_vals[col]));
             }
+            buffer[row] = res;
         }
 
-        #pragma omp barrier // splitting result vector generation is required
+        #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+        for(VNT i = _matrix->large_degree_threshold; i < _matrix->size; i++)
+        {
+            VNT row = _matrix->sorted_rows[i];
+            Y res = identity_val;
+            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
+            {
+                VNT col = _matrix->col_ids[j];
+                A val = _matrix->vals[j];
+                res = add_op(res, mul_op(val, x_vals[col]));
+            }
+            buffer[row] = res;
+        }
 
-        #pragma omp parallel for
+        #pragma omp barrier
+
+        #pragma omp for
         for(VNT row = 0; row < _matrix->size; row++)
         {
             y_vals[row] = _accum(y_vals[row], buffer[row]);
         }
     }
-
-    double t2 = omp_get_wtime();
-    cout << "wall spmv time: " << (t2 - t1)*1000 << " ms" << endl;
-    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
