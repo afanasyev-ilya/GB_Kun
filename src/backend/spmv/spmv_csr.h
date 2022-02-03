@@ -345,7 +345,7 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
             y_vals[row] = _accum(y_vals[row], res);
         }
 
-        #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+        #pragma omp for nowait schedule(static, 32)
         for(VNT i = _matrix->large_degree_threshold; i < _matrix->size; i++)
         {
             VNT row = _matrix->sorted_rows[i];

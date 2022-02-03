@@ -12,6 +12,7 @@ namespace lablas{
 namespace backend{
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename W, typename M, typename U, typename BinaryOpTAccum>
 LA_Info assign(Vector<W>* _w,
     const Vector<M>* _mask,
