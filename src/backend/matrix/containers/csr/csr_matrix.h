@@ -164,23 +164,14 @@ private:
                             Descriptor *_desc,
                             Workspace *_workspace);
 
-    template <typename N, typename SemiringT, typename BinaryOpTAccum>
-    friend void SpMV_numa_aware(MatrixCSR<N> *_matrix,
-                                MatrixCSR<N> *_matrix_socket_dub,
-                                const DenseVector<N> *_x,
-                                DenseVector<N> *_y,
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void SpMV_numa_aware(MatrixCSR<A> *_matrix,
+                                MatrixCSR<A> *_matrix_socket_dub,
+                                const DenseVector<X> *_x,
+                                DenseVector<Y> *_y,
                                 BinaryOpTAccum _accum,
                                 SemiringT op,
                                 Workspace *_workspace);
-
-    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
-    friend void SpMV_all_active_sorted_balancing(const MatrixCSR<A> *_matrix,
-                                                 const DenseVector<X> *_x,
-                                                 DenseVector<Y> *_y,
-                                                 BinaryOpTAccum _accum,
-                                                 SemiringT op,
-                                                 Descriptor *_desc,
-                                                 Workspace *_workspace);
 
     template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_all_active_static(const MatrixCSR<A> *_matrix,

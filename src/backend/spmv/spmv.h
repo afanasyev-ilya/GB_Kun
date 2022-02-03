@@ -35,7 +35,6 @@ void SpMV(const Matrix<A> *_matrix,
             #ifdef __USE_SOCKET_OPTIMIZATIONS__
             if(omp_get_max_threads() == THREADS_PER_SOCKET*2)
             {
-                cout << "using old numa aware" << endl;
                 SpMV_numa_aware(((MatrixCSR<A> *) _matrix->get_csr()), ((MatrixCSR<A> *) _matrix->get_data_dub()),
                                 _x, _y, _accum, _op, _matrix->get_workspace());
             }
@@ -50,8 +49,7 @@ void SpMV(const Matrix<A> *_matrix,
                     if(_matrix->get_csr()->can_use_static_balancing())
                         SpMV_all_active_static(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
                     else
-                        SpMV_all_active_sorted_balancing(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
-                        //SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                        SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
                 }
             }
             #else

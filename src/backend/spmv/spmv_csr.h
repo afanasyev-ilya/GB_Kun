@@ -19,25 +19,25 @@ void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename SemiringT, typename BinaryOpTAccum>
-void SpMV_numa_aware(MatrixCSR<T> *_matrix,
-                     MatrixCSR<T> *_matrix_socket_dub,
-                     const DenseVector<T> *_x,
-                     DenseVector<T> *_y,
+template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+void SpMV_numa_aware(MatrixCSR<A> *_matrix,
+                     MatrixCSR<A> *_matrix_socket_dub,
+                     const DenseVector<X> *_x,
+                     DenseVector<Y> *_y,
                      BinaryOpTAccum _accum,
                      SemiringT op,
                      Workspace *_workspace)
 {
-    const T *x_vals = _x->get_vals();
-    T *x_vals_first_socket = (T*)_workspace->get_first_socket_vector();
-    T *x_vals_second_socket = (T*)_workspace->get_second_socket_vector();
+    const X *x_vals = _x->get_vals();
+    X *x_vals_first_socket = (X*)_workspace->get_first_socket_vector();
+    X *x_vals_second_socket = (X*)_workspace->get_second_socket_vector();
 
-    T *y_vals = _y->get_vals();
+    Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
-    #pragma omp parallel
+    /*#pragma omp parallel
     {
         int total_threads = omp_get_num_threads();
         int tid = omp_get_thread_num();
@@ -81,6 +81,54 @@ void SpMV_numa_aware(MatrixCSR<T> *_matrix,
                 }
                 y_vals[row] = _accum(y_vals[row], res);
             }
+        }
+    }*/
+
+    #pragma omp parallel
+    {
+        int total_threads = omp_get_num_threads();
+        int tid = omp_get_thread_num();
+
+        int socket = tid / (THREADS_PER_SOCKET);
+
+        X *local_x_vals;
+        if(socket == 0)
+        {
+            local_x_vals = x_vals_first_socket;
+            in_socket_copy(local_x_vals, x_vals, _matrix->size);
+        }
+        else if(socket == 1)
+        {
+            local_x_vals = x_vals_second_socket;
+            in_socket_copy(local_x_vals, x_vals, _matrix->size);
+        }
+
+        #pragma omp for nowait schedule(static, 1)
+        for(VNT i = 0; i < _matrix->large_degree_threshold; i++)
+        {
+            VNT row = _matrix->sorted_rows[i];
+            Y res = identity_val;
+            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
+            {
+                VNT col = _matrix->col_ids[j];
+                A val = _matrix->vals[j];
+                res = add_op(res, mul_op(val, x_vals[col]));
+            }
+            y_vals[row] = _accum(y_vals[row], res);
+        }
+
+        #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+        for(VNT i = _matrix->large_degree_threshold; i < _matrix->size; i++)
+        {
+            VNT row = _matrix->sorted_rows[i];
+            Y res = identity_val;
+            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
+            {
+                VNT col = _matrix->col_ids[j];
+                A val = _matrix->vals[j];
+                res = add_op(res, mul_op(val, x_vals[col]));
+            }
+            y_vals[row] = _accum(y_vals[row], res);
         }
     }
 }
@@ -281,37 +329,36 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
-    double t1 = omp_get_wtime();
-
     #pragma omp parallel
     {
-        for(int vg = 0; vg < _matrix->vg_num; vg++)
+        #pragma omp for nowait schedule(static, 1)
+        for(VNT i = 0; i < _matrix->large_degree_threshold; i++)
         {
-            const VNT *vertices = _matrix->vertex_groups[vg].get_data();
-            VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
-            #ifdef __USE_NEC_SX_AURORA__
-            #pragma omp for schedule(static)
-            #else
-            #pragma omp for nowait schedule(guided, 1)
-            #endif
-            for(VNT idx = 0; idx < vertex_group_size; idx++)
+            VNT row = _matrix->sorted_rows[i];
+            Y res = identity_val;
+            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
             {
-                VNT row = vertices[idx];
-                Y res = identity_val;
-                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
-                {
-                    VNT col = _matrix->col_ids[j];
-                    A val = _matrix->vals[j];
-                    res = add_op(res, mul_op(val, x_vals[col]));
-                }
-                y_vals[row] = _accum(y_vals[row], res);
+                VNT col = _matrix->col_ids[j];
+                A val = _matrix->vals[j];
+                res = add_op(res, mul_op(val, x_vals[col]));
             }
+            y_vals[row] = _accum(y_vals[row], res);
+        }
+
+        #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+        for(VNT i = _matrix->large_degree_threshold; i < _matrix->size; i++)
+        {
+            VNT row = _matrix->sorted_rows[i];
+            Y res = identity_val;
+            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
+            {
+                VNT col = _matrix->col_ids[j];
+                A val = _matrix->vals[j];
+                res = add_op(res, mul_op(val, x_vals[col]));
+            }
+            y_vals[row] = _accum(y_vals[row], res);
         }
     }
-
-    double t2 = omp_get_wtime();
-    cout << "wall spmv time: " << (t2 - t1)*1000 << " ms" << endl;
-    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -332,7 +379,7 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
     auto identity_val = op.identity();
 
     Y *buffer = (Y*)_workspace->get_first_socket_vector();
-    
+
     #pragma omp parallel
     {
         #pragma omp for nowait schedule(static, 1)
@@ -374,54 +421,6 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
-void SpMV_all_active_sorted_balancing(const MatrixCSR<A> *_matrix,
-                                      const DenseVector<X> *_x,
-                                      DenseVector<Y> *_y,
-                                      BinaryOpTAccum _accum,
-                                      SemiringT op,
-                                      Descriptor *_desc,
-                                      Workspace *_workspace)
-{
-    const X *x_vals = _x->get_vals();
-    Y *y_vals = _y->get_vals();
-    auto add_op = extractAdd(op);
-    auto mul_op = extractMul(op);
-    auto identity_val = op.identity();
-
-    #pragma omp parallel
-    {
-        #pragma omp for nowait schedule(static, 1)
-        for(VNT i = 0; i < _matrix->large_degree_threshold; i++)
-        {
-            VNT row = _matrix->sorted_rows[i];
-            Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
-            {
-                VNT col = _matrix->col_ids[j];
-                A val = _matrix->vals[j];
-                res = add_op(res, mul_op(val, x_vals[col]));
-            }
-            y_vals[row] = _accum(y_vals[row], res);
-        }
-
-        #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
-        for(VNT i = _matrix->large_degree_threshold; i < _matrix->size; i++)
-        {
-            VNT row = _matrix->sorted_rows[i];
-            Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
-            {
-                VNT col = _matrix->col_ids[j];
-                A val = _matrix->vals[j];
-                res = add_op(res, mul_op(val, x_vals[col]));
-            }
-            y_vals[row] = _accum(y_vals[row], res);
-        }
-    }
-}
-
 
 }
 }
