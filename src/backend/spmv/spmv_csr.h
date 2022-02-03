@@ -103,23 +103,41 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
             in_socket_copy(local_x_vals, x_vals, _matrix->size);
         }
 
-        for(int vg = 0; vg < _matrix->vg_num; vg++)
+        if(_matrix->can_use_static_balancing())
         {
-            const VNT *vertices = _matrix->vertex_groups[vg].get_data();
-            VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
-
-            #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
-            for(VNT idx = 0; idx < vertex_group_size; idx++)
+            #pragma omp for schedule(static)
+            for(VNT row = 0; row < _matrix->size; row++)
             {
-                VNT row = vertices[idx];
-                Y res = identity_val;
+                A res = identity_val;
                 for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
                 {
                     VNT col = _matrix->col_ids[j];
                     A val = _matrix->vals[j];
-                    res = add_op(res, mul_op(val, local_x_vals[col]));
+                    res = add_op(res, mul_op(val, x_vals[col]));
                 }
                 y_vals[row] = _accum(y_vals[row], res);
+            }
+        }
+        else
+        {
+            for(int vg = 0; vg < _matrix->vg_num; vg++)
+            {
+                const VNT *vertices = _matrix->vertex_groups[vg].get_data();
+                VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
+
+                #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+                for(VNT idx = 0; idx < vertex_group_size; idx++)
+                {
+                    VNT row = vertices[idx];
+                    Y res = identity_val;
+                    for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                    {
+                        VNT col = _matrix->col_ids[j];
+                        A val = _matrix->vals[j];
+                        res = add_op(res, mul_op(val, local_x_vals[col]));
+                    }
+                    y_vals[row] = _accum(y_vals[row], res);
+                }
             }
         }
     }
