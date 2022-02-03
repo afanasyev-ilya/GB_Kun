@@ -56,11 +56,31 @@ void MatrixCSR<T>::prepare_sorted_array()
     {
         VNT row = sorted_rows[i];
         VNT next_row = sorted_rows[i + 1];
-        VNT connections = local_row_ptr[row + 1] - local_row_ptr[row];
-        VNT next_connections = local_row_ptr[row + 1] - local_row_ptr[row];
+        VNT connections = row_ptr[row + 1] - row_ptr[row];
+        VNT next_connections = row_ptr[row + 1] - row_ptr[row];
         if(connections > 1024 && next_connections <= 1024)
             large_degree_threshold = i;
     }
+
+    int cores_num = omp_get_max_threads();
+    static_ok_to_use = true;
+    #pragma omp parallel
+    {
+        ENT core_edges = 0;
+        #pragma omp for
+        for(VNT row = 0; row < num_rows; row++)
+        {
+            VNT connections = row_ptr[row + 1] - row_ptr[row];
+            core_edges += connections;
+        }
+
+        double real_percent = 100.0*((double)core_edges/nnz);
+        double supposed_percent = 100.0/cores_num;
+
+        if(fabs(real_percent - supposed_percent) > 5) // if difference is more than 10%, static not ok to use
+            static_ok_to_use = false;
+    }
+    cout << "static is ok to use: " << static_ok_to_use << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
