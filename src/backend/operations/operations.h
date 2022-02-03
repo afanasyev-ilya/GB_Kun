@@ -241,18 +241,23 @@ LA_Info extract(Vector<W>*       w,
                BinaryOpT        accum,
                const Vector<U>* u,
                const Vector<I>* indices,
-               Descriptor*      desc) {
-
-    for (Index i = 0; i < indices->get_size(); i++) {
-        if (indices->is_dense()) {
-            if (u->is_dense()) {
+               Descriptor*      desc)
+{
+    for (Index i = 0; i < indices->get_size(); i++)
+    {
+        if (indices->is_dense())
+        {
+            if (u->is_dense())
+            {
                 w->getDense()->get_vals()[i] = accum(w->getDense()->get_vals()[i], u->getDense()->get_vals());
             }
-            if (u->is_sparse()) {
+            if (u->is_sparse())
+            {
                 w->getDense()->get_vals()[i] = accum(w->getDense()->get_vals()[i], u->getSparse()->get_vals());
             }
         }
     }
+    return GrB_SUCCESS;
 }
 
 }
