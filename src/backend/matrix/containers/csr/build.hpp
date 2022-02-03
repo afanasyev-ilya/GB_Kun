@@ -63,40 +63,52 @@ void MatrixCSR<T>::check_if_static_can_be_used()
 template <typename T>
 void MatrixCSR<T>::numa_aware_realloc()
 {
+    VNT num_rows = this->size; // fixme
+
     ENT *new_row_ptr;
     T *new_vals;
     VNT *new_col_ids;
 
-    MemoryAPI::allocate_array(&new_row_ptr, this->size + 1);
+    MemoryAPI::allocate_array(&new_row_ptr, num_rows + 1);
     MemoryAPI::allocate_array(&new_col_ids, this->nnz);
     MemoryAPI::allocate_array(&new_vals, this->nnz);
 
     #pragma omp parallel
     {
-        /*#pragma omp for nowait schedule(static, 1)
-        for(VNT i = 0; i < this->large_degree_threshold; i++)
+        if(can_use_static_balancing())
         {
-            new_row_ptr[i] = this->row_ptr[i];
-            //connections_count[i] = this->row_ptr[i + 1] - this->row_ptr[i];
-
-            for(ENT j = this->row_ptr[i]; j < this->row_ptr[i + 1]; j++)
+            #pragma omp for schedule(static)
+            for(VNT row = 0; row < num_rows; row++)
             {
-                new_col_ids[j] = this->col_ids[j];
-                new_vals[j] = this->vals[j];
+                new_row_ptr[row] = this->row_ptr[row];
+                for(ENT j = this->row_ptr[row]; j < this->row_ptr[row + 1]; j++)
+                {
+                    new_col_ids[j] = this->col_ids[j];
+                    new_vals[j] = this->vals[j];
+                }
             }
         }
-
-        #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
-        for(VNT i = this->large_degree_threshold; i < this->size; i++)
+        else
         {
-            new_row_ptr[i] = this->row_ptr[i];
-
-            for(ENT j = this->row_ptr[i]; j < this->row_ptr[i + 1]; j++)
+            for(int vg = 0; vg < this->vg_num; vg++)
             {
-                new_col_ids[j] = this->col_ids[j];
-                new_vals[j] = this->vals[j];
+                const VNT *vertices = this->vertex_groups[vg].get_data();
+                VNT vertex_group_size = this->vertex_groups[vg].get_size();
+
+                #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+                for(VNT idx = 0; idx < vertex_group_size; idx++)
+                {
+                    VNT row = vertices[idx];
+                    new_row_ptr[row] = this->row_ptr[row];
+
+                    for(ENT j = this->row_ptr[row]; j < this->row_ptr[row + 1]; j++)
+                    {
+                        new_col_ids[j] = this->col_ids[j];
+                        new_vals[j] = this->vals[j];
+                    }
+                }
             }
-        }*/
+        }
     }
 
     // free old ones
@@ -127,7 +139,7 @@ void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
 
     check_if_static_can_be_used();
 
-    //numa_aware_realloc();
+    numa_aware_realloc();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,7 +155,7 @@ void MatrixCSR<T>::build(vector<vector<pair<VNT, T>>> &_tmp_csr, int _target_soc
 
     check_if_static_can_be_used();
 
-    //numa_aware_realloc();
+    numa_aware_realloc();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

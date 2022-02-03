@@ -117,7 +117,7 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
                 {
                     VNT col = _matrix->col_ids[j];
                     A val = _matrix->vals[j];
-                    res = add_op(res, mul_op(val, x_vals[col]));
+                    res = add_op(res, mul_op(val, local_x_vals[col]));
                 }
                 y_vals[row] = _accum(y_vals[row], res);
             }
