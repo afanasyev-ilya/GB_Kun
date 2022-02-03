@@ -1,5 +1,7 @@
 #include "src/gb_kun.h"
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void save_to_file(const string &_file_name, double _stat)
 {
     ofstream stat_file;
@@ -7,6 +9,8 @@ void save_to_file(const string &_file_name, double _stat)
     stat_file << _stat << endl;
     stat_file.close();
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void report_num_threads(int level)
 {
@@ -16,6 +20,32 @@ void report_num_threads(int level)
                level, omp_get_num_threads());
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void check_mxv(lablas::Vector<T> &_out, lablas::Matrix<T> &_matrix, lablas::Vector<T> &_in)
+{
+    T* out_vals = _out.get_vector()->getDense()->get_vals();
+    T* in_vals = _in.get_vector()->getDense()->get_vals();
+    lablas::backend::MatrixCSR<T> *csr_matrix = ((lablas::backend::MatrixCSR<T> *) _matrix.get_matrix()->get_csr());
+
+    Index num_rows;
+    _matrix.get_nrows(&num_rows);
+    for(VNT row = 0; row < num_rows; row++)
+    {
+        T res = 0;
+        for(ENT j = csr_matrix->get_row_ptr()[row]; j < csr_matrix->get_row_ptr()[row + 1]; j++)
+        {
+            VNT col = csr_matrix->get_col_ids()[j];
+            T val = csr_matrix->get_vals()[j];
+            res = res + val * in_vals[col];
+        }
+        out_vals[row] = res;
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
 void test_spmv(int argc, char **argv)
@@ -66,19 +96,15 @@ void test_spmv(int argc, char **argv)
     save_to_file("./output/perf.txt", perf);
     save_to_file("./output/bw.txt", bw);
 
-    if(parser.check() && (parser.get_synthetic_graph_type() == MTX_GRAPH)) // can check only for external graph for now
+    if(parser.check()) // can check only for external graph for now
     {
-        lablas::Matrix<T> check_matrix;
-        check_matrix.set_preferred_matrix_format(CSR);
-        init_matrix(check_matrix, parser);
-
         lablas::Vector<T> w_check(size);
 
         u.fill(1.0);
         w_check.fill(1.0);
         GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, 10, &(nnz_subset[0]), nnz_subset.size(), NULL));
 
-        GrB_mxv(&w_check, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &check_matrix, &u, &desc);
+        check_mxv(w_check, matrix, u);
 
         if(w == w_check)
         {
@@ -93,7 +119,10 @@ void test_spmv(int argc, char **argv)
     #undef MASK_NULL
 }
 
-int main(int argc, char **argv) {
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int main(int argc, char **argv)
+{
     try
     {
         print_omp_stats();
@@ -109,4 +138,6 @@ int main(int argc, char **argv) {
     }
     return 0;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

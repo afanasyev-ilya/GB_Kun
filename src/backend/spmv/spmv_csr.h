@@ -91,7 +91,7 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
 
         int socket = tid / (THREADS_PER_SOCKET);
 
-        X *local_x_vals;
+        X *local_x_vals = 0;
         if(socket == 0)
         {
             local_x_vals = x_vals_first_socket;
@@ -108,11 +108,11 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
         {
             VNT row = _matrix->sorted_rows[i];
             Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
                 VNT col = _matrix->col_ids[j];
                 A val = _matrix->vals[j];
-                res = add_op(res, mul_op(val, x_vals[col]));
+                res = add_op(res, mul_op(val, local_x_vals[col]));
             }
             y_vals[row] = _accum(y_vals[row], res);
         }
@@ -122,11 +122,11 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
         {
             VNT row = _matrix->sorted_rows[i];
             Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
                 VNT col = _matrix->col_ids[j];
                 A val = _matrix->vals[j];
-                res = add_op(res, mul_op(val, x_vals[col]));
+                res = add_op(res, mul_op(val, local_x_vals[col]));
             }
             y_vals[row] = _accum(y_vals[row], res);
         }
@@ -336,7 +336,7 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
         {
             VNT row = _matrix->sorted_rows[i];
             Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
                 VNT col = _matrix->col_ids[j];
                 A val = _matrix->vals[j];
@@ -350,7 +350,7 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
         {
             VNT row = _matrix->sorted_rows[i];
             Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
                 VNT col = _matrix->col_ids[j];
                 A val = _matrix->vals[j];
@@ -387,7 +387,7 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
         {
             VNT row = _matrix->sorted_rows[i];
             Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
                 VNT col = _matrix->col_ids[j];
                 A val = _matrix->vals[j];
@@ -401,7 +401,7 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
         {
             VNT row = _matrix->sorted_rows[i];
             Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[i]; j < _matrix->row_ptr[i + 1]; j++)
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
                 VNT col = _matrix->col_ids[j];
                 A val = _matrix->vals[j];

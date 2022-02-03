@@ -91,7 +91,6 @@ void MatrixCSR<T>::prepare_sorted_array()
 template <typename T>
 void MatrixCSR<T>::numa_aware_realloc()
 {
-    cout << "doing numa-aware realloc" << endl;
     ENT *new_row_ptr;
     T *new_vals;
     VNT *new_col_ids;
@@ -109,6 +108,7 @@ void MatrixCSR<T>::numa_aware_realloc()
         {
             new_sorted_rows[i] = this->sorted_rows[i];
             new_row_ptr[i] = this->row_ptr[i];
+            //connections_count[i] = this->row_ptr[i + 1] - this->row_ptr[i];
 
             for(ENT j = this->row_ptr[i]; j < this->row_ptr[i + 1]; j++)
             {
