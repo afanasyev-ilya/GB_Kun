@@ -51,6 +51,7 @@ void MatrixCSR<T>::prepare_sorted_array()
       });
 
     large_degree_threshold = 0;
+    VNT threshold = 1024;
     #pragma omp parallel for
     for(VNT i = 0; i < num_rows - 1; i++)
     {
@@ -58,7 +59,7 @@ void MatrixCSR<T>::prepare_sorted_array()
         VNT next_row = sorted_rows[i + 1];
         VNT connections = row_ptr[row + 1] - row_ptr[row];
         VNT next_connections = row_ptr[row + 1] - row_ptr[row];
-        if(connections > 1024 && next_connections <= 1024)
+        if(connections > threshold && next_connections <= threshold)
             large_degree_threshold = i;
     }
 
@@ -77,7 +78,7 @@ void MatrixCSR<T>::prepare_sorted_array()
         double real_percent = 100.0*((double)core_edges/nnz);
         double supposed_percent = 100.0/cores_num;
 
-        if(fabs(real_percent - supposed_percent) > 5) // if difference is more than 5%, static not ok to use
+        if(fabs(real_percent - supposed_percent) > 3) // if difference is more than 5%, static not ok to use
             static_ok_to_use = false;
     }
     cout << "static is ok to use: " << static_ok_to_use << endl;
