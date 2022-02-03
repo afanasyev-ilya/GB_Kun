@@ -35,8 +35,7 @@ void MatrixCSR<T>::prepare_vg_lists(int _target_socket)
 template <typename T>
 void MatrixCSR<T>::prepare_sorted_array()
 {
-    VNT num_rows = this->size; // fix
-    MemoryAPI::allocate_array(&sorted_rows, num_rows);
+    VNT num_rows = this->size; // fixme
     for(VNT i = 0; i < num_rows; i++)
         sorted_rows[i] = i;
 
@@ -82,6 +81,67 @@ void MatrixCSR<T>::prepare_sorted_array()
             static_ok_to_use = false;
     }
     cout << "static is ok to use: " << static_ok_to_use << endl;
+
+    if(cores_num > THREADS_PER_SOCKET) // if both sockets are used
+        numa_aware_realloc();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MatrixCSR<T>::numa_aware_realloc()
+{
+    cout << "doing numa-aware realloc" << endl;
+    ENT *new_row_ptr;
+    T *new_vals;
+    VNT *new_col_ids;
+    VNT *new_sorted_rows;
+
+    MemoryAPI::allocate_array(&new_row_ptr, this->size + 1);
+    MemoryAPI::allocate_array(&new_col_ids, this->nnz);
+    MemoryAPI::allocate_array(&new_vals, this->nnz);
+    MemoryAPI::allocate_array(&new_sorted_rows, this->size);
+
+    #pragma omp parallel
+    {
+        #pragma omp for nowait schedule(static, 1)
+        for(VNT i = 0; i < this->large_degree_threshold; i++)
+        {
+            new_sorted_rows[i] = this->sorted_rows[i];
+            new_row_ptr[i] = this->row_ptr[i];
+
+            for(ENT j = this->row_ptr[i]; j < this->row_ptr[i + 1]; j++)
+            {
+                new_col_ids[j] = this->col_ids[j];
+                new_vals[j] = this->vals[j];
+            }
+        }
+
+        #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+        for(VNT i = this->large_degree_threshold; i < this->size; i++)
+        {
+            new_sorted_rows[i] = this->sorted_rows[i];
+            new_row_ptr[i] = this->row_ptr[i];
+
+            for(ENT j = this->row_ptr[i]; j < this->row_ptr[i + 1]; j++)
+            {
+                new_col_ids[j] = this->col_ids[j];
+                new_vals[j] = this->vals[j];
+            }
+        }
+    }
+
+    // free old ones
+    MemoryAPI::free_array(row_ptr);
+    MemoryAPI::free_array(col_ids);
+    MemoryAPI::free_array(vals);
+    MemoryAPI::free_array(sorted_rows);
+
+    // copy new pointers into old
+    row_ptr = new_row_ptr;
+    vals = new_vals;
+    col_ids = new_col_ids;
+    sorted_rows = new_sorted_rows;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

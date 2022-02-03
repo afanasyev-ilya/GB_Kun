@@ -27,3 +27,6 @@
 #define VECTOR_LENGTH 4
 #endif
 
+
+// CSR format settings
+#define CSR_SORTED_BALANCING 256

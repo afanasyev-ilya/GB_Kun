@@ -27,6 +27,7 @@ void MatrixCSR<T>::alloc(VNT _size, ENT _nnz, int _target_socket)
     MemoryAPI::numa_aware_alloc(&row_ptr, this->size + 1, _target_socket);
     MemoryAPI::numa_aware_alloc(&col_ids, this->nnz, _target_socket);
     MemoryAPI::numa_aware_alloc(&vals, this->nnz, _target_socket);
+    MemoryAPI::numa_aware_alloc(&sorted_rows, this->size, target_socket);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,7 +38,7 @@ void MatrixCSR<T>::free()
     MemoryAPI::free_array(row_ptr);
     MemoryAPI::free_array(col_ids);
     MemoryAPI::free_array(vals);
-    //MemoryAPI::free_array(sorted_rows);
+    MemoryAPI::free_array(sorted_rows);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

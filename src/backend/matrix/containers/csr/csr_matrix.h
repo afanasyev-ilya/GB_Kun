@@ -193,6 +193,7 @@ private:
 
     void prepare_vg_lists(int _target_socket);
     void prepare_sorted_array();
+    void numa_aware_realloc();
 };
 
 #include "csr_matrix.hpp"
