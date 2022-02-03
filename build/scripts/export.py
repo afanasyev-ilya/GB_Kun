@@ -27,7 +27,7 @@ class BenchmarkingResults:
         self.run_speed_mode = run_speed_mode
         self.current_graph_format = ""
 
-        self.workbook = xlsxwriter.Workbook(name + "_benchmarking_results.xlsx")
+        self.workbook = xlsxwriter.Workbook(name + ".xlsx")
         self.worksheet = None # these can be later used for xls output
         self.line_pos = None # these can be later used for xls output
         self.current_format = None # these can be later used for xls output
