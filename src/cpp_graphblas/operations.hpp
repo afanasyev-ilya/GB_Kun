@@ -65,17 +65,7 @@ LA_Info eWiseAdd(lablas::Vector<W>* _w,
     auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
-    Index vector_size = _w->get_vector()->getDense()->get_size();
-    auto w_vals = _w->get_vector()->getDense()->get_vals();
-    auto u_vals = _u->get_vector()->getDense()->get_vals();
-    auto v_vals = _v->get_vector()->getDense()->get_vals();
-
-    auto lambda_op = [w_vals, u_vals, v_vals, &_op] (Index idx)
-    {
-        w_vals[idx] = _op(u_vals[idx], v_vals[idx]);
-    };
-
-    return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+    return backend::eWiseAdd(_w->get_vector(), mask_t, _accum, _op, _u->get_vector(), _v->get_vector(), desc_t);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,22 +89,7 @@ LA_Info eWiseMult(Vector<W>* _w,
     auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
-    Index vector_size = _w->get_vector()->getDense()->get_size();
-    auto w_vals = _w->get_vector()->getDense()->get_vals();
-    auto u_vals = _u->get_vector()->getDense()->get_vals();
-    auto v_vals = _v->get_vector()->getDense()->get_vals();
-
-    if(true) /* vectors are dense */
-    {
-        auto lambda_op = [w_vals, u_vals, v_vals, &_op] (Index idx)
-        {
-            w_vals[idx] = _op(u_vals[idx], v_vals[idx]);
-        };
-
-        return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
-    }
-
-    return GrB_SUCCESS;
+    return backend::eWiseMult(_w->get_vector(), mask_t, _accum, _op, _u->get_vector(), _v->get_vector(), desc_t);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,16 +113,7 @@ LA_Info apply(Vector<W>* _w,
     auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
-    Index vector_size = _w->get_vector()->getDense()->get_size();
-    auto w_vals = _w->get_vector()->getDense()->get_vals();
-    auto u_vals = _u->get_vector()->getDense()->get_vals();
-
-    auto lambda_op = [w_vals, u_vals, _val, &_op] (Index idx)
-    {
-        w_vals[idx] = _op(_val, u_vals[idx]);
-    };
-
-    return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+    return backend::apply(_w->get_vector(), mask_t, _accum, _op, _val, _u->get_vector(), desc_t);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,16 +136,7 @@ LA_Info apply(Vector<W>* _w,
     auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
-    Index vector_size = _w->get_vector()->getDense()->get_size();
-    auto w_vals = _w->get_vector()->getDense()->get_vals();
-    auto u_vals = _u->get_vector()->getDense()->get_vals();
-
-    auto lambda_op = [w_vals, u_vals, &_op] (Index idx)
-    {
-        w_vals[idx] = _op(u_vals[idx]);
-    };
-
-    return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+    return backend::apply(_w->get_vector(), mask_t, _accum, _op, _u->get_vector(), desc_t);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -203,16 +160,7 @@ LA_Info apply(Vector<W>* _w,
     auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
-    Index vector_size = _w->get_vector()->getDense()->get_size();
-    auto w_vals = _w->get_vector()->getDense()->get_vals();
-    auto u_vals = _u->get_vector()->getDense()->get_vals();
-
-    auto lambda_op = [w_vals, u_vals, _val, &_op] (Index idx)
-    {
-        w_vals[idx] = _op(u_vals[idx], _val);
-    };
-
-    return backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
+    return backend::apply(_w->get_vector(), mask_t, _accum, _op,  _u->get_vector(), _val, desc_t);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -234,24 +182,7 @@ LA_Info assign(Vector<W>*       _w,
     auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
-    _w->get_vector()->force_to_dense();
-    W* w_vals = _w->get_vector()->getDense()->get_vals(); // can be called since force dense conversion before
-    Index vector_size = _w->get_vector()->getDense()->get_size();
-
-    auto lambda_op = [w_vals, _value] (Index idx)
-    {
-        w_vals[idx] = _value;
-    };
-    LA_Info info;
-    if(_indices == NULL)
-    {
-        info = backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
-    }
-    else
-    {
-        info = backend::indexed_dense_vector_op(mask_t, _indices, _nindices, vector_size, lambda_op, desc_t);
-    }
-    _w->get_vector()->convert_if_required();
+    LA_Info info = backend::assign(_w->get_vector(), mask_t, _accum, _value, _indices, _nindices, desc_t);
     return info;
 }
 
@@ -276,24 +207,7 @@ LA_Info assign(Vector<W>*       _w,
     auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
-    _w->get_vector()->force_to_dense();
-    Index vector_size = _w->get_vector()->getDense()->get_size(); // can be called since force dense conversion before
-    W* w_vals = _w->get_vector()->getDense()->get_vals();
-    U* u_vals = _u->get_vector()->getDense()->get_vals();
-
-    auto lambda_op = [w_vals, u_vals, &_accum](Index idx) {
-        w_vals[idx] = _accum(w_vals[idx], u_vals[idx]);
-    };
-    LA_Info info;
-    if(_indices == NULL)
-    {
-        info = backend::generic_dense_vector_op(mask_t, vector_size, lambda_op, desc_t);
-    }
-    else
-    {
-        info = backend::indexed_dense_vector_op(mask_t, _indices, _nindices, vector_size, lambda_op, desc_t);
-    }
-    _w->get_vector()->convert_if_required();
+    LA_Info info = backend::assign(_w->get_vector(), mask_t, _accum, _u->get_vector(), _indices, _nindices, desc_t);
     return info;
 }
 
@@ -358,26 +272,36 @@ LA_Info reduce(T *_val,
     if(not_initialized(_u))
         return GrB_UNINITIALIZED_OBJECT;
 
-    Index vector_size = _u->get_vector()->getDense()->get_size();
-    const U* u_vals = _u->get_vector()->getDense()->get_vals();
-
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
-    auto lambda_op = [u_vals] (Index idx)->U
-    {
-        return u_vals[idx];
-    };
-
-    T reduce_result = _op.identity();
-
-    backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, desc_t);
-
-    *_val = _accum(*_val, reduce_result);
-
-    return GrB_SUCCESS;
+    return backend::reduce(_val, _accum, _op, _u->get_vector(), desc_t);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!
+ * Extension method
+ * Gather values in vector u from indices (vector index) and store in another
+ * vector w.
+ *   w[i] = u[index[i]]
+ */
+
+template <typename W, typename M, typename U, typename I, typename BinaryOpT>
+LA_Info extract(Vector<W>*       w,
+               const Vector<M>* mask,
+               BinaryOpT        accum,
+               const Vector<U>* u,
+               const Vector<I>* indices,
+               Descriptor*      desc) {
+    if (u == NULL || w == NULL || indices == NULL || desc == NULL)
+        return GrB_UNINITIALIZED_OBJECT;
+
+    auto mask_t = (mask == NULL) ? NULL : mask->get_vector();
+    auto desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
+
+    return backend::extract(w->get_vector(), mask_t, accum, u->get_vector(),
+                                  indices->get_vector(), desc_t);
+}
 
 }
 
