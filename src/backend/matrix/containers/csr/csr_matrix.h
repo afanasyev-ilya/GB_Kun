@@ -100,6 +100,8 @@ public:
     const VNT *get_col_ids() const {return col_ids;};
 
     ENT get_degree(VNT _row) {return row_ptr[_row + 1] - row_ptr[_row];};
+
+    void sort_columns();
 private:
     VNT size;
     ENT nnz;
