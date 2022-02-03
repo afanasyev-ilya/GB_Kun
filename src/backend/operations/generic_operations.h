@@ -24,7 +24,7 @@ LA_Info generic_dense_vector_op(const Vector<M>* _mask,
         {
             const Index* mask_ids = _mask->getSparse()->get_ids();
             const Index mask_nvals = _mask->getSparse()->get_nvals();
-#pragma omp parallel for
+            #pragma omp parallel for
             for (Index i = 0; i < mask_nvals; i++)
             {
                 Index idx = mask_ids[i];
@@ -34,7 +34,7 @@ LA_Info generic_dense_vector_op(const Vector<M>* _mask,
         else
         {
             const M* mask_data = _mask->getDense()->get_vals();
-#pragma omp parallel for
+            #pragma omp parallel for
             for (Index i = 0; i < _size; i++)
             {
                 if (mask_data[i])
@@ -44,7 +44,7 @@ LA_Info generic_dense_vector_op(const Vector<M>* _mask,
     }
     else
     {
-#pragma omp parallel for
+        #pragma omp parallel for
         for (Index i = 0; i < _size; i++)
         {
             _lambda_op(i);
@@ -62,16 +62,16 @@ LA_Info generic_dense_reduce_op(T* _tmp_val,
     MonoidOpT _monoid_op,
     Descriptor* _desc)
 {
-#pragma omp parallel
+    #pragma omp parallel
     {
         T local_res = _monoid_op.identity();
-#pragma omp for
+        #pragma omp for
         for (Index i = 0; i < _size; i++)
         {
             local_res = _monoid_op(_lambda_op(i), local_res);
         }
 
-#pragma omp critical
+        #pragma omp critical
         {
             *_tmp_val = _monoid_op(*_tmp_val, local_res);
         };
@@ -89,17 +89,17 @@ LA_Info generic_sparse_reduce_op(T* _tmp_val,
     MonoidOpT _monoid_op,
     Descriptor* _desc)
 {
-#pragma omp parallel
+    #pragma omp parallel
     {
         T local_res = _monoid_op.identity();
-#pragma omp for
+        #pragma omp for
         for (Index i = 0; i < _nvals; i++)
         {
             Index idx = _ids[i];
             local_res = _monoid_op(_lambda_op(idx), local_res);
         }
 
-#pragma omp critical
+        #pragma omp critical
         {
             *_tmp_val = _monoid_op(*_tmp_val, local_res);
         };

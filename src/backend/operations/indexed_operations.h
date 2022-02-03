@@ -27,7 +27,7 @@ LA_Info indexed_dense_vector_op(const Vector<M>* _mask,
 
         const M* mask_data = _mask->getDense()->get_vals();
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (Index i = 0; i < _nindexes; i++)
         {
             const Index idx = _indexes[i];
@@ -37,7 +37,7 @@ LA_Info indexed_dense_vector_op(const Vector<M>* _mask,
     }
     else
     {
-#pragma omp parallel for
+        #pragma omp parallel for
         for (Index i = 0; i < _nindexes; i++)
         {
             const Index idx = _indexes[i];
