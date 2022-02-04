@@ -75,6 +75,28 @@ public:
         return GrB_SUCCESS;
     }
 
+    LA_Info fillAscending(Index nvals) {
+        for (Index i = 0; i < nvals; i++)
+            vals[ids[i]] = i;
+
+        return GrB_SUCCESS;
+    }
+
+    void dup(GenericVector<T>* rhs) {
+        if (rhs->isSparse()) {
+            MemoryAPI::allocate_array(&vals, rhs->get_size());
+            memccpy(vals,rhs->get_vals(), sizeof(T) * rhs->get_nvals());
+            memccpy(ids, rhs->get_ids(), sizeof(VNT) * rhs->get_nvals() );
+        }
+    };
+
+    bool isDense() const {
+        return false;
+    }
+    bool isSparse() const {
+        return true;
+    }
+
     VNT get_nvals() const { return nnz; };
     void print_storage_type() const { cout << "It is sparse vector" << endl; };
 

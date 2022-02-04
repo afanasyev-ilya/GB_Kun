@@ -25,6 +25,14 @@ public:
         return vals;
     }
 
+    VNT* get_ids () {
+        return nullptr;
+    }
+
+    const VNT* get_ids () const {
+        return nullptr;
+    }
+
     LA_Info build(const T* values,
                   VNT nvals)
     {
@@ -50,6 +58,27 @@ public:
     void fill_with_zeros();
 
     void convert(SparseVector<T> *_sparse_vector);
+
+    LA_Info fillAscending(Index nvals) {
+        for (Index i = 0; i < nvals; i++)
+            vals[i] = i;
+
+        return GrB_SUCCESS;
+    }
+
+    bool isDense() const {
+        return true;
+    }
+    bool isSparse() const {
+        return false;
+    }
+
+    void dup(GenericVector<T>* rhs) {
+        if (rhs->isDense()) {
+            MemoryAPI::allocate_array(&vals, rhs->get_size());
+            memccpy(vals,rhs->get_vals(), sizeof(T) * rhs->get_nvals());
+        }
+    };
 
     VNT get_size() const {return size;};
 private:

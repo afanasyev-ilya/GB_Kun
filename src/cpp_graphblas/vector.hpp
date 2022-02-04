@@ -87,6 +87,15 @@ public:
     {
         _vector.swap(_another->get_vector());
     }
+
+    LA_Info fillAscending(Index nvals) {
+        return _vector.fillAscending(nvals);
+    }
+
+    LA_Info dup (const Vector<T>* rhs) {
+        _vector.dup(rhs);
+    }
+
 private:
     backend::Vector<T> _vector;
 

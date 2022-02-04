@@ -175,6 +175,14 @@ public:
         return main_container->get_size();
     }
 
+    LA_Info fillAscending(Index nvals) {
+        main_container->fillAscending(nvals);
+    }
+
+    LA_Info dup(const Vector<T>* rhs) {
+        main_container->dup(rhs->main_container);
+    }
+
     void swap(Vector *_another)
     {
         ptr_swap(this->main_container, _another->main_container);
