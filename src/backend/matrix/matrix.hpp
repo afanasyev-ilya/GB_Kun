@@ -9,8 +9,6 @@ Matrix<T>::Matrix(): _format(CSR)
     csc_data = NULL;
     data = NULL;
     transposed_data = NULL;
-    rowdegrees = NULL;
-    coldegrees = NULL;
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
     data_socket_dub = NULL;
     #endif
@@ -41,9 +39,6 @@ Matrix<T>::~Matrix()
         delete data;
     if(transposed_data != NULL)
         delete transposed_data;
-
-    MemoryAPI::free_array(rowdegrees);
-    MemoryAPI::free_array(coldegrees);
 
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
     if(data_socket_dub != NULL)
@@ -190,20 +185,6 @@ template<typename T>
 void Matrix<T>::init_optimized_structures()
 {
     double t1, t2;
-    MemoryAPI::allocate_array(&rowdegrees, get_nrows());
-    MemoryAPI::allocate_array(&coldegrees, get_ncols());
-
-    #pragma omp parallel for
-    for(int i = 0; i < get_nrows(); i++)
-    {
-        rowdegrees[i] = csr_data->get_degree(i);
-    }
-
-    #pragma omp parallel for
-    for(int i = 0; i < get_ncols(); i++)
-    {
-        coldegrees[i] = csc_data->get_degree(i);
-    }
 
     t1 = omp_get_wtime();
     // optimized representation creation
@@ -246,14 +227,14 @@ void Matrix<T>::init_optimized_structures()
     {
         data = new MatrixSortCSR<T>;
         transposed_data = new MatrixSortCSR<T>;
-        ((MatrixSortCSR<T>*)data)->build(rowdegrees, coldegrees,
+        ((MatrixSortCSR<T>*)data)->build(get_rowdegrees(), get_coldegrees(),
                                          csr_data->get_num_rows(),
                                          csr_data->get_num_cols(),
                                          csr_data->get_nnz(),
                                          csr_data->get_row_ptr(),
                                          csr_data->get_col_ids(),
                                          csr_data->get_vals(), 0);
-        ((MatrixSortCSR<T>*)transposed_data)->build(coldegrees, rowdegrees,
+        ((MatrixSortCSR<T>*)transposed_data)->build(get_coldegrees(), get_rowdegrees(),
                                                     csc_data->get_num_rows(),
                                                     csc_data->get_num_cols(),
                                                     csc_data->get_nnz(),

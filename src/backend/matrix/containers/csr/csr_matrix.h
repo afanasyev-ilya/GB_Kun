@@ -99,7 +99,8 @@ public:
     VNT *get_col_ids() {return col_ids;};
     const VNT *get_col_ids() const {return col_ids;};
 
-    ENT get_degree(VNT _row) {return row_ptr[_row + 1] - row_ptr[_row];};
+    VNT *get_rowdegrees() {return row_degrees;};
+    const VNT *get_rowdegrees() const {return row_degrees;};
 
     bool can_use_static_balancing() const {return static_ok_to_use;};
 private:
@@ -183,6 +184,7 @@ private:
     void prepare_vg_lists(int _target_socket);
     void numa_aware_realloc();
     void check_if_static_can_be_used();
+    void calculate_degrees();
 };
 
 #include "csr_matrix.hpp"

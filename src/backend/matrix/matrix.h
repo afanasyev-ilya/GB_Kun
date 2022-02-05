@@ -90,9 +90,9 @@ public:
 
     ENT get_nnz() const {return csr_data->get_nnz();};
 
-    ENT* get_rowdegrees() { return rowdegrees; }
+    ENT* get_rowdegrees() { return csr_data->get_rowdegrees(); }
 
-    ENT* get_coldegrees() { return coldegrees; }
+    ENT* get_coldegrees() { return csc_data->get_rowdegrees(); }
 
     Workspace *get_workspace() const { return (const_cast <Matrix<T>*> (this))->workspace; };
 private:
@@ -108,8 +108,6 @@ private:
     MatrixStorageFormat _format;
 
     Workspace *workspace;
-
-    ENT *rowdegrees, *coldegrees;
 
     void read_mtx_file_pipelined(const string &_mtx_file_name,
                                  vector<vector<pair<VNT, T>>> &_csr_matrix,

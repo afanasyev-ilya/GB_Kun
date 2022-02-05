@@ -72,11 +72,12 @@ void MatrixCSR<T>::numa_aware_realloc()
     ENT *new_row_ptr;
     T *new_vals;
     VNT *new_col_ids;
+    VNT *new_row_degrees;
 
     MemoryAPI::allocate_array(&new_row_ptr, num_rows + 1);
     MemoryAPI::allocate_array(&new_col_ids, this->nnz);
     MemoryAPI::allocate_array(&new_vals, this->nnz);
-    //MemoryAPI::allocate_array(&row_degrees, num_rows);
+    MemoryAPI::allocate_array(&new_row_degrees, num_rows);
 
     #pragma omp parallel
     {
@@ -86,7 +87,7 @@ void MatrixCSR<T>::numa_aware_realloc()
             for(VNT row = 0; row < num_rows; row++)
             {
                 new_row_ptr[row] = this->row_ptr[row];
-                //row_degrees[row] = this->row_ptr[row + 1] - this->row_ptr[row];
+                new_row_degrees[row] = this->row_degrees[row];
                 for(ENT j = this->row_ptr[row]; j < this->row_ptr[row + 1]; j++)
                 {
                     new_col_ids[j] = this->col_ids[j];
@@ -106,7 +107,7 @@ void MatrixCSR<T>::numa_aware_realloc()
                 {
                     VNT row = vertices[idx];
                     new_row_ptr[row] = this->row_ptr[row];
-                    //row_degrees[row] = this->row_ptr[row + 1] - this->row_ptr[row];
+                    new_row_degrees[row] = this->row_degrees[row];
                     for(ENT j = this->row_ptr[row]; j < this->row_ptr[row + 1]; j++)
                     {
                         new_col_ids[j] = this->col_ids[j];
@@ -121,11 +122,25 @@ void MatrixCSR<T>::numa_aware_realloc()
     MemoryAPI::free_array(row_ptr);
     MemoryAPI::free_array(col_ids);
     MemoryAPI::free_array(vals);
+    MemoryAPI::free_array(row_degrees);
 
     // copy new pointers into old
     row_ptr = new_row_ptr;
     vals = new_vals;
     col_ids = new_col_ids;
+    row_degrees = new_row_degrees;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MatrixCSR<T>::calculate_degrees()
+{
+    #pragma omp parallel for
+    for(VNT row = 0; row < this->size; row++)
+    {
+        row_degrees[row] = row_ptr[row + 1] - row_ptr[row];
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,6 +158,8 @@ void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
 
     prepare_vg_lists(_target_socket);
 
+    calculate_degrees();
+
     check_if_static_can_be_used();
 
     numa_aware_realloc();
@@ -158,6 +175,8 @@ void MatrixCSR<T>::build(vector<vector<pair<VNT, T>>> &_tmp_csr, int _target_soc
     vector_of_vectors_to_csr(_tmp_csr, row_ptr, col_ids, vals);
 
     prepare_vg_lists(_target_socket);
+
+    calculate_degrees();
 
     check_if_static_can_be_used();
 
