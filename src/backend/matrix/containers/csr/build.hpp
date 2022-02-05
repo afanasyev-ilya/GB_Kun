@@ -79,6 +79,10 @@ void MatrixCSR<T>::numa_aware_realloc()
     MemoryAPI::allocate_array(&new_vals, this->nnz);
     MemoryAPI::allocate_array(&new_row_degrees, num_rows);
 
+    VNT *new_vg_vertices[vg_num];
+    for(int vg = 0; vg < vg_num; vg++)
+        MemoryAPI::allocate_array(&(new_vg_vertices[vg]), this->vertex_groups[vg].get_size());
+
     #pragma omp parallel
     {
         if(can_use_static_balancing())
@@ -100,14 +104,17 @@ void MatrixCSR<T>::numa_aware_realloc()
             for(int vg = 0; vg < this->vg_num; vg++)
             {
                 const VNT *vertices = this->vertex_groups[vg].get_data();
+                VNT *new_vertices = new_vg_vertices[vg];
                 VNT vertex_group_size = this->vertex_groups[vg].get_size();
 
                 #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
                 for(VNT idx = 0; idx < vertex_group_size; idx++)
                 {
                     VNT row = vertices[idx];
+                    new_vertices[idx] = vertices[idx];
                     new_row_ptr[row] = this->row_ptr[row];
                     new_row_degrees[row] = this->row_degrees[row];
+
                     for(ENT j = this->row_ptr[row]; j < this->row_ptr[row + 1]; j++)
                     {
                         new_col_ids[j] = this->col_ids[j];
@@ -116,6 +123,12 @@ void MatrixCSR<T>::numa_aware_realloc()
                 }
             }
         }
+    }
+
+    if(!can_use_static_balancing())
+    {
+        for(int vg = 0; vg < vg_num; vg++)
+            this->vertex_groups[vg].replace_data(new_vg_vertices[vg]);
     }
 
     // free old ones

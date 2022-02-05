@@ -62,6 +62,12 @@ public:
         MemoryAPI::numa_aware_alloc(&(this->opt_data), _copy.size, _target_socket);
         MemoryAPI::copy(this->opt_data, _copy.opt_data, _copy.size);
     }
+
+    void replace_data(VNT *_new_data)
+    {
+        MemoryAPI::free_array(opt_data);
+        opt_data = _new_data;
+    }
 private:
     ENT min_threshold;
     ENT max_threshold;
