@@ -120,12 +120,12 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
         else
             subgraphs[seg_id].load_balanced_type = ONE_GROUP;
 
-        /*cout << "seg " << seg_id<< " stats || ";
+        cout << "seg " << seg_id<< " stats || ";
         cout << "size (vertices) = " << subgraphs[seg_id].size << "(" <<
              100.0*(double)subgraphs[seg_id].size/size << "%)" << ", nnz (edges) = " << subgraphs[seg_id].nnz << " (" <<
              100.0*(double)subgraphs[seg_id].nnz/nnz << "%) ";
         cout << "avg degree: " << (double)subgraphs[seg_id].nnz / subgraphs[seg_id].size << endl;
-        cout << "balancing: " << subgraphs[seg_id].schedule_type << " " << subgraphs[seg_id].load_balanced_type << endl;*/
+        cout << "balancing: " << subgraphs[seg_id].schedule_type << " " << subgraphs[seg_id].load_balanced_type << endl;
     }
     t2 = omp_get_wtime();
     cout << "doing load balancing time: " << t2 - t1 << " sec" << endl << endl;

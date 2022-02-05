@@ -63,6 +63,10 @@ void MatrixCSR<T>::check_if_static_can_be_used()
 template <typename T>
 void MatrixCSR<T>::numa_aware_realloc()
 {
+    int cores_num = omp_get_max_threads();
+    if(cores_num <= THREADS_PER_SOCKET)
+        return;
+
     VNT num_rows = this->size; // fixme
 
     ENT *new_row_ptr;
@@ -72,6 +76,7 @@ void MatrixCSR<T>::numa_aware_realloc()
     MemoryAPI::allocate_array(&new_row_ptr, num_rows + 1);
     MemoryAPI::allocate_array(&new_col_ids, this->nnz);
     MemoryAPI::allocate_array(&new_vals, this->nnz);
+    //MemoryAPI::allocate_array(&row_degrees, num_rows);
 
     #pragma omp parallel
     {
@@ -81,6 +86,7 @@ void MatrixCSR<T>::numa_aware_realloc()
             for(VNT row = 0; row < num_rows; row++)
             {
                 new_row_ptr[row] = this->row_ptr[row];
+                //row_degrees[row] = this->row_ptr[row + 1] - this->row_ptr[row];
                 for(ENT j = this->row_ptr[row]; j < this->row_ptr[row + 1]; j++)
                 {
                     new_col_ids[j] = this->col_ids[j];
@@ -100,7 +106,7 @@ void MatrixCSR<T>::numa_aware_realloc()
                 {
                     VNT row = vertices[idx];
                     new_row_ptr[row] = this->row_ptr[row];
-
+                    //row_degrees[row] = this->row_ptr[row + 1] - this->row_ptr[row];
                     for(ENT j = this->row_ptr[row]; j < this->row_ptr[row + 1]; j++)
                     {
                         new_col_ids[j] = this->col_ids[j];

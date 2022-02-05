@@ -109,6 +109,7 @@ private:
     ENT *row_ptr;
     T *vals;
     VNT *col_ids;
+    VNT *row_degrees;
 
     static const int vg_num = 9; // 9 is best currently
     VertexGroup vertex_groups[vg_num];

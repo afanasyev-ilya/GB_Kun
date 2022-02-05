@@ -96,7 +96,7 @@ syn_small_only = ["syn_rmat_22_32", "syn_ru_22_32"]
 #####################
 
 konect_medium_only = ['web_wikipedia_links_sv', 'soc_orkut', 'web_web_trackers', 'web_dbpedia_links', 'web_uk_domain_2002']
-syn_medium_only = []
+syn_medium_only = ["syn_rmat_23_32", "syn_ru_23_32"]
 
 #####################
 
