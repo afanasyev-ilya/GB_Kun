@@ -140,6 +140,29 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         }
     }
 
+    /*for(int s = 0; s < _matrix->num_segments; s++)
+    {
+        int seg_id = _matrix->sorted_segments[s].first;
+
+        SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
+        Y *buffer = (Y *) segment->vertex_buffer;
+
+        double t1_in = omp_get_wtime();
+        #pragma omp parallel for schedule(static)
+        for(VNT i = 0; i < segment->size; i++)
+        {
+            Y res = identity_val;
+            for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
+            {
+                res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
+            }
+            buffer[i] = res;
+        }
+        double t2_in = omp_get_wtime();
+        cout << "seg  " << seg_id << " BW: " << segment->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2_in - t1_in)*1e9) << " GB/s, avg_deg = " << ((double)segment->nnz)/segment->size << endl;
+    }
+    cout << endl;*/
+
     /*#pragma omp parallel  // testing number of processed edges and manual static parallelism
     {
         int tid = omp_get_thread_num();

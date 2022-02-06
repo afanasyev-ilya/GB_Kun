@@ -109,9 +109,7 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
             for(VNT row = 0; row < _matrix->size; row++)
             {
                 A res = identity_val;
-                ENT start = _matrix->row_ptr[row];
-                ENT end = _matrix->row_ptr[row] + _matrix->row_degrees[row];
-                for(ENT j = start; j < end; j++)
+                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
                 {
                     VNT col = _matrix->col_ids[j];
                     A val = _matrix->vals[j];
@@ -132,9 +130,7 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
                 {
                     VNT row = vertices[idx];
                     Y res = identity_val;
-                    ENT start = _matrix->row_ptr[row];
-                    ENT end = _matrix->row_ptr[row] + _matrix->row_degrees[row];
-                    for(ENT j = start; j < end; j++)
+                    for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
                     {
                         VNT col = _matrix->col_ids[j];
                         A val = _matrix->vals[j];

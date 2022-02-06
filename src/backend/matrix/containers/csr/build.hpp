@@ -128,7 +128,7 @@ void MatrixCSR<T>::numa_aware_realloc()
     if(!can_use_static_balancing())
     {
         for(int vg = 0; vg < vg_num; vg++)
-            this->vertex_groups[vg].replace_data(new_vg_vertices[vg]);
+            this->vertex_groups[vg].replace_data(new_vg_vertices[vg]); // it also frees old memory inside !
     }
 
     // free old ones
