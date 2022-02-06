@@ -21,6 +21,10 @@ void SpMV(const MatrixLAV<A> *_matrix,
     Y *shared_vector = (Y*)_workspace->get_first_socket_vector();
     Y *prefetched_vector = (Y*)_workspace->get_prefetched_vector();
 
+    #pragma omp parallel for
+    for(VNT i = 0; i < _matrix->nrows; i++)
+        prefetched_vector[i] = x_vals[_matrix->col_new_to_old[i]];
+
     VNT dense_segments_num = _matrix->dense_segments_num;
     VNT num_rows = _matrix->nrows;
     double t1, t2;
@@ -38,13 +42,13 @@ void SpMV(const MatrixLAV<A> *_matrix,
             shared_vector[idx] = identity_val;
         }
 
-        VNT min_col = segment_data->min_col_id;
+        /*VNT min_col = segment_data->min_col_id;
         VNT max_col = segment_data->max_col_id;
         #pragma omp for schedule(static)
         for(VNT i = min_col; i <= max_col; i++)
         {
             prefetched_vector[i - min_col] = x_vals[i];
-        }
+        }*/
 
         ENT proc_edges = 0;
         for(int vg = 0; vg < segment_data->vg_num; vg++)
@@ -60,7 +64,7 @@ void SpMV(const MatrixLAV<A> *_matrix,
 
                 for(ENT j = segment_data->row_ptr[row]; j < segment_data->row_ptr[row + 1]; j++)
                 {
-                    VNT col = segment_data->col_ids[j] - min_col;
+                    VNT col = segment_data->col_ids[j];
                     Y mat_val = segment_data->vals[j];
                     X x_val = prefetched_vector[col];
                     res = add_op(res, mul_op(mat_val, x_val));
@@ -104,7 +108,7 @@ void SpMV(const MatrixLAV<A> *_matrix,
                 {
                     VNT col = segment_data->col_ids[j];
                     Y val = segment_data->vals[j];
-                    res = add_op(res, mul_op(val, x_vals[col]));
+                    res = add_op(res, mul_op(val, prefetched_vector[col]));
                 }
                 shared_vector[row] = add_op(shared_vector[row], res);
             }
@@ -134,7 +138,7 @@ void SpMV(const MatrixLAV<A> *_matrix,
             {
                 VNT col = segment_data->col_ids[j];
                 Y val = segment_data->vals[j];
-                res = add_op(res, mul_op(val, x_vals[col]));
+                res = add_op(res, mul_op(val, prefetched_vector[col]));
             }
             shared_vector[row] = add_op(shared_vector[row], res);
         }
@@ -146,7 +150,7 @@ void SpMV(const MatrixLAV<A> *_matrix,
         }
     }
     t2 = omp_get_wtime();
-    cout << "sparse BW: " << _matrix->sparse_segment.nnz * (2*sizeof(A) + sizeof(VNT))/((t2 - t1)*1e9) << " GB/s" << endl;
+    cout << "sparse BW: " << _matrix->sparse_segment.nnz * (2*sizeof(A) + sizeof(VNT))/((t2 - t1)*1e9) << " GB/s" << endl << endl;
 
     //reorder(y_vals, _matrix->new_to_old, _matrix_size);
     //reorder(y_vals, _matrix->new_to_old, _matrix_size);

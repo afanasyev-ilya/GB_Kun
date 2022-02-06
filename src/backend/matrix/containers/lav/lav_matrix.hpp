@@ -34,8 +34,8 @@ void MatrixLAV<T>::free()
     delete []dense_segments;
     sparse_segment.free();
 
-    MemoryAPI::free_array(column_backward);
-    MemoryAPI::free_array(column_reordering);
+    MemoryAPI::free_array(col_old_to_new);
+    MemoryAPI::free_array(col_new_to_old);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

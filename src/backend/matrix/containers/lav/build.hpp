@@ -106,32 +106,41 @@ void MatrixLAV<T>::build(VNT *_row_degrees,
                          const T *_vals,
                          int _target_socket)
 {
-    cout << "LAV building started" << endl;
     this->nrows = _nrows;
     this->ncols = _ncols;
     this->nnz = _nnz;
     cout << this->nrows << " " << this->ncols << " " << this->nnz << endl;
 
-    MemoryAPI::allocate_array(&column_reordering, ncols);
-    MemoryAPI::allocate_array(&column_backward, ncols);
+    MemoryAPI::allocate_array(&col_new_to_old, ncols);
+    MemoryAPI::allocate_array(&col_old_to_new, ncols);
 
     #pragma omp parallel for
     for(VNT i = 0; i < _ncols; i++)
     {
-        column_reordering[i] = i;
+        col_new_to_old[i] = i;
     }
 
-    std::sort(column_reordering, column_reordering + ncols,
+    std::sort(col_new_to_old, col_new_to_old + ncols,
               [_col_degrees](VNT index1, VNT index2)
               {
                   return _col_degrees[index1] > _col_degrees[index2];
               });
 
+    /*cout << "original col degrees: ";
+    for(int i = 0; i < ncols; i++)
+        cout << _col_degrees[i] << " ";
+    cout << endl;
+
+    cout << "sorted col degrees: ";
+    for(int i = 0; i < ncols; i++)
+        cout << _col_degrees[col_new_to_old[i]] << " "; // i-th current was at col_new_to_old[i]
+    cout << endl;*/
+
     ENT nnz_cnt = 0;
     VNT dense_threshold = 0;
     for(VNT col = 0; col < ncols; col++)
     {
-        nnz_cnt += _col_degrees[column_reordering[col]];
+        nnz_cnt += _col_degrees[col_new_to_old[col]];
         if(nnz_cnt >= 0.8*_nnz)
         {
             dense_threshold = col;
@@ -146,7 +155,7 @@ void MatrixLAV<T>::build(VNT *_row_degrees,
 
     for(VNT i = 0; i < ncols; i++)
     {
-        column_backward[column_reordering[i]] = i;
+        col_old_to_new[col_new_to_old[i]] = i;
     }
 
     vector<vector<vector<VNT>>> vec_dense_col_ids(dense_segments_num);
@@ -168,7 +177,7 @@ void MatrixLAV<T>::build(VNT *_row_degrees,
             VNT col = _col_ids[j];
             T val = _vals[j];
 
-            VNT new_col = column_backward[col];
+            VNT new_col = col_old_to_new[col];
 
             if(new_col < dense_threshold)
             {
@@ -184,8 +193,6 @@ void MatrixLAV<T>::build(VNT *_row_degrees,
             }
         }
     }
-
-    cout << "vectors prepared" << endl;
 
     dense_segments = new LAVSegment<T>[dense_segments_num];
 

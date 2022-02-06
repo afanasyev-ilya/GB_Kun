@@ -62,8 +62,8 @@ private:
     LAVSegment<T> *dense_segments;
     LAVSegment<T> sparse_segment;
 
-    VNT *column_reordering;
-    VNT *column_backward;
+    VNT *col_new_to_old;
+    VNT *col_old_to_new;
 
     void alloc(VNT _size, ENT _nnz);
     void free();
