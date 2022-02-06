@@ -27,7 +27,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
 
     if(_matrix->num_segments >= 4*cores_num)
     {
-        cout << "using private segment policy" << endl;
+        //cout << "using private segment policy" << endl;
         #pragma omp parallel // parallelism between different segments
         {
             #pragma omp for schedule(dynamic, 1)
@@ -50,7 +50,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     }
     else
     {
-        cout << "using shared segment policy" << endl;
+        //cout << "using shared segment policy" << endl;
 
         #pragma omp parallel // parallelism within different segments
         {

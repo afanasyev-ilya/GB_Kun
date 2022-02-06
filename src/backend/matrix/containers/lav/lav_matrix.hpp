@@ -19,7 +19,8 @@ MatrixLAV<T>::~MatrixLAV()
 template <typename T>
 void MatrixLAV<T>::alloc(VNT _size, ENT _nnz)
 {
-    this->size = _size;
+    this->nrows = _size;
+    this->ncols = _size;
     this->nnz = _nnz;
 }
 
@@ -33,8 +34,8 @@ void MatrixLAV<T>::free()
     delete []dense_segments;
     sparse_segment.free();
 
-    MemoryAPI::free_array(new_to_old);
-    MemoryAPI::free_array(old_to_new);
+    MemoryAPI::free_array(column_backward);
+    MemoryAPI::free_array(column_reordering);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

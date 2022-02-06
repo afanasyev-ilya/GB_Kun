@@ -22,7 +22,7 @@ void SpMV(const MatrixLAV<A> *_matrix,
     Y *prefetched_vector = (Y*)_workspace->get_prefetched_vector();
 
     VNT dense_segments_num = _matrix->dense_segments_num;
-    VNT num_rows = _matrix->size;
+    VNT num_rows = _matrix->nrows;
     double t1, t2;
     t1 = omp_get_wtime();
     #pragma omp parallel
@@ -33,7 +33,7 @@ void SpMV(const MatrixLAV<A> *_matrix,
         const VNT nnz_num_rows = segment_data->vertex_list.get_size();
 
         #pragma omp for schedule(static)
-        for(VNT idx = 0; idx < _matrix->size; idx++)
+        for(VNT idx = 0; idx < _matrix->nrows; idx++)
         {
             shared_vector[idx] = identity_val;
         }
@@ -140,7 +140,7 @@ void SpMV(const MatrixLAV<A> *_matrix,
         }
 
         #pragma omp for schedule(static)
-        for(VNT row = 0; row < _matrix->size; row++)
+        for(VNT row = 0; row < _matrix->nrows; row++)
         {
             y_vals[row] = _accum(y_vals[row], shared_vector[row]);
         }

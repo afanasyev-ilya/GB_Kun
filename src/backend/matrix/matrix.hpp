@@ -265,6 +265,28 @@ void Matrix<T>::init_optimized_structures()
         data_socket_dub = NULL;
         cout << "Using SELL-C matrix format as optimized representation" << endl;
     }
+    else if (_format == LAV)
+    {
+        data = new MatrixLAV<T>;
+        transposed_data = new MatrixLAV<T>;
+        ((MatrixLAV<T>*)data)->build(get_rowdegrees(), get_coldegrees(),
+                                     csr_data->get_num_rows(),
+                                       csr_data->get_num_cols(),
+                                       csr_data->get_nnz(),
+                                       csr_data->get_row_ptr(),
+                                       csr_data->get_col_ids(),
+                                       csr_data->get_vals(), 0);
+        ((MatrixLAV<T>*)transposed_data)->build(get_coldegrees(), get_rowdegrees(),
+                                                csc_data->get_num_rows(), // since CSC is used no swap
+                                                  csc_data->get_num_cols(), // compared to prev build
+                                                  csc_data->get_nnz(),
+                                                  csc_data->get_row_ptr(),
+                                                  csc_data->get_col_ids(),
+                                                  csc_data->get_vals(), 0);
+
+        data_socket_dub = NULL;
+        cout << "Using LAV matrix format as optimized representation" << endl;
+    }
     else
     {
         throw "Error: unsupported format in Matrix<T>::build";

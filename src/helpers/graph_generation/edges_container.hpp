@@ -47,7 +47,7 @@ void EdgeListContainer<T>::save_as_mtx(string _file_name)
         sort_indexes[i] = i;
 
     std::sort(sort_indexes, sort_indexes + edges_count,
-              [src_ids_new, dst_ids_new](int index1, int index2)
+              [src_ids_new, dst_ids_new](ENT index1, ENT index2)
               {
                   if(src_ids_new[index1] == src_ids_new[index2])
                       return dst_ids_new[index1] < dst_ids_new[index2];

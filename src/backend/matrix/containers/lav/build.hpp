@@ -96,41 +96,42 @@ bool cmp(pair<VNT, ENT>& a,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket)
+void MatrixLAV<T>::build(VNT *_row_degrees,
+                         VNT *_col_degrees,
+                         VNT _nrows,
+                         VNT _ncols,
+                         ENT _nnz,
+                         const ENT *_row_ptr,
+                         const VNT *_col_ids,
+                         const T *_vals,
+                         int _target_socket)
 {
-    size = _size;
-    nnz = _nnz;
+    cout << "LAV building started" << endl;
+    this->nrows = _nrows;
+    this->ncols = _ncols;
+    this->nnz = _nnz;
+    cout << this->nrows << " " << this->ncols << " " << this->nnz << endl;
 
-    VNT *cols_frequencies;
-    MemoryAPI::allocate_array(&new_to_old, _size);
-    MemoryAPI::allocate_array(&old_to_new, _size);
-    MemoryAPI::allocate_array(&cols_frequencies, _size);
-    #pragma omp parallel for
-    for(VNT i = 0; i < _size; i++)
-    {
-        new_to_old[i] = i;
-        cols_frequencies[i] = 0;
-    }
+    MemoryAPI::allocate_array(&column_reordering, ncols);
+    MemoryAPI::allocate_array(&column_backward, ncols);
 
     #pragma omp parallel for
-    for(ENT i = 0; i < _nnz; i++)
+    for(VNT i = 0; i < _ncols; i++)
     {
-        VNT col_id = _col_ids[i];
-        #pragma omp atomic
-        cols_frequencies[col_id]++;
+        column_reordering[i] = i;
     }
 
-    std::sort(new_to_old, new_to_old + _size,
-              [cols_frequencies](int index1, int index2)
+    std::sort(column_reordering, column_reordering + ncols,
+              [_col_degrees](VNT index1, VNT index2)
               {
-                  return cols_frequencies[index1] > cols_frequencies[index2];
+                  return _col_degrees[index1] > _col_degrees[index2];
               });
 
     ENT nnz_cnt = 0;
     VNT dense_threshold = 0;
-    for(VNT col = 0; col < _size; col++)
+    for(VNT col = 0; col < ncols; col++)
     {
-        nnz_cnt += cols_frequencies[new_to_old[col]];
+        nnz_cnt += _col_degrees[column_reordering[col]];
         if(nnz_cnt >= 0.8*_nnz)
         {
             dense_threshold = col;
@@ -138,14 +139,14 @@ void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
         }
     }
 
-    cout << "dense threshold: " << dense_threshold << " / " << _size << endl;
+    cout << "dense threshold: " << dense_threshold << " / " << _ncols << endl;
     VNT seg_size = 512*1024/sizeof(T);
     dense_segments_num = (dense_threshold - 1)/seg_size + 1;
     cout << "dense segments: " << dense_segments_num << endl;
 
-    for(VNT i = 0; i < size; i++)
+    for(VNT i = 0; i < ncols; i++)
     {
-        old_to_new[new_to_old[i]] = i;
+        column_backward[column_reordering[i]] = i;
     }
 
     vector<vector<vector<VNT>>> vec_dense_col_ids(dense_segments_num);
@@ -153,32 +154,34 @@ void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
 
     for(VNT seg = 0; seg < dense_segments_num; seg++)
     {
-        vec_dense_col_ids[seg].resize(_size);
-        vec_dense_vals[seg].resize(_size);
+        vec_dense_col_ids[seg].resize(nrows);
+        vec_dense_vals[seg].resize(nrows);
     }
 
-    vector<vector<VNT>> vec_sparse_col_ids(_size);
-    vector<vector<T>> vec_sparse_vals(_size);
+    vector<vector<VNT>> vec_sparse_col_ids(nrows);
+    vector<vector<T>> vec_sparse_vals(nrows);
 
-    for(ENT i = 0; i < _nnz; i++)
+    for(VNT row = 0; row < nrows; row++)
     {
-        VNT row = _row_ids[i];
-        VNT col = _col_ids[i];
-        T val = _vals[i];
-
-        VNT new_col = old_to_new[col];
-
-        if(new_col < dense_threshold)
+        for(ENT j = _row_ptr[row]; j < _row_ptr[row + 1]; j++)
         {
-            VNT seg_id = new_col / seg_size;
+            VNT col = _col_ids[j];
+            T val = _vals[j];
 
-            vec_dense_col_ids[seg_id][row].push_back(new_col);
-            vec_dense_vals[seg_id][row].push_back(val);
-        }
-        else
-        {
-            vec_sparse_col_ids[row].push_back(new_col);
-            vec_sparse_vals[row].push_back(val);
+            VNT new_col = column_backward[col];
+
+            if(new_col < dense_threshold)
+            {
+                VNT seg_id = new_col / seg_size;
+
+                vec_dense_col_ids[seg_id][row].push_back(new_col);
+                vec_dense_vals[seg_id][row].push_back(val);
+            }
+            else
+            {
+                vec_sparse_col_ids[row].push_back(new_col);
+                vec_sparse_vals[row].push_back(val);
+            }
         }
     }
 
@@ -188,17 +191,13 @@ void MatrixLAV<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
 
     for(VNT seg = 0; seg < dense_segments_num; seg++)
     {
-        vec_dense_col_ids[seg].resize(_size);
-        vec_dense_vals[seg].resize(_size);
+        vec_dense_col_ids[seg].resize(nrows);
+        vec_dense_vals[seg].resize(nrows);
 
         construct_unsorted_csr(vec_dense_col_ids[seg], vec_dense_vals[seg], &(dense_segments[seg]), _nnz);
     }
 
     construct_unsorted_csr(vec_sparse_col_ids, vec_sparse_vals, &sparse_segment, _nnz);
-
-    cout << "all csrs constructed" << endl;
-
-    MemoryAPI::free_array(cols_frequencies);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

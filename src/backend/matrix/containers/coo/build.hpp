@@ -53,7 +53,7 @@ void MatrixCOO<T>::build(VNT _num_rows, ENT _nnz, const ENT *_row_ptr, const VNT
         cout << "num segments: " << (size - 1)/seg_size + 1 << endl;
 
         std::sort(sort_indexes, sort_indexes + _nnz,
-                  [row_ids_new, col_ids_new, seg_size](int index1, int index2)
+                  [row_ids_new, col_ids_new, seg_size](ENT index1, ENT index2)
                   {
                       if(col_block<T>(col_ids_new[index1]) == col_block<T>(col_ids_new[index2]))
                           return row_ids_new[index1] < row_ids_new[index2];
@@ -76,7 +76,7 @@ void MatrixCOO<T>::build(VNT _num_rows, ENT _nnz, const ENT *_row_ptr, const VNT
             sort_indexes[i] = i;
 
         std::sort(sort_indexes, sort_indexes + _nnz,
-                  [row_ids_new, col_ids_new](int index1, int index2)
+                  [row_ids_new, col_ids_new](ENT index1, ENT index2)
                   {
                       if(row_ids_new[index1] == row_ids_new[index2])
                           return col_ids_new[index1] < col_ids_new[index2];
