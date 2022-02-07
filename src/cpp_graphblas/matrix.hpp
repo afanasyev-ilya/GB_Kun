@@ -98,6 +98,11 @@ public:
     }
 
     Index get_nnz() const {return _matrix.get_nnz();};
+
+    void sort_csr_columns(int mode = 0)
+    {
+        _matrix.sort_csr_columns(mode);
+    }
 private:
     backend::Matrix<T> _matrix;
 };

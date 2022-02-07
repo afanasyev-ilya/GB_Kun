@@ -338,3 +338,49 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void Matrix<T>::sort_csr_columns(int mode)
+{
+    Index size_ = 0;
+    get_csr()->get_size(&size_);
+
+    if (mode) {
+        /*
+        #pragma omp parallel for
+        for (int i = 0; i < size_ + 1; i++)
+        {
+            ENT prev_segment_end = (i == 0 ? 0 : get_csr().row_ptr[i - 1]);
+            ENT cur_segment_length = get_csr().row_ptr[i] - prev_segment_end + 1;
+            // current interval is [prev_segment_end, row_ptr[i])
+            std::vector<char> cur_segment_distribution(size_, 0);
+            for (int j = prev_segment_end; j < get_csr().row_ptr[i]; ++j) {
+                cur_segment_distribution[get_csr().col_ids[j]] = 1;
+            }
+            ENT cur_col_ids_id = prev_segment_end;
+            for (int j = 0; j < cur_segment_length; ++j) {
+                if (cur_segment_distribution[j]) {
+                    get_csr().col_ids[cur_col_ids_id] = j;
+                    ++cur_col_ids_id;
+                }
+            }
+        }
+         */
+    } else {
+        //#pragma omp parallel for
+        for (int i = 1; i < size_ + 1; i++) {
+            Index* begin_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i - 1];
+            Index* end_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i];
+            for (int j = csr_data->get_row_ptr()[i - 1]; j < csr_data->get_row_ptr()[i]; ++j) {
+                std::cout << csr_data->get_col_ids()[j] << ' ';
+            }
+            std::cout << std::endl;
+            std::sort(begin_ptr, end_ptr);
+            for (int j = csr_data->get_row_ptr()[i - 1]; j < csr_data->get_row_ptr()[i]; ++j) {
+                std::cout << csr_data->get_col_ids()[j] << ' ';
+            }
+        }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
