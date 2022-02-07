@@ -156,7 +156,9 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             buffer[i] = res;
         }
         double t2_in = omp_get_wtime();
-        cout << "seg  " << seg_id << " BW: " << segment->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2_in - t1_in)*1e9) << " GB/s, avg_deg = " << ((double)segment->nnz)/segment->size << endl;
+        cout << "seg  " << seg_id << " BW: " << segment->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2_in - t1_in)*1e9)
+        << " GB/s, avg_deg = " << ((double)segment->nnz)/segment->size << ", " <<
+           100.0*(double)segment->nnz/_matrix->nnz << "% of nnz" << endl;
     }
     cout << endl;
 
