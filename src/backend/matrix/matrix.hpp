@@ -347,8 +347,7 @@ void Matrix<T>::sort_csr_columns(int mode)
 
     if (mode) {
         /*
-        #pragma omp parallel for
-        for (int i = 0; i < size_ + 1; i++)
+        for (int i = 0; i < size_; i++)
         {
             ENT prev_segment_end = (i == 0 ? 0 : get_csr().row_ptr[i - 1]);
             ENT cur_segment_length = get_csr().row_ptr[i] - prev_segment_end + 1;
@@ -367,18 +366,11 @@ void Matrix<T>::sort_csr_columns(int mode)
         }
          */
     } else {
-        //#pragma omp parallel for
-        for (int i = 1; i < size_ + 1; i++) {
-            Index* begin_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i - 1];
-            Index* end_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i];
-            for (int j = csr_data->get_row_ptr()[i - 1]; j < csr_data->get_row_ptr()[i]; ++j) {
-                std::cout << csr_data->get_col_ids()[j] << ' ';
-            }
-            std::cout << std::endl;
+        #pragma omp parallel for
+        for (int i = 0; i < size_; i++) {
+            Index* begin_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i];
+            Index* end_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i + 1];
             std::sort(begin_ptr, end_ptr);
-            for (int j = csr_data->get_row_ptr()[i - 1]; j < csr_data->get_row_ptr()[i]; ++j) {
-                std::cout << csr_data->get_col_ids()[j] << ' ';
-            }
         }
     }
 }

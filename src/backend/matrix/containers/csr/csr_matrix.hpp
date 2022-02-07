@@ -122,18 +122,12 @@ void MatrixCSR<T>::print() const
     cout << "]\n";
 
     cout << "col_ids: [ ";
-    for (int i = 1; i < get_num_rows(); ++i) {
-        for (int j = row_ptr[i - 1]; j < row_ptr[i]; ++j) {
+    for (int i = 0; i < size_; ++i) {
+        for (int j = row_ptr[i]; j < row_ptr[i + 1]; ++j) {
             std::cout << col_ids[j] << " ";
         }
-        std::cout << "|";
+        std::cout << "| ";
     }
-    /*
-    for (int i = 0; i < get_nnz(); i++)
-    {
-        cout << col_ids[i] << " ";
-    }
-     */
     cout << "]\n";
 
     cout << "--------------------\n";
