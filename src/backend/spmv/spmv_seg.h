@@ -25,9 +25,8 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
 
     int cores_num = omp_get_max_threads();
 
-    if(_matrix->num_segments >= 4*cores_num)
+    /*if(_matrix->num_segments >= 4*cores_num)
     {
-        //cout << "using private segment policy" << endl;
         #pragma omp parallel // parallelism between different segments
         {
             #pragma omp for schedule(dynamic, 1)
@@ -50,8 +49,6 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     }
     else
     {
-        //cout << "using shared segment policy" << endl;
-
         #pragma omp parallel // parallelism within different segments
         {
             for(int s = 0; s < _matrix->num_segments; s++)
@@ -138,9 +135,9 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
                 }
             }
         }
-    }
+    }*/
 
-    /*for(int s = 0; s < _matrix->num_segments; s++)
+    for(int s = 0; s < _matrix->num_segments; s++)
     {
         int seg_id = _matrix->sorted_segments[s].first;
 
@@ -161,7 +158,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         double t2_in = omp_get_wtime();
         cout << "seg  " << seg_id << " BW: " << segment->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2_in - t1_in)*1e9) << " GB/s, avg_deg = " << ((double)segment->nnz)/segment->size << endl;
     }
-    cout << endl;*/
+    cout << endl;
 
     /*#pragma omp parallel  // testing number of processed edges and manual static parallelism
     {

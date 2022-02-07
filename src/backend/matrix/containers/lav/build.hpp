@@ -7,14 +7,18 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
                                           ENT _total_nnz)
 {
     ENT local_size = _tmp_col_ids.size();
+    VNT zero_rows = 0;
     ENT local_nnz = 0;
-    #pragma omp parallel for reduction(+: local_nnz)
+    //#pragma omp parallel for reduction(+: local_nnz)
     for(VNT i = 0; i < local_size; i++)
     {
         local_nnz += _tmp_col_ids[i].size();
+        if(_tmp_col_ids[i].size() == 0)
+            zero_rows++;
     }
     cout << "local nnz: " << local_nnz << ", " << 100.0*((double)local_nnz/_total_nnz) << " % (of total)" << endl;
     cout << "average degree: " << ((double)local_nnz / local_size) << endl;
+    cout << "zero rows: " << 100.0*((double)zero_rows / local_size) << " %" << endl;
 
     _cur_segment->vertex_list.set_thresholds(0, INT_MAX);
     for(VNT row = 0; row < local_size; row++)

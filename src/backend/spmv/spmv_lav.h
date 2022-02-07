@@ -21,9 +21,15 @@ void SpMV(const MatrixLAV<A> *_matrix,
     Y *shared_vector = (Y*)_workspace->get_first_socket_vector();
     Y *prefetched_vector = (Y*)_workspace->get_prefetched_vector();
 
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static)
     for(VNT i = 0; i < _matrix->nrows; i++)
         prefetched_vector[i] = x_vals[_matrix->col_new_to_old[i]];
+
+    #pragma omp parallel for schedule(static)
+    for(VNT idx = 0; idx < _matrix->nrows; idx++)
+    {
+        shared_vector[idx] = identity_val;
+    }
 
     VNT dense_segments_num = _matrix->dense_segments_num;
     VNT num_rows = _matrix->nrows;
@@ -36,12 +42,6 @@ void SpMV(const MatrixLAV<A> *_matrix,
         const VNT *row_ids = segment_data->vertex_list.get_data();
         const VNT nnz_num_rows = segment_data->vertex_list.get_size();
 
-        #pragma omp for schedule(static)
-        for(VNT idx = 0; idx < _matrix->nrows; idx++)
-        {
-            shared_vector[idx] = identity_val;
-        }
-
         /*VNT min_col = segment_data->min_col_id;
         VNT max_col = segment_data->max_col_id;
         #pragma omp for schedule(static)
@@ -50,13 +50,12 @@ void SpMV(const MatrixLAV<A> *_matrix,
             prefetched_vector[i - min_col] = x_vals[i];
         }*/
 
-        ENT proc_edges = 0;
-        for(int vg = 0; vg < segment_data->vg_num; vg++)
+        /*for(int vg = 0; vg < segment_data->vg_num; vg++)
         {
             const VNT *vertices = segment_data->vertex_groups[vg].get_data();
             VNT vertex_group_size = segment_data->vertex_groups[vg].get_size();
 
-            #pragma omp for nowait schedule(static)
+            #pragma omp for nowait schedule(guided, 1)
             for(VNT idx = 0; idx < vertex_group_size; idx++)
             {
                 VNT row = vertices[idx];
@@ -71,9 +70,9 @@ void SpMV(const MatrixLAV<A> *_matrix,
                 }
                 shared_vector[row] = add_op(shared_vector[row], res);
             }
-        }
+        }*/
 
-        /*#pragma omp for schedule(guided, 256)
+        #pragma omp for schedule(static)
         for(VNT idx = 0; idx < nnz_num_rows; idx++)
         {
             VNT row = row_ids[idx];
@@ -82,10 +81,10 @@ void SpMV(const MatrixLAV<A> *_matrix,
             {
                 VNT col = segment_data->col_ids[j];
                 Y val = segment_data->vals[j];
-                res = add_op(res, mul_op(val, x_vals[col]));
+                res = add_op(res, mul_op(val, prefetched_vector[col]));
             }
             shared_vector[row] = add_op(shared_vector[row], res);
-        }*/
+        }
     }
     t2 = omp_get_wtime();
     cout << "largest BW: " << _matrix->dense_segments[0].nnz * (2*sizeof(A) + sizeof(VNT))/((t2 - t1)*1e9) << " GB/s" << endl;
