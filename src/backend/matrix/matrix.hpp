@@ -342,32 +342,52 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
 template <typename T>
 void Matrix<T>::sort_csr_columns(int mode)
 {
-    Index size_ = 0;
-    get_csr()->get_size(&size_);
-
-    if (mode) {
-        /*
-        for (int i = 0; i < size_; i++)
-        {
-            ENT prev_segment_end = (i == 0 ? 0 : get_csr().row_ptr[i - 1]);
-            ENT cur_segment_length = get_csr().row_ptr[i] - prev_segment_end + 1;
-            // current interval is [prev_segment_end, row_ptr[i])
-            std::vector<char> cur_segment_distribution(size_, 0);
-            for (int j = prev_segment_end; j < get_csr().row_ptr[i]; ++j) {
-                cur_segment_distribution[get_csr().col_ids[j]] = 1;
-            }
-            ENT cur_col_ids_id = prev_segment_end;
-            for (int j = 0; j < cur_segment_length; ++j) {
-                if (cur_segment_distribution[j]) {
-                    get_csr().col_ids[cur_col_ids_id] = j;
-                    ++cur_col_ids_id;
-                }
+    if (!mode) {
+        const VNT *col_ids = get_csc()->get_col_ids();
+        VNT *row_ids = new VNT[get_csc()->get_nnz()];
+        const T *vals = get_csc()->get_vals();
+        for (VNT row_id = 0; row_id < get_csc()->get_num_rows(); ++row_id) {
+            for (ENT j = get_csc()->get_row_ptr()[row_id]; j < get_csc()->get_row_ptr()[row_id + 1]; ++j) {
+                row_ids[j] = row_id;
             }
         }
-         */
+
+        std::vector<std::vector<pair<VNT, T>>> _result(get_csr()->get_num_rows());
+
+        for(ENT i = 0; i < get_csc()->get_nnz(); i++)
+        {
+            VNT row = col_ids[i];
+            VNT col = row_ids[i];
+            T val = vals[i];
+            _result[row].push_back(make_pair(col, val));
+        }
+
+        ENT cur_pos = 0;
+
+        ENT* result_row_ptrs = get_csr()->get_row_ptr();
+        VNT* result_col_ids = get_csr()->get_col_ids();
+        T* result_vals = get_csr()->get_vals();
+
+        for(VNT i = 0; i < get_csr()->get_num_rows(); i++)
+        {
+            result_row_ptrs[i] = cur_pos;
+            result_row_ptrs[i + 1] = cur_pos + _result[i].size();
+            cur_pos += _result[i].size();
+        }
+        // vertex VertexNumType VNT
+        // edge EdgeNumType ENT
+        #pragma omp parallel for
+        for(VNT i = 0; i < _result.size(); i++)
+        {
+            for(ENT j = get_csr()->get_row_ptr()[i]; j < get_csr()->get_row_ptr()[i + 1]; j++)
+            {
+                result_col_ids[j] = _result[i][j - get_csr()->get_row_ptr()[i]].first;
+                result_vals[j] = _result[i][j - get_csr()->get_row_ptr()[i]].second;
+            }
+        }
     } else {
         #pragma omp parallel for
-        for (int i = 0; i < size_; i++) {
+        for (int i = 0; i < get_csr()->get_num_rows(); i++) {
             Index* begin_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i];
             Index* end_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i + 1];
             std::sort(begin_ptr, end_ptr);
