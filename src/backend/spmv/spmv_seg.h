@@ -50,7 +50,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
                     const VNT *vertices = segment->vertex_groups[vg].get_data();
                     VNT vertex_group_size = segment->vertex_groups[vg].get_size();
 
-                    #pragma omp for nowait schedule(static)
+                    #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
                     for(VNT idx = 0; idx < vertex_group_size; idx++)
                     {
                         VNT row = vertices[idx];

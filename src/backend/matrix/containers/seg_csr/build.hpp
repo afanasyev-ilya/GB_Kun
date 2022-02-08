@@ -93,8 +93,8 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
             merge_conversion[i] = conversion_pos;
             conversion_pos += 1;
         }
-        cout << "seg " << i << " is supposed to have " << 100.0 * estimated_edges_in_segment[i] / nnz << " % edges, " <<
-        " small = " << is_small_segment[i] << " conv indx " << merge_conversion[i] << endl;
+        /*cout << "seg " << i << " is supposed to have " << 100.0 * estimated_edges_in_segment[i] / nnz << " % edges, " <<
+        " small = " << is_small_segment[i] << " conv indx " << merge_conversion[i] << endl;*/
     }
     cout << "merging " << merge_segments_num << " smallest from " << num_segments << endl;
     num_segments = (num_segments - merge_segments_num);
@@ -122,7 +122,6 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
                 seg_id = merge_conversion[seg_id];
                 subgraphs[seg_id].add_edge(row, col, val);
             }
-
         }
     }
     t2 = omp_get_wtime();
@@ -160,8 +159,6 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
              100.0*(double)subgraphs[seg_id].size/size << "%)" << ", nnz (edges) = " << subgraphs[seg_id].nnz << " (" <<
              100.0*(double)subgraphs[seg_id].nnz/nnz << "%) ";
         cout << "avg degree: " << (double)subgraphs[seg_id].nnz / subgraphs[seg_id].size << endl;
-        cout << "balancing: " << subgraphs[seg_id].schedule_type << " " << subgraphs[seg_id].load_balanced_type << endl;
-        cout << "static ok to use : " << subgraphs[seg_id].static_ok_to_use << endl;
     }
 }
 

@@ -7,20 +7,6 @@ namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum ScheduleType
-{
-    STATIC = 0,
-    GUIDED = 1
-};
-
-enum LoadBalancedType
-{
-    ONE_GROUP = 0,
-    MANY_GROUPS = 1
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 template <typename T>
 class MatrixSegmentedCSR;
 
@@ -63,9 +49,6 @@ private:
 
     static const int vg_num = 6; // 9 is best currently
     VertexGroup vertex_groups[vg_num];
-
-    ScheduleType schedule_type;
-    LoadBalancedType load_balanced_type;
 
     template <typename A, typename X, typename Y, typename BinaryOpTAccum, typename SemiringT>
     friend void SpMV(const MatrixSegmentedCSR<A> *_matrix,
@@ -147,11 +130,35 @@ void SubgraphSegment<T>::init_buffer_and_copy_edges()
 
     check_if_static_can_be_used();
 
+    if(static_ok_to_use)
+    {
+        #pragma omp parallel for schedule(static, 32) // cache-aware alloc
+        for(VNT i = 0; i < size; i++)
+            vertex_buffer[i] = 0;
+    }
+    else
+    {
+        construct_load_balancing();
+        #pragma omp parallel
+        {
+            for(int vg = 0; vg < vg_num; vg++)
+            {
+                const VNT *vertices = vertex_groups[vg].get_data();
+                VNT vertex_group_size = vertex_groups[vg].get_size();
+
+                #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+                for(VNT idx = 0; idx < vertex_group_size; idx++)
+                {
+                    VNT row = vertices[idx];
+                    vertex_buffer[row] = 0;
+                }
+            }
+        }
+    }
+
     #pragma omp parallel for schedule(static, 32) // cache-aware alloc
     for(VNT i = 0; i < size; i++)
         vertex_buffer[i] = 0;
-
-    // TODO maybe more complex for vg alloc
 
     #pragma omp parallel for schedule(static, 32)
     for(VNT row = 0; row < size; row++)
@@ -311,7 +318,7 @@ void SubgraphSegment<T>::check_if_static_can_be_used()
         double real_percent = 100.0*((double)core_edges/nnz);
         double supposed_percent = 100.0/cores_num;
 
-        if(fabs(real_percent - supposed_percent) > 5) // if difference is more than 5%, static not ok to use
+        if(fabs(real_percent - supposed_percent) > 2.5) // if difference is more than 2.5%, static not ok to use
             static_ok_to_use = false;
     }
 }
