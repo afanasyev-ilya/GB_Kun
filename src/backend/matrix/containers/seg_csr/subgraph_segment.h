@@ -59,6 +59,8 @@ private:
     VNT *block_starts;
     VNT *block_ends;
 
+    bool static_ok_to_use;
+
     static const int vg_num = 6; // 9 is best currently
     VertexGroup vertex_groups[vg_num];
 
@@ -75,6 +77,8 @@ private:
 
     template <typename Y>
     friend class MatrixSegmentedCSR;
+
+    void check_if_static_can_be_used();
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,9 +145,13 @@ void SubgraphSegment<T>::init_buffer_and_copy_edges()
 {
     MemoryAPI::allocate_array(&vertex_buffer, size);
 
+    check_if_static_can_be_used();
+
     #pragma omp parallel for schedule(static, 32) // cache-aware alloc
     for(VNT i = 0; i < size; i++)
         vertex_buffer[i] = 0;
+
+    // TODO maybe more complex for vg alloc
 
     #pragma omp parallel for schedule(static, 32)
     for(VNT row = 0; row < size; row++)
@@ -154,88 +162,6 @@ void SubgraphSegment<T>::init_buffer_and_copy_edges()
             vals[j] = tmp_vals[j];
         }
     }
-
-    // unsorted CSR construction is done here
-
-    /*VNT* row_degrees;
-    VNT* row_conversion_indexes;
-    MemoryAPI::allocate_array(&row_conversion_indexes, size);
-    MemoryAPI::allocate_array(&row_degrees, size);
-
-    for(VNT i = 0; i < size; i++)
-        row_degrees[i] = row_ptr[i + 1] - row_ptr[i];
-
-    for(VNT i = 0; i < size; i++)
-    {
-        row_conversion_indexes[i] = i;
-    }
-
-    std::sort(row_conversion_indexes, row_conversion_indexes + size,
-              [row_degrees](VNT index1, VNT index2)
-              {
-                  return row_degrees[index1] > row_degrees[index2];
-              });
-
-    ENT *reordered_row_ptr;
-    VNT *reordered_col_ids;
-    T *reordered_vals;
-    VNT *reordered_conversion_to_full;
-    MemoryAPI::allocate_array(&reordered_conversion_to_full, size);
-    MemoryAPI::allocate_array(&reordered_row_ptr, size + 1);
-    MemoryAPI::allocate_array(&reordered_col_ids, nnz);
-    MemoryAPI::allocate_array(&reordered_vals, nnz);
-
-    ENT edge_pos = 0;
-    reordered_row_ptr[0] = 0;
-    for(VNT row = 0; row < size; row++)
-    {
-        VNT old_row = row_conversion_indexes[row];
-
-        reordered_conversion_to_full[row] = conversion_to_full[old_row];
-
-        VNT connections_count = row_ptr[old_row + 1] - row_ptr[old_row];
-        for(ENT j = 0; j < connections_count; j++)
-        {
-            VNT old_col_id = tmp_col_ids[row_ptr[old_row] + j];
-            T old_val = tmp_vals[row_ptr[old_row] + j];
-
-            reordered_col_ids[edge_pos + j] = old_col_id;
-            reordered_vals[edge_pos + j] = old_val;
-        }
-        edge_pos += connections_count;
-        reordered_row_ptr[row + 1] = edge_pos;
-    }
-
-    MemoryAPI::free_array(row_ptr);
-    MemoryAPI::free_array(conversion_to_full);
-    MemoryAPI::free_array(col_ids);
-    MemoryAPI::free_array(vals);
-
-    MemoryAPI::allocate_array(&row_ptr, size + 1);
-    MemoryAPI::allocate_array(&conversion_to_full, size);
-    MemoryAPI::allocate_array(&col_ids, nnz);
-    MemoryAPI::allocate_array(&vals, nnz);
-
-    #pragma omp parallel for schedule(static, 32)
-    for(VNT row = 0; row < size; row++)
-    {
-        row_ptr[row] = reordered_row_ptr[row];
-        row_ptr[row + 1] = reordered_row_ptr[row + 1];
-        conversion_to_full[row] = reordered_conversion_to_full[row];
-        for(ENT j = row_ptr[row]; j < row_ptr[row + 1]; j++)
-        {
-            col_ids[j] = reordered_col_ids[j];
-            vals[j] = reordered_vals[j];
-        }
-    }
-
-    MemoryAPI::free_array(reordered_row_ptr);
-    MemoryAPI::free_array(reordered_col_ids);
-    MemoryAPI::free_array(reordered_vals);
-    MemoryAPI::free_array(reordered_conversion_to_full);
-
-    MemoryAPI::free_array(row_conversion_indexes);
-    MemoryAPI::free_array(row_degrees);*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -362,6 +288,35 @@ void SubgraphSegment<T>::construct_load_balancing()
         vertex_groups[i].finalize_creation(0); // TODO target socket of graph
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void SubgraphSegment<T>::check_if_static_can_be_used()
+{
+    VNT num_rows = this->size; // fixme
+
+    int cores_num = omp_get_max_threads();
+    static_ok_to_use = true;
+    #pragma omp parallel
+    {
+        ENT core_edges = 0;
+        #pragma omp for schedule(static, 32)
+        for(VNT row = 0; row < num_rows; row++)
+        {
+            VNT connections = row_ptr[row + 1] - row_ptr[row];
+            core_edges += connections;
+        }
+
+        double real_percent = 100.0*((double)core_edges/nnz);
+        double supposed_percent = 100.0/cores_num;
+
+        if(fabs(real_percent - supposed_percent) > 5) // if difference is more than 5%, static not ok to use
+            static_ok_to_use = false;
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 }

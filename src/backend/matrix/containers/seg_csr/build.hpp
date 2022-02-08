@@ -34,9 +34,6 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
 
     VNT segment_size = SEG_CSR_CACHE_BLOCK_SIZE / sizeof(T);
     num_segments = (size - 1) / segment_size + 1;
-    cout << "Using " << num_segments << " segments..." << endl;
-    cout << "Seg size " << segment_size*sizeof(T)/1e3 << " KB" << endl;
-
     merge_blocks_number = omp_get_max_threads()*2; // 2 for load balancing
     size_t merge_block_size = (size - 1) / merge_blocks_number + 1;
     while(merge_block_size > (SEG_CSR_MERGE_BLOCK_SIZE/ sizeof(T)))
@@ -44,9 +41,29 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
         merge_blocks_number *= 2;
         merge_block_size = (size - 1) / merge_blocks_number + 1;
     }
-
+    cout << "using " << num_segments << " segments..." << endl;
+    cout << "segment size : " << segment_size*sizeof(T)/1e3 << " KB" << endl;
     cout << "merge blocks count : " << merge_blocks_number << endl;
     cout << "merge_block_size : " << merge_block_size*sizeof(T) / 1024 << " KB" << endl;
+
+    // estimate number of edges in each segment
+    vector<ENT> estimated_edges_in_segment(num_segments, 0);
+    #pragma omp parallel for schedule(guided, 1024)
+    for(VNT row = 0; row < _num_rows; row++)
+    {
+        for(ENT j = _row_ptr[row]; j < _row_ptr[row + 1]; j++)
+        {
+            VNT col = _col_ids[j];
+            int seg_id = col/segment_size;
+            #pragma omp atomic
+            estimated_edges_in_segment[seg_id]++;
+        }
+    }
+
+    for(int i = 0; i < num_segments; i++)
+    {
+        cout << "seg " << i << " is supposed to have " << 100.0*estimated_edges_in_segment[i]/nnz << " % edges" << endl;
+    }
 
     // create segments (must be reworked based on created CSR)
     t1 = omp_get_wtime();
@@ -133,12 +150,13 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
              100.0*(double)subgraphs[seg_id].nnz/nnz << "%) ";
         cout << "avg degree: " << (double)subgraphs[seg_id].nnz / subgraphs[seg_id].size << endl;
         cout << "balancing: " << subgraphs[seg_id].schedule_type << " " << subgraphs[seg_id].load_balanced_type << endl;
+        cout << "static ok to use : " << subgraphs[seg_id].static_ok_to_use << endl;
     }
     t2 = omp_get_wtime();
     cout << "doing load balancing time: " << t2 - t1 << " sec" << endl << endl;
 
     // create largest seg here
-    for(VNT row = 0; row < _num_rows; row++)
+    /*for(VNT row = 0; row < _num_rows; row++)
     {
         for(ENT j = _row_ptr[row]; j < _row_ptr[row + 1]; j++)
         {
@@ -153,7 +171,7 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
     }
     largest_subgraph.construct_csr();
     largest_subgraph.init_buffer_and_copy_edges();
-    //largest_subgraph.construct_blocks(merge_blocks_number, merge_block_size);
+    largest_subgraph.construct_blocks(merge_blocks_number, merge_block_size);*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
