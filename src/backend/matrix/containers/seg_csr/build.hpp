@@ -158,7 +158,8 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
         cout << "size (vertices) = " << subgraphs[seg_id].size << "(" <<
              100.0*(double)subgraphs[seg_id].size/size << "%)" << ", nnz (edges) = " << subgraphs[seg_id].nnz << " (" <<
              100.0*(double)subgraphs[seg_id].nnz/nnz << "%) ";
-        cout << "avg degree: " << (double)subgraphs[seg_id].nnz / subgraphs[seg_id].size << endl;
+        cout << "avg degree: " << (double)subgraphs[seg_id].nnz / subgraphs[seg_id].size << ", balancing: " <<
+        subgraphs[seg_id].static_ok_to_use << endl;
     }
 }
 

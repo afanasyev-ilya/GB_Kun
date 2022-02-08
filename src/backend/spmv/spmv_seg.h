@@ -23,7 +23,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
 
     double t1 = omp_get_wtime();
     int cores_num = omp_get_max_threads();
-    #pragma omp parallel // parallelism within different segments
+    #pragma omp parallel // parallelism within each segment
     {
         for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
         {
@@ -184,7 +184,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
                 shared_vector[i] = identity_val;
             }
 
-            #pragma omp for schedule(static, 32)
+            #pragma omp for schedule(static, 1)
             for(VNT cur_block = 0; cur_block < _matrix->merge_blocks_number; cur_block++)
             {
                 for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
