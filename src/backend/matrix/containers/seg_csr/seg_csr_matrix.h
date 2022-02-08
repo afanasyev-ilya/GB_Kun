@@ -33,10 +33,6 @@ private:
     int num_segments;
 
     SubgraphSegment<T> *subgraphs;
-    vector<pair<int, ENT>> sorted_segments;
-    int load_balanced_threshold;
-
-    SubgraphSegment<T> largest_subgraph;
 
     void alloc(VNT _size, ENT _nnz);
     void free();

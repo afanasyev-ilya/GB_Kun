@@ -139,7 +139,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
 
     for(int s = 0; s < _matrix->num_segments; s++)
     {
-        int seg_id = _matrix->sorted_segments[s].first;
+        int seg_id = s;
 
         SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
         Y *buffer = (Y *) segment->vertex_buffer;
