@@ -75,7 +75,7 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
         int seg_id = sorted_segments[i].first;
         merged_nnz += sorted_segments[i].second;
         is_small_segment[seg_id] = true;
-        if(merged_nnz >= 0.3*nnz)
+        if(merged_nnz >= 0.2*nnz)
         {
             merge_segments_num = i;
             break;
