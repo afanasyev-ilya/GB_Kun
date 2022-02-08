@@ -141,16 +141,101 @@ void SubgraphSegment<T>::init_buffer_and_copy_edges()
 {
     MemoryAPI::allocate_array(&vertex_buffer, size);
 
-    #pragma omp parallel for schedule(static) // cache-aware alloc
+    #pragma omp parallel for schedule(static, 32) // cache-aware alloc
     for(VNT i = 0; i < size; i++)
         vertex_buffer[i] = 0;
 
-    #pragma omp parallel for schedule(static)
-    for (ENT i = 0; i < nnz; i++)
+    #pragma omp parallel for schedule(static, 32)
+    for(VNT row = 0; row < size; row++)
     {
-        col_ids[i] = tmp_col_ids[i];
-        vals[i] = tmp_vals[i];
+        for(ENT j = row_ptr[row]; j < row_ptr[row + 1]; j++)
+        {
+            col_ids[j] = tmp_col_ids[j];
+            vals[j] = tmp_vals[j];
+        }
     }
+
+    // unsorted CSR construction is done here
+
+    /*VNT* row_degrees;
+    VNT* row_conversion_indexes;
+    MemoryAPI::allocate_array(&row_conversion_indexes, size);
+    MemoryAPI::allocate_array(&row_degrees, size);
+
+    for(VNT i = 0; i < size; i++)
+        row_degrees[i] = row_ptr[i + 1] - row_ptr[i];
+
+    for(VNT i = 0; i < size; i++)
+    {
+        row_conversion_indexes[i] = i;
+    }
+
+    std::sort(row_conversion_indexes, row_conversion_indexes + size,
+              [row_degrees](VNT index1, VNT index2)
+              {
+                  return row_degrees[index1] > row_degrees[index2];
+              });
+
+    ENT *reordered_row_ptr;
+    VNT *reordered_col_ids;
+    T *reordered_vals;
+    VNT *reordered_conversion_to_full;
+    MemoryAPI::allocate_array(&reordered_conversion_to_full, size);
+    MemoryAPI::allocate_array(&reordered_row_ptr, size + 1);
+    MemoryAPI::allocate_array(&reordered_col_ids, nnz);
+    MemoryAPI::allocate_array(&reordered_vals, nnz);
+
+    ENT edge_pos = 0;
+    reordered_row_ptr[0] = 0;
+    for(VNT row = 0; row < size; row++)
+    {
+        VNT old_row = row_conversion_indexes[row];
+
+        reordered_conversion_to_full[row] = conversion_to_full[old_row];
+
+        VNT connections_count = row_ptr[old_row + 1] - row_ptr[old_row];
+        for(ENT j = 0; j < connections_count; j++)
+        {
+            VNT old_col_id = tmp_col_ids[row_ptr[old_row] + j];
+            T old_val = tmp_vals[row_ptr[old_row] + j];
+
+            reordered_col_ids[edge_pos + j] = old_col_id;
+            reordered_vals[edge_pos + j] = old_val;
+        }
+        edge_pos += connections_count;
+        reordered_row_ptr[row + 1] = edge_pos;
+    }
+
+    MemoryAPI::free_array(row_ptr);
+    MemoryAPI::free_array(conversion_to_full);
+    MemoryAPI::free_array(col_ids);
+    MemoryAPI::free_array(vals);
+
+    MemoryAPI::allocate_array(&row_ptr, size + 1);
+    MemoryAPI::allocate_array(&conversion_to_full, size);
+    MemoryAPI::allocate_array(&col_ids, nnz);
+    MemoryAPI::allocate_array(&vals, nnz);
+
+    #pragma omp parallel for schedule(static, 32)
+    for(VNT row = 0; row < size; row++)
+    {
+        row_ptr[row] = reordered_row_ptr[row];
+        row_ptr[row + 1] = reordered_row_ptr[row + 1];
+        conversion_to_full[row] = reordered_conversion_to_full[row];
+        for(ENT j = row_ptr[row]; j < row_ptr[row + 1]; j++)
+        {
+            col_ids[j] = reordered_col_ids[j];
+            vals[j] = reordered_vals[j];
+        }
+    }
+
+    MemoryAPI::free_array(reordered_row_ptr);
+    MemoryAPI::free_array(reordered_col_ids);
+    MemoryAPI::free_array(reordered_vals);
+    MemoryAPI::free_array(reordered_conversion_to_full);
+
+    MemoryAPI::free_array(row_conversion_indexes);
+    MemoryAPI::free_array(row_degrees);*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -100,6 +100,7 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
     // do load balancing optimization for the largest segment
     std::sort( std::begin(sorted_segments), std::end(sorted_segments), custome_compare );
 
+    vector<bool> is_small_segment(num_segments);
     cout << "avg graph degree: " << ((double)nnz)/size << endl;
     cout << "avg avg degree: " << avg_avg_degree << endl;
     for(int cur_seg = 0; cur_seg < num_segments; cur_seg++)
@@ -108,9 +109,15 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
 
         double seg_avg_degree = (double)subgraphs[seg_id].nnz / subgraphs[seg_id].size;
         if(seg_avg_degree < 0.9*avg_avg_degree || percent_diff(seg_avg_degree, avg_avg_degree) < 0.1)
+        {
             subgraphs[seg_id].schedule_type = STATIC;
+            is_small_segment[seg_id] = true;
+        }
         else
+        {
+            is_small_segment[seg_id] = false;
             subgraphs[seg_id].schedule_type = GUIDED;
+        }
 
         if(subgraphs[seg_id].nnz > 0.15*nnz)
         {
@@ -129,6 +136,24 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
     }
     t2 = omp_get_wtime();
     cout << "doing load balancing time: " << t2 - t1 << " sec" << endl << endl;
+
+    // create largest seg here
+    for(VNT row = 0; row < _num_rows; row++)
+    {
+        for(ENT j = _row_ptr[row]; j < _row_ptr[row + 1]; j++)
+        {
+            VNT col = _col_ids[j];
+            T val = _vals[j];
+
+            int seg_id = col/segment_size;
+
+            if(is_small_segment[seg_id])
+                largest_subgraph.add_edge(row, col, val);
+        }
+    }
+    largest_subgraph.construct_csr();
+    largest_subgraph.init_buffer_and_copy_edges();
+    //largest_subgraph.construct_blocks(merge_blocks_number, merge_block_size);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -145,7 +145,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         Y *buffer = (Y *) segment->vertex_buffer;
 
         double t1_in = omp_get_wtime();
-        #pragma omp parallel for schedule(static)
+        #pragma omp parallel for schedule(static, 32)
         for(VNT i = 0; i < segment->size; i++)
         {
             Y res = identity_val;
@@ -160,6 +160,24 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         << " GB/s, avg_deg = " << ((double)segment->nnz)/segment->size << ", " <<
            100.0*(double)segment->nnz/_matrix->nnz << "% of nnz" << endl;
     }
+
+    SubgraphSegment<A> *segment = &(_matrix->largest_subgraph);
+    Y *buffer = (Y *) segment->vertex_buffer;
+    double t1_in = omp_get_wtime();
+    #pragma omp parallel for schedule(static, 32)
+    for(VNT i = 0; i < segment->size; i++)
+    {
+        Y res = identity_val;
+        for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
+        {
+            res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
+        }
+        buffer[i] = res;
+    }
+    double t2_in = omp_get_wtime();
+    cout << " largest seg BW: " << segment->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2_in - t1_in)*1e9)
+         << " GB/s, avg_deg = " << ((double)segment->nnz)/segment->size << ", " <<
+         100.0*(double)segment->nnz/_matrix->nnz << "% of nnz" << endl;
     cout << endl;
 
     /*#pragma omp parallel  // testing number of processed edges and manual static parallelism
@@ -299,7 +317,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
                 Y *buffer = (Y*)segment->vertex_buffer;
                 VNT *conversion_indexes = segment->conversion_to_full;
 
-                #pragma omp for schedule(static)
+                #pragma omp for schedule(static, 32)
                 for(VNT i = 0; i < segment->size; i++)
                 {
                     shared_vector[conversion_indexes[i]] = add_op(shared_vector[conversion_indexes[i]], buffer[i]);
