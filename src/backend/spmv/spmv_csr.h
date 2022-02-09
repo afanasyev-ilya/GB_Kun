@@ -95,18 +95,18 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
         if(socket == 0)
         {
             local_x_vals = x_vals_first_socket;
-            in_socket_copy(local_x_vals, x_vals, _matrix->size);
+            in_socket_copy(local_x_vals, x_vals, _matrix->nrows);
         }
         else if(socket == 1)
         {
             local_x_vals = x_vals_second_socket;
-            in_socket_copy(local_x_vals, x_vals, _matrix->size);
+            in_socket_copy(local_x_vals, x_vals, _matrix->nrows);
         }
 
         if(_matrix->can_use_static_balancing())
         {
             #pragma omp for schedule(static)
-            for(VNT row = 0; row < _matrix->size; row++)
+            for(VNT row = 0; row < _matrix->nrows; row++)
             {
                 A res = identity_val;
                 for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
@@ -163,7 +163,7 @@ void SpMV_all_active_static(const MatrixCSR<A> *_matrix,
     #pragma omp parallel
     {
         #pragma omp for schedule(static)
-        for(VNT row = 0; row < _matrix->size; row++)
+        for(VNT row = 0; row < _matrix->nrows; row++)
         {
             A res = identity_val;
             for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
@@ -226,7 +226,7 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
         #pragma omp parallel
         {
             #pragma omp for
-            for(VNT i = 0; i < _matrix->size; i++)
+            for(VNT i = 0; i < _matrix->nrows; i++)
                 dense_mask[i] = 1;
 
             #pragma omp for
@@ -237,7 +237,7 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
             }
 
             #pragma omp for schedule(guided, 1)
-            for(VNT row = 0; row < _matrix->size; row++)
+            for(VNT row = 0; row < _matrix->nrows; row++)
             {
                 bool mask_val = dense_mask[row];
                 if(mask_val)
@@ -302,7 +302,7 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
     #pragma omp parallel
     {
         #pragma omp for schedule(guided, 1)
-        for(VNT row = 0; row < _matrix->size; row++)
+        for(VNT row = 0; row < _matrix->nrows; row++)
         {
             bool mask_val = (bool)mask_vals[row];
             if (!use_comp_mask && mask_val || use_comp_mask && !mask_val)
@@ -407,7 +407,7 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
         #pragma omp barrier
 
         #pragma omp for
-        for(VNT row = 0; row < _matrix->size; row++)
+        for(VNT row = 0; row < _matrix->nrows; row++)
         {
             y_vals[row] = _accum(y_vals[row], buffer[row]);
         }

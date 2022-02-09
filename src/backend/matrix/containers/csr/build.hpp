@@ -15,7 +15,7 @@ void MatrixCSR<T>::prepare_vg_lists(int _target_socket)
     vertex_groups[vg_num - 1].set_thresholds(first, INT_MAX);
 
     // push back vertices to each group using O|V| work
-    for(VNT row = 0; row < size; row++)
+    for(VNT row = 0; row < nrows; row++)
     {
         ENT connections_count = row_ptr[row + 1] - row_ptr[row];
         for(int vg = 0; vg < vg_num; vg++)
@@ -35,7 +35,7 @@ void MatrixCSR<T>::prepare_vg_lists(int _target_socket)
 template <typename T>
 void MatrixCSR<T>::check_if_static_can_be_used()
 {
-    VNT num_rows = this->size; // fixme
+    VNT num_rows = this->nrows;
 
     int cores_num = omp_get_max_threads();
     static_ok_to_use = true;
@@ -67,7 +67,7 @@ void MatrixCSR<T>::numa_aware_realloc()
     if(cores_num <= THREADS_PER_SOCKET)
         return;
 
-    VNT num_rows = this->size; // fixme
+    VNT num_rows = this->nrows;
 
     ENT *new_row_ptr;
     T *new_vals;
@@ -150,7 +150,7 @@ template <typename T>
 void MatrixCSR<T>::calculate_degrees()
 {
     #pragma omp parallel for
-    for(VNT row = 0; row < this->size; row++)
+    for(VNT row = 0; row < this->nrows; row++)
     {
         row_degrees[row] = row_ptr[row + 1] - row_ptr[row];
     }
@@ -159,13 +159,14 @@ void MatrixCSR<T>::calculate_degrees()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _target_socket)
+void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _nrows, VNT _ncols, ENT _nnz,
+                         int _target_socket)
 {
     vector<vector<pair<VNT, T>>> tmp_csr;
 
-    edges_list_to_vector_of_vectors(_row_ids, _col_ids, _vals, _size, _nnz, tmp_csr);
+    edges_list_to_vector_of_vectors(_row_ids, _col_ids, _vals, _nrows, _nnz, tmp_csr);
 
-    resize(_size, _nnz, _target_socket);
+    resize(_nrows, _ncols, _nnz, _target_socket);
 
     vector_of_vectors_to_csr(tmp_csr, row_ptr, col_ids, vals);
 
@@ -181,9 +182,9 @@ void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::build(vector<vector<pair<VNT, T>>> &_tmp_csr, int _target_socket)
+void MatrixCSR<T>::build(vector<vector<pair<VNT, T>>> &_tmp_csr, VNT _nrows, VNT _ncols, int _target_socket)
 {
-    resize(_tmp_csr.size(), estimate_nnz_in_vector_of_vectors(_tmp_csr), _target_socket);
+    resize(_nrows, _ncols, estimate_nnz_in_vector_of_vectors(_tmp_csr), _target_socket);
 
     vector_of_vectors_to_csr(_tmp_csr, row_ptr, col_ids, vals);
 
