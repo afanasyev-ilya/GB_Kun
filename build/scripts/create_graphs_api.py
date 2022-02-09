@@ -3,6 +3,8 @@ from .settings import *
 import os.path
 from os import path
 from .mtx_api import gen_mtx_graph
+from os import listdir
+from os.path import isfile, join
 
 
 # synthetic
@@ -75,7 +77,7 @@ def download_all_real_world_graphs(run_speed_mode):
         download_graph(graph_name)
 
 
-def download_graph(graph_name):
+def download_konect(graph_name):
     file_name = SOURCE_GRAPH_DIR + "download.tsv." + all_konect_graphs_data[graph_name]["link"] + ".tar.bz2"
     if not path.exists(file_name):
         link = "http://konect.cc/files/download.tsv." + all_konect_graphs_data[graph_name]["link"] + ".tar.bz2"
@@ -91,6 +93,20 @@ def download_graph(graph_name):
         print("File " + SOURCE_GRAPH_DIR + "/" + all_konect_graphs_data[graph_name]["link"] + ".tar.bz2" + " exists!")
 
 
+def download_gap(graph_name):
+    link = all_konect_graphs_data[graph_name]["link"]
+    cmd = ["wget", link, "-q", "--no-check-certificate", "--directory", SOURCE_GRAPH_DIR]
+    print(' '.join(cmd))
+    subprocess.call(cmd, shell=False, stdout=subprocess.PIPE)
+
+
+def download_graph(graph_name):
+    if 'GAP' in graph_name:
+        download_gap(graph_name)
+    else:
+        download_konect(graph_name)
+
+
 def get_path_to_graph(short_name, graph_format):
     return GRAPHS_DIR + short_name + "." + graph_format
 
@@ -104,13 +120,49 @@ def verify_graph_existence(graph_file_name):
         return False
 
 
+def clear_dir(dir_name):
+    os.system('rm -rf ' + SOURCE_GRAPH_DIR + '/*')
+
+
 def create_real_world_graph(graph_name):
     graph_format = "mtx"
     output_graph_file_name = get_path_to_graph(graph_name, graph_format)
     if not file_exists(output_graph_file_name):
-        download_graph(graph_name)
+        if 'GAP' in graph_name:
+            clear_dir(SOURCE_GRAPH_DIR)
+            download_graph(graph_name)
+            files = [f for f in listdir(SOURCE_GRAPH_DIR)]
+            tar_name = files[0]
 
-        tar_name = SOURCE_GRAPH_DIR + "download.tsv." + all_konect_graphs_data[graph_name]["link"] + ".tar.bz2"
+            cmd = ["tar", "-zxf", SOURCE_GRAPH_DIR + "/" + tar_name, '--directory', SOURCE_GRAPH_DIR]
+            print(' '.join(cmd))
+            subprocess.call(cmd, shell=False, stdout=subprocess.PIPE)
+
+            old_path = SOURCE_GRAPH_DIR + "/" + graph_name + "/" + graph_name + ".mtx"
+            new_path = GRAPHS_DIR + "/" + graph_name + ".mtx"
+            shutil.move(old_path, new_path)
+        else:
+            download_graph(graph_name)
+            tar_name = SOURCE_GRAPH_DIR + "download.tsv." + all_konect_graphs_data[graph_name]["link"] + ".tar.bz2"
+            cmd = ["tar", "-xjf", tar_name, '-C', SOURCE_GRAPH_DIR]
+            subprocess.call(cmd, shell=False, stdout=subprocess.PIPE)
+
+            if "unarch_graph_name" in all_konect_graphs_data[graph_name]:
+                source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["unarch_graph_name"]
+            else:
+                source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["link"]
+
+            gen_mtx_graph(source_name, output_graph_file_name)
+
+            if verify_graph_existence(output_graph_file_name):
+                print("Graph " + output_graph_file_name + " has been created\n")
+
+        if verify_graph_existence(output_graph_file_name):
+            print("Graph " + output_graph_file_name + " has been created\n")
+
+        clear_dir(SOURCE_GRAPH_DIR)
+
+        '''tar_name = SOURCE_GRAPH_DIR + "download.tsv." + all_konect_graphs_data[graph_name]["link"] + ".tar.bz2"
         cmd = ["tar", "-xjf", tar_name, '-C', SOURCE_GRAPH_DIR]
         subprocess.call(cmd, shell=False, stdout=subprocess.PIPE)
 
@@ -122,7 +174,7 @@ def create_real_world_graph(graph_name):
         gen_mtx_graph(source_name, output_graph_file_name)
 
         if verify_graph_existence(output_graph_file_name):
-            print("Graph " + output_graph_file_name + " has been created\n")
+            print("Graph " + output_graph_file_name + " has been created\n")'''
     else:
         print("Warning! Graph " + output_graph_file_name + " already exists!")
 

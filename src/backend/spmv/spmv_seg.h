@@ -19,8 +19,6 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
-    Y *shared_vector = (Y*)_workspace->get_first_socket_vector();
-
     double t1 = omp_get_wtime();
     int cores_num = omp_get_max_threads();
     #pragma omp parallel // parallelism within each segment
@@ -173,6 +171,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     cout << "inner (seg) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
     double t3 = omp_get_wtime();
+    Y *merge_result = (Y*)_workspace->get_first_socket_vector();
     if(_matrix->merge_blocks_number >= 4*cores_num)
     {
         cout << "using cache-aware merge" << endl;
@@ -181,7 +180,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             #pragma omp for
             for(VNT i = 0; i < _matrix->size; i++)
             {
-                shared_vector[i] = identity_val;
+                merge_result[i] = identity_val;
             }
 
             #pragma omp for schedule(static, 1)
@@ -198,7 +197,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
 
                     for(VNT i = block_start; i < block_end; i++)
                     {
-                        shared_vector[conversion_indexes[i]] = add_op(shared_vector[conversion_indexes[i]], buffer[i]);
+                        merge_result[conversion_indexes[i]] = add_op(merge_result[conversion_indexes[i]], buffer[i]);
                     }
                 }
             }
@@ -206,7 +205,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             #pragma omp for
             for(VNT i = 0; i < _matrix->size; i++)
             {
-                y_vals[i] = _accum(y_vals[i], shared_vector[i]);
+                y_vals[i] = _accum(y_vals[i], merge_result[i]);
             }
         }
     }
@@ -218,7 +217,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             #pragma omp for
             for(VNT i = 0; i < _matrix->size; i++)
             {
-                shared_vector[i] = identity_val;
+                merge_result[i] = identity_val;
             }
 
             for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
@@ -230,14 +229,14 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
                 #pragma omp for schedule(static, 32)
                 for(VNT i = 0; i < segment->size; i++)
                 {
-                    shared_vector[conversion_indexes[i]] = add_op(shared_vector[conversion_indexes[i]], buffer[i]);
+                    merge_result[conversion_indexes[i]] = add_op(merge_result[conversion_indexes[i]], buffer[i]);
                 }
             }
 
             #pragma omp for
             for(VNT i = 0; i < _matrix->size; i++)
             {
-                y_vals[i] = _accum(y_vals[i], shared_vector[i]);
+                y_vals[i] = _accum(y_vals[i], merge_result[i]);
             }
         }
     }
