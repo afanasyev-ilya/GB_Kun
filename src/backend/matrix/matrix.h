@@ -68,22 +68,20 @@ public:
 
     const MatrixContainer<T>* get_transposed_data() const { return transposed_data; }
 
-    void get_nrows(VNT* _nrows) const { csr_data->get_size(_nrows); }
+    void get_nrows(VNT* _nrows) const {
+        *_nrows = csr_data->get_num_rows();
+    }
 
     VNT get_nrows() const {
-        VNT nrows;
-        csr_data->get_size(&nrows);
-        return nrows;
+        return csr_data->get_num_rows();
     }
 
     void get_ncols(VNT* _ncols) const {
-        csr_data->get_size(_ncols);
+        *_ncols = csr_data->get_ncols();
     }
 
     VNT get_ncols() const {
-        VNT ncols;
-        csr_data->get_size(&ncols);
-        return ncols;
+        return csr_data->get_num_cols();
     }
 
     void print() const { csr_data->print(); }
