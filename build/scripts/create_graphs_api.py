@@ -5,6 +5,8 @@ from os import path
 from .mtx_api import gen_mtx_graph
 from os import listdir
 from os.path import isfile, join
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
 
 
 # synthetic
@@ -124,6 +126,84 @@ def clear_dir(dir_name):
     os.system('rm -rf ' + SOURCE_GRAPH_DIR + '/*')
 
 
+def find_info_on_page(text, pattern):
+    for line in text.splitlines():
+        if pattern in line:
+            return line
+    return None
+
+
+def extract_number(line):
+    digits_list = [int(s) for s in line if s.isdigit()]
+    return int(''.join(map(str, digits_list)))
+
+
+def load_page(graph_name):
+    graph_link = all_konect_graphs_data[graph_name]["link"]
+    url = "http://konect.cc/networks/" + graph_link
+    html = urlopen(url).read()
+    soup = BeautifulSoup(html, features="html.parser")
+    # kill all script and style elements
+    for script in soup(["script", "style"]):
+        script.extract()    # rip it out
+
+    # get text
+    text = soup.get_text()
+
+    # break into lines and remove leading and trailing space on each
+    lines = (line.strip() for line in text.splitlines())
+    # break multi-headlines into a line each
+    chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+    # drop blank lines
+    page_text = '\n'.join(chunk for chunk in chunks if chunk)
+    return page_text
+
+
+def convert_to_mtx_if_no_loops_and_multiple_edges(input_file, output_file, graph_name):
+    f_in = open(input_file, 'r')
+    f_out = open(output_file, 'w+')
+
+    line = f_in.readline()
+    line = f_in.readline()
+    vert_and_edges = line[1:].split()
+    f_out.write('%%MatrixMarket matrix coordinate pattern general\n')
+
+    if len(vert_and_edges) == 3:
+        f_out.write(str(vert_and_edges[1]) + ' ')
+        f_out.write(str(vert_and_edges[2]) + ' ')
+        f_out.write(str(vert_and_edges[0]) + '\n')
+        shutil.copyfileobj(f_in, f_out)
+    else:
+        page_text = load_page(graph_name)
+        vertices_count = extract_number(find_info_on_page(page_text, "Size"))
+        edges_count = extract_number(find_info_on_page(page_text, "Volume"))
+        f_out.write(str(vertices_count) + ' ')
+        f_out.write(str(vertices_count) + ' ')
+        f_out.write(str(edges_count) + '\n')
+        shutil.copyfileobj(f_in, f_out)
+
+    f_in.close()
+    f_out.close()
+
+
+def check_if_no_loops_and_multiple_edges(graph_name):
+    page_text = load_page(graph_name)
+
+    no_multiple_edges = False
+    if "no multiple edges" in page_text:
+        no_multiple_edges = True
+
+    no_loops = False
+    if "Does not contain loops" in page_text:
+        no_loops = True
+
+    if no_loops and no_multiple_edges:
+        print("This konect graph does not contain loops or multiple edges, thus optimized generation can be used")
+        return True
+    else:
+        return False
+
+
 def create_real_world_graph(graph_name):
     graph_format = "mtx"
     output_graph_file_name = get_path_to_graph(graph_name, graph_format)
@@ -152,7 +232,10 @@ def create_real_world_graph(graph_name):
             else:
                 source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["link"]
 
-            gen_mtx_graph(source_name, output_graph_file_name)
+            if check_if_no_loops_and_multiple_edges(graph_name):
+                convert_to_mtx_if_no_loops_and_multiple_edges(source_name, output_graph_file_name, graph_name)
+            else:
+                gen_mtx_graph(source_name, output_graph_file_name)
 
             if verify_graph_existence(output_graph_file_name):
                 print("Graph " + output_graph_file_name + " has been created\n")
@@ -160,21 +243,8 @@ def create_real_world_graph(graph_name):
         if verify_graph_existence(output_graph_file_name):
             print("Graph " + output_graph_file_name + " has been created\n")
 
-        clear_dir(SOURCE_GRAPH_DIR)
-
-        '''tar_name = SOURCE_GRAPH_DIR + "download.tsv." + all_konect_graphs_data[graph_name]["link"] + ".tar.bz2"
-        cmd = ["tar", "-xjf", tar_name, '-C', SOURCE_GRAPH_DIR]
-        subprocess.call(cmd, shell=False, stdout=subprocess.PIPE)
-
-        if "unarch_graph_name" in all_konect_graphs_data[graph_name]:
-            source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["unarch_graph_name"]
-        else:
-            source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["link"]
-
-        gen_mtx_graph(source_name, output_graph_file_name)
-
-        if verify_graph_existence(output_graph_file_name):
-            print("Graph " + output_graph_file_name + " has been created\n")'''
+        if 'GAP' in graph_name:
+            clear_dir(SOURCE_GRAPH_DIR)
     else:
         print("Warning! Graph " + output_graph_file_name + " already exists!")
 
