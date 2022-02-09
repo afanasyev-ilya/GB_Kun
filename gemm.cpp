@@ -19,15 +19,17 @@ int main(int argc, char **argv) {
         lablas::Matrix<float> B;
         B.set_preferred_matrix_format(CSR);
         init_matrix(B, parser);
-        B.sort_csr_columns(0);
+        B.sort_csr_columns("STL_SORT");
         B.print();
+        /*
         const lablas::backend::MatrixCSR<float> *csr_data = A.get_matrix()->get_csr();
         Index num_rows = csr_data->get_num_rows();
         const Index *row_ptr = csr_data->get_row_ptr();
         const Index *col_ids = csr_data->get_col_ids();
         const float *vals = csr_data->get_vals();
+        */
     }
-    catch (string error)
+    catch (string& error)
     {
         cout << error << endl;
     }

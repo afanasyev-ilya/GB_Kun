@@ -96,7 +96,7 @@ public:
 
     Workspace *get_workspace() const { return (const_cast <Matrix<T>*> (this))->workspace; };
 
-    void sort_csr_columns(int mode);
+    void sort_csr_columns(const string& mode);
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;

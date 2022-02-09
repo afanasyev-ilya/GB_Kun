@@ -126,7 +126,9 @@ void MatrixCSR<T>::print() const
         for (int j = row_ptr[i]; j < row_ptr[i + 1]; ++j) {
             std::cout << col_ids[j] << " ";
         }
-        std::cout << "| ";
+        if (i + 1 != size_) {
+            std::cout << "| ";
+        }
     }
     cout << "]\n";
 

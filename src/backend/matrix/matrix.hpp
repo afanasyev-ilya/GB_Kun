@@ -340,19 +340,23 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Matrix<T>::sort_csr_columns(int mode)
+void Matrix<T>::sort_csr_columns(const string& mode)
 {
-    if (!mode) {
+    if (mode == "COUNTING_SORT") {
         const VNT *col_ids = get_csc()->get_col_ids();
         VNT *row_ids = new VNT[get_csc()->get_nnz()];
         const T *vals = get_csc()->get_vals();
-        for (VNT row_id = 0; row_id < get_csc()->get_num_rows(); ++row_id) {
+
+        VNT csc_num_rows = get_csc()->get_num_rows();
+        VNT csr_num_rows = get_csr()->get_num_rows();
+
+        for (VNT row_id = 0; row_id < csc_num_rows; ++row_id) {
             for (ENT j = get_csc()->get_row_ptr()[row_id]; j < get_csc()->get_row_ptr()[row_id + 1]; ++j) {
                 row_ids[j] = row_id;
             }
         }
 
-        std::vector<std::vector<pair<VNT, T>>> _result(get_csr()->get_num_rows());
+        std::vector<std::vector<pair<VNT, T>>> _result(csr_num_rows);
 
         for(ENT i = 0; i < get_csc()->get_nnz(); i++)
         {
@@ -368,14 +372,12 @@ void Matrix<T>::sort_csr_columns(int mode)
         VNT* result_col_ids = get_csr()->get_col_ids();
         T* result_vals = get_csr()->get_vals();
 
-        for(VNT i = 0; i < get_csr()->get_num_rows(); i++)
+        for(VNT i = 0; i < csr_num_rows; i++)
         {
             result_row_ptrs[i] = cur_pos;
             result_row_ptrs[i + 1] = cur_pos + _result[i].size();
             cur_pos += _result[i].size();
         }
-        // vertex VertexNumType VNT
-        // edge EdgeNumType ENT
         #pragma omp parallel for
         for(VNT i = 0; i < _result.size(); i++)
         {
@@ -385,13 +387,15 @@ void Matrix<T>::sort_csr_columns(int mode)
                 result_vals[j] = _result[i][j - get_csr()->get_row_ptr()[i]].second;
             }
         }
-    } else {
+    } else if (mode == "STL_SORT") {
         #pragma omp parallel for
         for (int i = 0; i < get_csr()->get_num_rows(); i++) {
             Index* begin_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i];
             Index* end_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i + 1];
             std::sort(begin_ptr, end_ptr);
         }
+    } else {
+        throw mode;
     }
 }
 
