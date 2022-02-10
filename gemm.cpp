@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 
         lablas::mxm(&A, &B, &C);
 
-        // C.print();
+        C.print();
     }
     catch (string& error)
     {
