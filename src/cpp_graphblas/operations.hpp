@@ -348,9 +348,12 @@ LA_Info vxm (Vector<W>*       _w,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename a>
-LA_Info mxm (const Matrix<a>* _matrix1, const Matrix<a>* _matrix2, Matrix<a>* _matrix_result)
+LA_Info mxm (const Matrix<a>* _matrix1, Matrix<a>* _matrix2, Matrix<a>* _matrix_result)
 {
-    backend::SpMSpM(_matrix1, _matrix2, _matrix_result);
+
+    backend::SpMSpM(_matrix1->get_matrix(),
+                    _matrix2->get_matrix(),
+                    _matrix_result->get_matrix());
     return GrB_SUCCESS;
 }
 

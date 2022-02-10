@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
         lablas::Matrix<float> B;
         B.set_preferred_matrix_format(CSR);
         init_matrix(B, parser);
-        B.sort_csr_columns("STL_SORT");
+        B.sort_csc_rows("STL_SORT");
         B.print();
         /*
         const lablas::backend::MatrixCSR<float> *csr_data = A.get_matrix()->get_csr();
@@ -28,6 +28,12 @@ int main(int argc, char **argv) {
         const Index *col_ids = csr_data->get_col_ids();
         const float *vals = csr_data->get_vals();
         */
+
+        lablas::Matrix<float> C;
+
+        lablas::mxm(&A, &B, &C);
+
+        // C.print();
     }
     catch (string& error)
     {
