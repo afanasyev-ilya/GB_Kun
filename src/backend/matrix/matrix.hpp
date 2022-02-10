@@ -368,9 +368,9 @@ void Matrix<T>::sort_csr_columns(const string& mode)
 
         ENT cur_pos = 0;
 
-        ENT* result_row_ptrs = get_csr()->get_row_ptr();
-        VNT* result_col_ids = get_csr()->get_col_ids();
-        T* result_vals = get_csr()->get_vals();
+        ENT* result_row_ptrs = const_cast<ENT *>(get_csr()->get_row_ptr());
+        VNT* result_col_ids = const_cast<VNT *>(get_csr()->get_col_ids());
+        T* result_vals = const_cast<T *>(get_csr()->get_vals());
 
         for(VNT i = 0; i < csr_num_rows; i++)
         {
