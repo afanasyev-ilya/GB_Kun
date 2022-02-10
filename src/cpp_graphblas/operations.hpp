@@ -227,15 +227,7 @@ LA_Info mxv (Vector<W>*       _w,
         return GrB_UNINITIALIZED_OBJECT;
 
     auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
-
-    if(_u->get_vector()->is_dense())
-        backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
-    else
-    {
-        backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
-    }
-
-    return GrB_SUCCESS;
+    return backend::mxv(_w->get_vector(), mask_t, _accum, _op, _matrix->get_matrix(), _u->get_vector(), _desc->get_descriptor());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -254,9 +246,7 @@ LA_Info vxm (Vector<W>*       _w,
         return GrB_UNINITIALIZED_OBJECT;
 
     auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
-    backend::VSpM(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
-
-    return GrB_SUCCESS;
+    return backend::vxm<W, M, a, U, BinaryOpTAccum, SemiringT>(_w->get_vector(), mask_t, _accum, _op, _matrix->get_matrix(), _u->get_vector(), _desc->get_descriptor());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -13,6 +13,40 @@ namespace backend{
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename W, typename M, typename a, typename U,
+        typename BinaryOpTAccum, typename SemiringT>
+LA_Info mxv (Vector<W>*       _w,
+             const Vector<M>* _mask,
+             BinaryOpTAccum   _accum,
+             SemiringT        _op,
+             const Matrix<a>* _matrix,
+             const Vector<U>* _u,
+             Descriptor*      _desc)
+{
+    backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename W, typename M, typename a, typename U,
+        typename BinaryOpTAccum, typename SemiringT>
+LA_Info vxm (Vector<W>*       _w,
+             const Vector<M>* _mask,
+             BinaryOpTAccum        _accum,
+             SemiringT        _op,
+             const Vector<U>* _u,
+             const Matrix<a>* _matrix,
+             Descriptor*      _desc)
+{
+    backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename W, typename M, typename U, typename BinaryOpTAccum>
 LA_Info assign(Vector<W>* _w,
     const Vector<M>* _mask,
