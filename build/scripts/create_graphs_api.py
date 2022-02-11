@@ -187,6 +187,8 @@ def convert_to_mtx_if_no_loops_and_multiple_edges(input_file, output_file, graph
 
 
 def check_if_no_loops_and_multiple_edges(graph_name):
+    return False
+    
     page_text = load_page(graph_name)
 
     no_multiple_edges = False
