@@ -100,3 +100,6 @@ target_include_directories(gen PRIVATE)
 add_executable(gemm gemm.cpp)
 target_include_directories(gemm PRIVATE)
 
+add_executable(saxpy saxpy.cpp)
+target_include_directories(saxpy PRIVATE)
+

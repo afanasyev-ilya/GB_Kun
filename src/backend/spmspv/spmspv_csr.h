@@ -7,7 +7,6 @@
 template <typename T>
 vector<vector<int>> estimate_buckets(const MatrixCSR<T> *matrix, const SparseVector<T> *x, vector<vector<int>> &Boffset, int nb, int nt)
 {
-
     omp_set_dynamic(0);     // Explicitly disable dynamic teams
     omp_set_num_threads(nt); // Use 1 threads for all consecutive parallel regions
 

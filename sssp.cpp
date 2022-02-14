@@ -52,7 +52,6 @@ int main(int argc, char **argv) {
                 cout << "SSSP distances are NOT equal" << endl;
             }
         }
-
     }
     catch (string error)
     {
