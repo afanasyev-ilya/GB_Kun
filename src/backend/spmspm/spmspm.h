@@ -13,7 +13,7 @@ VNT binary_search(const Index* data, VNT left, VNT right, ENT value)
         if (left > right) {
             return -1;
         }
-        VNT mid = left + (right - left) / 2;
+        VNT mid = left + (right - left) / 2; // div 2 or div rand
         if (data[mid] < value) {
             left = mid + 1;
         } else if (data[mid] > value) {
@@ -50,11 +50,6 @@ void SpMSpM_unmasked_ijk(const Matrix<T> *_matrix1,
 
             T accumulator = 0;
             for (ENT matrix1_col_id = matrix1_col_start_id; matrix1_col_id < matrix1_col_end_id; ++matrix1_col_id) {
-                if (matrix1_col_id != matrix1_col_start_id &&
-                        _matrix1->get_csr()->get_col_ids()[matrix1_col_id] ==
-                        _matrix1->get_csr()->get_col_ids()[matrix1_col_id - 1]) {
-                    continue;
-                }
                 ENT matrix1_col_num = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
                 // i == matrix1_row_id, j == matrix2_col_id, k == matrix1_col_num
                 VNT found_matrix2_row_id = binary_search(_matrix2->get_csc()->get_col_ids(),

@@ -151,13 +151,15 @@ LA_Info generic_sparse_reduce_op(T *_tmp_val,
 
 template <typename c, typename a, typename b, typename m,
         typename BinaryOpT,     typename SemiringT>
-LA_Info mxm(Matrix<c>*       C,
+LA_Info mxm(Matrix<c>* C,
          const Matrix<m>* mask,
-         BinaryOpT        accum,
-         SemiringT        op,
+         BinaryOpT accum,
+         SemiringT op,
          const Matrix<a>* A,
          const Matrix<b>* B,
          Descriptor*      desc) {
+    // auto add_op = extractAdd(op);
+    // auto mul_op = extractMul(op);
     if (mask) {
         return GrB_PANIC;
     } else {
