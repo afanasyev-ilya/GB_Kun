@@ -64,11 +64,13 @@ void SpMSpM_unmasked_ijk(const Matrix<T> *_matrix1,
                 }
             }
             #pragma omp critical(updateresults)
-            if (accumulator) {
-                row_ids.push_back(matrix1_row_id);
-                col_ids.push_back(matrix2_col_id);
-                values.push_back(accumulator);
-                ++nnz;
+            {
+                if (accumulator) {
+                    row_ids.push_back(matrix1_row_id);
+                    col_ids.push_back(matrix2_col_id);
+                    values.push_back(accumulator);
+                    ++nnz;
+                }
             }
         }
     }

@@ -23,8 +23,8 @@ LA_Info mxv (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    //backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
-    backend::SpMSpV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+    backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+    //backend::SpMSpV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
 
     return GrB_SUCCESS;
 }
