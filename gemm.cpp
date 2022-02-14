@@ -31,8 +31,9 @@ int main(int argc, char **argv) {
         */
 
         lablas::Matrix<float> C;
-
-        //lablas::mxm(&A, &B, &C, "ijk_gpu");
+        #define MASK_NULL static_cast<const lablas::Matrix<float>*>(NULL)
+        lablas::mxm(&C, MASK_NULL, NULL, NULL, &A, &B, &desc);
+        #undef MASK_NULL
 
         C.print();
     }

@@ -152,7 +152,7 @@ LA_Info generic_sparse_reduce_op(T *_tmp_val,
 template <typename c, typename a, typename b, typename m,
         typename BinaryOpT,     typename SemiringT>
 LA_Info mxm(Matrix<c>*       C,
-         const Matrix<a>* mask,
+         const Matrix<m>* mask,
          BinaryOpT        accum,
          SemiringT        op,
          const Matrix<a>* A,

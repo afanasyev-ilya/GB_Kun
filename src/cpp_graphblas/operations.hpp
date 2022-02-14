@@ -361,7 +361,7 @@ LA_Info mxm(Matrix<c>*       C,
         return GrB_UNINITIALIZED_OBJECT;
     }
     auto mask_t = (mask == NULL) ? NULL : mask->get_matrix();
-    return backend::mxm(C->get_matrix(), mask_t, accum, op,
+    return backend::mxm(C->get_matrix(), mask_t, NULL, NULL,
                         A->get_matrix(), B->get_matrix(), desc->get_descriptor());
 }
 
