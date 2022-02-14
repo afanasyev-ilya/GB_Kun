@@ -66,6 +66,7 @@ void gather_copy(const base_type *__restrict data, const Index * __restrict inde
     MemoryAPI::free_array(copy);
 }
 
+
 void gather_copy_12_groups(const base_type *__restrict data, const Index * __restrict indexes, base_type * __restrict result, size_t size, size_t small_size)
 {
     double t1, t2;
@@ -78,7 +79,7 @@ void gather_copy_12_groups(const base_type *__restrict data, const Index * __res
         int tid = omp_get_thread_num() / 4;
 
         base_type *loc_data = &copy[tid*small_size];
-        if(tid % 4 == 0)
+        if((omp_get_thread_num() % 4) == 0)
         {
             for(size_t i = 0; i < small_size; i++)
             {
@@ -98,7 +99,7 @@ void gather_copy_12_groups(const base_type *__restrict data, const Index * __res
         #pragma omp for
         for(size_t i = 0; i < size; i++)
         {
-            result[i] = data[indexes[i]];
+            result[i] = loc_data[indexes[i]];
         }
     };
     t2 = omp_get_wtime();
@@ -116,6 +117,142 @@ void gather_copy_12_groups(const base_type *__restrict data, const Index * __res
             error_count++;
     }
     cout << "12 group check: " << error_count << " / " << size << endl;
+}
+
+
+void scatter_copy(base_type *data, const Index * __restrict indexes, base_type * __restrict result, size_t size, size_t small_size)
+{
+    double t1, t2;
+    base_type *copy;
+    MemoryAPI::allocate_array(&copy, small_size*48);
+
+    #pragma omp parallel num_threads(48)
+    {
+        int tid = omp_get_thread_num();
+        base_type *loc_data = &copy[tid*small_size];
+        for(size_t i = 0; i < small_size; i++)
+        {
+            loc_data[i] = 0;
+        }
+    }
+
+    t1 = omp_get_wtime();
+    #pragma omp parallel num_threads(48)
+    {
+        int tid = omp_get_thread_num();
+
+        base_type *loc_data = &copy[tid*small_size];
+        #pragma omp for
+        for(size_t i = 0; i < size; i++)
+        {
+            loc_data[indexes[i]] = result[i];
+        }
+    };
+    t2 = omp_get_wtime();
+    cout << "scatter copy: " << size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+
+    for(int tid = 0; tid < 48; tid++)
+    {
+        base_type *loc_data = &copy[tid*small_size];
+
+        #pragma omp parallel for
+        for(size_t i = 0; i < small_size; i++)
+        {
+            data[i] = max(loc_data[i], data[i]);
+        }
+    }
+
+    MemoryAPI::free_array(copy);
+}
+
+void scatter_copy_12_groups(base_type *data, const Index * __restrict indexes, base_type * __restrict result, size_t size, size_t small_size)
+{
+    double t1, t2;
+    base_type *copy;
+    MemoryAPI::allocate_array(&copy, small_size*12);
+
+    #pragma omp parallel num_threads(48)
+    {
+        int tid = omp_get_thread_num() / 4;
+        base_type *loc_data = &copy[tid*small_size];
+        for(size_t i = 0; i < small_size; i++)
+        {
+            loc_data[i] = 0;
+        }
+    }
+
+    t1 = omp_get_wtime();
+    #pragma omp parallel num_threads(48)
+    {
+        int tid = omp_get_thread_num() / 4;
+
+        base_type *loc_data = &copy[tid*small_size];
+        #pragma omp for
+        for(size_t i = 0; i < size; i++)
+        {
+            loc_data[indexes[i]] = result[i];
+        }
+    };
+    t2 = omp_get_wtime();
+    cout << "scatter copy 12 groups: " << size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+
+    for(int tid = 0; tid < 12; tid++)
+    {
+        base_type *loc_data = &copy[tid*small_size];
+
+        #pragma omp parallel for
+        for(size_t i = 0; i < small_size; i++)
+        {
+            data[i] = max(loc_data[i], data[i]);
+        }
+    }
+
+    MemoryAPI::free_array(copy);
+}
+
+void scatter_copy_6_groups(base_type *data, const Index * __restrict indexes, base_type * __restrict result, size_t size, size_t small_size)
+{
+    double t1, t2;
+    base_type *copy;
+    MemoryAPI::allocate_array(&copy, small_size*6);
+
+    #pragma omp parallel num_threads(48)
+    {
+        int tid = omp_get_thread_num() / 8;
+        base_type *loc_data = &copy[tid*small_size];
+        for(size_t i = 0; i < small_size; i++)
+        {
+            loc_data[i] = 0;
+        }
+    }
+
+    t1 = omp_get_wtime();
+    #pragma omp parallel num_threads(48)
+    {
+        int tid = omp_get_thread_num() / 8;
+
+        base_type *loc_data = &copy[tid*small_size];
+        #pragma omp for
+        for(size_t i = 0; i < size; i++)
+        {
+            loc_data[indexes[i]] = result[i];
+        }
+    };
+    t2 = omp_get_wtime();
+    cout << "scatter copy 6 groups: " << size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+
+    for(int tid = 0; tid < 6; tid++)
+    {
+        base_type *loc_data = &copy[tid*small_size];
+
+        #pragma omp parallel for
+        for(size_t i = 0; i < small_size; i++)
+        {
+            data[i] = max(loc_data[i], data[i]);
+        }
+    }
+
+    MemoryAPI::free_array(copy);
 }
 
 void scatter_one_sock(base_type *data, const Index * __restrict indexes, base_type * __restrict result, size_t size)
@@ -237,15 +374,19 @@ Index main(void)
         t2 = omp_get_wtime();
         cout << "scatter one sock: " << current_radius * sizeof(Index) / (1024) << "KB " << large_size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
-        t1 = omp_get_wtime();
-        scatter_one_sock(data, indexes, result, large_size);
-        t2 = omp_get_wtime();
-        cout << "scatter one sock: " << current_radius * sizeof(Index) / (1024) << "KB " << large_size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+        reinit_data(data, current_radius);
+        scatter_copy(data, indexes, result, large_size, current_radius);
+
+        reinit_data(data, current_radius);
+        scatter_copy_12_groups(data, indexes, result, large_size, current_radius);
+
+        reinit_data(data, current_radius);
+        scatter_copy_6_groups(data, indexes, result, large_size, current_radius);
 
         MemoryAPI::free_array(indexes);
         MemoryAPI::free_array(result);
         MemoryAPI::free_array(data);
-        cout << endl;
+        cout << endl << endl;
     }
 
     return 0;

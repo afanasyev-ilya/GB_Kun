@@ -19,6 +19,36 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
+    ENT max_nnz = 0;
+    for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++) {
+        SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
+        if (segment->nnz > max_nnz)
+            max_nnz = segment->nnz;
+    }
+
+    Y *result;
+    MemoryAPI::allocate_array(&result, max_nnz);
+
+    double new_way_time = 0;
+    for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
+    {
+        SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
+        Y *buffer = (Y*)segment->vertex_buffer;
+
+        double t1_check = omp_get_wtime();
+        #pragma omp parallel for
+        for(ENT i = 0; i < segment->nnz; i++)
+        {
+            VNT col_id = segment->col_ids[i];
+            A val = segment->vals[i];
+            result[i] = mul_op(val, x_vals[col_id]);
+        }
+        double t2_check = omp_get_wtime();
+        new_way_time += t2_check - t1_check;
+        cout << "check BW: " << segment->nnz * (3.0*sizeof(X) + sizeof(Index)) / ((t2_check - t1_check)*1e9) << " GB/s, " << "time: " << (t2_check - t1_check)*1000 << endl;
+    }
+    MemoryAPI::free_array(result);
+
     double t1 = omp_get_wtime();
     int cores_num = omp_get_max_threads();
     #pragma omp parallel // parallelism within each segment
@@ -167,7 +197,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         }
     }*/
     double t2 = omp_get_wtime();
-    cout << "inner (seg) time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "inner (seg) time: " << (t2 - t1)*1000 << " ms " << endl;
     cout << "inner (seg) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
     double t3 = omp_get_wtime();

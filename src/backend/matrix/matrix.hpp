@@ -99,6 +99,7 @@ void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
     double t1, t2;
     t1 = omp_get_wtime();
     FILE *fp = fopen(_mtx_file_name.c_str(), "r");
+
     char header_line[4096];
 
     while(true)
