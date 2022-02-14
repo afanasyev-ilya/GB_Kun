@@ -19,7 +19,7 @@ void saxpy_one_sock(base_type a, base_type * __restrict z, const base_type * __r
 
 void saxpy_both_sock(base_type a, base_type * __restrict z, const base_type * __restrict x, const base_type * __restrict y, size_t size)
 {
-#pragma omp parallel for num_threads(96)
+    #pragma omp parallel for num_threads(96)
     for(size_t i = 0; i < size; i++)
         z[i] = a*x[i] + y[i];
 }
@@ -61,44 +61,61 @@ void gather_copy(const base_type *__restrict data, const Index * __restrict inde
         }
     };
     t2 = omp_get_wtime();
-    cout << "gather copy: " << size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
+    cout << "gather copy: " << size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
     MemoryAPI::free_array(copy);
 }
 
-void gather_copy_group(const base_type *__restrict data, const Index * __restrict indexes, base_type * __restrict result, size_t size, size_t small_size)
+void gather_copy_12_groups(const base_type *__restrict data, const Index * __restrict indexes, base_type * __restrict result, size_t size, size_t small_size)
 {
     double t1, t2;
     base_type *copy;
     MemoryAPI::allocate_array(&copy, small_size*12);
 
+    t1 = omp_get_wtime();
     #pragma omp parallel num_threads(48)
     {
-        int tid = omp_get_thread_num() % 4;
+        int tid = omp_get_thread_num() / 4;
 
         base_type *loc_data = &copy[tid*small_size];
-        for(size_t i = 0; i < small_size; i++)
+        if(tid % 4 == 0)
         {
-            loc_data[i] = data[i];
+            for(size_t i = 0; i < small_size; i++)
+            {
+                loc_data[i] = data[i];
+            }
         }
     }
+    t2 = omp_get_wtime();
+    cout << "prefetch time: " << (t2 - t1)*1000 << " ms" << endl;
 
     t1 = omp_get_wtime();
     #pragma omp parallel num_threads(48)
     {
-        int tid = omp_get_thread_num() % 4;
+        int tid = omp_get_thread_num() / 4;
 
         base_type *loc_data = &copy[tid*small_size];
         #pragma omp for
         for(size_t i = 0; i < size; i++)
         {
-            result[i] = loc_data[indexes[i]];
+            result[i] = data[indexes[i]];
         }
     };
     t2 = omp_get_wtime();
-    cout << "gather copy 12 groups: " << size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
+    cout << "spmv time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "gather copy 12 groups: " << size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
     MemoryAPI::free_array(copy);
+
+
+    size_t error_count = 0;
+    #pragma omp parallel for num_threads(48) reduction(+: error_count)
+    for(size_t i = 0; i < size; i++)
+    {
+        if(result[i] != data[indexes[i]])
+            error_count++;
+    }
+    cout << "12 group check: " << error_count << " / " << size << endl;
 }
 
 void scatter_one_sock(base_type *data, const Index * __restrict indexes, base_type * __restrict result, size_t size)
@@ -157,9 +174,10 @@ Index main(void)
 
     size_t large_size = size;
 
-    const int num_tests = 6;//11;
+    const int num_tests = 7;//11;
     size_t rads[num_tests] = {128*1024/sizeof(base_type),
                               256*1024/sizeof(base_type),
+                              512*1024/sizeof(base_type),
                               1024*1024/sizeof(base_type),
                               2*1024*1024/sizeof(base_type),
                               4*1024*1024/sizeof(base_type),
@@ -210,7 +228,7 @@ Index main(void)
 
         gather_copy(data, indexes, result, large_size, current_radius);
 
-        gather_copy_group(data, indexes, result, large_size, current_radius);
+        gather_copy_12_groups(data, indexes, result, large_size, current_radius);
 
         reinit_data(data, current_radius);
 
