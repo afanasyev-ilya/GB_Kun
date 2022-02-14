@@ -9,10 +9,11 @@ namespace backend {
 
 template <typename T>
 void SpMSpM(const Matrix<T> *_matrix1,
-            Matrix<T> *_matrix2,
-            Matrix<T> *_matrix_result)
+            const Matrix<T> *_matrix2,
+            Matrix<T> *_matrix_result,
+            const string& mode)
 {
-
+    double t1 = omp_get_wtime();
     VNT matrix1_num_rows = _matrix1->get_csr()->get_num_rows();
     VNT matrix2_num_cols = _matrix2->get_csc()->get_num_rows();
 
@@ -21,26 +22,30 @@ void SpMSpM(const Matrix<T> *_matrix1,
     vector<T> values;
     ENT nnz = 0;
 
-    // #pragma omp parallel for
+    // #pragma omp parallel for default(none), shared(_matrix1, _matrix2, _matrix_result, matrix1_num_rows, matrix2_num_cols, row_ids, col_ids, values, nnz)
     for (VNT matrix1_row_id = 0; matrix1_row_id < matrix1_num_rows; ++matrix1_row_id) {
         ENT matrix1_col_start_id = _matrix1->get_csr()->get_row_ptr()[matrix1_row_id];
         ENT matrix1_col_end_id = _matrix1->get_csr()->get_row_ptr()[matrix1_row_id + 1];
-
         for (VNT matrix2_col_id = 0; matrix2_col_id < matrix2_num_cols; ++matrix2_col_id) {
             VNT matrix2_col_start_id = _matrix2->get_csc()->get_row_ptr()[matrix2_col_id];
             VNT matrix2_col_end_id = _matrix2->get_csc()->get_row_ptr()[matrix2_col_id + 1];
 
             T accumulator = 0;
             for (ENT matrix1_col_id = matrix1_col_start_id; matrix1_col_id < matrix1_col_end_id; ++matrix1_col_id) {
+                if (matrix1_col_id != matrix1_col_start_id &&
+                        _matrix1->get_csr()->get_col_ids()[matrix1_col_id] ==
+                        _matrix1->get_csr()->get_col_ids()[matrix1_col_id - 1]) {
+                    continue;
+                }
                 ENT matrix1_col_num = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
                 // i == matrix1_row_id, j == matrix2_col_id, k == matrix1_col_num
-                bool matrix2_non_zero = true;
+                // Вынести в отдельную функцию
+                bool matrix2_non_zero = false;
                 VNT found_matrix2_row_id;
                 VNT left = matrix2_col_start_id;
                 VNT right = matrix2_col_end_id - 1;
                 while (true) {
                     if (left > right) {
-                        matrix2_non_zero = false;
                         break;
                     }
                     VNT mid = left + (right - left) / 2;
@@ -50,6 +55,7 @@ void SpMSpM(const Matrix<T> *_matrix1,
                         right = mid - 1;
                     } else {
                         found_matrix2_row_id = mid;
+                        matrix2_non_zero = true;
                         break;
                     }
                 }
@@ -59,6 +65,7 @@ void SpMSpM(const Matrix<T> *_matrix1,
                     accumulator += matrix1_val * matrix2_val;
                 }
             }
+            // #pragma omp critical(updateresults)
             if (accumulator) {
                 row_ids.push_back(matrix1_row_id);
                 col_ids.push_back(matrix2_col_id);
@@ -67,9 +74,29 @@ void SpMSpM(const Matrix<T> *_matrix1,
             }
         }
     }
-
+    double t2 = omp_get_wtime();
     SpMSpM_alloc(_matrix_result);
     _matrix_result->build(&row_ids[0], &col_ids[0], &values[0], matrix1_num_rows, nnz);
+    double t3 = omp_get_wtime();
+
+    int error_cnt = 0;
+    for (int i = 0; i < matrix1_num_rows; ++i) {
+        for (int j = 0; j < matrix1_num_rows; ++j) {
+            T accumulator = 0;
+            for (int k = 0; k < matrix1_num_rows; ++k) {
+                accumulator += _matrix1->get_csr()->get(i, k) * _matrix2->get_csr()->get(k, j);
+            }
+            if (_matrix_result->get_csr()->get(i, j) != accumulator) {
+                std::cout << i << ' ' << j << " " << accumulator << " " << _matrix_result->get_csr()->get(i, j) << std::endl;
+                ++error_cnt;
+            }
+        }
+    }
+    double overall_time = t3 - t1;
+    printf("SpMSpM time: %lf seconds.\n", t3-t1);
+    printf("\t- Calculating result: %.1lf %%\n", (t2 - t1) / overall_time * 100.0);
+    printf("\t- Converting result: %.1lf %%\n", (t3 - t2) / overall_time * 100.0);
+    printf("\t- Error cnt: %d\n", error_cnt);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
