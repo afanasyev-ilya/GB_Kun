@@ -39,6 +39,10 @@ public:
     const VNT *get_rowdegrees() const {return row_degrees;};
 
     bool can_use_static_balancing() const {return static_ok_to_use;};
+    ENT get_degree(VNT _row) {return row_ptr[_row + 1] - row_ptr[_row];};
+
+    T get(VNT _row, VNT _col) const;
+
 private:
     VNT nrows, ncols;
     ENT nnz;
@@ -59,7 +63,6 @@ private:
     void resize(VNT _nrows, VNT _ncols, ENT _nnz, int _target_socket);
 
     bool is_non_zero(VNT _row, VNT _col);
-    T get(VNT _row, VNT _col) const;
 
     template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,

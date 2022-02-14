@@ -273,11 +273,11 @@ LA_Info reduce(T* _val,
 /* Assume that we have allocated memory in w of size sizeof(indices) */
 template <typename W, typename M, typename U, typename I, typename BinaryOpT>
 LA_Info extract(Vector<W>*       w,
-               const Vector<M>* mask,
-               BinaryOpT        accum,
-               const Vector<U>* u,
-               const Vector<I>* indices,
-               Descriptor*      desc)
+                const Vector<M>* mask,
+                BinaryOpT        accum,
+                const Vector<U>* u,
+                const Vector<I>* indices,
+                Descriptor*      desc)
 {
     for (Index i = 0; i < indices->get_size(); i++)
     {
@@ -295,6 +295,31 @@ LA_Info extract(Vector<W>*       w,
     }
     return GrB_SUCCESS;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename c, typename a, typename b, typename m,
+        typename BinaryOpT,     typename SemiringT>
+LA_Info mxm(Matrix<c>* C,
+         const Matrix<m>* mask,
+         BinaryOpT accum,
+         SemiringT op,
+         const Matrix<a>* A,
+         const Matrix<b>* B,
+         Descriptor*      desc) {
+    // auto add_op = extractAdd(op);
+    // auto mul_op = extractMul(op);
+    if (mask) {
+        return GrB_PANIC;
+    } else {
+        backend::SpMSpM_unmasked_ijk(A,
+                                     B,
+                                 C);
+        return GrB_SUCCESS;
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 }

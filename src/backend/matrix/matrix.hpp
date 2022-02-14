@@ -343,3 +343,129 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void Matrix<T>::sort_csr_columns(const string& mode)
+{
+    if (mode == "COUNTING_SORT") {
+        const VNT *col_ids = get_csc()->get_col_ids();
+        VNT *row_ids = new VNT[get_csc()->get_nnz()];
+        const T *vals = get_csc()->get_vals();
+
+        VNT csc_num_rows = get_csc()->get_num_rows();
+        VNT csr_num_rows = get_csr()->get_num_rows();
+
+        for (VNT row_id = 0; row_id < csc_num_rows; ++row_id) {
+            for (ENT j = get_csc()->get_row_ptr()[row_id]; j < get_csc()->get_row_ptr()[row_id + 1]; ++j) {
+                row_ids[j] = row_id;
+            }
+        }
+
+        std::vector<std::vector<pair<VNT, T>>> _result(csr_num_rows);
+
+        for(ENT i = 0; i < get_csc()->get_nnz(); i++)
+        {
+            VNT row = col_ids[i];
+            VNT col = row_ids[i];
+            T val = vals[i];
+            _result[row].push_back(make_pair(col, val));
+        }
+
+        ENT cur_pos = 0;
+
+        ENT* result_row_ptrs = const_cast<ENT *>(get_csr()->get_row_ptr());
+        VNT* result_col_ids = const_cast<VNT *>(get_csr()->get_col_ids());
+        T* result_vals = const_cast<T *>(get_csr()->get_vals());
+
+        for(VNT i = 0; i < csr_num_rows; i++)
+        {
+            result_row_ptrs[i] = cur_pos;
+            result_row_ptrs[i + 1] = cur_pos + _result[i].size();
+            cur_pos += _result[i].size();
+        }
+        #pragma omp parallel for
+        for(VNT i = 0; i < _result.size(); i++)
+        {
+            for(ENT j = get_csr()->get_row_ptr()[i]; j < get_csr()->get_row_ptr()[i + 1]; j++)
+            {
+                result_col_ids[j] = _result[i][j - get_csr()->get_row_ptr()[i]].first;
+                result_vals[j] = _result[i][j - get_csr()->get_row_ptr()[i]].second;
+            }
+        }
+    } else if (mode == "STL_SORT") {
+        #pragma omp parallel for
+        for (int i = 0; i < get_csr()->get_num_rows(); i++) {
+            Index* begin_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i];
+            Index* end_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i + 1];
+            std::sort(begin_ptr, end_ptr);
+        }
+    } else {
+        throw mode;
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void Matrix<T>::sort_csc_rows(const string& mode)
+{
+    if (mode == "COUNTING_SORT") {
+        /*
+        const VNT *col_ids = get_csc()->get_col_ids();
+        VNT *row_ids = new VNT[get_csc()->get_nnz()];
+        const T *vals = get_csc()->get_vals();
+
+        VNT csc_num_rows = get_csc()->get_num_rows();
+        VNT csr_num_rows = get_csr()->get_num_rows();
+
+        for (VNT row_id = 0; row_id < csc_num_rows; ++row_id) {
+            for (ENT j = get_csc()->get_row_ptr()[row_id]; j < get_csc()->get_row_ptr()[row_id + 1]; ++j) {
+                row_ids[j] = row_id;
+            }
+        }
+
+        std::vector<std::vector<pair<VNT, T>>> _result(csr_num_rows);
+
+        for(ENT i = 0; i < get_csc()->get_nnz(); i++)
+        {
+            VNT row = col_ids[i];
+            VNT col = row_ids[i];
+            T val = vals[i];
+            _result[row].push_back(make_pair(col, val));
+        }
+
+        ENT cur_pos = 0;
+
+        ENT* result_row_ptrs = get_csr()->get_row_ptr();
+        VNT* result_col_ids = get_csr()->get_col_ids();
+        T* result_vals = get_csr()->get_vals();
+
+        for(VNT i = 0; i < csr_num_rows; i++)
+        {
+            result_row_ptrs[i] = cur_pos;
+            result_row_ptrs[i + 1] = cur_pos + _result[i].size();
+            cur_pos += _result[i].size();
+        }
+        #pragma omp parallel for
+        for(VNT i = 0; i < _result.size(); i++)
+        {
+            for(ENT j = get_csr()->get_row_ptr()[i]; j < get_csr()->get_row_ptr()[i + 1]; j++)
+            {
+                result_col_ids[j] = _result[i][j - get_csr()->get_row_ptr()[i]].first;
+                result_vals[j] = _result[i][j - get_csr()->get_row_ptr()[i]].second;
+            }
+        }
+        */
+    } else if (mode == "STL_SORT") {
+        #pragma omp parallel for
+        for (int i = 0; i < get_csc()->get_num_rows(); i++) {
+            Index* begin_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i];
+            Index* end_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i + 1];
+            std::sort(begin_ptr, end_ptr);
+        }
+    } else {
+        throw mode;
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

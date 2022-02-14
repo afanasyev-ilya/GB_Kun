@@ -93,6 +93,10 @@ public:
     ENT* get_coldegrees() { return csc_data->get_rowdegrees(); }
 
     Workspace *get_workspace() const { return (const_cast <Matrix<T>*> (this))->workspace; };
+
+    void sort_csr_columns(const string& mode);
+
+    void sort_csc_rows(const string& mode);
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;

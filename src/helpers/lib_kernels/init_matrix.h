@@ -35,6 +35,10 @@ void init_matrix(lablas::Matrix<T> &_matrix, Parser &_parser)
             GraphGenerationAPI::init_from_txt_file(edges_container, _parser.get_file_name(), DIRECTED_GRAPH);
         }
 
+        #ifdef NEED_GEMM
+        edges_container.remove_duplicated_edges();
+        #endif
+
         const std::vector<VNT> src_ids(edges_container.src_ids);
         const std::vector<VNT> dst_ids(edges_container.dst_ids);
         std::vector<T> edge_vals(edges_container.edge_vals);

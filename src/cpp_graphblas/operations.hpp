@@ -251,6 +251,26 @@ LA_Info vxm (Vector<W>*       _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename c, typename m, typename a, typename b,
+        typename BinaryOpT, typename SemiringT>
+LA_Info mxm(Matrix<c>*       C,
+            const Matrix<m>* mask,
+            BinaryOpT        accum,
+            SemiringT        op,
+            const Matrix<a>* A,
+            const Matrix<b>* B,
+            Descriptor*      desc)
+{
+    if (not_initialized(C, A, B, desc)) {
+        return GrB_UNINITIALIZED_OBJECT;
+    }
+    auto mask_t = (mask == NULL) ? NULL : mask->get_matrix();
+    return backend::mxm(C->get_matrix(), mask_t, accum, op,
+                        A->get_matrix(), B->get_matrix(), desc->get_descriptor());
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /* w = op(w, u[i]) for each i; */
 template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
 LA_Info reduce(T *_val,
