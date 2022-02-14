@@ -132,6 +132,17 @@ void MatrixCSR<T>::print() const
     }
     cout << "]\n";
 
+    cout << "vals: [ ";
+    for (int i = 0; i < size_; ++i) {
+        for (int j = row_ptr[i]; j < row_ptr[i + 1]; ++j) {
+            std::cout << vals[j] << " ";
+        }
+        if (i + 1 != size_) {
+            std::cout << "| ";
+        }
+    }
+    cout << "]\n";
+
     cout << "--------------------\n";
 }
 
