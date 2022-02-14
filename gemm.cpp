@@ -14,6 +14,7 @@ int main(int argc, char **argv) {
         lablas::Matrix<float> A;
         A.set_preferred_matrix_format(CSR);
         init_matrix(A, parser);
+        A.sort_csr_columns("STL_SORT");
         A.print();
 
         lablas::Matrix<float> B;
@@ -31,7 +32,7 @@ int main(int argc, char **argv) {
 
         lablas::Matrix<float> C;
 
-        lablas::mxm(&A, &B, &C);
+        lablas::mxm(&A, &B, &C, "ijk_gpu");
 
         C.print();
     }
