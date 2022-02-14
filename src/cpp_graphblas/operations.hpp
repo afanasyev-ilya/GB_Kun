@@ -347,14 +347,22 @@ LA_Info vxm (Vector<W>*       _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename a>
-LA_Info mxm (const Matrix<a>* _matrix1, Matrix<a>* _matrix2, Matrix<a>* _matrix_result)
+template <typename c, typename m, typename a, typename b,
+        typename BinaryOpT, typename SemiringT>
+LA_Info mxm(Matrix<c>*       C,
+            const Matrix<m>* mask,
+            BinaryOpT        accum,
+            SemiringT        op,
+            const Matrix<a>* A,
+            const Matrix<b>* B,
+            Descriptor*      desc)
 {
-
-    backend::SpMSpM(_matrix1->get_matrix(),
-                    _matrix2->get_matrix(),
-                    _matrix_result->get_matrix());
-    return GrB_SUCCESS;
+    if (not_initialized(C, A, B, desc)) {
+        return GrB_UNINITIALIZED_OBJECT;
+    }
+    auto mask_t = (mask == NULL) ? NULL : mask->get_matrix();
+    return backend::mxm(C->get_matrix(), mask_t, accum, op,
+                        A->get_matrix(), B->get_matrix(), desc->get_descriptor());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

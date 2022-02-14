@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 
         lablas::Matrix<float> C;
 
-        lablas::mxm(&A, &B, &C, "ijk_gpu");
+        //lablas::mxm(&A, &B, &C, "ijk_gpu");
 
         C.print();
     }

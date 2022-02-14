@@ -8,10 +8,9 @@ namespace backend {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void SpMSpM(const Matrix<T> *_matrix1,
-            const Matrix<T> *_matrix2,
-            Matrix<T> *_matrix_result,
-            const string& mode)
+void SpMSpM_unmasked(const Matrix<T> *_matrix1,
+                     const Matrix<T> *_matrix2,
+                     Matrix<T> *_matrix_result)
 {
     double t1 = omp_get_wtime();
     VNT matrix1_num_rows = _matrix1->get_csr()->get_num_rows();

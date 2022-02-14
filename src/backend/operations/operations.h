@@ -149,5 +149,26 @@ LA_Info generic_sparse_reduce_op(T *_tmp_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename c, typename a, typename b, typename m,
+        typename BinaryOpT,     typename SemiringT>
+LA_Info mxm(Matrix<c>*       C,
+         const Matrix<a>* mask,
+         BinaryOpT        accum,
+         SemiringT        op,
+         const Matrix<a>* A,
+         const Matrix<b>* B,
+         Descriptor*      desc) {
+    if (mask) {
+        return GrB_PANIC;
+    } else {
+        backend::SpMSpM_unmasked(A,
+                                 B,
+                                 C);
+        return GrB_SUCCESS;
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 }
 }
