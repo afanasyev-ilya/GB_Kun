@@ -100,6 +100,9 @@ public:
     const VNT *get_col_ids() const {return col_ids;};
 
     ENT get_degree(VNT _row) {return row_ptr[_row + 1] - row_ptr[_row];};
+
+    T get(VNT _row, VNT _col) const;
+
 private:
     VNT size;
     ENT nnz;
@@ -118,7 +121,6 @@ private:
     void resize(VNT _size, ENT _nnz, int _target_socket);
 
     bool is_non_zero(VNT _row, VNT _col);
-    T get(VNT _row, VNT _col) const;
 
     template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
