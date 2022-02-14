@@ -117,6 +117,15 @@ private:
                                        Descriptor *_desc,
                                        Workspace *_workspace);
 
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void spmspv_unmasked(const MatrixCSR<A> *_matrix,
+                                const DenseVector<X> *_x,
+                                DenseVector<Y> *_y,
+                                BinaryOpTAccum _accum,
+                                SemiringT op,
+                                Descriptor *_desc,
+                                Workspace *_workspace);
+
     void prepare_vg_lists(int _target_socket);
     void numa_aware_realloc();
     void check_if_static_can_be_used();

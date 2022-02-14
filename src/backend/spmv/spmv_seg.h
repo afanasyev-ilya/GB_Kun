@@ -19,7 +19,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
-    ENT max_nnz = 0;
+    /*ENT max_nnz = 0;
     for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++) {
         SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
         if (segment->nnz > max_nnz)
@@ -47,7 +47,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         new_way_time += t2_check - t1_check;
         cout << "check BW: " << segment->nnz * (3.0*sizeof(X) + sizeof(Index)) / ((t2_check - t1_check)*1e9) << " GB/s, " << "time: " << (t2_check - t1_check)*1000 << endl;
     }
-    MemoryAPI::free_array(result);
+    MemoryAPI::free_array(result);*/
 
     double t1 = omp_get_wtime();
     int cores_num = omp_get_max_threads();
