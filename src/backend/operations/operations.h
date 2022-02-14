@@ -161,8 +161,8 @@ LA_Info mxm(Matrix<c>*       C,
     if (mask) {
         return GrB_PANIC;
     } else {
-        backend::SpMSpM_unmasked(A,
-                                 B,
+        backend::SpMSpM_unmasked_ijk(A,
+                                     B,
                                  C);
         return GrB_SUCCESS;
     }

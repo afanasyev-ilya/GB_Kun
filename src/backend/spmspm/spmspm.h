@@ -27,7 +27,7 @@ VNT binary_search(const Index* data, VNT left, VNT right, ENT value)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void SpMSpM_unmasked(const Matrix<T> *_matrix1,
+void SpMSpM_unmasked_ijk(const Matrix<T> *_matrix1,
                      const Matrix<T> *_matrix2,
                      Matrix<T> *_matrix_result)
 {
