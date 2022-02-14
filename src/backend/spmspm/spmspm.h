@@ -40,7 +40,7 @@ void SpMSpM_unmasked(const Matrix<T> *_matrix1,
     vector<T> values;
     ENT nnz = 0;
 
-    // #pragma omp parallel for default(none), shared(_matrix1, _matrix2, _matrix_result, matrix1_num_rows, matrix2_num_cols, row_ids, col_ids, values, nnz)
+    #pragma omp parallel for default(none), shared(_matrix1, _matrix2, _matrix_result, matrix1_num_rows, matrix2_num_cols, row_ids, col_ids, values, nnz)
     for (VNT matrix1_row_id = 0; matrix1_row_id < matrix1_num_rows; ++matrix1_row_id) {
         ENT matrix1_col_start_id = _matrix1->get_csr()->get_row_ptr()[matrix1_row_id];
         ENT matrix1_col_end_id = _matrix1->get_csr()->get_row_ptr()[matrix1_row_id + 1];
@@ -68,7 +68,7 @@ void SpMSpM_unmasked(const Matrix<T> *_matrix1,
                     accumulator += matrix1_val * matrix2_val;
                 }
             }
-            // #pragma omp critical(updateresults)
+            #pragma omp critical(updateresults)
             if (accumulator) {
                 row_ids.push_back(matrix1_row_id);
                 col_ids.push_back(matrix2_col_id);
@@ -81,25 +81,10 @@ void SpMSpM_unmasked(const Matrix<T> *_matrix1,
     SpMSpM_alloc(_matrix_result);
     _matrix_result->build(&row_ids[0], &col_ids[0], &values[0], matrix1_num_rows, nnz);
     double t3 = omp_get_wtime();
-
-    int error_cnt = 0;
-    for (int i = 0; i < matrix1_num_rows; ++i) {
-        for (int j = 0; j < matrix1_num_rows; ++j) {
-            T accumulator = 0;
-            for (int k = 0; k < matrix1_num_rows; ++k) {
-                accumulator += _matrix1->get_csr()->get(i, k) * _matrix2->get_csr()->get(k, j);
-            }
-            if (_matrix_result->get_csr()->get(i, j) != accumulator) {
-                std::cout << i << ' ' << j << " " << accumulator << " " << _matrix_result->get_csr()->get(i, j) << std::endl;
-                ++error_cnt;
-            }
-        }
-    }
     double overall_time = t3 - t1;
     printf("SpMSpM time: %lf seconds.\n", t3-t1);
     printf("\t- Calculating result: %.1lf %%\n", (t2 - t1) / overall_time * 100.0);
     printf("\t- Converting result: %.1lf %%\n", (t3 - t2) / overall_time * 100.0);
-    printf("\t- Error cnt: %d\n", error_cnt);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
