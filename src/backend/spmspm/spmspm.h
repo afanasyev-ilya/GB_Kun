@@ -7,6 +7,25 @@ namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+VNT binary_search(const Index* data, VNT left, VNT right, ENT value)
+{
+    while (true) {
+        if (left > right) {
+            return -1;
+        }
+        VNT mid = left + (right - left) / 2;
+        if (data[mid] < value) {
+            left = mid + 1;
+        } else if (data[mid] > value) {
+            right = mid - 1;
+        } else {
+            return mid;
+        }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
 void SpMSpM_unmasked(const Matrix<T> *_matrix1,
                      const Matrix<T> *_matrix2,
@@ -38,27 +57,12 @@ void SpMSpM_unmasked(const Matrix<T> *_matrix1,
                 }
                 ENT matrix1_col_num = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
                 // i == matrix1_row_id, j == matrix2_col_id, k == matrix1_col_num
-                // Вынести в отдельную функцию
-                bool matrix2_non_zero = false;
-                VNT found_matrix2_row_id;
-                VNT left = matrix2_col_start_id;
-                VNT right = matrix2_col_end_id - 1;
-                while (true) {
-                    if (left > right) {
-                        break;
-                    }
-                    VNT mid = left + (right - left) / 2;
-                    if (_matrix2->get_csc()->get_col_ids()[mid] < matrix1_col_num) {
-                        left = mid + 1;
-                    } else if (_matrix2->get_csc()->get_col_ids()[mid] > matrix1_col_num) {
-                        right = mid - 1;
-                    } else {
-                        found_matrix2_row_id = mid;
-                        matrix2_non_zero = true;
-                        break;
-                    }
-                }
-                if (matrix2_non_zero) {
+                VNT found_matrix2_row_id = binary_search(_matrix2->get_csc()->get_col_ids(),
+                                                         matrix2_col_start_id,
+                                                         matrix2_col_end_id - 1,
+                                                         matrix1_col_num);
+
+                if (found_matrix2_row_id != -1) {
                     T matrix1_val = _matrix1->get_csr()->get_vals()[matrix1_col_id];
                     T matrix2_val = _matrix2->get_csc()->get_vals()[found_matrix2_row_id];
                     accumulator += matrix1_val * matrix2_val;
