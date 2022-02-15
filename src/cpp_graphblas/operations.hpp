@@ -181,7 +181,6 @@ LA_Info assign(Vector<W>*       _w,
 
     auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
-    _w->get_vector();
     LA_Info info = backend::assign(_w->get_vector(), mask_t, _accum, _value, _indices, _nindices, desc_t);
     return info;
 }

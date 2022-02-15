@@ -53,9 +53,9 @@ public:
         return GrB_SUCCESS;
     }
 
-    backend::Vector<T>* get_vector()
+    inline backend::Vector<T>* get_vector()
     {
-        return &_vector;
+        return &(this->_vector);
     }
 
     LA_Info get_nvals(Index *_nvals) const
