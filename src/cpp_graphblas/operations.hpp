@@ -245,7 +245,7 @@ LA_Info vxm (Vector<W>*       _w,
         return GrB_UNINITIALIZED_OBJECT;
 
     auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
-    return backend::vxm<W, M, a, U, BinaryOpTAccum, SemiringT>(_w->get_vector(), mask_t, _accum, _op, _matrix->get_matrix(), _u->get_vector(), _desc->get_descriptor());
+    return backend::vxm(_w->get_vector(), mask_t, _accum, _op, _matrix->get_matrix(), _u->get_vector(), _desc->get_descriptor());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
