@@ -50,13 +50,13 @@ LA_Info vxm (Vector<W>*       _w,
 
 template <typename W, typename M, typename U, typename BinaryOpTAccum>
 LA_Info assign(Vector<W>* _w,
-    const Vector<M>* _mask,
-    BinaryOpTAccum _accum,
-    U _value,
-    const Index* _indices,
-    const Index _nindices,
-    Descriptor* _desc) {
-
+               const Vector<M> *_mask,
+               BinaryOpTAccum _accum,
+               U _value,
+               const Index *_indices,
+               const Index _nindices,
+               Descriptor *_desc)
+{
     _w->force_to_dense();
 
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before

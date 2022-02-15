@@ -70,7 +70,7 @@ void test_spmv(int argc, char **argv)
     for(Index i = 0; i < ceil(size); i++)
         nnz_subset.push_back(rand() % size);
 
-    u.fill(1.0);
+    u.fill(0.0);
     w.fill(1.0);
     GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, 10, &(nnz_subset[0]), nnz_subset.size(), NULL));
     GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
@@ -100,8 +100,9 @@ void test_spmv(int argc, char **argv)
     {
         lablas::Vector<T> w_check(size);
 
-        u.fill(1.0);
+        u.fill(0.0);
         w_check.fill(1.0);
+        u.print();
         GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, 10, &(nnz_subset[0]), nnz_subset.size(), NULL));
 
         check_mxv(w_check, matrix, u);

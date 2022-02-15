@@ -157,6 +157,11 @@ public:
 
     void print() const
     {
+        if(is_dense())
+            cout << "vector is dense" << endl;
+        else
+            cout << "vector is sparse" << endl;
+        cout << "nvals: " << main_container->get_nvals() << " / " << main_container->get_size() << endl;
         main_container->print();
     }
 
