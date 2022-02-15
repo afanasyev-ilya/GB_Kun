@@ -19,8 +19,8 @@ public:
     virtual void dup (GenericVector<T>* rhs) = 0;
     virtual bool isDense() const = 0;
     virtual bool isSparse() const = 0;
-    virtual T* get_vals() const = 0;
-    virtual VNT* get_ids() const = 0;
+    virtual const T* get_vals() const = 0;
+    virtual const VNT* get_ids() const = 0;
 
 
 };

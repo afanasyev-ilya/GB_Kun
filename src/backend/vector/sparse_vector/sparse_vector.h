@@ -1,5 +1,5 @@
 #pragma once
-
+#include <cstring>
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace lablas{
@@ -85,8 +85,7 @@ public:
     void dup(GenericVector<T>* rhs) {
         if (rhs->isSparse()) {
             MemoryAPI::allocate_array(&vals, rhs->get_size());
-            memccpy(vals,rhs->get_vals(), sizeof(T) * rhs->get_nvals());
-            memccpy(ids, rhs->get_ids(), sizeof(VNT) * rhs->get_nvals() );
+            std::memcpy(vals,rhs->get_vals(), sizeof(T) * rhs->get_nvals());
         }
     };
 

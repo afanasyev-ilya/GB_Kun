@@ -79,7 +79,7 @@ public:
         _vector.print_storage_type();
     }
 
-    Index nvals() const { return _vector.nvals();};
+    Index nvals() const { return _vector.get_nvals();};
 
     void force_to_dense() {_vector.force_to_dense();};
 
@@ -93,7 +93,7 @@ public:
     }
 
     LA_Info dup (const Vector<T>* rhs) {
-        _vector.dup(rhs);
+        _vector.dup(rhs->get_vector());
     }
 
 private:

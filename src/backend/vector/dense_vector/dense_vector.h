@@ -1,4 +1,5 @@
 #pragma once
+#include <cstring>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -76,7 +77,7 @@ public:
     void dup(GenericVector<T>* rhs) {
         if (rhs->isDense()) {
             MemoryAPI::allocate_array(&vals, rhs->get_size());
-            memccpy(vals,rhs->get_vals(), sizeof(T) * rhs->get_nvals());
+            std::memcpy(vals,rhs->get_vals(), sizeof(T) * rhs->get_nvals());
         }
     };
 

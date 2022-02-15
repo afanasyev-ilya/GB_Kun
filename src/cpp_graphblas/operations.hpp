@@ -226,17 +226,18 @@ template <typename W, typename M, typename U, typename I,
                    const Index _nindices,
                    Descriptor*  _desc)
                    {
+
         if(not_initialized(_w))
             return GrB_UNINITIALIZED_OBJECT;
         if(dims_mismatched(_w, _u))
             return GrB_DIMENSION_MISMATCH;
 
-        auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
+        auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
         backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
-        LA_Info info = backend::assign(_w->get_vector(), mask_t, _accum, _u->get_vector(), _indices, _nindices, desc_t);
+        LA_Info info = backend::assign(_w->get_vector(), mask_t, _accum, _u->get_vector(), _indices->get_vector(), _nindices, desc_t);
         return info;
-       }
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
