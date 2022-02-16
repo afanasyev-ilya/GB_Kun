@@ -51,6 +51,8 @@ public:
 
     void convert(SparseVector<T> *_sparse_vector);
 
+    Storage get_storage() {return GrB_DENSE; };
+
     VNT get_size() const {return size;};
 private:
     VNT size;

@@ -81,8 +81,6 @@ public:
 
     Index nvals() const { return _vector.nvals();};
 
-    void force_to_dense() {_vector.force_to_dense();};
-
     void swap(Vector *_another)
     {
         _vector.swap(_another->get_vector());

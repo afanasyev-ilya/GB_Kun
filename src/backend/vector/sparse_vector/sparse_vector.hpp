@@ -5,7 +5,7 @@
 template <typename T>
 void SparseVector<T>::set_element(T _val, VNT _pos)
 {
-    for(VNT i = 0; i < nnz; i++)
+    for(VNT i = 0; i < nvals; i++)
     {
         if(ids[i] == _pos)
         {
@@ -13,9 +13,9 @@ void SparseVector<T>::set_element(T _val, VNT _pos)
             return;
         }
     }
-    ids[nnz] = _pos;
-    vals[nnz] = _val;
-    nnz++;
+    ids[nvals] = _pos;
+    vals[nvals] = _val;
+    nvals++;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@ template <typename T>
 void SparseVector<T>::set_all_constant(T _val)
 {
     #pragma omp parallel for
-    for(VNT i = 0; i < nnz; i++)
+    for(VNT i = 0; i < nvals; i++)
     {
         vals[i] = _val;
     }
@@ -39,7 +39,7 @@ void SparseVector<T>::convert(DenseVector<T> *_dense_vector)
     VNT dense_size = _dense_vector->get_size();
     T* dense_vals = _dense_vector->get_vals();
 
-    nnz = 0;
+    nvals = 0;
     const int max_threads = 64*2;
     VNT sum_array[max_threads + 1];
     if(omp_get_max_threads() > max_threads)
@@ -85,7 +85,7 @@ void SparseVector<T>::convert(DenseVector<T> *_dense_vector)
         }
 
         #pragma omp atomic
-        nnz += tid_elements;
+        nvals += tid_elements;
     }
 }
 

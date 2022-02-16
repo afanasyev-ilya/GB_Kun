@@ -12,9 +12,7 @@ public:
     SparseVector(int _size)
     {
         size = _size;
-        nnz = 0;
-        if(size == 0)
-            cout << "!!!!!" << endl;
+        nvals = 0;
         MemoryAPI::allocate_array(&vals, size);
         MemoryAPI::allocate_array(&ids, size);
     };
@@ -27,11 +25,11 @@ public:
 
     void print() const
     {
-        if(nnz == 0)
+        if(nvals == 0)
             cout << "vector is empty (from print)" << endl;
         else
         {
-            for(VNT i = 0; i < nnz; i++)
+            for(VNT i = 0; i < nvals; i++)
             {
                 cout << "( "<< ids[i]<< " , "  << vals[i] << ") ";
             }
@@ -39,8 +37,8 @@ public:
         }
     };
 
-    void get_nnz(VNT* _nnz) const {
-        *_nnz = nnz;
+    void get_nvals(VNT* _nvals) const {
+        *_nvals = nvals;
     }
 
     void get_size(VNT* _size) const {
@@ -63,6 +61,8 @@ public:
         return ids;
     }
 
+    Storage get_storage() {return GrB_SPARSE; };
+
     LA_Info build(const Index* indices, const T *values, Index nvals) {
 
         if (nvals > size)
@@ -75,21 +75,21 @@ public:
         return GrB_SUCCESS;
     }
 
-    VNT get_nvals() const { return nnz; };
+    VNT get_nvals() const { return nvals; };
     void print_storage_type() const { cout << "It is sparse vector" << endl; };
 
     void set_element(T _val, VNT _pos);
 
     void set_all_constant(T _val);
 
-    void fill_with_zeros() { nnz = 0; };
+    void fill_with_zeros() { nvals = 0; };
 
     void convert(DenseVector<T> *_dense_vector);
 
     VNT get_size() const {return size;};
 private:
     VNT size;
-    ENT nnz;
+    VNT nvals;
 
     VNT *ids;
     T *vals;

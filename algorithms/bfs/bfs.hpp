@@ -70,7 +70,7 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
         GrB_TRY( GrB_Vector_nvals(&nvals, frontier) );
     } while (nvals > 0);
 
-    l_level->force_to_dense();
+    //l_level->force_to_dense();
 
     (*level ) = l_level;
     return (0);
@@ -113,7 +113,7 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
     } while(succ > 0);
     cout << "------------------------------ alg done ------------------------------------ " << endl;
 
-    v->force_to_dense();
+    //v->force_to_dense();
     *levels = v;
 
     double t2 = omp_get_wtime();

@@ -24,7 +24,6 @@ class Vector {
 public:
     Vector(VNT _size)
     {
-        storage = GrB_SPARSE;
         main_container = new SparseVector<T>(_size);
         secondary_container = new DenseVector<T>(_size);
     }
@@ -39,7 +38,6 @@ public:
     {
         if(_val == 0) // if val is zero, it is sparse vector with 0 elements
         {
-            storage = GrB_SPARSE;
             main_container->fill_with_zeros();
         }
         else
@@ -117,12 +115,12 @@ public:
 
     void getStorage(Storage* _storage) const
     {
-        *_storage = storage;
+        *_storage = main_container->get_storage();
     }
 
-    void setStorage(Storage _storage)
+    Storage get_storage() const
     {
-        storage = _storage;
+        return main_container->get_storage();
     }
 
     void set_element(T _val, VNT _pos)
@@ -130,8 +128,8 @@ public:
         main_container->set_element(_val, _pos);
     }
 
-    bool is_sparse() const { return storage == GrB_SPARSE;};
-    bool is_dense() const { return storage == GrB_DENSE;};
+    bool is_sparse() const { return get_storage() == GrB_SPARSE;};
+    bool is_dense() const { return get_storage() == GrB_DENSE;};
 
     LA_Info build (const Index* _indices,
                    const T*     _values,
@@ -184,13 +182,8 @@ public:
     {
         ptr_swap(this->main_container, _another->main_container);
         ptr_swap(this->secondary_container, _another->secondary_container);
-        std::swap(this->nnz, _another->nnz);
-        std::swap(this->storage, _another->storage);
     }
 private:
-    VNT nnz;
-    Storage storage;
-
     GenericVector<T> *main_container;
     GenericVector<T> *secondary_container;
 
@@ -199,7 +192,6 @@ private:
         if(is_dense())
         {
             ptr_swap(main_container, secondary_container);
-            storage = GrB_SPARSE;
         }
     }
 
@@ -208,7 +200,6 @@ private:
         if(is_sparse())
         {
             ptr_swap(main_container, secondary_container);
-            storage = GrB_DENSE;
         }
     }
 
@@ -221,7 +212,7 @@ private:
 template <typename T>
 bool operator==(Vector<T>& lhs, Vector<T>& rhs)
 {
-    if(lhs.storage != rhs.storage) // storages mismatch, not equal
+    if(lhs.get_storage() != rhs.get_storage()) // storages mismatch, not equal
     {
         cout << "Different storage!\n";
         return 0;
