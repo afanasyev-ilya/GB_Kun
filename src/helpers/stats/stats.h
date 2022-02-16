@@ -23,7 +23,20 @@ my_f = fopen("perf_stats.txt", "a");                                            
 fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
 fclose(my_f);                                                                           \
 
-#define SAVE_TEPS(call_instruction, op_name, iterations, matrix)                                    \
+#define SAVE_TIME(call_instruction, op_name)       \
+double my_t1 = omp_get_wtime();                                                         \
+call_instruction;                                                                       \
+double my_t2 = omp_get_wtime();                                                         \
+double my_time = (my_t2 - my_t1)*1000;                                                           \
+double my_perf = 0;                                        \
+double my_bw = 0;                                  \
+size_t my_nvals = 0;                               \
+FILE *my_f;                                                                          \
+my_f = fopen("perf_stats.txt", "a");                                                 \
+fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+fclose(my_f);                                                                           \
+
+#define SAVE_TEPS(call_instruction, op_name, iterations, matrix)                        \
 GrB_Index my_nvals = 0;                                                                 \
 GrB_Matrix_nvals(&my_nvals, matrix);                                                    \
 double my_t1 = omp_get_wtime();                                                         \
@@ -31,9 +44,10 @@ call_instruction;                                                               
 double my_t2 = omp_get_wtime();                                                         \
 double my_time = (my_t2 - my_t1)*1000;                                                  \
 double my_perf = iterations*(my_nvals / ((my_t2 - my_t1)*1e6));                         \
+double my_bw = 0;                                                                       \
 FILE *my_f;                                                                             \
 my_f = fopen("perf_stats.txt", "a");                                                    \
-fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %ld\n", op_name, my_time, my_perf, 0, my_nvals);\
+fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %ld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
 fclose(my_f);                                                                           \
 
 void print_omp_stats()
