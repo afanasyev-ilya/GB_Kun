@@ -16,13 +16,13 @@ int main(int argc, char **argv) {
         lablas::Matrix<float> A;
         A.set_preferred_matrix_format(CSR);
         init_matrix(A, parser);
-        A.print();
+        //A.print();
 
         lablas::Matrix<float> B;
         B.set_preferred_matrix_format(CSR);
         init_matrix(B, parser);
         B.sort_csc_rows("STL_SORT");
-        B.print();
+        //B.print();
         /*
         const lablas::backend::MatrixCSR<float> *csr_data = A.get_matrix()->get_csr();
         Index num_rows = csr_data->get_num_rows();
@@ -37,22 +37,24 @@ int main(int argc, char **argv) {
                     lablas::PlusMultipliesSemiring<float>(), &A, &B, &desc);
         #undef MASK_NULL
 
-        C.print();
-
-        int error_cnt = 0;
-        for (int i = 0; i < A.get_matrix()->get_csr()->get_num_rows(); ++i) {
-            for (int j = 0; j < A.get_matrix()->get_csr()->get_num_rows(); ++j) {
-                float accumulator = 0;
-                for (int k = 0; k < A.get_matrix()->get_csr()->get_num_rows(); ++k) {
-                    accumulator += A.get_matrix()->get_csr()->get(i, k) * B.get_matrix()->get_csr()->get(k, j);
-                }
-                if (C.get_matrix()->get_csr()->get(i, j) != accumulator) {
-                    std::cout << i << ' ' << j << " " << accumulator << " " << C.get_matrix()->get_csr()->get(i, j) << std::endl;
-                    ++error_cnt;
+        //C.print();
+        if (parser.check()) {
+            int error_cnt = 0;
+            for (int i = 0; i < A.get_matrix()->get_csr()->get_num_rows(); ++i) {
+                for (int j = 0; j < A.get_matrix()->get_csr()->get_num_rows(); ++j) {
+                    float accumulator = 0;
+                    for (int k = 0; k < A.get_matrix()->get_csr()->get_num_rows(); ++k) {
+                        accumulator += A.get_matrix()->get_csr()->get(i, k) * B.get_matrix()->get_csr()->get(k, j);
+                    }
+                    if (C.get_matrix()->get_csr()->get(i, j) != accumulator) {
+                        std::cout << i << ' ' << j << " " << accumulator << " " << C.get_matrix()->get_csr()->get(i, j)
+                                  << std::endl;
+                        ++error_cnt;
+                    }
                 }
             }
+            std::cout << "Matrix multiplication errors cnt: " << error_cnt << std::endl;
         }
-        std::cout << "Matrix multiplication errors cnt: " << error_cnt << std::endl;
     }
     catch (string& error)
     {
