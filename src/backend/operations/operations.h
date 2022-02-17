@@ -32,7 +32,7 @@ LA_Info mxv (Vector<W>*       _w,
     else
     {
         cout << "USING SpMSpV!!!!!" << endl;
-        backend::SpMSpV(_matrix, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
     }
 
     return GrB_SUCCESS;
@@ -52,13 +52,13 @@ LA_Info vxm (Vector<W>*       _w,
 {
     if(_u->is_dense())
     {
-        cout << "USING VSpM!!!!!" << endl;
+        cout << "USING SpMV!!!!!" << endl;
         backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     else
     {
-        cout << "USING SpVSpM!!!!!" << endl;
-        backend::SpVSpM(_matrix, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        cout << "USING SpMSpV!!!!!" << endl;
+        backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
     }
 
     return GrB_SUCCESS;
