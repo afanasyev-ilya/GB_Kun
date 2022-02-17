@@ -122,7 +122,7 @@ private:
 
     template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
     friend void spmspv_unmasked_add(const MatrixCSR<A> *_matrix,
-                                    const DenseVector<X> *_x,
+                                    const SparseVector<X> *_x,
                                     DenseVector<Y> *_y,
                                     BinaryOpTAccum _accum,
                                     SemiringT op,
@@ -131,7 +131,7 @@ private:
 
     template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
     friend void spmspv_unmasked_add_opt(const MatrixCSR<A> *_matrix,
-                                        const DenseVector<X> *_x,
+                                        const SparseVector<X> *_x,
                                         DenseVector<Y> *_y,
                                         BinaryOpTAccum _accum,
                                         SemiringT _op,

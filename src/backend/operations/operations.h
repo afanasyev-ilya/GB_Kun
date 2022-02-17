@@ -13,6 +13,7 @@ namespace backend{
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// w += Au
 template <typename W, typename M, typename A, typename U,
         typename BinaryOpTAccum, typename SemiringT>
 LA_Info mxv (Vector<W>*       _w,
@@ -23,8 +24,17 @@ LA_Info mxv (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
-    //backend::SpMSpV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+    _u->print();
+    if(_u->is_dense())
+    {
+        cout << "USING SpMV!!!!!" << endl;
+        backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+    }
+    else
+    {
+        cout << "USING SpMSpV!!!!!" << endl;
+        backend::SpMSpV(_matrix, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+    }
 
     return GrB_SUCCESS;
 }
