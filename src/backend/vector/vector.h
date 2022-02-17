@@ -212,24 +212,14 @@ private:
 template <typename T>
 bool operator==(Vector<T>& lhs, Vector<T>& rhs)
 {
-    if(lhs.get_storage() != rhs.get_storage()) // storages mismatch, not equal
-    {
-        cout << "Different storage!\n";
-        return 0;
-    }
-    else
-    {
-        if(lhs.is_dense())
-        {
-            auto den_lhs = (DenseVector<T> *)lhs.main_container;
-            auto den_rhs = (DenseVector<T> *)rhs.main_container;
-            return (*den_lhs) == (*den_rhs);
-        }
-        else
-        {
-            throw " == for sparse vectors not implemented yet";
-        }
-    }
+    if(lhs.is_sparse())
+        lhs.force_to_dense();
+    if(rhs.is_sparse())
+        rhs.force_to_dense();
+
+    auto den_lhs = (DenseVector<T> *)lhs.main_container;
+    auto den_rhs = (DenseVector<T> *)rhs.main_container;
+    return (*den_lhs) == (*den_rhs);
 }
 
 template <typename T>

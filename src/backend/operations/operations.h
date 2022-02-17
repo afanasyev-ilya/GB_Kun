@@ -24,7 +24,6 @@ LA_Info mxv (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    _u->print();
     if(_u->is_dense())
     {
         cout << "USING SpMV!!!!!" << endl;
@@ -45,13 +44,22 @@ template <typename W, typename M, typename A, typename U,
         typename BinaryOpTAccum, typename SemiringT>
 LA_Info vxm (Vector<W>*       _w,
              const Vector<M>* _mask,
-             BinaryOpTAccum        _accum,
+             BinaryOpTAccum   _accum,
              SemiringT        _op,
              const Matrix<A>* _matrix,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+    if(_u->is_dense())
+    {
+        cout << "USING VSpM!!!!!" << endl;
+        backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+    }
+    else
+    {
+        cout << "USING SpVSpM!!!!!" << endl;
+        backend::SpVSpM(_matrix, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+    }
 
     return GrB_SUCCESS;
 }

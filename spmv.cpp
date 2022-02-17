@@ -66,7 +66,7 @@ void test_spmv(int argc, char **argv)
 
     #define MASK_NULL static_cast<const lablas::Vector<T>*>(NULL)
 
-    Index sparsity_k = 100.0;
+    Index sparsity_k = 1000.0;
     vector<GrB_Index> nnz_subset;
     for(Index i = 0; i < size/sparsity_k + 1; i++)
         nnz_subset.push_back(rand() % size);
