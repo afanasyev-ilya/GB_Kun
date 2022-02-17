@@ -323,6 +323,25 @@ void Matrix<T>::build(const VNT *_row_indices,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
+void Matrix<T>::build(vector<vector<pair<VNT, T>>>& csr_tmp_matrix, vector<vector<pair<VNT, T>>>& csc_tmp_matrix)
+{
+    // read mtx file and get tmp representations of csr and csc matrix
+    VNT tmp_nrows = csr_tmp_matrix.size(), tmp_ncols = csc_tmp_matrix.size();
+
+    double t1 = omp_get_wtime();
+    csr_data = new MatrixCSR<T>;
+    csc_data = new MatrixCSR<T>;
+    csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols, 0);
+    csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows, 0);
+    double t2 = omp_get_wtime();
+    cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;
+
+    init_optimized_structures();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
 void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
 {
     // read mtx file and get tmp representations of csr and csc matrix
