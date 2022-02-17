@@ -1,3 +1,8 @@
+/*
+ * This file uses algorithm implementation from LAGraph, which is available under
+ * their custom license. For details, see https://github.com/GraphBLAS/LAGraph/blob/reorg/LICENSE
+ * */
+
 #pragma once
 #include "../../src/gb_kun.h"
 

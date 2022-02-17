@@ -1,3 +1,8 @@
+/*
+ * This file uses algorithm implementation from graphblast, which is available under
+ * "Apache License 2.0" license. For details, see https://github.com/gunrock/graphblast/blob/master/LICENSE
+ * */
+
 #pragma once
 
 namespace lablas {

@@ -1,3 +1,8 @@
+/*
+ * This file uses definitions and source code from graphblast, which is available under
+ * "Apache License 2.0" license. For details, see https://github.com/gunrock/graphblast/blob/master/LICENSE
+ * */
+
 #pragma once
     #include <cstddef>
 
