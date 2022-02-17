@@ -3,6 +3,18 @@
 #include "algorithms/bfs/bfs.hpp"
 #include "algorithms/bfs/bfs_traditional.hpp"
 
+template <typename _T>
+Index select_non_trivial_vertex(lablas::Matrix<_T> &_matrix)
+{
+    Index max_val = min(_matrix.ncols(), _matrix.nrows());
+    Index vertex = 0;
+    srand(time(NULL));
+    do {
+        vertex = rand() %  max_val;
+    } while(_matrix.get_rowdegrees()[vertex] > 0 && _matrix.get_coldegrees()[vertex] > 0);
+    return vertex;
+}
+
 int main(int argc, char **argv) {
     try
     {
@@ -19,7 +31,7 @@ int main(int argc, char **argv) {
 
         Index nrows;
         matrix.get_nrows(&nrows);
-        Index source_vertex = rand() % nrows;
+        Index source_vertex = select_non_trivial_vertex(matrix);
 
         lablas::Vector<int> *parents = NULL, *levels = NULL;
 
