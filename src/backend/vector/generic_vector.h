@@ -5,8 +5,8 @@
 template <typename T>
 class GenericVector
 {
-public:
-
+protected:
+    string name;
 public:
     virtual VNT get_nvals() const = 0;
     virtual VNT get_size() const = 0;
@@ -18,6 +18,8 @@ public:
     virtual void fill_with_zeros() = 0;
 
     virtual Storage get_storage() = 0;
+
+    void set_name(const string &_name) {name = _name;};
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

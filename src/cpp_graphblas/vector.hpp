@@ -79,6 +79,9 @@ public:
         _vector.print_storage_type();
     }
 
+    // we can name vectors for debug purposes
+    void set_name(const string &_name) {_vector.set_name(_name); };
+
     Index nvals() const { return _vector.nvals();};
 
     void swap(Vector *_another)

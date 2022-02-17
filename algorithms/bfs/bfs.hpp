@@ -86,9 +86,9 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
     GrB_TRY( GrB_Matrix_nrows (&n, A) );
 
     GrB_Vector f1 = NULL, *f2 = NULL, *v = NULL;
-    GrB_TRY(GrB_Vector_new(&f1, GrB_INT32, n));
-    GrB_TRY(GrB_Vector_new(&f2, GrB_INT32, n));
-    GrB_TRY(GrB_Vector_new(&v, GrB_INT32, n));
+    GrB_TRY(GrB_Vector_new(&f1, GrB_INT32, n, "f1"));
+    GrB_TRY(GrB_Vector_new(&f2, GrB_INT32, n, "f2"));
+    GrB_TRY(GrB_Vector_new(&v, GrB_INT32, n, "v"));
 
     double t1 = omp_get_wtime();
 

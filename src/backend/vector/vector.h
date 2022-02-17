@@ -128,6 +128,8 @@ public:
         main_container->set_element(_val, _pos);
     }
 
+    void set_name(const string &_name) { main_container->set_name(_name); secondary_container->set_name(_name); };
+
     bool is_sparse() const { return get_storage() == GrB_SPARSE;};
     bool is_dense() const { return get_storage() == GrB_DENSE;};
 
