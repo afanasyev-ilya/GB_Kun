@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
         parser.parse_args(argc, argv);
         VNT scale = parser.get_scale();
         VNT avg_deg = parser.get_avg_degree();
-        
+
         lablas::Descriptor desc;
 
         lablas::Matrix<int> matrix;

@@ -19,7 +19,7 @@ void SpMV(const MatrixLAV<A> *_matrix,
     auto identity_val = op.identity();
 
     Y *shared_vector = (Y*)_workspace->get_first_socket_vector();
-    Y *reordered_x_vals = (Y*)_workspace->get_prefetched_vector();
+    Y *reordered_x_vals = (Y*)_workspace->get_shared_one();
 
     #pragma omp parallel for schedule(static)
     for(VNT i = 0; i < _matrix->nrows; i++)

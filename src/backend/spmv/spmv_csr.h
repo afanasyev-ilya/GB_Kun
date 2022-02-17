@@ -227,20 +227,20 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
         {
             #pragma omp for
             for(VNT i = 0; i < _matrix->nrows; i++)
-                dense_mask[i] = 1;
+                dense_mask[i] = 0;
 
             #pragma omp for
             for(VNT i = 0; i < mask_nvals; i++)
             {
                 VNT row = mask_ids[i];
-                dense_mask[row] = 0;
+                dense_mask[row] = 1;
             }
 
             #pragma omp for schedule(guided, 1)
             for(VNT row = 0; row < _matrix->nrows; row++)
             {
                 bool mask_val = dense_mask[row];
-                if(mask_val)
+                if(mask_val == 0)
                 {
                     Y res = identity_val;
                     for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
