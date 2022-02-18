@@ -68,33 +68,35 @@ public:
 
     const MatrixContainer<T>* get_transposed_data() const { return transposed_data; }
 
-    void get_nrows(VNT* _nrows) const { csr_data->get_size(_nrows); }
+    void get_nrows(VNT* _nrows) const {
+        *_nrows = csr_data->get_num_rows();
+    }
 
     VNT get_nrows() const {
-        VNT nrows;
-        csr_data->get_size(&nrows);
-        return nrows;
+        return csr_data->get_num_rows();
     }
 
     void get_ncols(VNT* _ncols) const {
-        csr_data->get_size(_ncols);
+        *_ncols = csr_data->get_ncols();
     }
 
     VNT get_ncols() const {
-        VNT ncols;
-        csr_data->get_size(&ncols);
-        return ncols;
+        return csr_data->get_num_cols();
     }
 
-    void print() const { data->print(); }
+    void print() const { csr_data->print(); }
 
     ENT get_nnz() const {return csr_data->get_nnz();};
 
-    ENT* get_rowdegrees() { return rowdegrees; }
+    ENT* get_rowdegrees() { return csr_data->get_rowdegrees(); }
 
-    ENT* get_coldegrees() { return coldegrees; }
+    ENT* get_coldegrees() { return csc_data->get_rowdegrees(); }
 
     Workspace *get_workspace() const { return (const_cast <Matrix<T>*> (this))->workspace; };
+
+    void sort_csr_columns(const string& mode);
+
+    void sort_csc_rows(const string& mode);
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
@@ -108,8 +110,6 @@ private:
     MatrixStorageFormat _format;
 
     Workspace *workspace;
-
-    ENT *rowdegrees, *coldegrees;
 
     void read_mtx_file_pipelined(const string &_mtx_file_name,
                                  vector<vector<pair<VNT, T>>> &_csr_matrix,

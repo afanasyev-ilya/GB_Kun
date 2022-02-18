@@ -10,13 +10,13 @@ void SpMV(MatrixSortCSR<A> *_matrix,
           const DenseVector<X> *_x,
           DenseVector<Y> *_y,
           BinaryOpTAccum _accum,
-          SemiringT op)
+          SemiringT _op)
 {
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
-    auto add_op = extractAdd(op);
-    auto mul_op = extractMul(op);
-    auto identity_val = op.identity();
+    auto add_op = extractAdd(_op);
+    auto mul_op = extractMul(_op);
+    auto identity_val = _op.identity();
 
     #pragma omp parallel
     {
@@ -33,6 +33,8 @@ void SpMV(MatrixSortCSR<A> *_matrix,
             y_vals[row] = _accum(y_vals[row], res);
         }
     };
+
+    //reorder(y_vals, _matrix->col_backward_conversion, _matrix->size);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

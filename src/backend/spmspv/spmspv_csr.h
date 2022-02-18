@@ -1,221 +1,185 @@
 #pragma once
 
-#define INF 1000000000
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// nt - number of threads
-// nb - number of buskets
-template <typename T>
-vector<vector<int>> estimate_buckets(const MatrixCSR<T> *matrix, const SparseVector<T> *x, vector<vector<int>> &Boffset, int nb, int nt)
+template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+void spmspv_unmasked_add(const MatrixCSR<A> *_matrix,
+                         const DenseVector<X> *_x,
+                         DenseVector<Y> *_y,
+                         BinaryOpTAccum _accum,
+                         SemiringT _op,
+                         Descriptor *_desc,
+                         Workspace *_workspace)
 {
+    const X *x_vals = _x->get_vals();
+    Y *y_vals = _y->get_vals();
+    auto add_op = extractAdd(_op);
+    auto mul_op = extractMul(_op);
+    auto identity_val = _op.identity();
 
-    omp_set_dynamic(0);     // Explicitly disable dynamic teams
-    omp_set_num_threads(nt); // Use 1 threads for all consecutive parallel regions
+    /*cout << _x->get_nvals() << " vs " << _x->get_size() << endl;
 
-    // This function is essential in implementing synchronization free insertion
-    VNT nz, matrix_size;
+    VNT real_nvals = 0;
+    for(VNT i = 0; i < _x->get_size(); i++)
+        if(x_vals[i] != 0)
+            real_nvals++;
 
-    const ENT *col_ptr = matrix->get_row_ptr(); // we assume csr of AT is equal to csc of A
-    const VNT *row_ids = matrix->get_col_ids(); // we assume csr of AT is equal to csc of A
+    for(VNT i = 0; i < _x->get_size(); i++)
+        if(i < 20)
+            cout << x_vals[i] << " ";
+    cout << endl;
+    cout << "real nvals: " << real_nvals << endl;*/
 
-    x->get_nnz(&nz);
-    matrix->get_size(&matrix_size);
-    //vector<vector<int>> Boffset(nt, vector<int>(nb)); // Boffset is described in the SpmSpv function
-    
-    #pragma omp parallel for schedule(static)
-    for (int t = 0; t < nt; t++) {
-        int offset_ = t * nz / nt; // Every thread has it's own piece of vector x
-        for (int j = offset_; j < nz; j++) {
-            int vector_index = x->get_ids()[j]; // index of j-th non-zero element in vector x
-            for (int i = col_ptr[vector_index]; i < col_ptr[vector_index + 1]; i++) {
-                // bucket index depends on the row of an element
-                int bucket_index = row_ids[i] * nb / matrix_size;
-                Boffset[t][bucket_index] += 1;
+    double t1 = omp_get_wtime();
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for (VNT row = 0; row < _y->get_size(); row++)
+        {
+            y_vals[row] = identity_val;
+        }
+
+        #pragma omp for
+        for (VNT row = 0; row < _y->get_size(); row++)
+        {
+            VNT ind = row;
+            X x_val = x_vals[row];
+            ENT row_start   = _matrix->row_ptr[ind];
+            ENT row_end     = _matrix->row_ptr[ind + 1];
+
+            for (ENT j = row_start; j < row_end; j++)
+            {
+                VNT dest_ind = _matrix->col_ids[j];
+                A dest_val = _matrix->vals[j];
+
+                #pragma omp atomic
+                y_vals[dest_ind] += mul_op(x_val, dest_val);
             }
         }
     }
-    return Boffset;
+    double t2 = omp_get_wtime();
+    cout << "spmspv BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-void SpMSpV_csr(const MatrixCSR<T> *_matrix_csc,
-                const SparseVector<T> *_x,
-                DenseVector<T> *_y,
-                int _number_of_buckets, int _number_of_threads,
-                int *bucket_amount, int *offset_, lablas::backend::bucket<T> *buckets, float *SPA, int *offset)
+template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+void spmspv_unmasked_add_opt(const MatrixCSR<A> *_matrix,
+                         const DenseVector<X> *_x,
+                         DenseVector<Y> *_y,
+                         BinaryOpTAccum _accum,
+                         SemiringT _op,
+                         Descriptor *_desc,
+                         Workspace *_workspace)
 {
-    double merging_entries, estimating_buckets, filling_buckets, overall_time, matrix_prop, preparing_for_filling_buckets;
+    const X *x_vals = _x->get_vals();
+    Y *y_vals = _y->get_vals();
+    auto add_op = extractAdd(_op);
+    auto mul_op = extractMul(_op);
+    auto identity_val = _op.identity();
 
-    double t1 = omp_get_wtime();
+    VNT x_size = _x->get_size();
+    VNT y_size = _y->get_size();
 
-    double t3 = omp_get_wtime();
-
-    VNT nz, matrix_size, matrix_nz;
-    _x->get_nnz(&nz);
-    _matrix_csc->get_size(&matrix_size);
-    matrix_nz = _matrix_csc->get_nnz();
-    long long max_number_of_insertions = matrix_size * nz;
-
-    const ENT *col_ptr = _matrix_csc->get_row_ptr(); // we assume csr of AT is equal to csc of A
-    const VNT *row_ids = _matrix_csc->get_col_ids(); // we assume csr of AT is equal to csc of A
-
-
-    omp_set_dynamic(0);     // Explicitly disable dynamic teams
-    omp_set_num_threads(_number_of_threads); // Use 1 threads for all consecutive parallel regions
-
-    double t4 = omp_get_wtime();
-
-    matrix_prop = t4 - t3;
-
-
-    t3 = omp_get_wtime();
-    vector<vector<int>> Boffset(_number_of_threads, vector<int>(_number_of_buckets));
-    estimate_buckets(_matrix_csc, _x, Boffset, _number_of_buckets, _number_of_threads);
-    t4 = omp_get_wtime();
-
-    estimating_buckets = t4 - t3;
-    // The point of function estimate_buckets is to fill the matrix Boffset in which
-    // Boffset[i][j] means how many insertions the i-th thread will make in the j-th bucket
-
-    double sub_time1, sub_time2;
-
-    t3 = omp_get_wtime();
-
-    double t5 = omp_get_wtime();
-    // We need to fill the matrix Boffset in order to make synchronization free insertions in step 1
-
-//    vector<int> bucket_amount(_number_of_buckets); // Stores how many insertions will be made in i-th bucket
-//    vector<vector<int>> offset_(_number_of_buckets, vector<int>(_number_of_threads));
-
-    double t6 = omp_get_wtime();
-
-    sub_time1 = t6 - t5;
-
-    t5 = omp_get_wtime();
-
-    for (int bucket_number = 0; bucket_number < _number_of_buckets; bucket_number++) {
-        for (int thread_number = 0; thread_number < _number_of_threads; thread_number++) {
-            if (thread_number)
-                *(offset_ + bucket_number * _number_of_threads + thread_number) = *(offset_ + bucket_number * _number_of_threads + thread_number - 1) + Boffset[thread_number - 1][bucket_number];
-            bucket_amount[bucket_number] += Boffset[thread_number][bucket_number];
-        }
-    }
-
-    t6 = omp_get_wtime();
-
-    sub_time2 = t6 - t5;
-
-    // Step 1. Filling buckets.
-    // Every bucket gets it's own set of rows
-
-
-    t5 = omp_get_wtime();
-
-    /*
-    vector<vector<bucket>> buckets(_number_of_buckets);
-    for (int i = 0; i < _number_of_buckets; i++) {
-        buckets[i] = vector<bucket>(bucket_amount[i]);
-    }
-    */
-    t6 = omp_get_wtime();
-
-    t4 = omp_get_wtime();
-    preparing_for_filling_buckets = t4 - t3;
-
-    t3 = omp_get_wtime();
+    Y *copy;
+    MemoryAPI::allocate_array(&copy, y_size*12);
 
     #pragma omp parallel
     {
-        int cur_thread_number = omp_get_thread_num();
-        vector<int> insertions(_number_of_buckets);
-        #pragma omp for schedule(static)
-        for (int i = 0; i < nz; i++) { // Going through all non-zero elements of vector x
-            // We only need matrix's columns which numbers are equal to indices of non-zero elements of the vector x
-            int vector_index = _x->get_ids()[i]; // Index of non-zero element in vector x
-            for (int j = col_ptr[vector_index]; j < col_ptr[vector_index + 1]; j++) {
-                // Going through all the elements of the vector_index-th column
-                // Essentially we are doing multiplication here
-                float mul = _matrix_csc->get_vals()[j] * _x->get_vals()[i]; // mul - is a product of matrix and vector non-zero elements.
-                int bucket_index = (row_ids[j] * _number_of_buckets) / matrix_size;
-                // bucket's index depends on the row number
-                // Implementing synchronization free insertion below
-                // Boffset[i][j] - amount, i - thread, j - bucket
-                // offset - how many elements have been inserted in the bucket by other threads
-                int off = *(offset_ + bucket_index * _number_of_threads + cur_thread_number);
-                *(buckets + bucket_index * max_number_of_insertions + off + insertions[bucket_index]++) = {row_ids[j], mul}; // insertion
+        int group_id = omp_get_thread_num() / 4;
+
+        Y *loc_data = &copy[group_id*y_size];
+        if((omp_get_thread_num() % 4) == 0)
+        {
+            for(size_t i = 0; i < y_size; i++)
+            {
+                loc_data[i] = identity_val;
             }
         }
     }
 
-    t4 = omp_get_wtime();
+    double t1 = omp_get_wtime();
+    #pragma omp parallel
+    {
+        int group_id = omp_get_thread_num() / 4;
+        X* loc_data = &copy[group_id*x_size];
 
-    filling_buckets = t4 - t3;
-
-    t3 = omp_get_wtime();
-
-    //vector<float> SPA(matrix_size); // SPA -  a sparse accumulator
-    // The SPA vector is essentially a final vector-answer, but it is dense and we will have to transform it in sparse vector
-    //vector<int> offset(_number_of_buckets);
-
-    T *y_vals = (T *)malloc(sizeof(T) * matrix_size);
-    VNT *y_ids = (VNT *)malloc(sizeof(VNT) * matrix_size);
-
-    t4 = omp_get_wtime();
-
-    matrix_prop += t4 - t3;
-
-    t3 = omp_get_wtime();
-
-    #pragma omp parallel for schedule(static)
-    for (int number_of_bucket = 0; number_of_bucket < _number_of_buckets; number_of_bucket++) { // Going through all buckets
-        vector<int> uind; // uing - unique indices in the number_of_bucket-th bucket
-
-        // Step 2. Merging entries in each bucket.
-        for (int i = 0; i < bucket_amount[number_of_bucket]; i++) {
-            int row = (buckets + number_of_bucket * max_number_of_insertions + i)->row;
-            SPA[row] = INF; // Initializing with a value of INF
-            // in order to know whether a row have been to the uind vector or not
+        #pragma omp for
+        for (VNT row = 0; row < y_size; row++)
+        {
+            y_vals[row] = identity_val;
         }
-        // Accumulating values in a row and getting unique indices
-        for (int i = 0; i < bucket_amount[number_of_bucket]; i++) {
-            int row = (buckets + number_of_bucket * max_number_of_insertions + i)->row;
-            float val = (buckets + number_of_bucket * max_number_of_insertions + i)->val;
-            if (SPA[row] == INF) {
-                uind.push_back(row);
-                SPA[row] = val;
-            } else {
-                SPA[row] += val;
+
+        #pragma omp for
+        for (VNT x_pos = 0; x_pos < x_size; x_pos++)
+        {
+            VNT ind = x_pos;
+            X x_val = x_vals[x_pos];
+            ENT row_start   = _matrix->row_ptr[ind];
+            ENT row_end     = _matrix->row_ptr[ind + 1];
+
+            for (ENT j = row_start; j < row_end; j++)
+            {
+                VNT dest_ind = _matrix->col_ids[j];
+                A dest_val = _matrix->vals[j];
+
+                #pragma omp atomic
+                loc_data[dest_ind] += mul_op(x_val, dest_val);
             }
         }
-        if (number_of_bucket) // if not the first bucket
-            offset[number_of_bucket] += offset[number_of_bucket - 1] + bucket_amount[number_of_bucket - 1];
-        // offset is needed to properly fill the final vector
-
-        for (int i = 0; i < uind.size(); i++) { // filling the final vector
-            int ind = uind[i];
-            float value = SPA[ind];
-            int off = offset[number_of_bucket];
-            _y->set_element(SPA[ind], ind);
-        }
     }
-    t4 = omp_get_wtime();
-
-    merging_entries = t4 - t3;
-
     double t2 = omp_get_wtime();
+    cout << "spmspv BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
-    overall_time = t2 - t1;
+    for(int group_id = 0; group_id < 12; group_id++)
+    {
+        Y *loc_data = &copy[group_id*y_size];
+        #pragma omp parallel for
+        for(size_t i = 0; i < y_size; i++)
+        {
+            y_vals[i] += loc_data[i];
+        }
+    }
+}
 
-    printf("\033[0;31m");
-    printf("SpMSpV time: %lf seconds.\n", overall_time);
-    printf("\033[0m");
-    printf("\t- Getting matrix properties and allocating memory: %.1lf %%\n", matrix_prop / overall_time * 100.0);
-    printf("\t- Estimating buckets: %.1lf %%\n", estimating_buckets / overall_time * 100.0);
-    printf("\t- Preparing for filling buckets: %.1lf %%\n", preparing_for_filling_buckets / overall_time * 100.0);
-    printf("\t\t- Allocating memory: %.1lf %%\n", sub_time1 / preparing_for_filling_buckets * 100.0);
-    printf("\t\t- double for: %.1lf %%\n", sub_time2 / preparing_for_filling_buckets * 100.0);
-    printf("\t- Filling buckets: %.1lf %%\n", filling_buckets / overall_time * 100.0);
-    printf("\t- Merging entries: %.1lf %%\n", merging_entries / overall_time * 100.0);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
+void SpMSpV(const Matrix<A> *_matrix,
+            const DenseVector <X> *_x,
+            DenseVector <Y> *_y,
+            Descriptor *_desc,
+            BinaryOpTAccum _accum,
+            SemiringT _op,
+            const Vector <M> *_mask)
+{
+    cout << "doing SpMSpV" << endl;
+    if(_mask == NULL) // all active case
+    {
+        auto add_op = extractAdd(_op);
+        /*!
+          * /brief atomicAdd() 3+5  = 8
+          *        atomicSub() 3-5  =-2
+          *        atomicMin() 3,5  = 3
+          *        atomicMax() 3,5  = 5
+          *        atomicOr()  3||5 = 1
+          *        atomicXor() 3^^5 = 0
+        */
+        int functor = add_op(3, 5);
+        if (functor == 8)
+        {
+            spmspv_unmasked_add(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+            spmspv_unmasked_add_opt(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+        }
+        else
+        {
+            throw "Error in SpMSpV : unsupported additive operation in semiring";
+        }
+    }
+    else
+    {
+        throw "Error in SpMSpV : Masked SpMSpV not supported yet";
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

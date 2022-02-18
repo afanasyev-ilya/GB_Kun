@@ -4,24 +4,37 @@
 #include <sched.h>
 #include <omp.h>
 
-#define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, matrix)    \
-GrB_Index nvals = 0;                                                                 \
-GrB_Matrix_nvals(&nvals, matrix);                                                    \
-/*printf("matrix has %ld\n edges", nvals);*/                                         \
-double t1 = omp_get_wtime();                                                         \
-call_instruction;                                                                    \
-double t2 = omp_get_wtime();                                                         \
-double time = (t2 - t1)*1000;                                                        \
-double perf = nvals * 2.0 / ((t2 - t1)*1e9);                                         \
-double bw = nvals * bytes_per_flop/((t2 - t1)*1e9);                                  \
+#define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, matrix)       \
+GrB_Index my_nvals = 0;                                                                 \
+GrB_Matrix_nvals(&my_nvals, matrix);                                                    \
+/*printf("matrix has %ld\n edges", nvals);*/                                            \
+double my_t1 = omp_get_wtime();                                                         \
+call_instruction;                                                                       \
+double my_t2 = omp_get_wtime();                                                         \
+double my_time = (my_t2 - my_t1)*1000;                                                           \
+double my_perf = my_nvals * 2.0 / ((my_t2 - my_t1)*1e9);                                         \
+double my_bw = my_nvals * bytes_per_flop/((my_t2 - my_t1)*1e9);                                  \
 /*printf("edges: %lf\n", nvals);*/                                                   \
-printf("%s time %lf (ms)\n", op_name, (t2-t1)*1000);                             \
+/*printf("%s time %lf (ms)\n", op_name, (my_t2-my_t1)*1000); */                          \
 /*printf("%s perf %lf (GFLop/s)\n", op_name, perf);*/                                \
 /*printf("%s BW %lf (GB/s)\n", op_name, bw);*/                                       \
-FILE *f;                                                                             \
-f = fopen("perf_stats.txt", "a");                                                    \
-fprintf(f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", op_name, time, perf, bw, nvals);\
-fclose(f);                                                                           \
+FILE *my_f;                                                                          \
+my_f = fopen("perf_stats.txt", "a");                                                 \
+fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+fclose(my_f);                                                                           \
+
+#define SAVE_TEPS(call_instruction, op_name, iterations, matrix)                                    \
+GrB_Index my_nvals = 0;                                                                 \
+GrB_Matrix_nvals(&my_nvals, matrix);                                                    \
+double my_t1 = omp_get_wtime();                                                         \
+call_instruction;                                                                       \
+double my_t2 = omp_get_wtime();                                                         \
+double my_time = (my_t2 - my_t1)*1000;                                                  \
+double my_perf = iterations*(my_nvals / ((my_t2 - my_t1)*1e6));                         \
+FILE *my_f;                                                                             \
+my_f = fopen("perf_stats.txt", "a");                                                    \
+fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %ld\n", op_name, my_time, my_perf, 0, my_nvals);\
+fclose(my_f);                                                                           \
 
 void print_omp_stats()
 {
@@ -49,7 +62,7 @@ void print_omp_stats()
     cout << "Threads used: " << max_thread + 1 << endl;
     cout << "Largest core used: " << max_core + 1 << " cores" << endl;*/
 
-    size_t size = 1024*1024*128*8;
+    /*size_t size = 1024*1024*128*8;
     double *a, *b, *c;
     MemoryAPI::allocate_array(&a, size);
     MemoryAPI::allocate_array(&b, size);
@@ -75,5 +88,5 @@ void print_omp_stats()
 
     MemoryAPI::free_array(a);
     MemoryAPI::free_array(b);
-    MemoryAPI::free_array(c);
+    MemoryAPI::free_array(c);*/
 }

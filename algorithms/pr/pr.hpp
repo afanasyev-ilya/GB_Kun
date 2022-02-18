@@ -4,6 +4,8 @@
 #define GrB_Vector lablas::Vector<float>*
 #define MASK_NULL static_cast<const lablas::Vector<float>*>(NULL)
 
+// code taken form LAGraph
+// add lecense
 int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(i): GAP-style pagerank of node i
                                           // inputs:
                                           LAGraph_Graph<float> *G,        // input graph
@@ -25,7 +27,7 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
     (*centrality) = NULL ;
     GrB_TRY (GrB_Matrix_nrows (&n, AT)) ;
 
-    const float teleport = (1 - damping) / n ;
+    const float teleport = (1 - damping) / n;
     float rdiff = 1 ;       // first iteration is always done
 
     // r = 1 / n
@@ -49,7 +51,7 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
     //--------------------------------------------------------------------------
     // pagerank iterations
     //--------------------------------------------------------------------------
-    for ((*iters) = 0 ; (*iters) < itermax && rdiff > tol ; (*iters)++)
+    for ((*iters) = 0 ; (*iters) < itermax && rdiff > tol; (*iters)++)
     {
         // swap t and r ; now t is the old score
         GrB_Vector temp = t ; t = r ; r = temp ;
@@ -89,6 +91,7 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
 #undef GrB_Vector
 #undef MASK_NULL
 
+// Алгоритм преобразования LAGraph кода графового алгоритма к коду, совместимому с GB_Kun
 // удалить инициализуию LAgraph
 // lablas::Vector<Index>* d_out
 // *

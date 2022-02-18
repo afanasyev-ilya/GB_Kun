@@ -12,7 +12,15 @@ public:
     MatrixSortCSR();
     ~MatrixSortCSR();
 
-    void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _target_socket = 0);
+    void build(VNT *_row_degrees,
+               VNT *_col_degrees,
+               VNT _nrows,
+               VNT _ncols,
+               ENT _nnz,
+               const ENT *_row_ptr,
+               const VNT *_col_ids,
+               const T *_vals,
+               int _target_socket = 0);
 
     void print() const;
 
@@ -30,6 +38,8 @@ private:
     T *vals;
     VNT *col_ids;
 
+    VNT *col_backward_conversion;
+
     double *tmp_buffer;
 
     int target_socket;
@@ -37,9 +47,6 @@ private:
     void alloc(VNT _size, ENT _nnz, int _target_socket);
     void free();
     void resize(VNT _size, ENT _nnz, int _target_socket);
-
-    void construct_csr(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz,
-                       int _target_socket);
 
     bool is_non_zero(VNT _row, VNT _col);
     T get(VNT _row, VNT _col) const;

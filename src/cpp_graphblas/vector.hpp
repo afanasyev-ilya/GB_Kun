@@ -18,7 +18,7 @@ public:
 
     LA_Info build(const std::vector<Index>* indices,
                   const std::vector<T>*     values,
-               Index  nvals)
+                  Index  nvals)
     {
         if (indices == NULL || values == NULL) return GrB_NULL_POINTER;
         if (nvals == 0) return GrB_INVALID_VALUE;
@@ -53,9 +53,9 @@ public:
         return GrB_SUCCESS;
     }
 
-    backend::Vector<T>* get_vector()
+    inline backend::Vector<T>* get_vector()
     {
-        return &_vector;
+        return &(this->_vector);
     }
 
     LA_Info get_nvals(Index *_nvals) const
@@ -82,6 +82,11 @@ public:
     Index nvals() const { return _vector.nvals();};
 
     void force_to_dense() {_vector.force_to_dense();};
+
+    void swap(Vector *_another)
+    {
+        _vector.swap(_another->get_vector());
+    }
 private:
     backend::Vector<T> _vector;
 

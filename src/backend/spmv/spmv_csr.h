@@ -17,25 +17,27 @@ void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size)
     }
 }
 
-template <typename T, typename SemiringT, typename BinaryOpTAccum>
-void SpMV_numa_aware(MatrixCSR<T> *_matrix,
-                     MatrixCSR<T> *_matrix_socket_dub,
-                     const DenseVector<T> *_x,
-                     DenseVector<T> *_y,
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+void SpMV_numa_aware(MatrixCSR<A> *_matrix,
+                     MatrixCSR<A> *_matrix_socket_dub,
+                     const DenseVector<X> *_x,
+                     DenseVector<Y> *_y,
                      BinaryOpTAccum _accum,
                      SemiringT op,
                      Workspace *_workspace)
 {
-    const T *x_vals = _x->get_vals();
-    T *x_vals_first_socket = (T*)_workspace->get_first_socket_vector();
-    T *x_vals_second_socket = (T*)_workspace->get_second_socket_vector();
+    const X *x_vals = _x->get_vals();
+    X *x_vals_first_socket = (X*)_workspace->get_first_socket_vector();
+    X *x_vals_second_socket = (X*)_workspace->get_second_socket_vector();
 
-    T *y_vals = _y->get_vals();
+    Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
-    #pragma omp parallel
+    /*#pragma omp parallel
     {
         int total_threads = omp_get_num_threads();
         int tid = omp_get_thread_num();
@@ -80,21 +82,80 @@ void SpMV_numa_aware(MatrixCSR<T> *_matrix,
                 y_vals[row] = _accum(y_vals[row], res);
             }
         }
+    }*/
+
+    #pragma omp parallel
+    {
+        int total_threads = omp_get_num_threads();
+        int tid = omp_get_thread_num();
+
+        int socket = tid / (THREADS_PER_SOCKET);
+
+        X *local_x_vals = 0;
+        if(socket == 0)
+        {
+            local_x_vals = x_vals_first_socket;
+            in_socket_copy(local_x_vals, x_vals, _matrix->nrows);
+        }
+        else if(socket == 1)
+        {
+            local_x_vals = x_vals_second_socket;
+            in_socket_copy(local_x_vals, x_vals, _matrix->nrows);
+        }
+
+        if(_matrix->can_use_static_balancing())
+        {
+            #pragma omp for schedule(static)
+            for(VNT row = 0; row < _matrix->nrows; row++)
+            {
+                A res = identity_val;
+                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                {
+                    VNT col = _matrix->col_ids[j];
+                    A val = _matrix->vals[j];
+                    res = add_op(res, mul_op(val, x_vals[col]));
+                }
+                y_vals[row] = _accum(y_vals[row], res);
+            }
+        }
+        else
+        {
+            for(int vg = 0; vg < _matrix->vg_num; vg++)
+            {
+                const VNT *vertices = _matrix->vertex_groups[vg].get_data();
+                VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
+
+                #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+                for(VNT idx = 0; idx < vertex_group_size; idx++)
+                {
+                    VNT row = vertices[idx];
+                    Y res = identity_val;
+                    for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                    {
+                        VNT col = _matrix->col_ids[j];
+                        A val = _matrix->vals[j];
+                        res = add_op(res, mul_op(val, local_x_vals[col]));
+                    }
+                    y_vals[row] = _accum(y_vals[row], res);
+                }
+            }
+        }
     }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename SemiringT, typename BinaryOpTAccum>
-void SpMV_non_optimized(MatrixCSR<T> *_matrix,
-                        const DenseVector<T> *_x,
-                        DenseVector<T> *_y,
-                        BinaryOpTAccum _accum,
-                        SemiringT op,
-                        Descriptor *_desc)
+template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+void SpMV_all_active_static(const MatrixCSR<A> *_matrix,
+                            const DenseVector<X> *_x,
+                            DenseVector<Y> *_y,
+                            BinaryOpTAccum _accum,
+                            SemiringT op,
+                            Descriptor *_desc,
+                            Workspace *_workspace)
 {
-    const T *x_vals = _x->get_vals();
-    T *y_vals = _y->get_vals();
+    const X *x_vals = _x->get_vals();
+    Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
@@ -102,13 +163,13 @@ void SpMV_non_optimized(MatrixCSR<T> *_matrix,
     #pragma omp parallel
     {
         #pragma omp for schedule(static)
-        for(VNT row = 0; row < _matrix->size; row++)
+        for(VNT row = 0; row < _matrix->nrows; row++)
         {
-            T res = identity_val;
+            A res = identity_val;
             for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
                 VNT col = _matrix->col_ids[j];
-                T val = _matrix->vals[j];
+                A val = _matrix->vals[j];
                 res = add_op(res, mul_op(val, x_vals[col]));
             }
             y_vals[row] = _accum(y_vals[row], res);
@@ -165,7 +226,7 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
         #pragma omp parallel
         {
             #pragma omp for
-            for(VNT i = 0; i < _matrix->size; i++)
+            for(VNT i = 0; i < _matrix->nrows; i++)
                 dense_mask[i] = 1;
 
             #pragma omp for
@@ -176,7 +237,7 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
             }
 
             #pragma omp for schedule(guided, 1)
-            for(VNT row = 0; row < _matrix->size; row++)
+            for(VNT row = 0; row < _matrix->nrows; row++)
             {
                 bool mask_val = dense_mask[row];
                 if(mask_val)
@@ -241,7 +302,7 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
     #pragma omp parallel
     {
         #pragma omp for schedule(guided, 1)
-        for(VNT row = 0; row < _matrix->size; row++)
+        for(VNT row = 0; row < _matrix->nrows; row++)
         {
             bool mask_val = (bool)mask_vals[row];
             if (!use_comp_mask && mask_val || use_comp_mask && !mask_val)
@@ -264,13 +325,13 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
-void SpMV_all_active(const MatrixCSR<A> *_matrix,
-                     const DenseVector<X> *_x,
-                     DenseVector<Y> *_y,
-                     BinaryOpTAccum _accum,
-                     SemiringT op,
-                     Descriptor *_desc,
-                     Workspace *_workspace)
+void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
+                                  const DenseVector<X> *_x,
+                                  DenseVector<Y> *_y,
+                                  BinaryOpTAccum _accum,
+                                  SemiringT op,
+                                  Descriptor *_desc,
+                                  Workspace *_workspace)
 {
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
@@ -285,7 +346,7 @@ void SpMV_all_active(const MatrixCSR<A> *_matrix,
             const VNT *vertices = _matrix->vertex_groups[vg].get_data();
             VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
 
-            #pragma omp for nowait schedule(guided, 1)
+            #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
             for(VNT idx = 0; idx < vertex_group_size; idx++)
             {
                 VNT row = vertices[idx];
@@ -301,6 +362,59 @@ void SpMV_all_active(const MatrixCSR<A> *_matrix,
         }
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
+                                  const DenseVector<X> *_x,
+                                  DenseVector<Y> *_y,
+                                  BinaryOpTAccum _accum,
+                                  SemiringT op,
+                                  Descriptor *_desc,
+                                  Workspace *_workspace)
+{
+    const X *x_vals = _x->get_vals();
+    Y *y_vals = _y->get_vals();
+    auto add_op = extractAdd(op);
+    auto mul_op = extractMul(op);
+    auto identity_val = op.identity();
+
+    Y *buffer = (Y*)_workspace->get_first_socket_vector();
+
+    #pragma omp parallel
+    {
+        for(int vg = 0; vg < _matrix->vg_num; vg++)
+        {
+            const VNT *vertices = _matrix->vertex_groups[vg].get_data();
+            VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
+
+            #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+            for(VNT idx = 0; idx < vertex_group_size; idx++)
+            {
+                VNT row = vertices[idx];
+                Y res = identity_val;
+                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                {
+                    VNT col = _matrix->col_ids[j];
+                    A val = _matrix->vals[j];
+                    res = add_op(res, mul_op(val, x_vals[col]));
+                }
+                buffer[row] = res;
+            }
+        }
+
+        #pragma omp barrier
+
+        #pragma omp for
+        for(VNT row = 0; row < _matrix->nrows; row++)
+        {
+            y_vals[row] = _accum(y_vals[row], buffer[row]);
+        }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 }

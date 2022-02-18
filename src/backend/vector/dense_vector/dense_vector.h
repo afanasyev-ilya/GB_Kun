@@ -42,7 +42,7 @@ public:
 
     VNT get_nvals() const;
 
-    void print_storage_type() const { cout << "It is dense vector" << endl; };
+    void print_storage_type() const { cout << "It is a dense vector" << endl; };
 
     void set_element(T _val, VNT _pos);
     void set_all_constant(T _val);
@@ -71,7 +71,7 @@ bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
     VNT error_count = 0;
     for(VNT i = 0; i < lhs.size; i++)
     {
-        if(fabs(lhs.vals[i] - rhs.vals[i]) > 0.001 && lhs.vals[i] < 100000)
+        if(fabs(lhs.vals[i] - rhs.vals[i]) > 0.001)
         {
             if(error_count < 10)
                 cout << "Error in " << i << " : " << lhs.vals[i] << " " << rhs.vals[i] << endl;
@@ -89,6 +89,12 @@ bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
         return true;
     else
         return false;
+}
+
+template <typename T>
+bool operator!=(DenseVector<T>& lhs, DenseVector<T>& rhs)
+{
+    return !(lhs == rhs);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

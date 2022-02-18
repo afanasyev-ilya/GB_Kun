@@ -5,6 +5,8 @@
 namespace lablas {
 namespace algorithm {
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
 void bfs_traditional(Vector <T> *_levels,
                      const Matrix <T> *_graph,

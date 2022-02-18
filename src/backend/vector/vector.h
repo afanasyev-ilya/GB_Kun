@@ -138,9 +138,13 @@ public:
                    Index _nvals)
     {
         swap_to_sparse();
-        auto *sparse_vec = ((SparseVector<T>*)main_container)->build(_indices, _values, _nvals);
+        ((SparseVector<T>*)main_container)->build(_indices, _values, _nvals);
+
+        SparseVector<T>* sparse_vec = ((SparseVector<T>*)main_container);
+
         sparse_vec->fill_with_zeros();
-        return sparse_vec->build(_indices, _values, _nvals);
+        sparse_vec->build(_indices, _values, _nvals);
+        return GrB_SUCCESS;
     }
 
     LA_Info build(const T*    _values,
@@ -153,6 +157,11 @@ public:
 
     void print() const
     {
+        if(is_dense())
+            cout << "vector is dense" << endl;
+        else
+            cout << "vector is sparse" << endl;
+        cout << "nvals: " << main_container->get_nvals() << " / " << main_container->get_size() << endl;
         main_container->print();
     }
 
@@ -169,6 +178,14 @@ public:
     VNT get_size() const
     {
         return main_container->get_size();
+    }
+
+    void swap(Vector *_another)
+    {
+        ptr_swap(this->main_container, _another->main_container);
+        ptr_swap(this->secondary_container, _another->secondary_container);
+        std::swap(this->nnz, _another->nnz);
+        std::swap(this->storage, _another->storage);
     }
 private:
     VNT nnz;
@@ -206,10 +223,8 @@ bool operator==(Vector<T>& lhs, Vector<T>& rhs)
 {
     if(lhs.storage != rhs.storage) // storages mismatch, not equal
     {
-//        lhs.print();
-//        rhs.print();
-    cout << "Different storage!\n";
-    return 0;
+        cout << "Different storage!\n";
+        return 0;
     }
     else
     {
@@ -224,6 +239,12 @@ bool operator==(Vector<T>& lhs, Vector<T>& rhs)
             throw " == for sparse vectors not implemented yet";
         }
     }
+}
+
+template <typename T>
+bool operator!=(Vector<T>& lhs, Vector<T>& rhs)
+{
+    return !(lhs == rhs);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

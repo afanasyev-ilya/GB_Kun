@@ -9,22 +9,13 @@ namespace backend {
 
 template <typename T> void sort_perm(T *arr, ENT *perm, ENT len, bool rev=false)
 {
-    if(rev == false) {
+    if(rev == false)
+    {
         std::stable_sort(perm+0, perm+len, [&](const ENT& a, const ENT& b) {return (arr[a] < arr[b]);});
-    } else {
-        std::stable_sort(perm+0, perm+len, [&](const ENT& a, const ENT& b) {return (arr[a] > arr[b]); });
     }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//for debugging
-template <typename T> void sort_perm_v(T *arr, int *perm, int len, bool rev=false)
-{
-    if(rev == false) {
-        std::stable_sort(perm+0, perm+len, [&](const int& a, const int& b) {printf("comparing arr[%d] = %d, arr[%d] = %d\n", a, arr[a], b, arr[b]); return (arr[a] < arr[b]);});
-    } else {
-        std::stable_sort(perm+0, perm+len, [&](const int& a, const int& b) {printf("comparing arr[%d] = %d, arr[%d] = %d\n", a, arr[a], b, arr[b]); return (arr[a] > arr[b]); });
+    else
+    {
+        std::stable_sort(perm+0, perm+len, [&](const ENT& a, const ENT& b) {return (arr[a] > arr[b]); });
     }
 }
 
@@ -37,8 +28,6 @@ MatrixSellC<T>::MatrixSellC():size(0), nnz(0), vals(NULL), row_ptr(NULL), col_id
     {
         nthreads = omp_get_num_threads();
     }
-    rcmPerm = NULL;
-    rcmInvPerm = NULL;
     nnz_per_row = NULL;
 }
 
@@ -72,6 +61,9 @@ MatrixSellC<T>::~MatrixSellC()
     {
         delete[] nnz_per_row;
     }
+
+    MemoryAPI::free_array(sigmaPerm);
+    MemoryAPI::free_array(sigmaInvPerm);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,6 +86,7 @@ void MatrixSellC<T>::print() const
 {
     for(VNT row = 0; row < size; row++)
     {
+        cout << row + 1 << ") ";
         for(VNT col = 0; col < size; col++)
         {
             cout << get(row, col) << " ";
@@ -118,7 +111,11 @@ void MatrixSellC<T>::print_stats()
     cout << "Num rows: " << size << " (vertices)" << endl;
     cout << "nnz: " << nnz << " (edges)" << endl;
     cout << "SellC nnz: " << cell_c_nnz << ", growing factor - " << (double)cell_c_nnz/nnz << endl;
-    cout << "Cache size: " << size * sizeof(T) / 1e6 << " MB indirectly array" << endl;
+    cout << "Cache size: " << size * sizeof(T) / 1e6 << " MB indirectly array" << endl << endl;
+
+    cout << "size: " << size * sizeof(T) / 1e6 << " MB" << endl;
+    cout << "sigma size: " << sigma * sizeof(T) / 1e6 << " MB" << endl;
+    cout << "num sigma segments: " << size/sigma << endl;
     cout << " -------------------- " << endl << endl;
 }
 

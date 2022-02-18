@@ -1,5 +1,4 @@
-#ifndef GB_KUN_TYPES_HPP
-#define GB_KUN_TYPES_HPP
+#pragma once
     #include <cstddef>
 
 
@@ -78,12 +77,6 @@
     LA_Info;
 
 
-//template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
-//        struct plus {
-//            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
-//                return lhs + rhs;
-//            }
-//        };
 namespace lablas{
 
         template <typename D1, typename D2 = D1>
@@ -91,9 +84,16 @@ namespace lablas{
             inline D2 operator()(const D1 input) const { return input; }
         };
 
-        template <typename T_out>
+        /*template <typename T_out>
         struct plus {
             inline T_out operator()(const T_out lhs, const T_out rhs) const {
+                return lhs + rhs;
+            }
+        };*/
+
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct plus {
+            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
                 return lhs + rhs;
             }
         };
@@ -143,22 +143,22 @@ namespace lablas{
         template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct minimum {
             inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
-                if (lhs < rhs){
-                    return lhs;
-                } else {
-                    return rhs;
+                T_out min = lhs;
+                if (rhs < lhs) {
+                    min = rhs;
                 }
+                return min;
             }
         };
 
         template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
         struct maximum {
             inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
-                if (lhs > rhs){
-                    return lhs;
-                } else {
-                    return rhs;
+                T_out max = lhs;
+                if (rhs > lhs) {
+                    max = rhs;
                 }
+                return max;
             }
         };
 
@@ -183,6 +183,13 @@ namespace lablas{
             }
         };
 
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = bool>
+        struct less {
+            inline T_out operator()(T_in1 lhs, T_in2 rhs) {
+                return lhs < rhs;
+            }
+        };
+
 // Monoid generator macro provided by Scott McMillan.
 #define REGISTER_MONOID(M_NAME, BINARYOP, IDENTITY)                          \
 template <typename T_out>                                                    \
@@ -200,10 +207,10 @@ inline T_out operator()(T_out lhs, T_out rhs) const    \
 
 REGISTER_MONOID(PlusMonoid, plus, 0)
 REGISTER_MONOID(LogicalOrMonoid, logical_or, false)
-
+REGISTER_MONOID(MinimumMonoid, minimum, std::numeric_limits<T_out>::max())
 REGISTER_MONOID(FirstWinsMonoid, first, 0)
 REGISTER_MONOID(SecondWinsMonoid, second, 0)
-
+REGISTER_MONOID(CustomLessMonoid, less, std::numeric_limits<T_out>::max());
 REGISTER_MONOID(FirstMin, minimum, 0)
 
 // Semiring generator macro provided by Scott McMillan
@@ -231,6 +238,11 @@ REGISTER_SEMIRING(FirstWinsSemiring, FirstWinsMonoid, multiplies)
 REGISTER_SEMIRING(FirstMinSemiring, FirstMin, multiplies)
 REGISTER_SEMIRING(PlusSecondSemiring, PlusMonoid, second)
 REGISTER_SEMIRING(StructuralBool, LogicalOrMonoid, GrB_ONEB_T)
+REGISTER_SEMIRING(MinimumPlusSemiring, MinimumMonoid, plus)
+REGISTER_SEMIRING(CustomLessPlusSemiring, CustomLessMonoid, plus)
+// MinimumPlusSemiring
+// CustomLessPlusSemiring
+
 
 template <typename SemiringT>
 struct AdditiveMonoidFromSemiring {
@@ -308,5 +320,3 @@ template <typename T_in1, typename T_out = T_in1>
         int seed_;
     };
 }
-
-#endif //GB_KUN_TYPES_HPP

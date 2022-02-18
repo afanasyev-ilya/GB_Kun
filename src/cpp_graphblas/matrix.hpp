@@ -35,6 +35,14 @@ public:
         return GrB_SUCCESS;
     }
 
+    Index nrows() const{
+        return _matrix.get_nrows();
+    }
+
+    Index ncols() const{
+        return _matrix.get_ncols();
+    }
+
     LA_Info get_ncols(Index* _ncols) const{
         *_ncols = _matrix.get_ncols();
         return GrB_SUCCESS;
@@ -90,6 +98,16 @@ public:
     }
 
     Index get_nnz() const {return _matrix.get_nnz();};
+
+    void sort_csr_columns(const string& mode)
+    {
+        _matrix.sort_csr_columns(mode);
+    }
+
+    void sort_csc_rows(const string& mode)
+    {
+        _matrix.sort_csc_rows(mode);
+    }
 private:
     backend::Matrix<T> _matrix;
 };

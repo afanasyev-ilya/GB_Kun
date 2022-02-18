@@ -27,6 +27,8 @@ struct EdgeListContainer
     VNT vertices_count;
     ENT edges_count;
 
+    void remove_duplicated_edges();
+
     void save_as_mtx(string _file_name);
 };
 

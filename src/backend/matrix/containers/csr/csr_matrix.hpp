@@ -4,7 +4,7 @@ template <typename T>
 MatrixCSR<T>::MatrixCSR()
 {
     target_socket = 0;
-    alloc(1, 1, target_socket);
+    alloc(1, 1, 1, target_socket);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -18,15 +18,17 @@ MatrixCSR<T>::~MatrixCSR()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::alloc(VNT _size, ENT _nnz, int _target_socket)
+void MatrixCSR<T>::alloc(VNT _nrows, VNT _ncols, ENT _nnz, int _target_socket)
 {
-    this->size = _size;
+    this->nrows = _nrows;
+    this->ncols = _ncols;
     this->nnz = _nnz;
     target_socket = _target_socket;
 
-    MemoryAPI::numa_aware_alloc(&row_ptr, this->size + 1, _target_socket);
+    MemoryAPI::numa_aware_alloc(&row_ptr, this->nrows + 1, _target_socket);
     MemoryAPI::numa_aware_alloc(&col_ids, this->nnz, _target_socket);
     MemoryAPI::numa_aware_alloc(&vals, this->nnz, _target_socket);
+    MemoryAPI::numa_aware_alloc(&row_degrees, this->nrows, _target_socket);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,15 +39,16 @@ void MatrixCSR<T>::free()
     MemoryAPI::free_array(row_ptr);
     MemoryAPI::free_array(col_ids);
     MemoryAPI::free_array(vals);
+    MemoryAPI::free_array(row_degrees);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::resize(VNT _size, ENT _nnz, int _target_socket)
+void MatrixCSR<T>::resize(VNT _nrows, VNT _ncols, ENT _nnz, int _target_socket)
 {
     this->free();
-    this->alloc(_size, _nnz, _target_socket);
+    this->alloc(_nrows, _ncols, _nnz, _target_socket);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,9 +58,9 @@ void MatrixCSR<T>::deep_copy(MatrixCSR<T> *_copy, int _target_socket)
 {
     if(_target_socket == -1)
         _target_socket = _copy->target_socket;
-    this->resize(_copy->size, _copy->nnz, _target_socket);
+    this->resize(_copy->nrows, _copy->ncols, _copy->nnz, _target_socket);
 
-    MemoryAPI::copy(this->row_ptr, _copy->row_ptr, _copy->size + 1);
+    MemoryAPI::copy(this->row_ptr, _copy->row_ptr, _copy->nrows + 1);
     MemoryAPI::copy(this->vals, _copy->vals, _copy->nnz);
     MemoryAPI::copy(this->col_ids, _copy->col_ids, _copy->nnz);
 
@@ -99,35 +102,48 @@ template <typename T>
 void MatrixCSR<T>::print() const
 {
     cout << "--------------------\n";
-    cout << "MATRIX: [ " << endl;
-    for(VNT row = 0; row < size; row++)
+    for(VNT row = 0; row < nrows; row++)
     {
-        for(VNT col = 0; col < size; col++)
+        for(VNT col = 0; col < ncols; col++)
         {
             cout << get(row, col) << " ";
         }
         cout << endl;
     }
-    cout << "]\n";
     cout << "--------------------\n";
+    cout << "nrows: " << get_num_rows() << endl;
+    cout << "ncols: " << get_num_cols() << endl;
     cout << "nnz: " << nnz << endl;
 
-    Index size_ = 0;
-    get_size(&size_);
     cout << "row_ptr: [ ";
-    for (int i = 0; i < size_ + 1; i++)
+    for (int i = 0; i < nrows + 1; i++)
     {
         cout << row_ptr[i] << " ";
     }
+    cout << "]\n";
 
     cout << "col_ids: [ ";
-    for (int i = 0; i < get_nnz(); i++)
-    {
-        cout << col_ids[i] << " ";
+    for (int i = 0; i < nrows; ++i) {
+        for (int j = row_ptr[i]; j < row_ptr[i + 1]; ++j) {
+            std::cout << col_ids[j] << " ";
+        }
+        if (i + 1 != nrows) {
+            std::cout << "| ";
+        }
     }
     cout << "]\n";
-    cout << endl;
-    cout << "]" << endl;
+
+    cout << "vals: [ ";
+    for (int i = 0; i < nrows; ++i) {
+        for (int j = row_ptr[i]; j < row_ptr[i + 1]; ++j) {
+            std::cout << vals[j] << " ";
+        }
+        if (i + 1 != nrows) {
+            std::cout << "| ";
+        }
+    }
+    cout << "]\n";
+
     cout << "--------------------\n";
 }
 

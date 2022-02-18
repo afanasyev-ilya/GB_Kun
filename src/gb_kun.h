@@ -14,6 +14,8 @@
 #include <string>
 #include <list>
 #include <cassert>
+#include <queue>
+#include <functional>
 
 #include <omp.h>
 
@@ -44,6 +46,7 @@ class DenseVector;
 #include "backend/matrix/matrix.h"
 #include "backend/spmv/spmv.h"
 #include "backend/spmspv/spmspv.h"
+#include "backend/spmspm/spmspm.h"
 
 #include "backend/operations/operations.h"
 

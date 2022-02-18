@@ -37,25 +37,33 @@ public:
     MatrixLAV();
     ~MatrixLAV();
 
-    void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _size, ENT _nnz, int _socket = 0);
+    void build(VNT *_row_degrees,
+               VNT *_col_degrees,
+               VNT _nrows,
+               VNT _ncols,
+               ENT _nnz,
+               const ENT *_row_ptr,
+               const VNT *_col_ids,
+               const T *_vals,
+               int _target_socket = 0);
 
     void print() const {};
     void get_size(VNT* _size) const
     {
-        *_size = size;
+        *_size = nrows;
     }
 
     ENT get_nnz() const {return nnz;};
 private:
-    VNT size;
+    VNT nrows, ncols;
     ENT nnz;
 
     VNT dense_segments_num;
     LAVSegment<T> *dense_segments;
     LAVSegment<T> sparse_segment;
 
-    VNT *old_to_new;
-    VNT *new_to_old;
+    VNT *col_new_to_old;
+    VNT *col_old_to_new;
 
     void alloc(VNT _size, ENT _nnz);
     void free();

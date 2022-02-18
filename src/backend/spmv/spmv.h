@@ -17,14 +17,14 @@
 namespace lablas{
 namespace backend{
 
-template <typename T, typename Y, typename SemiringT, typename BinaryOpTAccum>
-void SpMV(const Matrix<T> *_matrix,
-          const DenseVector<T> *_x,
-          DenseVector<T> *_y,
+template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
+void SpMV(const Matrix<A> *_matrix,
+          const DenseVector<X> *_x,
+          DenseVector<Y> *_y,
           Descriptor *_desc,
           BinaryOpTAccum _accum,
           SemiringT _op,
-          const Vector<Y> *_mask)
+          const Vector<M> *_mask)
 {
     if(_mask == NULL) // all active case
     {
@@ -35,27 +35,37 @@ void SpMV(const Matrix<T> *_matrix,
             #ifdef __USE_SOCKET_OPTIMIZATIONS__
             if(omp_get_max_threads() == THREADS_PER_SOCKET*2)
             {
-                SpMV_numa_aware(((MatrixCSR<T> *) _matrix->get_csr()), ((MatrixCSR<T> *) _matrix->get_data_dub()),
+                SpMV_numa_aware(((MatrixCSR<A> *) _matrix->get_csr()), ((MatrixCSR<A> *) _matrix->get_data_dub()),
                                 _x, _y, _accum, _op, _matrix->get_workspace());
             }
             else
             {
-                SpMV_all_active(((MatrixCSR<T> *) _matrix->get_csr()), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                if(_x == _y)
+                {
+                    SpMV_all_active_same_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                }
+                else
+                {
+                    if(_matrix->get_csr()->can_use_static_balancing())
+                        SpMV_all_active_static(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                    else
+                        SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                }
             }
             #else
             SpMV_all_active(((MatrixCSR<T> *) _matrix->get_csr()), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
             #endif
         }
         else if(format == LAV)
-            SpMV(((MatrixLAV<T> *) _matrix->get_data()), _x, _y, _accum, _op, _matrix->get_workspace());
+            SpMV(((MatrixLAV<A> *) _matrix->get_data()), _x, _y, _accum, _op, _matrix->get_workspace());
         else if(format == COO)
-            SpMV(((MatrixCOO<T> *) _matrix->get_data()), _x, _y, _op);
+            SpMV(((MatrixCOO<A> *) _matrix->get_data()), _x, _y, _accum, _op, _matrix->get_workspace());
         else if(format == CSR_SEG)
-            SpMV(((MatrixSegmentedCSR<T> *)_matrix->get_data()), _x, _y, _accum, _op, _matrix->get_workspace());
+            SpMV(((MatrixSegmentedCSR<A> *)_matrix->get_data()), _x, _y, _accum, _op, _matrix->get_workspace());
         else if(format == SELL_C)
-            SpMV(((MatrixSellC<T> *)_matrix->get_data()), _x, _y, _op);
+            SpMV(((MatrixSellC<A> *)_matrix->get_data()), _x, _y, _accum, _op, _matrix->get_workspace());
         else if(format == SORTED_CSR)
-            SpMV(((MatrixSortCSR<T> *)_matrix->get_data()), _x, _y, _accum, _op);
+            SpMV(((MatrixSortCSR<A> *)_matrix->get_data()), _x, _y, _accum, _op);
     }
     else
     {
@@ -83,7 +93,31 @@ void VSpM(const Matrix<A> *_matrix,
 {
     if(_mask == NULL) // all active case
     {
-        SpMV_all_active(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+        MatrixStorageFormat format;
+        _matrix->get_format(&format);
+        if(format == CSR)
+        {
+            if(_x == _y)
+            {
+                SpMV_all_active_same_vectors(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+            }
+            else
+            {
+                SpMV_all_active_diff_vectors(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+            }
+        }
+        else if(format == SELL_C)
+        {
+            SpMV(((MatrixSellC<A> *)_matrix->get_transposed_data()), _x, _y, _accum, _op, _matrix->get_workspace());
+        }
+        else if(format == CSR_SEG)
+        {
+            SpMV(((MatrixSegmentedCSR<A> *)_matrix->get_transposed_data()), _x, _y, _accum, _op, _matrix->get_workspace());
+        }
+        else
+        {
+            throw "unsupported matrix storage format in VSpM";
+        }
     }
     else
     {
