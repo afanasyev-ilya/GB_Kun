@@ -186,6 +186,10 @@ public:
     }
 
     LA_Info dup(const Vector<T>* rhs) {
+        if(rhs->isDense())
+            this->swap_to_dense();
+        else
+            this->swap_to_sparse();
         main_container->dup(rhs->main_container);
     }
 

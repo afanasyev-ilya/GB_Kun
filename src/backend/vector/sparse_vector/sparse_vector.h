@@ -82,10 +82,9 @@ public:
     }
 
     void dup(GenericVector<T>* rhs) {
-        if (rhs->isSparse()) {
-            MemoryAPI::allocate_array(&vals, rhs->get_size());
-            std::memcpy(vals,rhs->get_vals(), sizeof(T) * rhs->get_nvals());
-        }
+        MemoryAPI::allocate_array(&vals, rhs->get_size());
+        std::memcpy(vals,rhs->get_vals(), sizeof(T) * rhs->get_nvals());
+        // TODO
     };
 
     bool isDense() const {
@@ -111,7 +110,6 @@ private:
     VNT size;
     ENT nvals;
     Storage get_storage() {return GrB_SPARSE; };
-
 
     VNT *ids;
     T *vals;

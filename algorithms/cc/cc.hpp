@@ -98,6 +98,7 @@ float cc(Vector<int>*       v,
     }
     v->dup(&parent);
     parent.print();
+    v->print();
 
     return 0.f;
 }
