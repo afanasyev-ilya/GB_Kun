@@ -3,10 +3,11 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-LA_Info GrB_Vector_new(lablas::Vector<T> **_vector, GrB_Type _type, GrB_Index _size)
+LA_Info GrB_Vector_new(lablas::Vector<T> **_vector, GrB_Type _type, GrB_Index _size, const string& _name = "unknown")
 {
     // types can be checked
     *_vector = new lablas::Vector<T>(_size);
+    (*_vector)->set_name(_name);
     return GrB_SUCCESS;
 }
 

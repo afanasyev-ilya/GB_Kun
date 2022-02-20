@@ -79,15 +79,69 @@ LA_Info assign(Vector<W>* _w,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// w += Au
+template <typename W, typename M, typename A, typename U,
+        typename BinaryOpTAccum, typename SemiringT>
+LA_Info mxv (Vector<W>*       _w,
+             const Vector<M>* _mask,
+             BinaryOpTAccum   _accum,
+             SemiringT        _op,
+             const Matrix<A>* _matrix,
+             const Vector<U>* _u,
+             Descriptor*      _desc)
+{
+    if(_u->is_dense())
+    {
+        cout << "USING SpMV!!!!!" << endl;
+        backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+    }
+    else
+    {
+        cout << "USING SpMSpV!!!!!" << endl;
+        backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+    }
+
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename W, typename M, typename A, typename U,
+        typename BinaryOpTAccum, typename SemiringT>
+LA_Info vxm (Vector<W>*       _w,
+             const Vector<M>* _mask,
+             BinaryOpTAccum   _accum,
+             SemiringT        _op,
+             const Matrix<A>* _matrix,
+             const Vector<U>* _u,
+             Descriptor*      _desc)
+{
+    if(_u->is_dense())
+    {
+        cout << "USING SpMV!!!!!" << endl;
+        backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+    }
+    else
+    {
+        cout << "USING SpMSpV!!!!!" << endl;
+        backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+    }
+
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename W, typename M, typename U, typename BinaryOpTAccum>
 LA_Info assign(Vector<W>* _w,
-    const Vector<M>* _mask,
-    BinaryOpTAccum _accum,
-    U _value,
-    const Index* _indices,
-    const Index _nindices,
-    Descriptor* _desc) {
-
+               const Vector<M> *_mask,
+               BinaryOpTAccum _accum,
+               U _value,
+               const Index *_indices,
+               const Index _nindices,
+               Descriptor *_desc)
+{
     _w->force_to_dense();
 
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
@@ -305,11 +359,11 @@ LA_Info reduce(T* _val,
 /* Assume that we have allocated memory in w of size sizeof(indices) */
 template <typename W, typename M, typename U, typename I, typename BinaryOpT>
 LA_Info extract(Vector<W>*       w,
-               const Vector<M>* mask,
-               BinaryOpT        accum,
-               const Vector<U>* u,
-               const Vector<I>* indices,
-               Descriptor*      desc)
+                const Vector<M>* mask,
+                BinaryOpT        accum,
+                const Vector<U>* u,
+                const Vector<I>* indices,
+                Descriptor*      desc)
 {
     for (Index i = 0; i < indices->get_size(); i++)
     {
@@ -327,6 +381,31 @@ LA_Info extract(Vector<W>*       w,
     }
     return GrB_SUCCESS;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename c, typename a, typename b, typename m,
+        typename BinaryOpT,     typename SemiringT>
+LA_Info mxm(Matrix<c>* C,
+         const Matrix<m>* mask,
+         BinaryOpT accum,
+         SemiringT op,
+         const Matrix<a>* A,
+         const Matrix<b>* B,
+         Descriptor*      desc) {
+    // auto add_op = extractAdd(op);
+    // auto mul_op = extractMul(op);
+    if (mask) {
+        return GrB_PANIC;
+    } else {
+        backend::SpMSpM_unmasked_ijk(A,
+                                     B,
+                                 C);
+        return GrB_SUCCESS;
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 }

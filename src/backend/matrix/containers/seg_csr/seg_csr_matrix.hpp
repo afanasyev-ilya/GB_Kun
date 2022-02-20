@@ -10,7 +10,6 @@ MatrixSegmentedCSR<T>::MatrixSegmentedCSR()
     size = 1;
     nnz = 1;
     merge_blocks_number = 1;
-    load_balanced_threshold = 1;
     alloc(1, 1);
 }
 

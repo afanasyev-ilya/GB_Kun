@@ -19,24 +19,48 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
-    Y *shared_vector = (Y*)_workspace->get_first_socket_vector();
+    /*ENT max_nnz = 0;
+    for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++) {
+        SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
+        if (segment->nnz > max_nnz)
+            max_nnz = segment->nnz;
+    }
+
+    Y *result;
+    MemoryAPI::allocate_array(&result, max_nnz);
+
+    double new_way_time = 0;
+    for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
+    {
+        SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
+        Y *buffer = (Y*)segment->vertex_buffer;
+
+        double t1_check = omp_get_wtime();
+        #pragma omp parallel for
+        for(ENT i = 0; i < segment->nnz; i++)
+        {
+            VNT col_id = segment->col_ids[i];
+            A val = segment->vals[i];
+            result[i] = mul_op(val, x_vals[col_id]);
+        }
+        double t2_check = omp_get_wtime();
+        new_way_time += t2_check - t1_check;
+        cout << "check BW: " << segment->nnz * (3.0*sizeof(X) + sizeof(Index)) / ((t2_check - t1_check)*1e9) << " GB/s, " << "time: " << (t2_check - t1_check)*1000 << endl;
+    }
+    MemoryAPI::free_array(result);*/
 
     double t1 = omp_get_wtime();
-
     int cores_num = omp_get_max_threads();
-
-    if(_matrix->num_segments >= 4*cores_num)
+    #pragma omp parallel // parallelism within each segment
     {
-        cout << "using private segment policy" << endl;
-
-        #pragma omp parallel // parallelism between different segments
+        for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
         {
-            #pragma omp for schedule(dynamic, 1)
-            for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
-            {
-                SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
-                Y *buffer = (Y*)segment->vertex_buffer;
+            SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
+            Y *buffer = (Y*)segment->vertex_buffer;
 
+            if(segment->static_ok_to_use)
+            {
+                #pragma omp for nowait schedule(static, 32)
                 for(VNT i = 0; i < segment->size; i++)
                 {
                     Y res = identity_val;
@@ -47,99 +71,52 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
                     buffer[i] = res;
                 }
             }
-        }
-    }
-    else
-    {
-        cout << "using shared segment policy" << endl;
-
-        #pragma omp parallel // parallelism within different segments
-        {
-            for(int s = 0; s < _matrix->num_segments; s++)
+            else
             {
-                int seg_id = _matrix->sorted_segments[s].first;
-
-                SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
-                Y *buffer = (Y*)segment->vertex_buffer;
-
-                if(segment->schedule_type == STATIC)
+                for(int vg = 0; vg < segment->vg_num; vg++)
                 {
-                    if(segment->load_balanced_type == ONE_GROUP)
+                    const VNT *vertices = segment->vertex_groups[vg].get_data();
+                    VNT vertex_group_size = segment->vertex_groups[vg].get_size();
+
+                    #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+                    for(VNT idx = 0; idx < vertex_group_size; idx++)
                     {
-                        #pragma omp for nowait schedule(static)
-                        for(VNT i = 0; i < segment->size; i++)
+                        VNT row = vertices[idx];
+                        Y res = identity_val;
+                        for(ENT j = segment->row_ptr[row]; j < segment->row_ptr[row + 1]; j++)
                         {
-                            Y res = identity_val;
-                            for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
-                            {
-                                res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
-                            }
-                            buffer[i] = res;
+                            res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
                         }
-                    }
-
-                    if(segment->load_balanced_type == MANY_GROUPS)
-                    {
-                        for(int vg = 0; vg < segment->vg_num; vg++)
-                        {
-                            const VNT *vertices = segment->vertex_groups[vg].get_data();
-                            VNT vertex_group_size = segment->vertex_groups[vg].get_size();
-
-                            #pragma omp for nowait schedule(static)
-                            for(VNT idx = 0; idx < vertex_group_size; idx++)
-                            {
-                                VNT row = vertices[idx];
-                                Y res = identity_val;
-                                for(ENT j = segment->row_ptr[row]; j < segment->row_ptr[row + 1]; j++)
-                                {
-                                    res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
-                                }
-                                buffer[row] = res;
-                            }
-                        }
-                    }
-                }
-
-                if(segment->schedule_type == GUIDED)
-                {
-                    if(segment->load_balanced_type == ONE_GROUP)
-                    {
-                        #pragma omp for nowait schedule(guided)
-                        for(VNT i = 0; i < segment->size; i++)
-                        {
-                            Y res = identity_val;
-                            for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
-                            {
-                                res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
-                            }
-                            buffer[i] = res;
-                        }
-                    }
-
-                    if(segment->load_balanced_type == MANY_GROUPS)
-                    {
-                        for(int vg = 0; vg < segment->vg_num; vg++)
-                        {
-                            const VNT *vertices = segment->vertex_groups[vg].get_data();
-                            VNT vertex_group_size = segment->vertex_groups[vg].get_size();
-
-                            #pragma omp for nowait schedule(guided, 1024)
-                            for(VNT idx = 0; idx < vertex_group_size; idx++)
-                            {
-                                VNT row = vertices[idx];
-                                Y res = identity_val;
-                                for(ENT j = segment->row_ptr[row]; j < segment->row_ptr[row + 1]; j++)
-                                {
-                                    res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
-                                }
-                                buffer[row] = res;
-                            }
-                        }
+                        buffer[row] = res;
                     }
                 }
             }
         }
     }
+
+    /*for(int s = 0; s < _matrix->num_segments; s++)
+    {
+        int seg_id = s;
+
+        SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
+        Y *buffer = (Y *) segment->vertex_buffer;
+
+        double t1_in = omp_get_wtime();
+        #pragma omp parallel for schedule(static, 32)
+        for(VNT i = 0; i < segment->size; i++)
+        {
+            Y res = identity_val;
+            for(ENT j = segment->row_ptr[i]; j < segment->row_ptr[i + 1]; j++)
+            {
+                res = add_op(res, mul_op(segment->vals[j], x_vals[segment->col_ids[j]]));
+            }
+            buffer[i] = res;
+        }
+        double t2_in = omp_get_wtime();
+        cout << "seg  " << seg_id << " BW: " << segment->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2_in - t1_in)*1e9)
+        << " GB/s, avg_deg = " << ((double)segment->nnz)/segment->size << ", " <<
+           100.0*(double)segment->nnz/_matrix->nnz << "% of nnz" << endl;
+    }*/
 
     /*#pragma omp parallel  // testing number of processed edges and manual static parallelism
     {
@@ -220,10 +197,11 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         }
     }*/
     double t2 = omp_get_wtime();
-    cout << "inner (seg) time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "inner (seg) time: " << (t2 - t1)*1000 << " ms " << endl;
     cout << "inner (seg) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
 
     double t3 = omp_get_wtime();
+    Y *merge_result = (Y*)_workspace->get_first_socket_vector();
     if(_matrix->merge_blocks_number >= 4*cores_num)
     {
         cout << "using cache-aware merge" << endl;
@@ -232,7 +210,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             #pragma omp for
             for(VNT i = 0; i < _matrix->size; i++)
             {
-                shared_vector[i] = identity_val;
+                merge_result[i] = identity_val;
             }
 
             #pragma omp for schedule(static, 1)
@@ -249,7 +227,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
 
                     for(VNT i = block_start; i < block_end; i++)
                     {
-                        shared_vector[conversion_indexes[i]] = add_op(shared_vector[conversion_indexes[i]], buffer[i]);
+                        merge_result[conversion_indexes[i]] = add_op(merge_result[conversion_indexes[i]], buffer[i]);
                     }
                 }
             }
@@ -257,7 +235,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             #pragma omp for
             for(VNT i = 0; i < _matrix->size; i++)
             {
-                y_vals[i] = _accum(y_vals[i], shared_vector[i]);
+                y_vals[i] = _accum(y_vals[i], merge_result[i]);
             }
         }
     }
@@ -269,7 +247,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             #pragma omp for
             for(VNT i = 0; i < _matrix->size; i++)
             {
-                shared_vector[i] = identity_val;
+                merge_result[i] = identity_val;
             }
 
             for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
@@ -278,17 +256,17 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
                 Y *buffer = (Y*)segment->vertex_buffer;
                 VNT *conversion_indexes = segment->conversion_to_full;
 
-                #pragma omp for schedule(static)
+                #pragma omp for schedule(static, 32)
                 for(VNT i = 0; i < segment->size; i++)
                 {
-                    shared_vector[conversion_indexes[i]] = add_op(shared_vector[conversion_indexes[i]], buffer[i]);
+                    merge_result[conversion_indexes[i]] = add_op(merge_result[conversion_indexes[i]], buffer[i]);
                 }
             }
 
             #pragma omp for
             for(VNT i = 0; i < _matrix->size; i++)
             {
-                y_vals[i] = _accum(y_vals[i], shared_vector[i]);
+                y_vals[i] = _accum(y_vals[i], merge_result[i]);
             }
         }
     }

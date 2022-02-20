@@ -66,16 +66,18 @@ void test_spmv(int argc, char **argv)
 
     #define MASK_NULL static_cast<const lablas::Vector<T>*>(NULL)
 
+    Index sparsity_k = 1000.0;
     vector<GrB_Index> nnz_subset;
-    for(Index i = 0; i < ceil(size); i++)
+    for(Index i = 0; i < size/sparsity_k + 1; i++)
         nnz_subset.push_back(rand() % size);
 
-    u.fill(1.0);
+    Index u_const = 5;
+    u.fill(0.0);
     w.fill(1.0);
-    GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, 10, &(nnz_subset[0]), nnz_subset.size(), NULL));
+    GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, u_const, &(nnz_subset[0]), nnz_subset.size(), NULL));
     GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
 
-    int num_runs = 10;
+    int num_runs = 1;
     double avg_time = 0;
     for(int run = 0; run < num_runs; run++)
     {
@@ -100,9 +102,11 @@ void test_spmv(int argc, char **argv)
     {
         lablas::Vector<T> w_check(size);
 
-        u.fill(1.0);
+        u.fill(0.0);
         w_check.fill(1.0);
-        GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, 10, &(nnz_subset[0]), nnz_subset.size(), NULL));
+        //u.print();
+        cout << "before problem!" << endl;
+        GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, u_const, &(nnz_subset[0]), nnz_subset.size(), NULL));
 
         check_mxv(w_check, matrix, u);
 

@@ -23,8 +23,8 @@ else ()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_KUNPENG__ -O3 -std=c++14 -fno-trapping-math -fopenmp-simd -fopenmp  -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays")
     else ()
         message("CLION compilation") # this is for local testing
-        set(CMAKE_CXX_STANDARD 14)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fopenmp -fpermissive")
+        set(CMAKE_CXX_STANDARD 17)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -fopenmp -fpermissive")
     endif()
 endif()
 
@@ -102,4 +102,7 @@ target_include_directories(gen PRIVATE)
 
 add_executable(gemm gemm.cpp)
 target_include_directories(gemm PRIVATE)
+
+add_executable(gather_tests gather_tests.cpp)
+target_include_directories(gather_tests PRIVATE)
 

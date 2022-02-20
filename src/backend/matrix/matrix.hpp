@@ -9,8 +9,6 @@ Matrix<T>::Matrix(): _format(CSR)
     csc_data = NULL;
     data = NULL;
     transposed_data = NULL;
-    rowdegrees = NULL;
-    coldegrees = NULL;
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
     data_socket_dub = NULL;
     #endif
@@ -41,9 +39,6 @@ Matrix<T>::~Matrix()
         delete data;
     if(transposed_data != NULL)
         delete transposed_data;
-
-    MemoryAPI::free_array(rowdegrees);
-    MemoryAPI::free_array(coldegrees);
 
     #ifdef __USE_SOCKET_OPTIMIZATIONS__
     if(data_socket_dub != NULL)
@@ -216,20 +211,6 @@ template<typename T>
 void Matrix<T>::init_optimized_structures()
 {
     double t1, t2;
-    MemoryAPI::allocate_array(&rowdegrees, get_nrows());
-    MemoryAPI::allocate_array(&coldegrees, get_ncols());
-
-    #pragma omp parallel for
-    for(int i = 0; i < get_nrows(); i++)
-    {
-        rowdegrees[i] = csr_data->get_degree(i);
-    }
-
-    #pragma omp parallel for
-    for(int i = 0; i < get_ncols(); i++)
-    {
-        coldegrees[i] = csc_data->get_degree(i);
-    }
 
     t1 = omp_get_wtime();
     // optimized representation creation
@@ -272,14 +253,14 @@ void Matrix<T>::init_optimized_structures()
     {
         data = new MatrixSortCSR<T>;
         transposed_data = new MatrixSortCSR<T>;
-        ((MatrixSortCSR<T>*)data)->build(rowdegrees, coldegrees,
+        ((MatrixSortCSR<T>*)data)->build(get_rowdegrees(), get_coldegrees(),
                                          csr_data->get_num_rows(),
                                          csr_data->get_num_cols(),
                                          csr_data->get_nnz(),
                                          csr_data->get_row_ptr(),
                                          csr_data->get_col_ids(),
                                          csr_data->get_vals(), 0);
-        ((MatrixSortCSR<T>*)transposed_data)->build(coldegrees, rowdegrees,
+        ((MatrixSortCSR<T>*)transposed_data)->build(get_coldegrees(), get_rowdegrees(),
                                                     csc_data->get_num_rows(),
                                                     csc_data->get_num_cols(),
                                                     csc_data->get_nnz(),
@@ -310,6 +291,28 @@ void Matrix<T>::init_optimized_structures()
         data_socket_dub = NULL;
         cout << "Using SELL-C matrix format as optimized representation" << endl;
     }
+    else if (_format == LAV)
+    {
+        data = new MatrixLAV<T>;
+        transposed_data = new MatrixLAV<T>;
+        ((MatrixLAV<T>*)data)->build(get_rowdegrees(), get_coldegrees(),
+                                     csr_data->get_num_rows(),
+                                       csr_data->get_num_cols(),
+                                       csr_data->get_nnz(),
+                                       csr_data->get_row_ptr(),
+                                       csr_data->get_col_ids(),
+                                       csr_data->get_vals(), 0);
+        ((MatrixLAV<T>*)transposed_data)->build(get_coldegrees(), get_rowdegrees(),
+                                                csc_data->get_num_rows(), // since CSC is used no swap
+                                                  csc_data->get_num_cols(), // compared to prev build
+                                                  csc_data->get_nnz(),
+                                                  csc_data->get_row_ptr(),
+                                                  csc_data->get_col_ids(),
+                                                  csc_data->get_vals(), 0);
+
+        data_socket_dub = NULL;
+        cout << "Using LAV matrix format as optimized representation" << endl;
+    }
     else
     {
         throw "Error: unsupported format in Matrix<T>::build";
@@ -333,8 +336,8 @@ void Matrix<T>::build(const VNT *_row_indices,
     double t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
-    csr_data->build(_row_indices, _col_indices, _values, _size, _nnz, 0);
-    csc_data->build(_col_indices, _row_indices, _values, _size, _nnz, 0);
+    csr_data->build(_row_indices, _col_indices, _values, _size, _size, _nnz, 0);
+    csc_data->build(_col_indices, _row_indices, _values, _size, _size, _nnz, 0);
     double t2 = omp_get_wtime();
     cout << "csr creation time: " << t2 - t1 << " sec" << endl;
 
@@ -351,16 +354,143 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     vector<vector<pair<VNT, T>>> csr_tmp_matrix;
     vector<vector<pair<VNT, T>>> csc_tmp_matrix;
     read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+    VNT tmp_nrows = csr_tmp_matrix.size(), tmp_ncols = csc_tmp_matrix.size();
 
     double t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
-    csr_data->build(csr_tmp_matrix, 0);
-    csc_data->build(csc_tmp_matrix, 0);
+    csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols, 0);
+    csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows, 0);
     double t2 = omp_get_wtime();
     cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;
 
     init_optimized_structures();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void Matrix<T>::sort_csr_columns(const string& mode)
+{
+    if (mode == "COUNTING_SORT") {
+        const VNT *col_ids = get_csc()->get_col_ids();
+        VNT *row_ids = new VNT[get_csc()->get_nnz()];
+        const T *vals = get_csc()->get_vals();
+
+        VNT csc_num_rows = get_csc()->get_num_rows();
+        VNT csr_num_rows = get_csr()->get_num_rows();
+
+        for (VNT row_id = 0; row_id < csc_num_rows; ++row_id) {
+            for (ENT j = get_csc()->get_row_ptr()[row_id]; j < get_csc()->get_row_ptr()[row_id + 1]; ++j) {
+                row_ids[j] = row_id;
+            }
+        }
+
+        std::vector<std::vector<pair<VNT, T>>> _result(csr_num_rows);
+
+        for(ENT i = 0; i < get_csc()->get_nnz(); i++)
+        {
+            VNT row = col_ids[i];
+            VNT col = row_ids[i];
+            T val = vals[i];
+            _result[row].push_back(make_pair(col, val));
+        }
+
+        ENT cur_pos = 0;
+
+        ENT* result_row_ptrs = const_cast<ENT *>(get_csr()->get_row_ptr());
+        VNT* result_col_ids = const_cast<VNT *>(get_csr()->get_col_ids());
+        T* result_vals = const_cast<T *>(get_csr()->get_vals());
+
+        for(VNT i = 0; i < csr_num_rows; i++)
+        {
+            result_row_ptrs[i] = cur_pos;
+            result_row_ptrs[i + 1] = cur_pos + _result[i].size();
+            cur_pos += _result[i].size();
+        }
+        #pragma omp parallel for
+        for(VNT i = 0; i < _result.size(); i++)
+        {
+            for(ENT j = get_csr()->get_row_ptr()[i]; j < get_csr()->get_row_ptr()[i + 1]; j++)
+            {
+                result_col_ids[j] = _result[i][j - get_csr()->get_row_ptr()[i]].first;
+                result_vals[j] = _result[i][j - get_csr()->get_row_ptr()[i]].second;
+            }
+        }
+    } else if (mode == "STL_SORT") {
+        #pragma omp parallel for
+        for (int i = 0; i < get_csr()->get_num_rows(); i++) {
+            Index* begin_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i];
+            Index* end_ptr = csr_data->get_col_ids() + csr_data->get_row_ptr()[i + 1];
+            std::sort(begin_ptr, end_ptr);
+        }
+    } else {
+        throw mode;
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void Matrix<T>::sort_csc_rows(const string& mode)
+{
+    if (mode == "COUNTING_SORT") {
+        /*
+        const VNT *col_ids = get_csc()->get_col_ids();
+        VNT *row_ids = new VNT[get_csc()->get_nnz()];
+        const T *vals = get_csc()->get_vals();
+
+        VNT csc_num_rows = get_csc()->get_num_rows();
+        VNT csr_num_rows = get_csr()->get_num_rows();
+
+        for (VNT row_id = 0; row_id < csc_num_rows; ++row_id) {
+            for (ENT j = get_csc()->get_row_ptr()[row_id]; j < get_csc()->get_row_ptr()[row_id + 1]; ++j) {
+                row_ids[j] = row_id;
+            }
+        }
+
+        std::vector<std::vector<pair<VNT, T>>> _result(csr_num_rows);
+
+        for(ENT i = 0; i < get_csc()->get_nnz(); i++)
+        {
+            VNT row = col_ids[i];
+            VNT col = row_ids[i];
+            T val = vals[i];
+            _result[row].push_back(make_pair(col, val));
+        }
+
+        ENT cur_pos = 0;
+
+        ENT* result_row_ptrs = get_csr()->get_row_ptr();
+        VNT* result_col_ids = get_csr()->get_col_ids();
+        T* result_vals = get_csr()->get_vals();
+
+        for(VNT i = 0; i < csr_num_rows; i++)
+        {
+            result_row_ptrs[i] = cur_pos;
+            result_row_ptrs[i + 1] = cur_pos + _result[i].size();
+            cur_pos += _result[i].size();
+        }
+        #pragma omp parallel for
+        for(VNT i = 0; i < _result.size(); i++)
+        {
+            for(ENT j = get_csr()->get_row_ptr()[i]; j < get_csr()->get_row_ptr()[i + 1]; j++)
+            {
+                result_col_ids[j] = _result[i][j - get_csr()->get_row_ptr()[i]].first;
+                result_vals[j] = _result[i][j - get_csr()->get_row_ptr()[i]].second;
+            }
+        }
+        */
+    } else if (mode == "STL_SORT") {
+        #pragma omp parallel for
+        for (int i = 0; i < get_csc()->get_num_rows(); i++) {
+            Index* begin_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i];
+            Index* end_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i + 1];
+            std::sort(begin_ptr, end_ptr);
+        }
+    } else {
+        throw mode;
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

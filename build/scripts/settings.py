@@ -80,7 +80,12 @@ all_konect_graphs_data = {
 
     'rating_epinions': {'link': 'epinions-rating'},
     'rating_amazon_ratings': {'link': 'amazon-ratings'},
-    'rating_yahoo_songs': {'link': 'yahoo-song'}
+    'rating_yahoo_songs': {'link': 'yahoo-song'},
+
+    'GAP-road': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-road.tar.gz'},
+    'GAP-web': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-web.tar.gz'},
+    'GAP-kron': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-kron.tar.gz'},
+    'GAP-urand': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-urand.tar.gz'}
 }
 
 #####################
@@ -96,11 +101,11 @@ syn_small_only = ["syn_rmat_22_32", "syn_ru_22_32"]
 #####################
 
 konect_medium_only = ['web_wikipedia_links_sv', 'soc_orkut', 'web_web_trackers', 'web_dbpedia_links', 'web_uk_domain_2002']
-syn_medium_only = []
+syn_medium_only = ["syn_rmat_23_32", "syn_ru_23_32"]
 
 #####################
 
-konect_large_only = ['soc_twitter_www', 'soc_friendster']
+konect_large_only = ['GAP-kron', 'GAP-urand', 'GAP-web', 'soc_twitter_www', 'soc_friendster']
 syn_large_only = []
 
 #####################

@@ -181,7 +181,6 @@ LA_Info assign(Vector<W>*       _w,
 
     auto                 mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
-
     LA_Info info = backend::assign(_w->get_vector(), mask_t, _accum, _value, _indices, _nindices, desc_t);
     return info;
 }
@@ -255,15 +254,7 @@ LA_Info mxv (Vector<W>*       _w,
         return GrB_UNINITIALIZED_OBJECT;
 
     auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
-
-    if(_u->get_vector()->is_dense())
-        backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
-    else
-    {
-        backend::SpMV(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
-    }
-
-    return GrB_SUCCESS;
+    return backend::mxv(_w->get_vector(), mask_t, _accum, _op, _matrix->get_matrix(), _u->get_vector(), _desc->get_descriptor());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -282,9 +273,27 @@ LA_Info vxm (Vector<W>*       _w,
         return GrB_UNINITIALIZED_OBJECT;
 
     auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
-    backend::VSpM(_matrix->get_matrix(), _u->get_vector()->getDense(), _w->get_vector()->getDense(), _desc->get_descriptor(), _accum, _op, mask_t);
+    return backend::vxm(_w->get_vector(), mask_t, _accum, _op, _matrix->get_matrix(), _u->get_vector(), _desc->get_descriptor());
+}
 
-    return GrB_SUCCESS;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename c, typename m, typename a, typename b,
+        typename BinaryOpT, typename SemiringT>
+LA_Info mxm(Matrix<c>*       C,
+            const Matrix<m>* mask,
+            BinaryOpT        accum,
+            SemiringT        op,
+            const Matrix<a>* A,
+            const Matrix<b>* B,
+            Descriptor*      desc)
+{
+    if (not_initialized(C, A, B, desc)) {
+        return GrB_UNINITIALIZED_OBJECT;
+    }
+    auto mask_t = (mask == NULL) ? NULL : mask->get_matrix();
+    return backend::mxm(C->get_matrix(), mask_t, accum, op,
+                        A->get_matrix(), B->get_matrix(), desc->get_descriptor());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

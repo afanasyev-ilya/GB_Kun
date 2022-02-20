@@ -4,8 +4,6 @@
 #include "../la_backend.h"
 #include "../../helpers/memory_API/memory_API.h"
 
-#define _matrix_size 100
-
 namespace lablas{
 namespace backend{
 

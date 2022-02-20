@@ -51,7 +51,7 @@ public:
 
     VNT get_nvals() const;
 
-    void print_storage_type() const { cout << "It is dense vector" << endl; };
+    void print_storage_type() const { cout << "It is a dense vector" << endl; };
 
     void set_element(T _val, VNT _pos);
     void set_all_constant(T _val);
@@ -80,6 +80,8 @@ public:
             std::memcpy(vals,rhs->get_vals(), sizeof(T) * rhs->get_nvals());
         }
     };
+
+    Storage get_storage() {return GrB_DENSE; };
 
     VNT get_size() const {return size;};
 private:

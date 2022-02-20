@@ -7,20 +7,6 @@ namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum ScheduleType
-{
-    STATIC = 0,
-    GUIDED = 1
-};
-
-enum LoadBalancedType
-{
-    ONE_GROUP = 0,
-    MANY_GROUPS = 1
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 template <typename T>
 class MatrixSegmentedCSR;
 
@@ -59,11 +45,10 @@ private:
     VNT *block_starts;
     VNT *block_ends;
 
+    bool static_ok_to_use;
+
     static const int vg_num = 6; // 9 is best currently
     VertexGroup vertex_groups[vg_num];
-
-    ScheduleType schedule_type;
-    LoadBalancedType load_balanced_type;
 
     template <typename A, typename X, typename Y, typename BinaryOpTAccum, typename SemiringT>
     friend void SpMV(const MatrixSegmentedCSR<A> *_matrix,
@@ -75,6 +60,8 @@ private:
 
     template <typename Y>
     friend class MatrixSegmentedCSR;
+
+    void check_if_static_can_be_used();
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,15 +128,46 @@ void SubgraphSegment<T>::init_buffer_and_copy_edges()
 {
     MemoryAPI::allocate_array(&vertex_buffer, size);
 
-    #pragma omp parallel for schedule(static) // cache-aware alloc
+    check_if_static_can_be_used();
+
+    if(static_ok_to_use)
+    {
+        #pragma omp parallel for schedule(static, 32) // cache-aware alloc
+        for(VNT i = 0; i < size; i++)
+            vertex_buffer[i] = 0;
+    }
+    else
+    {
+        construct_load_balancing();
+        #pragma omp parallel
+        {
+            for(int vg = 0; vg < vg_num; vg++)
+            {
+                const VNT *vertices = vertex_groups[vg].get_data();
+                VNT vertex_group_size = vertex_groups[vg].get_size();
+
+                #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
+                for(VNT idx = 0; idx < vertex_group_size; idx++)
+                {
+                    VNT row = vertices[idx];
+                    vertex_buffer[row] = 0;
+                }
+            }
+        }
+    }
+
+    #pragma omp parallel for schedule(static, 32) // cache-aware alloc
     for(VNT i = 0; i < size; i++)
         vertex_buffer[i] = 0;
 
-    #pragma omp parallel for schedule(static)
-    for (ENT i = 0; i < nnz; i++)
+    #pragma omp parallel for schedule(static, 32)
+    for(VNT row = 0; row < size; row++)
     {
-        col_ids[i] = tmp_col_ids[i];
-        vals[i] = tmp_vals[i];
+        for(ENT j = row_ptr[row]; j < row_ptr[row + 1]; j++)
+        {
+            col_ids[j] = tmp_col_ids[j];
+            vals[j] = tmp_vals[j];
+        }
     }
 }
 
@@ -277,6 +295,35 @@ void SubgraphSegment<T>::construct_load_balancing()
         vertex_groups[i].finalize_creation(0); // TODO target socket of graph
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void SubgraphSegment<T>::check_if_static_can_be_used()
+{
+    VNT num_rows = this->size; // fixme
+
+    int cores_num = omp_get_max_threads();
+    static_ok_to_use = true;
+    #pragma omp parallel
+    {
+        ENT core_edges = 0;
+        #pragma omp for schedule(static, 32)
+        for(VNT row = 0; row < num_rows; row++)
+        {
+            VNT connections = row_ptr[row + 1] - row_ptr[row];
+            core_edges += connections;
+        }
+
+        double real_percent = 100.0*((double)core_edges/nnz);
+        double supposed_percent = 100.0/cores_num;
+
+        if(fabs(real_percent - supposed_percent) > 4) // if difference is more than 4%, static not ok to use
+            static_ok_to_use = false;
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 }

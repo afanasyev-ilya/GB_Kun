@@ -13,6 +13,10 @@ def merge_two_dicts(x, y):
 
 
 def analyze_perf_file():
+    if not os.path.exists(PERF_DATA_FILE):
+        empty_dict = {}
+        return empty_dict
+
     file = open(PERF_DATA_FILE, 'r')
 
     cur_graph_dict = {}
