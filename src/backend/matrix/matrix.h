@@ -13,6 +13,11 @@
 namespace lablas {
 namespace backend {
 
+
+    enum VisualizationMode {
+        VISUALISE_AS_DIRECTED,
+        VISUALISE_AS_UNDIRECTED
+    };
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
@@ -48,6 +53,41 @@ public:
         *mat_type = GrB_SPARSE;
         return GrB_SUCCESS;
     };
+
+    void print_graphviz(string _file_name, VisualizationMode _visualisation_mode) {
+
+        ofstream dot_output(_file_name.c_str());
+
+        string edge_symbol;
+        if(_visualisation_mode == VISUALISE_AS_DIRECTED)
+        {
+            dot_output << "digraph G {" << endl;
+            edge_symbol = " -> ";
+        }
+        else if(_visualisation_mode == VISUALISE_AS_UNDIRECTED)
+        {
+            dot_output << "graph G {" << endl;
+            edge_symbol = " -- ";
+        }
+        auto num_vertices = get_nrows();
+        for(int cur_vertex = 0; cur_vertex < num_vertices; cur_vertex++)
+        {
+            dot_output << cur_vertex << " [label = \" " << csr_data->get_vals()[cur_vertex] << " \"];" << endl;
+        }
+
+        for(int cur_vertex = 0; cur_vertex < num_vertices; cur_vertex++)
+        {
+            int src_id = cur_vertex;
+            for(long long edge_pos = csr_data->get_row_ptr()[cur_vertex]; edge_pos < csr_data->get_row_ptr()[cur_vertex + 1]; edge_pos++)
+            {
+                int dst_id = csr_data->get_col_ids()[edge_pos];
+                dot_output << src_id << edge_symbol << dst_id /*<< " [label = \" " << weight << " \"];"*/ << endl;
+            }
+        }
+
+        dot_output << "}";
+        dot_output.close();
+    }
 
     MatrixContainer<T>* get_data() {
         return data;

@@ -76,8 +76,9 @@ public:
     }
 
     LA_Info fillAscending(Index nvals) {
-        for (Index i = 0; i < nvals; i++)
-            vals[ids[i]] = i;
+//        for (Index i = 0; i < nvals; i++)
+//            vals[ids[i]] = i;
+        /*NOT IMPLEMENTED YET*/
 
         return GrB_SUCCESS;
     }

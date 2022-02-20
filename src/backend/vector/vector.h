@@ -176,6 +176,7 @@ public:
     }
 
     LA_Info fillAscending(Index nvals) {
+        force_to_dense();
         main_container->fillAscending(nvals);
     }
 

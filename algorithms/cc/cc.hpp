@@ -14,9 +14,10 @@ float cc(Vector<int>*       v,
          int                seed,
          Descriptor*        desc) {
     Index A_nrows;
-
+    A->get_nrows(&A_nrows);
     // Difference vector.
     Vector<bool> diff(A_nrows);
+
 
     // Parent vector.
     // f in Zhang paper.
@@ -95,6 +96,8 @@ float cc(Vector<int>*       v,
                                     std::numeric_limits<int>::max(), GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK);
     }
+    v->dup(&parent);
+    parent.print();
 
     return 0.f;
 }
