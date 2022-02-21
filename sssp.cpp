@@ -16,9 +16,6 @@ int main(int argc, char **argv)
         matrix.set_preferred_matrix_format(parser.get_storage_format());
         init_matrix(matrix, parser);
 
-        Index nvals = matrix.get_nvals(&nvals);
-        cout << nvals << " !!!! " << endl;
-
         GrB_Index size;
         matrix.get_nrows(&size);
         LAGraph_Graph<float> graph(matrix);

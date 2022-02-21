@@ -102,7 +102,6 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
     cout << "------------------------------ alg started ------------------------------------ " << endl;
     do {
         GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, GrB_NULL));
-
         GrB_TRY( GrB_vxm(f2, v, NULL, lablas::LogicalOrAndSemiring<int>(), f1, A, GrB_DESC_SC));
 
         std::swap(f1, f2);

@@ -103,7 +103,8 @@ public:
     void convert_if_required()
     {
         VNT nvals = main_container->get_nvals();
-        if(nvals > main_container->get_size() * SPARSE_VECTOR_THRESHOLD) // TODO more complex
+        //cout << nvals << " vs " << (VNT)(get_size() * SPARSE_VECTOR_THRESHOLD) << " at vector " << get_name() << endl;
+        if(nvals > (VNT)(get_size() * SPARSE_VECTOR_THRESHOLD)) // TODO more complex
         {
             force_to_dense();
         }
@@ -129,6 +130,7 @@ public:
     }
 
     void set_name(const string &_name) { main_container->set_name(_name); secondary_container->set_name(_name); };
+    const string &get_name() { return main_container->get_name(); };
 
     bool is_sparse() const { return get_storage() == GrB_SPARSE;};
     bool is_dense() const { return get_storage() == GrB_DENSE;};

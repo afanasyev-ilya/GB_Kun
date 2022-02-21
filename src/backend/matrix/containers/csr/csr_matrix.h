@@ -24,7 +24,7 @@ public:
 
     void print() const;
 
-    ENT get_nnz() const {return nnz;};
+    ENT get_nnz() const {return this->nnz;};
     VNT get_num_rows() const {return nrows;};
     VNT get_num_cols() const {return ncols;};
 
