@@ -34,3 +34,4 @@
 
 // CSR format settings
 #define CSR_SORTED_BALANCING 256
+#define __CSR_SEG_MERGE_SMALL__
