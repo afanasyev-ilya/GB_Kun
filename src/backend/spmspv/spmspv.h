@@ -32,6 +32,8 @@ void apply_mask(DenseVector <Y> *_y,
             {
                 if(mask_vals[i] != 0)
                     y_vals[i] = _accum(_old_y_vals[i], y_vals[i]);
+                else
+                    y_vals[i] = 0;
             }
         }
         else
@@ -42,7 +44,7 @@ void apply_mask(DenseVector <Y> *_y,
             for (VNT idx = 0; idx < mask_nvals; idx++)
             {
                 VNT i = mask_ids[idx];
-                y_vals[i] = _accum(_old_y_vals[i], y_vals[i]);
+                y_vals[i] = _accum(_old_y_vals[i], y_vals[i]); // TODO problem
             }
         }
     }
@@ -56,6 +58,8 @@ void apply_mask(DenseVector <Y> *_y,
             {
                 if(mask_vals[i] == 0) // == 0 since CMP mask
                     y_vals[i] = _accum(_old_y_vals[i], y_vals[i]);
+                else
+                    y_vals[i] = 0;
             }
         }
         else
@@ -71,7 +75,7 @@ void apply_mask(DenseVector <Y> *_y,
                     dense_mask[i] = MASK_TRUE;
 
                 #pragma omp for
-                for (VNT i = 0; i < _mask->get_nvals(); i++)
+                for (VNT i = 0; i < mask_nvals; i++)
                 {
                     VNT mask_id = mask_ids[i];
                     dense_mask[mask_id] = MASK_FALSE; // we deactivate all values from original mask since this is CMP
@@ -82,6 +86,8 @@ void apply_mask(DenseVector <Y> *_y,
                 {
                     if(dense_mask[i] == MASK_TRUE)
                         y_vals[i] = _accum(_old_y_vals[i], y_vals[i]);
+                    else
+                        y_vals[i] = 0;
                 }
             }
         }
