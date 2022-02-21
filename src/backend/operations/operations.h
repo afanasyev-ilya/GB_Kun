@@ -287,18 +287,10 @@ LA_Info reduce(T *_val,
     {
         Index nvals = _u->getSparse()->get_nvals();
         const U* u_vals = _u->getSparse()->get_vals();
-        const VNT* u_ids = _u->getSparse()->get_ids();
-        cout << "nvals: " << nvals << endl;
 
-        auto lambda_op = [u_vals](Index idx)->U
-        {
-            return u_vals[idx];
-        };
-
-        backend::generic_sparse_reduce_op(&reduce_result, u_ids, nvals, lambda_op, _op, _desc);
+        backend::generic_sparse_vals_reduce_op(&reduce_result, u_vals, nvals, _op, _desc);
     }
     *_val = _accum(*_val, reduce_result);
-    cout << "reduce result: " << *_val << endl;
 
     return GrB_SUCCESS;
 }

@@ -291,7 +291,7 @@ Index main(void)
         z[i] = 3.0f;
     }
 
-    for(Index i = 0; i < 4; i++) {
+    for(Index i = 0; i < 10; i++) {
         double t1 = omp_get_wtime();
         saxpy_one_sock(2.0f, z, x, y, size);
         double t2 = omp_get_wtime();
@@ -305,6 +305,8 @@ Index main(void)
     free(x);
     free(y);
     free(z);
+
+    return 0;
 
     base_type *result, *data;
     Index *indexes;
