@@ -7,6 +7,9 @@ namespace backend{
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define MASK_TRUE 1
+#define MASK_FALSE 0
+
 template <typename Y, typename M, typename BinaryOpTAccum>
 void apply_mask(DenseVector <Y> *_y,
                 Y *_old_y_vals,
@@ -65,19 +68,19 @@ void apply_mask(DenseVector <Y> *_y,
             {
                 #pragma omp for
                 for (VNT i = 0; i < _mask->get_size(); i++)
-                    dense_mask[i] = 0;
+                    dense_mask[i] = MASK_TRUE;
 
                 #pragma omp for
                 for (VNT i = 0; i < _mask->get_nvals(); i++)
                 {
-                    VNT id = mask_ids[i];
-                    dense_mask[i] = 1;
+                    VNT mask_id = mask_ids[i];
+                    dense_mask[mask_id] = MASK_FALSE; // we deactivate all values from original mask since this is CMP
                 }
 
                 #pragma omp for
                 for (VNT i = 0; i < _mask->get_size(); i++)
                 {
-                    if(dense_mask[i] == 0) // == 0 since CMP mask
+                    if(dense_mask[i] == MASK_TRUE)
                         y_vals[i] = _accum(_old_y_vals[i], y_vals[i]);
                 }
             }

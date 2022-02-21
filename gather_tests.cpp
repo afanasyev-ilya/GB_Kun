@@ -273,6 +273,10 @@ void reinit_data(base_type *data, size_t current_radius)
     }
 }
 
+
+#include <chrono>
+#include <thread>
+
 Index main(void)
 {
     cout << "threads: " << omp_get_max_threads() << endl;
@@ -306,20 +310,20 @@ Index main(void)
     free(y);
     free(z);
 
-    return 0;
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
     base_type *result, *data;
     Index *indexes;
 
     size_t large_size = size;
 
-    const int num_tests = 7;//11;
-    size_t rads[num_tests] = {128*1024/sizeof(base_type),
-                              256*1024/sizeof(base_type),
+    const int num_tests = 2;//11;
+    size_t rads[num_tests] = {/*128*1024/sizeof(base_type),
+                              256*1024/sizeof(base_type),*/
                               512*1024/sizeof(base_type),
-                              1024*1024/sizeof(base_type),
+                              /*1024*1024/sizeof(base_type),
                               2*1024*1024/sizeof(base_type),
-                              4*1024*1024/sizeof(base_type),
+                              4*1024*1024/sizeof(base_type),*/
                               8*1024*1024/sizeof(base_type),
                               /*16*1024*1024/sizeof(base_type),
                               32*1024*1024/sizeof(base_type),
@@ -355,12 +359,15 @@ Index main(void)
 
         double t1, t2;
 
-        t1 = omp_get_wtime();
-        gather_one_sock(data, indexes, result, large_size);
-        t2 = omp_get_wtime();
-        cout << "gather one sock: " << current_radius * sizeof(Index) / (1024) << "KB " << large_size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+        for(int i = 0; i < 100; i++)
+        {
+            t1 = omp_get_wtime();
+            gather_one_sock(data, indexes, result, large_size);
+            t2 = omp_get_wtime();
+            cout << "gather one sock: " << current_radius * sizeof(Index) / (1024) << "KB " << large_size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+        }
 
-        t1 = omp_get_wtime();
+        /*t1 = omp_get_wtime();
         gather_one_sock(data, indexes, result, large_size);
         t2 = omp_get_wtime();
         cout << "gather one sock: " << current_radius * sizeof(Index) / (1024) << "KB " << large_size * (sizeof(Index) + 2*sizeof(base_type)) / ((t2 - t1)*1e9) << " GB/s" << endl;
@@ -383,12 +390,13 @@ Index main(void)
         scatter_copy_12_groups(data, indexes, result, large_size, current_radius);
 
         reinit_data(data, current_radius);
-        scatter_copy_6_groups(data, indexes, result, large_size, current_radius);
+        scatter_copy_6_groups(data, indexes, result, large_size, current_radius);*/
 
         MemoryAPI::free_array(indexes);
         MemoryAPI::free_array(result);
         MemoryAPI::free_array(data);
         cout << endl << endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     }
 
     return 0;
