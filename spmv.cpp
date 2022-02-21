@@ -71,10 +71,11 @@ void test_spmv(int argc, char **argv)
     for(Index i = 0; i < size/sparsity_k + 1; i++)
         nnz_subset.push_back(rand() % size);
 
-    Index u_const = 5;
-    u.fill(0.0);
+    Index u_const = 1;
+    Index u_diff_const = 5;
+    u.fill(u_const);
     w.fill(1.0);
-    GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, u_const, &(nnz_subset[0]), nnz_subset.size(), NULL));
+    GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, u_diff_const, &(nnz_subset[0]), nnz_subset.size(), NULL));
     GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
 
     int num_runs = parser.get_iterations();
@@ -102,11 +103,9 @@ void test_spmv(int argc, char **argv)
     {
         lablas::Vector<T> w_check(size);
 
-        u.fill(0.0);
+        u.fill(u_const);
         w_check.fill(1.0);
-        //u.print();
-        cout << "before problem!" << endl;
-        GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, u_const, &(nnz_subset[0]), nnz_subset.size(), NULL));
+        GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, u_diff_const, &(nnz_subset[0]), nnz_subset.size(), NULL));
 
         check_mxv(w_check, matrix, u);
 
