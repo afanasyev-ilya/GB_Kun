@@ -317,18 +317,13 @@ Index main(void)
 
     size_t large_size = size;
 
-    const int num_tests = 2;//11;
-    size_t rads[num_tests] = {/*128*1024/sizeof(base_type),
-                              256*1024/sizeof(base_type),*/
+    const int num_tests = 5;//11;
+    size_t rads[num_tests] = {128*1024/sizeof(base_type),
                               512*1024/sizeof(base_type),
-                              /*1024*1024/sizeof(base_type),
-                              2*1024*1024/sizeof(base_type),
-                              4*1024*1024/sizeof(base_type),*/
+                              1024*1024/sizeof(base_type),
                               8*1024*1024/sizeof(base_type),
-                              /*16*1024*1024/sizeof(base_type),
-                              32*1024*1024/sizeof(base_type),
-                              64*1024*1024/sizeof(base_type),
-                              128*1024*1024/sizeof(base_type),
+                              64*1024*1024/sizeof(base_type)
+                              /*128*1024*1024/sizeof(base_type),
                               256*1024*1024/sizeof(base_type)*/};
 
     cout << "num_tests: " << num_tests << endl;
@@ -359,7 +354,7 @@ Index main(void)
 
         double t1, t2;
 
-        for(int i = 0; i < 100; i++)
+        for(int i = 0; i < 50; i++)
         {
             t1 = omp_get_wtime();
             gather_one_sock(data, indexes, result, large_size);

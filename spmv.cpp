@@ -77,7 +77,7 @@ void test_spmv(int argc, char **argv)
     GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, u_const, &(nnz_subset[0]), nnz_subset.size(), NULL));
     GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
 
-    int num_runs = 1;
+    int num_runs = parser.get_iterations();
     double avg_time = 0;
     for(int run = 0; run < num_runs; run++)
     {
