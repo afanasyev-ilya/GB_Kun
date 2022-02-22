@@ -339,6 +339,9 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t1 = omp_get_wtime();
+    #endif
     #pragma omp parallel
     {
         for(int vg = 0; vg < _matrix->vg_num; vg++)
@@ -361,6 +364,11 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
             }
         }
     }
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t2 = omp_get_wtime();
+    cout << "spmv time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

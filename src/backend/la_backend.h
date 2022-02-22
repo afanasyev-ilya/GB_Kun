@@ -6,15 +6,9 @@
 
 #define __USE_SOCKET_OPTIMIZATIONS__
 
-#define HUB_VERTICES 131072
-#define CSR_VERTEX_GROUPS_NUM 6
-
 #define MTX_READ_PARTITION_SIZE 1024
 
 #define SPARSE_VECTOR_THRESHOLD 0.35
-
-#define SEG_CSR_CACHE_BLOCK_SIZE (512*1024)
-#define SEG_CSR_MERGE_BLOCK_SIZE (32*1024)
 
 
 #ifdef __USE_NEC_SX_AURORA__
@@ -31,7 +25,19 @@
 #define THREADS_PER_SOCKET 48
 #endif
 
+// different format settings
 
 // CSR format settings
 #define CSR_SORTED_BALANCING 256
-#define __CSR_SEG_MERGE_SMALL__
+//#define __CSR_SEG_MERGE_SMALL__
+#define CSR_VERTEX_GROUPS_NUM 6
+
+// SEG CSR settings
+#define SEG_CSR_CACHE_BLOCK_SIZE (512*1024)
+#define SEG_CSR_MERGE_BLOCK_SIZE (32*1024)
+
+// LAV settings
+#define HUB_VERTICES 131072
+
+// debug settings
+#define __DEBUG_BANDWIDTHS__

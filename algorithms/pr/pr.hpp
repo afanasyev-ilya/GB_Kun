@@ -10,9 +10,10 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
                                           // inputs:
                                           LAGraph_Graph<float> *G,        // input graph
                                           int *iters,                     // output: number of iterations taken
+                                          int itermax = 100,              // maximum number of iterations (typically 100)
                                           float damping = 0.85,           // damping factor (typically 0.85)
-                                          float tol = 1e-4,               // stopping tolerance (typically 1e-4) ;
-                                          int itermax = 100)              // maximum number of iterations (typically 100)
+                                          float tol = 1e-4               // stopping tolerance (typically 1e-4) ;
+                                          )
 {
     GrB_Matrix AT = G->AT;
     lablas::Vector<Index>* d_out = G->rowdegree ;
@@ -51,7 +52,7 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
     //--------------------------------------------------------------------------
     // pagerank iterations
     //--------------------------------------------------------------------------
-    for ((*iters) = 0 ; (*iters) < itermax && rdiff > tol; (*iters)++)
+    for ((*iters) = 0 ; (*iters) < itermax; (*iters)++)
     {
         // swap t and r ; now t is the old score
         GrB_Vector temp = t ; t = r ; r = temp ;
