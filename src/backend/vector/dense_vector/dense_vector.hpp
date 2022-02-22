@@ -20,6 +20,7 @@ template <typename T>
 DenseVector<T>::~DenseVector()
 {
     MemoryAPI::free_array(vals);
+    vals = NULL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,8 +87,8 @@ void DenseVector<T>::fill_with_zeros()
 template <typename T>
 void DenseVector<T>::convert(SparseVector<T> *_sparse_vector)
 {
-    //cout << "converting sparse -> dense" << endl;
-    memset(vals, 0, size*sizeof(T));
+    cout << "converting sparse -> dense, name = " << this->name << endl;
+    memset(this->vals, 0, size*sizeof(T));
 
     VNT *sparse_ids = _sparse_vector->get_ids();
     T *sparse_vals = _sparse_vector->get_vals();
@@ -95,7 +96,7 @@ void DenseVector<T>::convert(SparseVector<T> *_sparse_vector)
 
     #pragma omp parallel for
     for(VNT i = 0; i < sparse_nvals; i++)
-        vals[sparse_ids[i]] = sparse_vals[i];
+        this->vals[sparse_ids[i]] = sparse_vals[i];
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

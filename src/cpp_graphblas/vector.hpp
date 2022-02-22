@@ -53,9 +53,9 @@ public:
         return GrB_SUCCESS;
     }
 
-    backend::Vector<T>* get_vector()
+    inline backend::Vector<T>* get_vector()
     {
-        return &_vector;
+        return &(this->_vector);
     }
 
     LA_Info get_nvals(Index *_nvals) const
@@ -79,9 +79,10 @@ public:
         _vector.print_storage_type();
     }
 
-    Index nvals() const { return _vector.nvals();};
+    // we can name vectors for debug purposes
+    void set_name(const string &_name) {_vector.set_name(_name); };
 
-    void force_to_dense() {_vector.force_to_dense();};
+    Index nvals() const { return _vector.nvals();};
 
     void swap(Vector *_another)
     {

@@ -40,7 +40,7 @@ void SpMSpM_unmasked_ijk(const Matrix<T> *_matrix1,
     vector<T> values;
     ENT nnz = 0;
 
-    // #pragma omp parallel for default(none), shared(_matrix1, _matrix2, _matrix_result, matrix1_num_rows, matrix2_num_cols, row_ids, col_ids, values, nnz)
+    #pragma omp parallel for default(none), shared(_matrix1, _matrix2, _matrix_result, matrix1_num_rows, matrix2_num_cols, row_ids, col_ids, values, nnz)
     for (VNT matrix1_row_id = 0; matrix1_row_id < matrix1_num_rows; ++matrix1_row_id) {
         ENT matrix1_col_start_id = _matrix1->get_csr()->get_row_ptr()[matrix1_row_id];
         ENT matrix1_col_end_id = _matrix1->get_csr()->get_row_ptr()[matrix1_row_id + 1];
@@ -63,12 +63,14 @@ void SpMSpM_unmasked_ijk(const Matrix<T> *_matrix1,
                     accumulator += matrix1_val * matrix2_val;
                 }
             }
-            // #pragma omp critical(updateresults)
-            if (accumulator) {
-                row_ids.push_back(matrix1_row_id);
-                col_ids.push_back(matrix2_col_id);
-                values.push_back(accumulator);
-                ++nnz;
+            #pragma omp critical(updateresults)
+            {
+                if (accumulator) {
+                    row_ids.push_back(matrix1_row_id);
+                    col_ids.push_back(matrix2_col_id);
+                    values.push_back(accumulator);
+                    ++nnz;
+                }
             }
         }
     }

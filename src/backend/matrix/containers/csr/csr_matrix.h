@@ -24,7 +24,7 @@ public:
 
     void print() const;
 
-    ENT get_nnz() const {return nnz;};
+    ENT get_nnz() const {return this->nnz;};
     VNT get_num_rows() const {return nrows;};
     VNT get_num_cols() const {return ncols;};
 
@@ -121,13 +121,31 @@ private:
                                        Workspace *_workspace);
 
     template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
-    friend void spmspv_unmasked(const MatrixCSR<A> *_matrix,
-                                const DenseVector<X> *_x,
-                                DenseVector<Y> *_y,
-                                BinaryOpTAccum _accum,
-                                SemiringT op,
-                                Descriptor *_desc,
-                                Workspace *_workspace);
+    friend void spmspv_unmasked_add(const MatrixCSR<A> *_matrix,
+                                    const SparseVector<X> *_x,
+                                    DenseVector<Y> *_y,
+                                    BinaryOpTAccum _accum,
+                                    SemiringT op,
+                                    Descriptor *_desc,
+                                    Workspace *_workspace);
+
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void spmspv_unmasked_add_opt(const MatrixCSR<A> *_matrix,
+                                        const SparseVector<X> *_x,
+                                        DenseVector<Y> *_y,
+                                        BinaryOpTAccum _accum,
+                                        SemiringT _op,
+                                        Descriptor *_desc,
+                                        Workspace *_workspace);
+
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void spmspv_unmasked_or(const MatrixCSR<A> *_matrix,
+                                   const SparseVector<X> *_x,
+                                   DenseVector<Y> *_y,
+                                   BinaryOpTAccum _accum,
+                                   SemiringT _op,
+                                   Descriptor *_desc,
+                                   Workspace *_workspace);
 
     void prepare_vg_lists(int _target_socket);
     void numa_aware_realloc();

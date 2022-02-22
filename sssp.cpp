@@ -3,7 +3,8 @@
 #include "algorithms/sssp/sssp.hpp"
 #include "algorithms/sssp/sssp_traditional.hpp"
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     try
     {
         Parser parser;
@@ -17,8 +18,6 @@ int main(int argc, char **argv) {
 
         GrB_Index size;
         matrix.get_nrows(&size);
-        lablas::Vector<float> levels(size);
-
         LAGraph_Graph<float> graph(matrix);
 
         lablas::Vector<float> distances(size);
