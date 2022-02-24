@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "src/gb_kun.h"
+#include <sys/mman.h>
+#include <errno.h>
+#include <malloc.h>
 
 #define Index int
 #define base_type float
@@ -317,11 +320,13 @@ Index main(void)
 
     size_t large_size = size;
 
-    const int num_tests = 5;//11;
-    size_t rads[num_tests] = {128*1024/sizeof(base_type),
-                              512*1024/sizeof(base_type),
+    const int inner_runs = 100;
+    const int num_tests = 6;//11;
+    size_t rads[num_tests] = {512*1024/sizeof(base_type),
                               1024*1024/sizeof(base_type),
+                              2*1024*1024/sizeof(base_type),
                               8*1024*1024/sizeof(base_type),
+                              16*1024*1024/sizeof(base_type),
                               64*1024*1024/sizeof(base_type)
                               /*128*1024*1024/sizeof(base_type),
                               256*1024*1024/sizeof(base_type)*/};
@@ -337,7 +342,51 @@ Index main(void)
 
         MemoryAPI::allocate_array(&result, large_size);
         MemoryAPI::allocate_array(&indexes, large_size);
-        MemoryAPI::allocate_array(&data, current_radius);
+        //MemoryAPI::allocate_array(&data, current_radius);
+        //data = memalign(2*1024*1024, current_radius*sizeof(base_type));
+        data = (base_type*)aligned_alloc(2*1024*1024, current_radius*sizeof(base_type));
+        /*if(madvise(data, current_radius, MADV_HUGEPAGE) == -1)
+        {
+            if (errno == EACCES)
+                cout << " EACCES " << endl;
+            if (errno == EAGAIN)
+                cout << " EAGAIN " << endl;
+            if (errno == EBADF)
+                cout << " EBADF " << endl;
+            if (errno == EINVAL)
+                cout << " EINVAL " << endl;
+            if (errno == EINVAL)
+                cout << " EINVAL " << endl;
+            if (errno == EIO)
+                cout << " EIO " << endl;
+            if (errno == ENOMEM)
+                cout << " ENOMEM " << endl;
+            if (errno == EAGAIN)
+                cout << " EAGAIN " << endl;
+            if (errno == EPERM)
+                cout << " EPERM " << endl;
+        }
+        if(madvise(data, current_radius,  MADV_HUGEPAGE | MADV_RANDOM) == -1)
+        {
+            if (errno == EACCES)
+                cout << " EACCES " << endl;
+            if (errno == EAGAIN)
+                cout << " EAGAIN " << endl;
+            if (errno == EBADF)
+                cout << " EBADF " << endl;
+            if (errno == EINVAL)
+                cout << " EINVAL " << endl;
+            if (errno == EINVAL)
+                cout << " EINVAL " << endl;
+            if (errno == EIO)
+                cout << " EIO " << endl;
+            if (errno == ENOMEM)
+                cout << " ENOMEM " << endl;
+            if (errno == EAGAIN)
+                cout << " EAGAIN " << endl;
+            if (errno == EPERM)
+                cout << " EPERM " << endl;
+        }*/
 
         #pragma omp parallel
         {
@@ -354,7 +403,7 @@ Index main(void)
 
         double t1, t2;
 
-        for(int i = 0; i < 50; i++)
+        for(int i = 0; i < inner_runs; i++)
         {
             t1 = omp_get_wtime();
             gather_one_sock(data, indexes, result, large_size);

@@ -47,8 +47,53 @@ void bfs_traditional(Vector <T> *_levels,
     }
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+bool equal_components(Vector<T> &_first,
+                      Vector<T> &_second)
+{
+    // check if sizes are the same
+    if(_first.size() != _second.size())
+    {
+        cout << "Results are NOT equal, incorrect sizes";
+        return false;
+    }
 
+    // construct equality maps
+    map<int, int> f_s_equality;
+    map<int, int> s_f_equality;
+    int vertices_count = _first.size();
+    for (int i = 0; i < vertices_count; i++)
+    {
+        f_s_equality[_first[i]] = _second[i];
+        s_f_equality[_second[i]] = _first[i];
+    }
+
+    // check if components are equal using maps
+    bool result = true;
+    int error_count = 0;
+    for (int i = 0; i < vertices_count; i++)
+    {
+        if (f_s_equality[_first[i]] != _second[i])
+        {
+            result = false;
+            error_count++;
+        }
+        if (s_f_equality[_second[i]] != _first[i])
+        {
+            result = false;
+            error_count++;
+        }
+    }
+    cout << "error count: " << error_count << endl;
+    if(error_count == 0)
+        cout << "Results are equal" << endl;
+    else
+        cout << "Results are NOT equal, error_count = " << error_count << endl;
+
+    return result;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 }
