@@ -61,6 +61,7 @@ public:
     void convert(SparseVector<T> *_sparse_vector);
 
     LA_Info fillAscending(Index nvals) {
+#pragma omp parallel for
         for (Index i = 0; i < nvals; i++)
             vals[i] = i;
 

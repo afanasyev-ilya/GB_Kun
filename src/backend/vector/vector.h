@@ -182,7 +182,7 @@ public:
 
     LA_Info fillAscending(Index nvals) {
         force_to_dense();
-        main_container->fillAscending(nvals);
+        return main_container->fillAscending(nvals);
     }
 
     LA_Info dup(const Vector<T>* rhs) {
@@ -191,6 +191,7 @@ public:
         else
             this->swap_to_sparse();
         main_container->dup(rhs->main_container);
+        return GrB_SUCCESS;
     }
 
     void swap(Vector *_another)
