@@ -94,7 +94,7 @@ public:
     }
 
     LA_Info dup (const Vector<T>* rhs) {
-        _vector.dup(rhs->get_vector());
+        return _vector.dup(rhs->get_vector());
     }
 
 private:
