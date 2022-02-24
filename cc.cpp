@@ -31,9 +31,9 @@ int main(int argc, char** argv)
     nvals = A.get_nvals(&nvals);
 
     bool debug = true;
-    if (debug) {
-        A.print_graphviz("mtx");
-    }
+//    if (debug) {
+//        A.print_graphviz("mtx");
+//    }
 
     // Vector v
     lablas::Vector<int> v(nrows);
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
     }
 
     if (debug) {
-        A.print_graphviz("mtx_answer");
+        A.print_graphviz("mtx_answer", v.get_vector());
     }
 
     return 0;

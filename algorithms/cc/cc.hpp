@@ -37,16 +37,20 @@ float cc(Vector<int>*       v,
     // Initialize parent and min_neighbor_parent to:
     // [0]:0 [1]:1 [2]:2 [3]:3 [4]:4, etc.
     parent.fillAscending(A_nrows);
+    parent.print();
     min_neighbor_parent.dup(&parent);
+    min_neighbor_parent.print();
     min_neighbor_parent_temp.dup(&parent);
+    min_neighbor_parent_temp.print();
     grandparent.dup(&parent);
+    grandparent.print();
     grandparent_temp.dup(&parent);
+    grandparent_temp.print();
 
     int iter = 1;
     int succ = 0;
     float gpu_tight_time = 0.f;
     int niter = 10;
-
 
     for (iter = 1; iter <= niter; ++iter) {
 
@@ -97,7 +101,6 @@ float cc(Vector<int>*       v,
         desc->toggle(GrB_MASK);
     }
     v->dup(&parent);
-    parent.print();
     v->print();
 
     return 0.f;

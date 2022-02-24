@@ -75,9 +75,9 @@ public:
     }
 
     void dup(GenericVector<T>* rhs) {
-        MemoryAPI::allocate_array(&vals, rhs->get_size());
-        std::memcpy(vals,rhs->get_vals(), sizeof(T) * rhs->get_nvals());
-        // TODO
+        size = rhs->get_size();
+        MemoryAPI::resize(&vals, size);
+        std::memcpy(vals, rhs->get_vals(), sizeof(T) * rhs->get_size());
     };
 
     Storage get_storage() {return GrB_DENSE; };

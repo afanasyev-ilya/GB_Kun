@@ -82,9 +82,12 @@ public:
     }
 
     void dup(GenericVector<T>* rhs) {
-        MemoryAPI::allocate_array(&vals, rhs->get_size());
-        std::memcpy(vals,rhs->get_vals(), sizeof(T) * rhs->get_nvals());
-        // TODO
+        size = rhs->get_size();
+        nvals = rhs->get_nvals();
+        MemoryAPI::resize(&vals, size);
+        MemoryAPI::resize(&ids, size);
+        std::memcpy(vals,rhs->get_vals(), sizeof(T) * rhs->get_size());
+        std::memcpy(ids,rhs->get_ids(), sizeof(T) * rhs->get_size());
     };
 
     bool isDense() const {

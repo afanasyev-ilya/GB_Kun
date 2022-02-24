@@ -54,7 +54,14 @@ public:
         return GrB_SUCCESS;
     };
 
-    void print_graphviz(string _file_name, VisualizationMode _visualisation_mode) {
+    template<class U>
+    void print_graphviz(string _file_name, VisualizationMode _visualisation_mode, Vector<U>* label_vector) {
+
+        if (csr_data->get_num_rows() == label_vector->get_size()) {
+            std::cout << "Label vector and matrix match each other" << std::endl;
+        } else {
+            std::cout << "Error in dims mismatch" << std::endl;
+        }
 
         ofstream dot_output(_file_name.c_str());
 
@@ -72,7 +79,7 @@ public:
         auto num_vertices = get_nrows();
         for(int cur_vertex = 0; cur_vertex < num_vertices; cur_vertex++)
         {
-            dot_output << cur_vertex << " [label = \" " << csr_data->get_vals()[cur_vertex] << " \"];" << endl;
+            dot_output << cur_vertex << " [label = \" " << label_vector->getDense()->get_vals()[cur_vertex] << " \"];" << endl;
         }
 
         for(int cur_vertex = 0; cur_vertex < num_vertices; cur_vertex++)
