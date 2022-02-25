@@ -9,7 +9,6 @@
 namespace lablas {
 namespace backend {
 
-
 template <typename M, typename LambdaOp>
 LA_Info indexed_dense_vector_op(const Vector<M>* _mask,
     const Index* _indexes,
@@ -32,7 +31,7 @@ LA_Info indexed_dense_vector_op(const Vector<M>* _mask,
         {
             const Index idx = _indexes[i];
             if (mask_data[idx])
-                _lambda_op(idx);
+                _lambda_op(idx, i);
         }
     }
     else
@@ -41,7 +40,7 @@ LA_Info indexed_dense_vector_op(const Vector<M>* _mask,
         for (Index i = 0; i < _nindexes; i++)
         {
             const Index idx = _indexes[i];
-            _lambda_op(idx);
+            _lambda_op(idx, i);
         }
     }
     return GrB_SUCCESS;
@@ -69,7 +68,7 @@ LA_Info indexed_dense_vector_op(const Vector<M>* _mask,
         {
             const Index idx = static_cast<Index>(_indexes->getDense()->get_vals()[i]);
             if (mask_data[idx])
-                _lambda_op(idx);
+                _lambda_op(idx, i);
         }
     }
     else
@@ -78,11 +77,11 @@ LA_Info indexed_dense_vector_op(const Vector<M>* _mask,
         for (Index i = 0; i < _nindexes; i++)
         {
             const Index idx = static_cast<Index>(_indexes->getDense()->get_vals()[i]);
-            _lambda_op(idx);
+            _lambda_op(idx, i);
         }
     }
     return GrB_SUCCESS;
-                                }
+}
 
 }
 }

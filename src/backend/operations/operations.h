@@ -26,14 +26,14 @@ LA_Info assign(Vector<W>* _w,
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
     W* w_vals = _w->getDense()->get_vals();
 
-    auto lambda_op = [w_vals, _value] (Index idx) {
-        w_vals[idx] = _value;
+    auto lambda_op = [w_vals, _value] (Index idx1, Index idx2) {
+        w_vals[idx1] = _value;
     };
 
     LA_Info info;
     if (_indices == NULL)
     {
-        info = backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
+        info = backend::generic_dense_vector_op_assign(_mask, vector_size, lambda_op, _desc);
     }
     else
     {
@@ -61,14 +61,82 @@ LA_Info assign(Vector<W>* _w,
     W* w_vals = _w->getDense()->get_vals();
     U* u_vals = _u->getDense()->get_vals();
 
-    auto lambda_op = [w_vals, u_vals, &_accum](Index idx) {
-        w_vals[idx] = _accum(w_vals[idx], u_vals[idx]);
+    auto lambda_op = [w_vals, u_vals, &_accum](Index idx1, Index idx2) {
+        w_vals[idx1] = _accum(w_vals[idx1], u_vals[idx2]);
     };
 
     LA_Info info;
     if (_indices == NULL)
     {
-        info = backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
+        info = backend::generic_dense_vector_op_assign(_mask, vector_size, lambda_op, _desc);
+    }
+    else
+    {
+        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
+    }
+    _w->convert_if_required();
+    return info;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename W, typename M, typename U, typename BinaryOpTAccum>
+LA_Info assign(Vector<W>* _w,
+               const Vector<M> *_mask,
+               BinaryOpTAccum _accum,
+               U _value,
+               const Index *_indices,
+               const Index _nindices,
+               Descriptor *_desc)
+{
+    _w->force_to_dense();
+
+    Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
+    W* w_vals = _w->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, _value] (Index idx1, Index idx2) {
+        w_vals[idx1] = _value;
+    };
+
+    LA_Info info;
+    if (_indices == NULL)
+    {
+        info = backend::generic_dense_vector_op_assign(_mask, vector_size, lambda_op, _desc);
+    }
+    else
+    {
+        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
+    }
+    _w->convert_if_required();
+    return info;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename W, typename M, typename U, typename BinaryOpTAccum>
+LA_Info assign(Vector<W> *_w,
+               const Vector<M> *_mask,
+               BinaryOpTAccum _accum,
+               Vector<U> *_u,
+               const Index *_indices,
+               const Index _nindices,
+               Descriptor *_desc)
+{
+    _w->force_to_dense();
+
+    Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
+    W* w_vals = _w->getDense()->get_vals();
+    U* u_vals = _u->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, u_vals, &_accum](Index idx1, Index idx2) {
+        w_vals[idx1] = _accum(w_vals[idx1], u_vals[idx2]);
+    };
+
+    LA_Info info;
+    if (_indices == NULL)
+    {
+        info = backend::generic_dense_vector_op_assign(_mask, vector_size, lambda_op, _desc);
     }
     else
     {
@@ -133,73 +201,6 @@ LA_Info vxm (Vector<W>*       _w,
     return GrB_SUCCESS;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename W, typename M, typename U, typename BinaryOpTAccum>
-LA_Info assign(Vector<W>* _w,
-               const Vector<M> *_mask,
-               BinaryOpTAccum _accum,
-               U _value,
-               const Index *_indices,
-               const Index _nindices,
-               Descriptor *_desc)
-{
-    _w->force_to_dense();
-
-    Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
-    W* w_vals = _w->getDense()->get_vals();
-
-    auto lambda_op = [w_vals, _value] (Index idx) {
-        w_vals[idx] = _value;
-    };
-
-    LA_Info info;
-    if (_indices == NULL)
-    {
-        info = backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
-    }
-    else
-    {
-        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
-    }
-    _w->convert_if_required();
-    return info;
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename W, typename M, typename U, typename BinaryOpTAccum>
-LA_Info assign(Vector<W> *_w,
-               const Vector<M> *_mask,
-               BinaryOpTAccum _accum,
-               Vector<U> *_u,
-               const Index *_indices,
-               const Index _nindices,
-               Descriptor *_desc)
-{
-    _w->force_to_dense();
-
-    Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
-    W* w_vals = _w->getDense()->get_vals();
-    U* u_vals = _u->getDense()->get_vals();
-
-    auto lambda_op = [w_vals, u_vals, &_accum](Index idx) {
-        w_vals[idx] = _accum(w_vals[idx], u_vals[idx]);
-    };
-
-    LA_Info info;
-    if (_indices == NULL)
-    {
-        info = backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
-    }
-    else
-    {
-        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
-    }
-    _w->convert_if_required();
-    return info;
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
