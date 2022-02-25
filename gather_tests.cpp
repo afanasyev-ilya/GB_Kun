@@ -6,7 +6,7 @@
 #include "src/gb_kun.h"
 #include <sys/mman.h>
 #include <errno.h>
-#include <malloc.h>
+//#include <malloc.h>
 
 #define Index int
 #define base_type float

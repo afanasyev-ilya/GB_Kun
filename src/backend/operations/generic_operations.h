@@ -81,9 +81,9 @@ LA_Info generic_dense_reduce_op(T* _tmp_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename MonoidOpT>
+template <typename T, typename V, typename MonoidOpT>
 LA_Info generic_sparse_vals_reduce_op(T *_tmp_val,
-                                      const T *_vals,
+                                      const V*_vals,
                                       const Index _nvals,
                                       MonoidOpT _monoid_op,
                                       Descriptor *_desc)
