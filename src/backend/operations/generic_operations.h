@@ -23,7 +23,7 @@ LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
         {
             const Index* mask_ids = _mask->getSparse()->get_ids();
             const Index mask_nvals = _mask->getSparse()->get_nvals();
-#pragma omp parallel for
+#pragma omp parallel for num_threads(1)
             for (Index i = 0; i < mask_nvals; i++)
             {
                 Index idx = mask_ids[i];
@@ -33,7 +33,7 @@ LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
         else
         {
             const M* mask_data = _mask->getDense()->get_vals();
-#pragma omp parallel for
+#pragma omp parallel for num_threads(1)
             for (Index i = 0; i < _size; i++)
             {
                 if (mask_data[i])
@@ -43,7 +43,7 @@ LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
     }
     else
     {
-#pragma omp parallel for
+#pragma omp parallel for num_threads(1)
         for (Index i = 0; i < _size; i++)
         {
             _lambda_op(i, i);
@@ -70,7 +70,7 @@ LA_Info generic_dense_vector_op(const Vector<M>* _mask,
         {
             const Index* mask_ids = _mask->getSparse()->get_ids();
             const Index mask_nvals = _mask->getSparse()->get_nvals();
-            #pragma omp parallel for
+            #pragma omp parallel for num_threads(1)
             for (Index i = 0; i < mask_nvals; i++)
             {
                 Index idx = mask_ids[i];
@@ -80,7 +80,7 @@ LA_Info generic_dense_vector_op(const Vector<M>* _mask,
         else
         {
             const M* mask_data = _mask->getDense()->get_vals();
-            #pragma omp parallel for
+            #pragma omp parallel for num_threads(1)
             for (Index i = 0; i < _size; i++)
             {
                 if (mask_data[i])
@@ -90,7 +90,7 @@ LA_Info generic_dense_vector_op(const Vector<M>* _mask,
     }
     else
     {
-        #pragma omp parallel for
+        #pragma omp parallel for num_threads(1)
         for (Index i = 0; i < _size; i++)
         {
             _lambda_op(i);
