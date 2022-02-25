@@ -83,6 +83,7 @@ public:
     void set_name(const string &_name) {_vector.set_name(_name); };
 
     Index nvals() const { return _vector.get_nvals();};
+    Index size() const {return _vector.get_size();};
 
     void swap(Vector *_another)
     {

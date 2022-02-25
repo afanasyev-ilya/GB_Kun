@@ -14,7 +14,7 @@ bool equal_components(lablas::Vector<T> &_first,
     // construct equality maps
     map<int, int> f_s_equality;
     map<int, int> s_f_equality;
-    int vertices_count = max(_first.nvals(), _second.nvals());
+    int vertices_count = _first.size();
     auto first_ptr  = _first.get_vector()->getDense()->get_vals();
     auto second_ptr = _second.get_vector()->getDense()->get_vals();
 

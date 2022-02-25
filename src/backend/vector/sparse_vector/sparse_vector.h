@@ -17,7 +17,7 @@ public:
         MemoryAPI::allocate_array(&ids, size);
     };
 
-    ~SparseVector()
+    virtual ~SparseVector()
     {
         MemoryAPI::free_array(vals);
         MemoryAPI::free_array(ids);
