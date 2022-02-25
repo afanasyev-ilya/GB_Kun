@@ -2,7 +2,7 @@ from .helpers import *
 from .settings import *
 import os.path
 from os import path
-from .mtx_api import gen_mtx_graph
+from .mtx_api import gen_mtx_graph, gen_undirected_mtx_graph
 from os import listdir
 from os.path import isfile, join
 from urllib.request import urlopen
@@ -209,6 +209,7 @@ def check_if_no_loops_and_multiple_edges(graph_name):
 def create_real_world_graph(graph_name):
     graph_format = "mtx"
     output_graph_file_name = get_path_to_graph(graph_name, graph_format)
+    undir_output_graph_file_name = get_path_to_graph("undir_" + graph_name, graph_format)
     if not file_exists(output_graph_file_name):
         if 'GAP' in graph_name:
             clear_dir(SOURCE_GRAPH_DIR)
@@ -234,10 +235,11 @@ def create_real_world_graph(graph_name):
             else:
                 source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["link"]
 
-            if check_if_no_loops_and_multiple_edges(graph_name):
-                convert_to_mtx_if_no_loops_and_multiple_edges(source_name, output_graph_file_name, graph_name)
-            else:
-                gen_mtx_graph(source_name, output_graph_file_name)
+            #if check_if_no_loops_and_multiple_edges(graph_name):
+            #    convert_to_mtx_if_no_loops_and_multiple_edges(source_name, output_graph_file_name, graph_name)
+            #else:
+            gen_mtx_graph(source_name, output_graph_file_name)
+            gen_undirected_mtx_graph(source_name, undir_output_graph_file_name)
 
             if verify_graph_existence(output_graph_file_name):
                 print("Graph " + output_graph_file_name + " has been created\n")

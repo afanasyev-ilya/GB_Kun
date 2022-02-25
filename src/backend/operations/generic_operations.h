@@ -57,10 +57,10 @@ LA_Info generic_dense_vector_op(const Vector<M>* _mask,
 
 template <typename T, typename LambdaOp, typename MonoidOpT>
 LA_Info generic_dense_reduce_op(T* _tmp_val,
-    const Index _size,
-    LambdaOp&& _lambda_op,
-    MonoidOpT _monoid_op,
-    Descriptor* _desc)
+                                const Index _size,
+                                LambdaOp &&_lambda_op,
+                                MonoidOpT _monoid_op,
+                                Descriptor *_desc)
 {
     #pragma omp parallel
     {
@@ -81,13 +81,12 @@ LA_Info generic_dense_reduce_op(T* _tmp_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename LambdaOp, typename MonoidOpT>
-LA_Info generic_sparse_reduce_op(T* _tmp_val,
-    const Index* _ids,
-    const Index _nvals,
-    LambdaOp&& _lambda_op,
-    MonoidOpT _monoid_op,
-    Descriptor* _desc)
+template <typename T, typename V, typename MonoidOpT>
+LA_Info generic_sparse_vals_reduce_op(T *_tmp_val,
+                                      const V*_vals,
+                                      const Index _nvals,
+                                      MonoidOpT _monoid_op,
+                                      Descriptor *_desc)
 {
     #pragma omp parallel
     {
@@ -95,8 +94,8 @@ LA_Info generic_sparse_reduce_op(T* _tmp_val,
         #pragma omp for
         for (Index i = 0; i < _nvals; i++)
         {
-            Index idx = _ids[i];
-            local_res = _monoid_op(_lambda_op(idx), local_res);
+            T val = _vals[i];
+            local_res = _monoid_op(val, local_res);
         }
 
         #pragma omp critical

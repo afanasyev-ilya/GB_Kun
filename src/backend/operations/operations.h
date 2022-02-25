@@ -128,6 +128,7 @@ LA_Info vxm (Vector<W>*       _w,
         cout << "USING SpMSpV!!!!!" << endl;
         backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
     }
+    _w->convert_if_required();
 
     return GrB_SUCCESS;
 }
@@ -169,14 +170,14 @@ LA_Info assign(Vector<W>* _w,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename M, typename U, typename BinaryOpTAccum>
-LA_Info assign(Vector<W>* _w,
-    const Vector<M>* _mask,
-    BinaryOpTAccum _accum,
-    Vector<U>* _u,
-    const Index* _indices,
-    const Index _nindices,
-    Descriptor* _desc) {
-
+LA_Info assign(Vector<W> *_w,
+               const Vector<M> *_mask,
+               BinaryOpTAccum _accum,
+               Vector<U> *_u,
+               const Index *_indices,
+               const Index _nindices,
+               Descriptor *_desc)
+{
     _w->force_to_dense();
 
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
@@ -202,16 +203,15 @@ LA_Info assign(Vector<W>* _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 /* w[i] = mask[i] ^ op(u[i], v[i]) */
 template <typename W, typename M, typename U, typename V, typename BinaryOpTAccum, typename BinaryOpT>
-LA_Info eWiseAdd(Vector<W>* _w,
-    const Vector<M>* _mask,
-    BinaryOpTAccum _accum,
-    BinaryOpT _op,
-    const Vector<U>* _u,
-    const Vector<V>* _v,
-    Descriptor* _desc)
+LA_Info eWiseAdd(Vector<W> *_w,
+                 const Vector<M> *_mask,
+                 BinaryOpTAccum _accum,
+                 BinaryOpT _op,
+                 const Vector<U> *_u,
+                 const Vector<V> *_v,
+                 Descriptor *_desc)
 {
 
     Index vector_size = _w->getDense()->get_size();
@@ -231,13 +231,13 @@ LA_Info eWiseAdd(Vector<W>* _w,
 
 /* w[i] = mask[i] ^ op(u[i], v[i]) */
 template <typename W, typename M, typename U, typename V, typename BinaryOpTAccum, typename BinaryOpT>
-LA_Info eWiseMult(Vector<W>* _w,
-    const Vector<M>* _mask,
-    BinaryOpTAccum _accum,
-    BinaryOpT _op,
-    const Vector<U>* _u,
-    const Vector<V>* _v,
-    Descriptor* _desc)
+LA_Info eWiseMult(Vector<W> *_w,
+                  const Vector<M> *_mask,
+                  BinaryOpTAccum _accum,
+                  BinaryOpT _op,
+                  const Vector<U> *_u,
+                  const Vector<V> *_v,
+                  Descriptor *_desc)
 {
 
     Index vector_size = _w->getDense()->get_size();
@@ -257,13 +257,13 @@ LA_Info eWiseMult(Vector<W>* _w,
 
 /* w[i] = mask[i] ^ op(u[i], v[i]) */
 template <typename W, typename M, typename U, typename T, typename BinaryOpTAccum, typename BinaryOpT>
-LA_Info apply(Vector<W>* _w,
-    const Vector<M>* _mask,
-    BinaryOpTAccum _accum,
-    BinaryOpT _op,
-    const T _val,
-    const Vector<U>* _u,
-    Descriptor* _desc)
+LA_Info apply(Vector<W> *_w,
+              const Vector<M> *_mask,
+              BinaryOpTAccum _accum,
+              BinaryOpT _op,
+              const T _val,
+              const Vector<U> *_u,
+              Descriptor *_desc)
 {
 
     Index vector_size = _w->getDense()->get_size();
@@ -282,12 +282,12 @@ LA_Info apply(Vector<W>* _w,
 
 /* w[i] = mask[i] ^ op(u[i], v[i]) */
 template <typename W, typename M, typename U, typename BinaryOpTAccum, typename UnaryOpT>
-LA_Info apply(Vector<W>* _w,
-    const Vector<M>* _mask,
-    BinaryOpTAccum _accum,
-    UnaryOpT _op,
-    const Vector<U>* _u,
-    Descriptor* _desc)
+LA_Info apply(Vector<W> *_w,
+              const Vector<M> *_mask,
+              BinaryOpTAccum _accum,
+              UnaryOpT _op,
+              const Vector<U> *_u,
+              Descriptor *_desc)
 {
 
     Index vector_size = _w->getDense()->get_size();
@@ -331,25 +331,32 @@ LA_Info apply(Vector<W>* _w,
 
 /* w = op(w, u[i]) for each i; */
 template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
-LA_Info reduce(T* _val,
-    BinaryOpTAccum _accum,
-    MonoidT _op,
-    const Vector<U>* _u,
-    Descriptor* _desc) {
-
-
-    Index vector_size = _u->getDense()->get_size();
-    const U* u_vals = _u->getDense()->get_vals();
-
-    auto lambda_op = [u_vals](Index idx)->U
-    {
-        return u_vals[idx];
-    };
-
+LA_Info reduce(T *_val,
+               BinaryOpTAccum _accum,
+               MonoidT _op,
+               const Vector<U> *_u,
+               Descriptor *_desc)
+{
     T reduce_result = _op.identity();
+    if(_u->is_dense())
+    {
+        Index vector_size = _u->getDense()->get_size();
+        const U* u_vals = _u->getDense()->get_vals();
 
-    backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, _desc);
+        auto lambda_op = [u_vals](Index idx)->U
+        {
+            return u_vals[idx];
+        };
 
+        backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, _desc);
+    }
+    else // is sparse
+    {
+        Index nvals = _u->getSparse()->get_nvals();
+        const U* u_vals = _u->getSparse()->get_vals();
+
+        backend::generic_sparse_vals_reduce_op(&reduce_result, u_vals, nvals, _op, _desc);
+    }
     *_val = _accum(*_val, reduce_result);
 
     return GrB_SUCCESS;
@@ -379,6 +386,11 @@ LA_Info extract(Vector<W>*       w,
                 w->getDense()->get_vals()[i] = accum(w->getDense()->get_vals()[i], u->getSparse()->get_vals()[i]);
             }
         }
+        else
+        {
+            cout << "Error in extract: sparse indecies not supported yet" << endl;
+            throw "Error in extract: sparse indecies not supported yet";
+        }
     }
     return GrB_SUCCESS;
 }
@@ -388,12 +400,13 @@ LA_Info extract(Vector<W>*       w,
 template <typename c, typename a, typename b, typename m,
         typename BinaryOpT,     typename SemiringT>
 LA_Info mxm(Matrix<c>* C,
-         const Matrix<m>* mask,
-         BinaryOpT accum,
-         SemiringT op,
-         const Matrix<a>* A,
-         const Matrix<b>* B,
-         Descriptor*      desc) {
+            const Matrix<m> *mask,
+            BinaryOpT accum,
+            SemiringT op,
+            const Matrix<a> *A,
+            const Matrix<b> *B,
+            Descriptor *desc)
+{
     // auto add_op = extractAdd(op);
     // auto mul_op = extractMul(op);
     if (mask) {
