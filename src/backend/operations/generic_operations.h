@@ -108,7 +108,7 @@ LA_Info generic_dense_reduce_op(T* _tmp_val,
                                 MonoidOpT _monoid_op,
                                 Descriptor *_desc)
 {
-    #pragma omp parallel
+    #pragma omp parallel num_threads(1)
     {
         T local_res = _monoid_op.identity();
         #pragma omp for
@@ -134,7 +134,7 @@ LA_Info generic_sparse_vals_reduce_op(T *_tmp_val,
                                       MonoidOpT _monoid_op,
                                       Descriptor *_desc)
 {
-    #pragma omp parallel
+    #pragma omp parallel num_threads(1)
     {
         T local_res = _monoid_op.identity();
         #pragma omp for
