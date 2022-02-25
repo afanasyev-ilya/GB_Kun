@@ -38,6 +38,8 @@ SOURCE_GRAPH_DIR = DATASETS_DIR + "/source_graphs/"
 MTX_GENERATOR_BIN_NAME = "gen"
 
 PERF_DATA_FILE = "./perf_stats.txt"
+SCALING_FILE = "./scaling.txt"
+SCALING_STEP = 16
 
 
 # how to add new graph with new category

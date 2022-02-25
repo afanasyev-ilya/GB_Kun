@@ -3,6 +3,7 @@ import optparse
 import scripts.settings
 from scripts.benchmarking_api import *
 from scripts.verification_api import *
+from scripts.scaling_api import *
 from scripts.export import BenchmarkingResults
 from scripts.helpers import get_list_of_formats
 
@@ -35,6 +36,24 @@ def run_benchmarks(options, benchmarking_results):
     return algorithms_tested
 
 
+def run_scaling(options, benchmarking_results):
+    list_of_apps = prepare_list_of_apps(options.apps)
+
+    output_file = open(SCALING_FILE, 'w', encoding='utf-8')  # clear file
+    output_file.close()
+
+    for app_name in list_of_apps:
+        max_cores = get_cores_count()
+        for threads_num in range(0, max_cores + 1, SCALING_STEP):
+            threads_used = max(1, threads_num)
+            print("using " + str(threads_used) + " threads")
+            if is_valid(app_name, options):
+                scale_app(app_name, benchmarking_results, options.format, options.mode,
+                          options.timeout, threads_used)
+            else:
+                print("Error! Can not benchmark " + app_name + ", several errors occurred.")
+
+
 def run_verify(options, benchmarking_results):
     list_of_apps = prepare_list_of_apps(options.apps)
 
@@ -55,18 +74,15 @@ def run_verify(options, benchmarking_results):
 def benchmark_and_verify(options, benchmarking_results):
     benchmarked_num = 0
     verified_num = 0
+
+    if options.scaling: # must be first among benchmarking and verify
+        run_scaling(options, benchmarking_results)
+
     if options.benchmark:
         benchmarked_num = run_benchmarks(options, benchmarking_results)
 
     if options.verify:
         verified_num = run_verify(options, benchmarking_results)
-
-    if options.scaling:
-        max_cores = get_cores_count()
-        for threads_num in range(0, max_cores + 1, 4):
-            threads_used = max(1, threads_num)
-            print("using " + str(threads_used) + " threads")
-            #benchmarked_num = run_benchmarks(options, benchmarking_results)
 
     print("\n\nEVALUATED PERFORMANCE OF " + str(benchmarked_num) + " GRAPH ALGORITHMS\n")
     print("VERIFIED " + str(verified_num) + " GRAPH ALGORITHMS\n\n")
