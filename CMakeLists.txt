@@ -82,6 +82,9 @@ STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" headers_list "${headers_list}")
 
 file(MAKE_DIRECTORY scripts)
 
+add_executable(cc cc.cpp)
+target_include_directories(cc PRIVATE)
+
 add_executable(bfs bfs.cpp)
 target_include_directories(bfs PRIVATE)
 

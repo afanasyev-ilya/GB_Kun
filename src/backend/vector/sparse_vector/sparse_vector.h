@@ -1,5 +1,5 @@
 #pragma once
-
+#include <cstring>
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace lablas{
@@ -17,7 +17,7 @@ public:
         MemoryAPI::allocate_array(&ids, size);
     };
 
-    ~SparseVector()
+    virtual ~SparseVector()
     {
         MemoryAPI::free_array(vals);
         MemoryAPI::free_array(ids);
@@ -61,8 +61,6 @@ public:
         return ids;
     }
 
-    Storage get_storage() {return GrB_SPARSE; };
-
     LA_Info build(const Index* indices, const T *values, Index nvals) {
 
         if (nvals > size)
@@ -73,6 +71,30 @@ public:
             ids[i] = indices[i];
         }
         return GrB_SUCCESS;
+    }
+
+    LA_Info fillAscending(Index nvals) {
+//        for (Index i = 0; i < nvals; i++)
+//            vals[ids[i]] = i;
+        /*NOT IMPLEMENTED YET*/
+
+        return GrB_SUCCESS;
+    }
+
+    void dup(GenericVector<T>* rhs) {
+        size = rhs->get_size();
+        nvals = rhs->get_nvals();
+        MemoryAPI::resize(&vals, size);
+        MemoryAPI::resize(&ids, size);
+        std::memcpy(vals,rhs->get_vals(), sizeof(T) * rhs->get_size());
+        std::memcpy(ids,rhs->get_ids(), sizeof(T) * rhs->get_size());
+    };
+
+    bool isDense() const {
+        return false;
+    }
+    bool isSparse() const {
+        return true;
     }
 
     VNT get_nvals() const { return nvals; };
@@ -89,7 +111,8 @@ public:
     VNT get_size() const {return size;};
 private:
     VNT size;
-    VNT nvals;
+    ENT nvals;
+    Storage get_storage() {return GrB_SPARSE; };
 
     VNT *ids;
     T *vals;
