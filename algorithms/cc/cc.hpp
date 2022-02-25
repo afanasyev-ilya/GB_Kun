@@ -50,10 +50,12 @@ float cc(Vector<int>*       v,
     int iter = 1;
     int succ = 0;
     float gpu_tight_time = 0.f;
-    int niter = 10;
+    int niter = 5;
 
     for (iter = 1; iter <= niter; ++iter) {
 
+        cout << "parent: ";
+        parent.print();
         // Duplicate parent.
         parent_temp.dup(&parent);
 
@@ -66,7 +68,7 @@ float cc(Vector<int>*       v,
                                       &min_neighbor_parent_temp, desc);
         // f[f[u]] = mngf[u]. Second does nothing (imitating comma operator)
         assignScatter(&parent, MASK_NULL, second<int>(),
-                                           &min_neighbor_parent, &parent_temp, parent_temp.nvals(), desc);
+                      &min_neighbor_parent, &parent_temp, parent_temp.nvals(), desc);
 
         // 2) Aggressive hooking.
         // f = min(f, mngf)
@@ -80,12 +82,11 @@ float cc(Vector<int>*       v,
 
         // 4) Calculate grandparents.
         // gf[u] = f[f[u]]
-        extract(&grandparent, MASK_NULL, second<int>(),
-                                           &parent, &parent, desc);
+        extract(&grandparent, MASK_NULL, second<int>(), &parent, &parent, desc);
 
         // 5) Check termination.
         eWiseMult(&diff, MASK_NULL, GrB_NULL,
-                  minimum<int>(), &grandparent_temp,
+                  not_equal_to<int>(), &grandparent_temp,
                                         &grandparent, desc);
         reduce<int, bool>(&succ, second<int>(), PlusMonoid<int>(), &diff, desc);
         if (succ == 0) {
@@ -99,6 +100,7 @@ float cc(Vector<int>*       v,
         assign(&grandparent, &diff, nullptr,
                                     std::numeric_limits<int>::max(), GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK);
+        cout << "iter done" << endl;
     }
     v->dup(&parent);
     v->print();
