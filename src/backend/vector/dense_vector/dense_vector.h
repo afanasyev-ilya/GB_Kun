@@ -14,9 +14,7 @@ class DenseVector : public GenericVector<T>
 {
 public:
     DenseVector(VNT _size);
-    virtual ~DenseVector(){
-        MemoryAPI::free_array(vals);
-    };
+    virtual ~DenseVector();
 
     void print() const;
 

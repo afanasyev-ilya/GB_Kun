@@ -26,7 +26,7 @@ public:
     virtual Storage get_storage() = 0;
 
     void set_name(const string &_name) {name = _name;};
-    virtual ~GenericVector();
+    virtual ~GenericVector() = default;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
