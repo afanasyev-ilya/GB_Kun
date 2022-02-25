@@ -23,7 +23,6 @@ def run_prepare(options):
 def run_benchmarks(options, benchmarking_results):
     list_of_apps = prepare_list_of_apps(options.apps)
 
-    set_omp_environments(options)
     benchmarking_results.add_performance_header_to_xls_table(options.format)
 
     algorithms_tested = 0
@@ -39,7 +38,6 @@ def run_benchmarks(options, benchmarking_results):
 def run_verify(options, benchmarking_results):
     list_of_apps = prepare_list_of_apps(options.apps)
 
-    set_omp_environments(options)
     benchmarking_results.add_correctness_header_to_xls_table(options.format)
     algorithms_verified = 0
 
@@ -62,6 +60,13 @@ def benchmark_and_verify(options, benchmarking_results):
 
     if options.verify:
         verified_num = run_verify(options, benchmarking_results)
+
+    if options.scaling:
+        max_cores = get_cores_count()
+        for threads_num in range(0, max_cores + 1, 4):
+            threads_used = max(1, threads_num)
+            print("using " + str(threads_used) + " threads")
+            #benchmarked_num = run_benchmarks(options, benchmarking_results)
 
     print("\n\nEVALUATED PERFORMANCE OF " + str(benchmarked_num) + " GRAPH ALGORITHMS\n")
     print("VERIFIED " + str(verified_num) + " GRAPH ALGORITHMS\n\n")
@@ -99,21 +104,9 @@ def run(options, run_info):
         options.format = format_name
         benchmark_and_verify(options, benchmarking_results)
 
-    if run_info != {} and len(list_of_formats) == 1:
-        run_info["format"] = options.format
-        if benchmarking_results.submit(run_info):
-            print("Results sent to server!")
-            benchmarking_results.offline_submit(run_info, options.name)
-        else:
-            print("Can not send results, saving to file...")
-            benchmarking_results.offline_submit(run_info, options.name)
-
     end = time.time()
     if print_timings:
         print("benchmarking WALL TIME: " + str(end-start) + " seconds")
-
-    if options.plot:
-        benchmarking_results.plot(list_of_formats)
 
     benchmarking_results.finalize()
 
@@ -128,9 +121,9 @@ def main():
                       action="store", dest="format",
                       help="specify graph storage format used: " +
                            str(available_formats) + " are currently available (default is CSR)", default="CSR")
-    parser.add_option('-s', '--sockets',
-                      action="store", dest="sockets",
-                      help="set number of sockets used (default 1)", default=1)
+    parser.add_option('-s', '--scaling',
+                      action="store", dest="scaling",
+                      help="specify to set", default=False)
     parser.add_option('-v', '--verify',
                       action="store_true", dest="verify",
                       help="run verification tests after benchmarking process (default false)", default=False)
@@ -157,9 +150,6 @@ def main():
                       action="store", dest="timeout",
                       help="execution time (in seconds), after which tested app is automatically aborted. "
                            "(default is 1 hour)", default=3600)
-    parser.add_option('-i', '--plot',
-                      action="store_true", dest="plot",
-                      help="plot performance data (default false)", default=False)
 
     options, args = parser.parse_args()
 
