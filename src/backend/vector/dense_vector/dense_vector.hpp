@@ -44,7 +44,7 @@ template <typename T>
 VNT DenseVector<T>::get_nvals() const
 {
     VNT loc_nvals = 0;
-    #pragma omp parallel for reduction(+: loc_nvals)
+//    #pragma omp parallel for reduction(+: loc_nvals)
     for(int i = 0; i < get_size(); i++)
         if(vals[i] != 0)
             loc_nvals++;
