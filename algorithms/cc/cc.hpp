@@ -53,7 +53,6 @@ float cc(Vector<int>*       v,
     int niter = 10;
 
     for (iter = 1; iter <= niter; ++iter) {
-
         // Duplicate parent.
         parent_temp.dup(&parent);
 
@@ -61,6 +60,7 @@ float cc(Vector<int>*       v,
         // mngf[u] = A x gf
         mxv(&min_neighbor_parent_temp, MASK_NULL, second<int>(),
                                 MinimumSelectSecondSemiring<int>(), A, &grandparent, desc);
+
         eWiseAdd(&min_neighbor_parent, MASK_NULL, GrB_NULL,
                                       minimum<int>(), &min_neighbor_parent,
                                       &min_neighbor_parent_temp, desc);
@@ -85,7 +85,7 @@ float cc(Vector<int>*       v,
 
         // 5) Check termination.
         eWiseMult(&diff, MASK_NULL, GrB_NULL,
-                  minimum<int>(), &grandparent_temp,
+                  lablas::not_equal_to<int>(), &grandparent_temp,
                                         &grandparent, desc);
         reduce<int, bool>(&succ, second<int>(), PlusMonoid<int>(), &diff, desc);
         if (succ == 0) {
