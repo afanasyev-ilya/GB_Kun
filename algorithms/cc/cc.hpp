@@ -93,22 +93,15 @@ float cc(Vector<int>*       v,
 
         // 4) Calculate grandparents.
         // gf[u] = f[f[u]]
-        extract(&grandparent, MASK_NULL, second<int>(),
-                                           &parent, &parent, desc);
+        extract(&grandparent, MASK_NULL, second<int>(), &parent, &parent, desc);
 
         // 5) Check termination.
-        cout << "grandparent: ";
-        grandparent.print();
-        cout << "grandparent_temp: ";
-        grandparent_temp.print();
         eWiseMult(&diff, MASK_NULL, GrB_NULL,
                   lablas::not_equal_to<int>(), &grandparent_temp,
                                         &grandparent, desc);
-        cout << "diff: ";
-        diff.print();
         reduce<int, bool>(&succ, second<int>(), PlusMonoid<int>(), &diff, desc);
         if (succ == 0) {
-            //break;
+            break;
         }
         grandparent_temp.dup(&grandparent);
 
