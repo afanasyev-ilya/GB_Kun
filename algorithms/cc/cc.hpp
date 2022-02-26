@@ -56,39 +56,35 @@ float cc(Vector<int>*       v,
         // Duplicate parent.
         parent_temp.dup(&parent);
 
-        A->print();
-        cout << "grandparent: ";
-        grandparent.print();
-
         // 1) Stochastic hooking.
         // mngf[u] = A x gf
         mxv(&min_neighbor_parent_temp, MASK_NULL, second<int>(),
                                 MinimumSelectSecondSemiring<int>(), A, &grandparent, desc);
 
-        cout << "min_neighbor_parent_temp: ";
-        min_neighbor_parent_temp.print();
+        //cout << "min_neighbor_parent_temp: ";
+        //min_neighbor_parent_temp.print();
 
         eWiseAdd(&min_neighbor_parent, MASK_NULL, GrB_NULL,
                                       minimum<int>(), &min_neighbor_parent,
                                       &min_neighbor_parent_temp, desc);
 
-        cout << "min_neighbor_paren: ";
-        min_neighbor_parent.print();
+        //cout << "min_neighbor_paren: ";
+        //min_neighbor_parent.print();
 
         // f[f[u]] = mngf[u]. Second does nothing (imitating comma operator)
         assignScatter(&parent, MASK_NULL, second<int>(),
                                            &min_neighbor_parent, &parent_temp, parent_temp.nvals(), desc);
 
-        cout << "after assign: ";
-        parent.print();
+        //cout << "after assign: ";
+        //parent.print();
 
         // 2) Aggressive hooking.
         // f = min(f, mngf)
         eWiseAdd(&parent, MASK_NULL, GrB_NULL,
                  minimum<int>(), &parent, &min_neighbor_parent, desc);
 
-        cout << "after hooking: ";
-        parent.print();
+        //cout << "after hooking: ";
+        //parent.print();
 
         // 3) Shortcutting.
         // f = min(f, gf)
@@ -101,12 +97,18 @@ float cc(Vector<int>*       v,
                                            &parent, &parent, desc);
 
         // 5) Check termination.
+        cout << "grandparent: ";
+        grandparent.print();
+        cout << "grandparent_temp: ";
+        grandparent_temp.print();
         eWiseMult(&diff, MASK_NULL, GrB_NULL,
                   lablas::not_equal_to<int>(), &grandparent_temp,
                                         &grandparent, desc);
+        cout << "diff: ";
+        diff.print();
         reduce<int, bool>(&succ, second<int>(), PlusMonoid<int>(), &diff, desc);
         if (succ == 0) {
-            break;
+            //break;
         }
         grandparent_temp.dup(&grandparent);
 
@@ -118,7 +120,8 @@ float cc(Vector<int>*       v,
         desc->toggle(GrB_MASK);
     }
     v->dup(&parent);
-    v->print();
+
+    //v->print();
 
     return 0.f;
 }
