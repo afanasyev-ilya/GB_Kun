@@ -15,7 +15,7 @@ using namespace std;
 
 void saxpy_one_sock(base_type a, base_type * __restrict z, const base_type * __restrict x, const base_type * __restrict y, size_t size)
 {
-#pragma omp parallel for num_threads(48)
+#pragma omp parallel for num_threads(THREADS_PER_SOCKET)
     for(size_t i = 0; i < size; i++)
         z[i] = a*x[i] + y[i];
 }
@@ -29,7 +29,7 @@ void saxpy_both_sock(base_type a, base_type * __restrict z, const base_type * __
 
 void gather_one_sock(const base_type *__restrict data, const Index * __restrict indexes, base_type * __restrict result, size_t size)
 {
-    #pragma omp parallel for num_threads(48)
+    #pragma omp parallel for num_threads(THREADS_PER_SOCKET)
     for(size_t i = 0; i < size; i++)
         result[i] = data[indexes[i]];
 }
@@ -40,7 +40,7 @@ void gather_copy(const base_type *__restrict data, const Index * __restrict inde
     base_type *copy;
     MemoryAPI::allocate_array(&copy, small_size*48);
 
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num();
 
@@ -52,7 +52,7 @@ void gather_copy(const base_type *__restrict data, const Index * __restrict inde
     }
 
     t1 = omp_get_wtime();
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num();
 
@@ -77,7 +77,7 @@ void gather_copy_12_groups(const base_type *__restrict data, const Index * __res
     MemoryAPI::allocate_array(&copy, small_size*12);
 
     t1 = omp_get_wtime();
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num() / 4;
 
@@ -94,7 +94,7 @@ void gather_copy_12_groups(const base_type *__restrict data, const Index * __res
     cout << "prefetch time: " << (t2 - t1)*1000 << " ms" << endl;
 
     t1 = omp_get_wtime();
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num() / 4;
 
@@ -113,7 +113,7 @@ void gather_copy_12_groups(const base_type *__restrict data, const Index * __res
 
 
     size_t error_count = 0;
-    #pragma omp parallel for num_threads(48) reduction(+: error_count)
+    #pragma omp parallel for num_threads(THREADS_PER_SOCKET) reduction(+: error_count)
     for(size_t i = 0; i < size; i++)
     {
         if(result[i] != data[indexes[i]])
@@ -129,7 +129,7 @@ void scatter_copy(base_type *data, const Index * __restrict indexes, base_type *
     base_type *copy;
     MemoryAPI::allocate_array(&copy, small_size*48);
 
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num();
         base_type *loc_data = &copy[tid*small_size];
@@ -140,7 +140,7 @@ void scatter_copy(base_type *data, const Index * __restrict indexes, base_type *
     }
 
     t1 = omp_get_wtime();
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num();
 
@@ -174,7 +174,7 @@ void scatter_copy_12_groups(base_type *data, const Index * __restrict indexes, b
     base_type *copy;
     MemoryAPI::allocate_array(&copy, small_size*12);
 
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num() / 4;
         base_type *loc_data = &copy[tid*small_size];
@@ -185,7 +185,7 @@ void scatter_copy_12_groups(base_type *data, const Index * __restrict indexes, b
     }
 
     t1 = omp_get_wtime();
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num() / 4;
 
@@ -219,7 +219,7 @@ void scatter_copy_6_groups(base_type *data, const Index * __restrict indexes, ba
     base_type *copy;
     MemoryAPI::allocate_array(&copy, small_size*6);
 
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num() / 8;
         base_type *loc_data = &copy[tid*small_size];
@@ -230,7 +230,7 @@ void scatter_copy_6_groups(base_type *data, const Index * __restrict indexes, ba
     }
 
     t1 = omp_get_wtime();
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num() / 8;
 
@@ -260,7 +260,7 @@ void scatter_copy_6_groups(base_type *data, const Index * __restrict indexes, ba
 
 void scatter_one_sock(base_type *data, const Index * __restrict indexes, base_type * __restrict result, size_t size)
 {
-    #pragma omp parallel for num_threads(48)
+    #pragma omp parallel for num_threads(THREADS_PER_SOCKET)
     for(size_t i = 0; i < size; i++)
         data[indexes[i]] = result[i];
 }

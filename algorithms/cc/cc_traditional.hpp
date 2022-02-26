@@ -51,7 +51,7 @@ void cc_bfs_based_sequential(Vector <T> *_components,
         }
     }
 
-    _components->print();
+    //_components->print();
 }
 
 }

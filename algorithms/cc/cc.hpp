@@ -50,12 +50,9 @@ float cc(Vector<int>*       v,
     int iter = 1;
     int succ = 0;
     float gpu_tight_time = 0.f;
-    int niter = 5;
+    int niter = 10;
 
     for (iter = 1; iter <= niter; ++iter) {
-
-        cout << "parent: ";
-        parent.print();
         // Duplicate parent.
         parent_temp.dup(&parent);
 
@@ -63,17 +60,31 @@ float cc(Vector<int>*       v,
         // mngf[u] = A x gf
         mxv(&min_neighbor_parent_temp, MASK_NULL, second<int>(),
                                 MinimumSelectSecondSemiring<int>(), A, &grandparent, desc);
+
+        //cout << "min_neighbor_parent_temp: ";
+        //min_neighbor_parent_temp.print();
+
         eWiseAdd(&min_neighbor_parent, MASK_NULL, GrB_NULL,
                                       minimum<int>(), &min_neighbor_parent,
                                       &min_neighbor_parent_temp, desc);
+
+        //cout << "min_neighbor_paren: ";
+        //min_neighbor_parent.print();
+
         // f[f[u]] = mngf[u]. Second does nothing (imitating comma operator)
         assignScatter(&parent, MASK_NULL, second<int>(),
-                      &min_neighbor_parent, &parent_temp, parent_temp.nvals(), desc);
+                                           &min_neighbor_parent, &parent_temp, parent_temp.nvals(), desc);
+
+        //cout << "after assign: ";
+        //parent.print();
 
         // 2) Aggressive hooking.
         // f = min(f, mngf)
         eWiseAdd(&parent, MASK_NULL, GrB_NULL,
                  minimum<int>(), &parent, &min_neighbor_parent, desc);
+
+        //cout << "after hooking: ";
+        //parent.print();
 
         // 3) Shortcutting.
         // f = min(f, gf)
@@ -82,15 +93,22 @@ float cc(Vector<int>*       v,
 
         // 4) Calculate grandparents.
         // gf[u] = f[f[u]]
-        extract(&grandparent, MASK_NULL, second<int>(), &parent, &parent, desc);
+        extract(&grandparent, MASK_NULL, second<int>(),
+                                           &parent, &parent, desc);
 
         // 5) Check termination.
+        cout << "grandparent: ";
+        grandparent.print();
+        cout << "grandparent_temp: ";
+        grandparent_temp.print();
         eWiseMult(&diff, MASK_NULL, GrB_NULL,
-                  not_equal_to<int>(), &grandparent_temp,
+                  lablas::not_equal_to<int>(), &grandparent_temp,
                                         &grandparent, desc);
+        cout << "diff: ";
+        diff.print();
         reduce<int, bool>(&succ, second<int>(), PlusMonoid<int>(), &diff, desc);
         if (succ == 0) {
-            break;
+            //break;
         }
         grandparent_temp.dup(&grandparent);
 
@@ -100,10 +118,10 @@ float cc(Vector<int>*       v,
         assign(&grandparent, &diff, nullptr,
                                     std::numeric_limits<int>::max(), GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK);
-        cout << "iter done" << endl;
     }
     v->dup(&parent);
-    v->print();
+
+    //v->print();
 
     return 0.f;
 }

@@ -77,22 +77,12 @@ int main(int argc, char** argv)
     ncols = A.ncols();
     nvals = A.get_nvals(&nvals);
 
-    bool debug = true;
-//    if (debug) {
-//        A.print_graphviz("mtx");
-//    }
-
-    // Vector v
-    lablas::Vector<int> v(nrows);
+    lablas::Vector<int> components(nrows);
 
     lablas::Descriptor desc;
 
     for (int i = 0; i < 1; i++) {
-        lablas::algorithm::cc(&v, &A, 0, &desc);
-    }
-
-    if (debug) {
-        A.print_graphviz("mtx_answer", v.get_vector());
+        lablas::algorithm::cc(&components, &A, 0, &desc);
     }
 
     if(parser.check())
@@ -101,7 +91,7 @@ int main(int argc, char** argv)
 
         lablas::algorithm::cc_bfs_based_sequential(&check_components, &A);
 
-        equal_components(v, check_components);
+        equal_components(components, check_components);
     }
 
     return 0;
