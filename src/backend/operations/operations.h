@@ -37,7 +37,7 @@ LA_Info assign(Vector<W>* _w,
     }
     else
     {
-        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
+        info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
     return info;
@@ -72,7 +72,7 @@ LA_Info assign(Vector<W>* _w,
     }
     else
     {
-        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
+        info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
     return info;
@@ -105,7 +105,7 @@ LA_Info assign(Vector<W>* _w,
     }
     else
     {
-        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
+        info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
     return info;
@@ -140,7 +140,7 @@ LA_Info assign(Vector<W> *_w,
     }
     else
     {
-        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
+        info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
     return info;
