@@ -10,7 +10,7 @@ Parser::Parser()
     storage_format = CSR;
     no_check = false;
     out_file_name = "kun_out.mtx";
-    file_name = "karate.mtx";
+    file_name = "test.mtx";
     iterations = 1;
 }
 

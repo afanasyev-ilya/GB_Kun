@@ -71,7 +71,7 @@ float cc(Vector<int>*       v,
         //cout << "min_neighbor_paren: ";
         //min_neighbor_parent.print();
 
-        // f[f[u]] = mngf[u]. Second does nothing (imitating comma operator)
+        // f[f[u]] = mngf[u]. Second does nothing
         assignScatter(&parent, MASK_NULL, second<int>(),
                                            &min_neighbor_parent, &parent_temp, parent_temp.nvals(), desc);
 
@@ -108,7 +108,7 @@ float cc(Vector<int>*       v,
         diff.print();
         reduce<int, bool>(&succ, second<int>(), PlusMonoid<int>(), &diff, desc);
         if (succ == 0) {
-            //break;
+            break;
         }
         grandparent_temp.dup(&grandparent);
 
