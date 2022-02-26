@@ -41,3 +41,4 @@
 
 // debug settings
 #define __DEBUG_BANDWIDTHS__
+#define __SHORT_VECTOR_PRINT__

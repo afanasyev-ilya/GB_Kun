@@ -56,22 +56,39 @@ float cc(Vector<int>*       v,
         // Duplicate parent.
         parent_temp.dup(&parent);
 
+        A->print();
+        cout << "grandparent: ";
+        grandparent.print();
+
         // 1) Stochastic hooking.
         // mngf[u] = A x gf
         mxv(&min_neighbor_parent_temp, MASK_NULL, second<int>(),
                                 MinimumSelectSecondSemiring<int>(), A, &grandparent, desc);
 
+        cout << "min_neighbor_parent_temp: ";
+        min_neighbor_parent_temp.print();
+
         eWiseAdd(&min_neighbor_parent, MASK_NULL, GrB_NULL,
                                       minimum<int>(), &min_neighbor_parent,
                                       &min_neighbor_parent_temp, desc);
+
+        cout << "min_neighbor_paren: ";
+        min_neighbor_parent.print();
+
         // f[f[u]] = mngf[u]. Second does nothing (imitating comma operator)
         assignScatter(&parent, MASK_NULL, second<int>(),
                                            &min_neighbor_parent, &parent_temp, parent_temp.nvals(), desc);
+
+        cout << "after assign: ";
+        parent.print();
 
         // 2) Aggressive hooking.
         // f = min(f, mngf)
         eWiseAdd(&parent, MASK_NULL, GrB_NULL,
                  minimum<int>(), &parent, &min_neighbor_parent, desc);
+
+        cout << "after hooking: ";
+        parent.print();
 
         // 3) Shortcutting.
         // f = min(f, gf)

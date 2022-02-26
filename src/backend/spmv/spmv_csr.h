@@ -11,7 +11,7 @@ void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size)
     int tid = omp_get_thread_num() % THREADS_PER_SOCKET;
     VNT work_per_thread = (_size - 1) / THREADS_PER_SOCKET + 1;
 
-    for(VNT i = tid*work_per_thread; i < min(_size, (tid + 1)*work_per_thread); i++)
+    for(VNT i = min(_size, tid*work_per_thread); i < min(_size, (tid + 1)*work_per_thread); i++)
     {
         _local_data[i] = _shared_data[i];
     }
@@ -113,13 +113,15 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
                 {
                     VNT col = _matrix->col_ids[j];
                     A val = _matrix->vals[j];
-                    res = add_op(res, mul_op(val, x_vals[col]));
+                    res = add_op(res, mul_op(val, local_x_vals[col]));
                 }
                 y_vals[row] = _accum(y_vals[row], res);
             }
         }
         else
         {
+            #pragma omp barrier
+
             for(int vg = 0; vg < _matrix->vg_num; vg++)
             {
                 const VNT *vertices = _matrix->vertex_groups[vg].get_data();
