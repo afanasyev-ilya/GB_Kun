@@ -80,16 +80,14 @@ float cc(Vector<int>*       v,
 
         // 2) Aggressive hooking.
         // f = min(f, mngf)
-        eWiseAdd(&parent, MASK_NULL, GrB_NULL,
-                 minimum<int>(), &parent, &min_neighbor_parent, desc);
+        eWiseAdd(&parent, MASK_NULL, GrB_NULL,minimum<int>(), &parent, &min_neighbor_parent, desc);
 
         //cout << "after hooking: ";
         //parent.print();
 
         // 3) Shortcutting.
         // f = min(f, gf)
-        eWiseAdd(&parent, MASK_NULL, GrB_NULL,
-                 minimum<int>(), &parent, &parent_temp, desc);
+        eWiseAdd(&parent, MASK_NULL, GrB_NULL, minimum<int>(), &parent, &parent_temp, desc);
 
         // 4) Calculate grandparents.
         // gf[u] = f[f[u]]
@@ -97,9 +95,9 @@ float cc(Vector<int>*       v,
 
         // 5) Check termination.
         eWiseMult(&diff, MASK_NULL, GrB_NULL,
-                  lablas::not_equal_to<int>(), &grandparent_temp,
-                                        &grandparent, desc);
+                  lablas::not_equal_to<int>(), &grandparent_temp, &grandparent, desc);
         reduce<int, bool>(&succ, second<int>(), PlusMonoid<int>(), &diff, desc);
+        cout << "succ: " << succ << endl;
         if (succ == 0) {
             break;
         }

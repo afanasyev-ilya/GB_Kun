@@ -42,16 +42,20 @@ def run_scaling(options, benchmarking_results):
     output_file = open(SCALING_FILE, 'w', encoding='utf-8')  # clear file
     output_file.close()
 
+    scaling_data = []
+
     for app_name in list_of_apps:
         max_cores = get_cores_count()
         for threads_num in range(0, max_cores + 1, SCALING_STEP):
             threads_used = max(1, threads_num)
             print("using " + str(threads_used) + " threads")
             if is_valid(app_name, options):
-                scale_app(app_name, benchmarking_results, options.format, options.mode,
-                          options.timeout, threads_used)
+                scaling_data += scale_app(app_name, benchmarking_results, options.format, options.mode,
+                                        options.timeout, threads_used)
             else:
                 print("Error! Can not benchmark " + app_name + ", several errors occurred.")
+    print(scaling_data)
+    post_process_scaling_data(scaling_data)
 
 
 def run_verify(options, benchmarking_results):

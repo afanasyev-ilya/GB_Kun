@@ -39,7 +39,10 @@ MTX_GENERATOR_BIN_NAME = "gen"
 
 PERF_DATA_FILE = "./perf_stats.txt"
 SCALING_FILE = "./scaling.txt"
-SCALING_STEP = 16
+SCALING_STEP = 8
+SCALING_FOLDER_NAME = "./scaling"
+SCALING_ROW_DATA_NAME = "row_data.txt"
+
 
 
 # how to add new graph with new category

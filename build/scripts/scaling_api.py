@@ -8,6 +8,71 @@ import time
 from threading import Timer
 from .analize_perf_data import *
 import collections
+import matplotlib.pyplot as plt
+
+
+def post_process_scaling_data(arr):
+    if os.path.exists(SCALING_FOLDER_NAME):
+        shutil.rmtree(SCALING_FOLDER_NAME)
+    os.mkdir(SCALING_FOLDER_NAME)
+
+    p = {}
+    for d in arr:
+        app = d["app"]
+        graph = d["graph"]
+        threads = d["threads"]
+        perf = d["perf"]
+        time = d["time"]
+        if app not in p:
+            p[app] = {}
+        if graph not in p[app]:
+            p[app][graph] = {"threads": [], "performance": [], "time": []}
+        p[app][graph]["threads"].append(threads)
+        p[app][graph]["performance"].append(perf)
+        p[app][graph]["time"].append(time)
+
+    cnt = 0
+    for app in p.keys():
+        for graph in p[app].keys():
+            cnt += 1
+            fig, axs = plt.subplots(2, figsize=(8, 7))
+            fig.suptitle("App: " + app + ", Graph: " + graph)
+            plt.xticks(p[app][graph]["threads"], p[app][graph]["threads"])
+
+            axs[0].plot(p[app][graph]["threads"], p[app][graph]["performance"], 'r--')
+            axs[0].set(xlabel='threads', ylabel='Performance')
+
+            axs[1].plot(p[app][graph]["threads"], p[app][graph]["time"], 'b--')
+            axs[1].set(xlabel='threads', ylabel='Time')
+
+            mng = plt.get_current_fig_manager()
+            mng.full_screen_toggle()
+
+            plot_name = app + "_" + graph
+            plot_name = plot_name.replace('[', '_')
+            plot_name = plot_name.replace(']', '_')
+            plot_name = plot_name.replace(' ', '_')
+            plot_name = plot_name.replace('\'', '_')
+            plot_name = plot_name.replace('-', '_')
+
+            lst = plot_name.split('_')
+            while '' in lst:
+                lst.remove('')
+            plot_name = '_'.join(lst)
+
+            plt.savefig(SCALING_FOLDER_NAME + "/" + plot_name)
+
+    arr = sorted(arr, key=lambda x: (x['app'], x['graph'], x['threads'], x['perf'], x['time']))
+
+    filename = SCALING_FOLDER_NAME + "/" + SCALING_ROW_DATA_NAME
+    with open(filename, "w") as f:
+        prev = {"graph": ""}
+        for item in arr:
+            if item["graph"] != prev["graph"]:
+                print("", file = f)
+            print ("App: " + item["app"] + ", Graph: " + item['graph'] + ", Threads: " + str(item['threads']) + ", Performance: " + str(item['perf']) + ", Time: " + str(item['time']), file = f)
+            prev = item
+        f.close()
 
 
 def scale_app(app_name, benchmarking_results, graph_format, run_speed_mode, timeout_length, threads_used):
@@ -19,6 +84,8 @@ def scale_app(app_name, benchmarking_results, graph_format, run_speed_mode, time
     arguments = [[""]]
     if app_name in benchmark_args:
         arguments = benchmark_args[app_name]
+
+    scaling_data = []
 
     for current_args in arguments:
         first_graph = True
@@ -50,5 +117,7 @@ def scale_app(app_name, benchmarking_results, graph_format, run_speed_mode, time
                 data = {"app": str(app_name) + " " + str(current_args) + " " + str(key), "threads": threads_used,
                         "graph": current_graph, "perf": perf_dict[key]["perf"], "time": perf_dict[key]["time"]}
                 output_file = open(SCALING_FILE, 'a', encoding='utf-8')
+                scaling_data.append(data)
                 json.dump(data, output_file)
                 output_file.close()
+    return scaling_data
