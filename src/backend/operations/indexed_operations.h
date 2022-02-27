@@ -26,7 +26,7 @@ LA_Info indexed_dense_vector_op_assign(const Vector<M>* _mask,
 
         const M* mask_data = _mask->getDense()->get_vals();
 
-        #pragma omp parallel for num_threads(1)
+        #pragma omp parallel for
         for (Index i = 0; i < _nindexes; i++)
         {
             const Index idx = _indexes[i];
@@ -36,7 +36,7 @@ LA_Info indexed_dense_vector_op_assign(const Vector<M>* _mask,
     }
     else
     {
-        #pragma omp parallel for num_threads(1)
+        #pragma omp parallel for
         for (Index i = 0; i < _nindexes; i++)
         {
             const Index idx = _indexes[i];
@@ -64,7 +64,7 @@ LA_Info indexed_dense_vector_op_assign(const Vector<M>* _mask,
 
         const M* mask_data = _mask->getDense()->get_vals();
 
-        #pragma omp parallel for num_threads(1)
+        #pragma omp parallel for
         for (Index i = 0; i < _nindexes; i++)
         {
             const Index idx = static_cast<Index>(_indexes->getDense()->get_vals()[i]);
@@ -74,7 +74,7 @@ LA_Info indexed_dense_vector_op_assign(const Vector<M>* _mask,
     }
     else
     {
-        #pragma omp parallel for num_threads(1)
+        #pragma omp parallel for
         for (Index i = 0; i < _nindexes; i++)
         {
             const Index idx = static_cast<Index>(ids[i]);
@@ -101,7 +101,7 @@ LA_Info indexed_dense_vector_op_extract(const Vector<M>* _mask,
 
         const M* mask_data = _mask->getDense()->get_vals();
 
-#pragma omp parallel for num_threads(1)
+#pragma omp parallel for
         for (Index i = 0; i < _nindexes; i++)
         {
             const Index idx = _indexes[i];
@@ -111,7 +111,7 @@ LA_Info indexed_dense_vector_op_extract(const Vector<M>* _mask,
     }
     else
     {
-#pragma omp parallel for num_threads(1)
+#pragma omp parallel for
         for (Index i = 0; i < _nindexes; i++)
         {
             const Index idx = _indexes[i];
@@ -139,7 +139,7 @@ LA_Info indexed_dense_vector_op_extract(const Vector<M>* _mask,
 
         const M* mask_data = _mask->getDense()->get_vals();
 
-#pragma omp parallel for num_threads(1)
+#pragma omp parallel for
         for (Index i = 0; i < _nindexes; i++)
         {
             const Index idx = static_cast<Index>(_indexes->getDense()->get_vals()[i]);
