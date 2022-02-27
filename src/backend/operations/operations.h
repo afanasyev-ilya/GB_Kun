@@ -91,7 +91,7 @@ LA_Info mxv (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    /*if(_u->is_dense())
+    if(_u->is_dense())
     {
         cout << "USING SpMV!!!!!" << endl;
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
@@ -100,8 +100,8 @@ LA_Info mxv (Vector<W>*       _w,
     {
         cout << "USING SpMSpV!!!!!" << endl;
         backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
-    }*/
-    backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+    }
+    _w->convert_if_required();
 
     return GrB_SUCCESS;
 }
