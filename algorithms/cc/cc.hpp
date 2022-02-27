@@ -57,6 +57,9 @@ float cc(Vector<int>*       v,
         // Duplicate parent.
         parent_temp.dup(&parent);
 
+        cout << "grandparent (mxv input): ";
+        grandparent.print();
+
         // 1) Stochastic hooking.
         // mngf[u] = A x gf
         mxv(&min_neighbor_parent_temp, MASK_NULL, second<int>(),
@@ -113,9 +116,11 @@ float cc(Vector<int>*       v,
         // 6) Similar to BFS and SSSP, we should filter out the unproductive
         // vertices from the next iteration.
         desc->toggle(GrB_MASK);
-        assign(&grandparent, &diff, nullptr,
-                                    std::numeric_limits<int>::max(), GrB_ALL, A_nrows, desc);
+        assign(&grandparent, &diff, nullptr, std::numeric_limits<int>::max(), GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK);
+
+        cout << "grandparent (after assign): ";
+        grandparent.print();
     }
     v->dup(&parent);
 
