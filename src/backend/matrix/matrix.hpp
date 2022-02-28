@@ -503,9 +503,9 @@ void Matrix<T>::sort_csc_rows(const string& mode)
     } else if (mode == "STL_SORT") {
         #pragma omp parallel for
         for (int i = 0; i < get_csc()->get_num_rows(); i++) {
-            Index* begin_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i];
-            Index* end_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i + 1];
-            std::sort(begin_ptr, end_ptr);
+            VNT* begin_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i];
+            VNT* end_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i + 1];
+            sort(begin_ptr, end_ptr);
         }
     } else {
         throw mode;
