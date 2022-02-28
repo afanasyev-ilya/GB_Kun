@@ -162,6 +162,13 @@ namespace lablas{
             }
         };
 
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct not_equal_to {
+            inline  T_out operator()(T_in1 lhs, T_in2 rhs) {
+                return lhs != rhs;
+            }
+        };
+
         template <typename T_in1 = bool, typename T_in2 = bool, typename T_out = bool>
         struct logical_and {
             inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
@@ -240,6 +247,8 @@ REGISTER_SEMIRING(PlusSecondSemiring, PlusMonoid, second)
 REGISTER_SEMIRING(StructuralBool, LogicalOrMonoid, GrB_ONEB_T)
 REGISTER_SEMIRING(MinimumPlusSemiring, MinimumMonoid, plus)
 REGISTER_SEMIRING(CustomLessPlusSemiring, CustomLessMonoid, plus)
+REGISTER_SEMIRING(MinimumSelectSecondSemiring, MinimumMonoid, second)
+REGISTER_SEMIRING(MinimumNotEqualToSemiring, MinimumMonoid, not_equal_to)
 // MinimumPlusSemiring
 // CustomLessPlusSemiring
 

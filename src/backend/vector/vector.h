@@ -159,11 +159,13 @@ public:
 
     void print() const
     {
+        #ifndef __SHORT_VECTOR_PRINT__
         if(is_dense())
             cout << "vector is dense" << endl;
         else
             cout << "vector is sparse" << endl;
         cout << "nvals: " << main_container->get_nvals() << " / " << main_container->get_size() << endl;
+        #endif
         main_container->print();
     }
 
@@ -180,6 +182,20 @@ public:
     VNT get_size() const
     {
         return main_container->get_size();
+    }
+
+    LA_Info fillAscending(Index nvals) {
+        force_to_dense();
+        return main_container->fillAscending(nvals);
+    }
+
+    LA_Info dup(const Vector<T>* rhs) {
+        if(rhs->is_dense())
+            this->swap_to_dense();
+        else
+            this->swap_to_sparse();
+        main_container->dup(rhs->main_container);
+        return GrB_SUCCESS;
     }
 
     void swap(Vector *_another)

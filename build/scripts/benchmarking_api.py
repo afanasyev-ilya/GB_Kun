@@ -47,10 +47,7 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
                 timer.cancel()
 
             output = stdout.decode("utf-8")
-            #print(output)
-
             perf_dict = analyze_perf_file()
-            #print(perf_dict)
 
             if first_graph:
                 if not perf_dict: # in case it timed out
@@ -73,3 +70,4 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
         algorithms_tested += 1
 
     return algorithms_tested
+

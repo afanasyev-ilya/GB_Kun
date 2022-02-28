@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "src/gb_kun.h"
+#include <sys/mman.h>
+#include <errno.h>
+//#include <malloc.h>
 
 #define Index int
 #define base_type float
@@ -12,7 +15,7 @@ using namespace std;
 
 void saxpy_one_sock(base_type a, base_type * __restrict z, const base_type * __restrict x, const base_type * __restrict y, size_t size)
 {
-#pragma omp parallel for num_threads(48)
+#pragma omp parallel for num_threads(THREADS_PER_SOCKET)
     for(size_t i = 0; i < size; i++)
         z[i] = a*x[i] + y[i];
 }
@@ -26,7 +29,7 @@ void saxpy_both_sock(base_type a, base_type * __restrict z, const base_type * __
 
 void gather_one_sock(const base_type *__restrict data, const Index * __restrict indexes, base_type * __restrict result, size_t size)
 {
-    #pragma omp parallel for num_threads(48)
+    #pragma omp parallel for num_threads(THREADS_PER_SOCKET)
     for(size_t i = 0; i < size; i++)
         result[i] = data[indexes[i]];
 }
@@ -37,7 +40,7 @@ void gather_copy(const base_type *__restrict data, const Index * __restrict inde
     base_type *copy;
     MemoryAPI::allocate_array(&copy, small_size*48);
 
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num();
 
@@ -49,7 +52,7 @@ void gather_copy(const base_type *__restrict data, const Index * __restrict inde
     }
 
     t1 = omp_get_wtime();
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num();
 
@@ -74,7 +77,7 @@ void gather_copy_12_groups(const base_type *__restrict data, const Index * __res
     MemoryAPI::allocate_array(&copy, small_size*12);
 
     t1 = omp_get_wtime();
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num() / 4;
 
@@ -91,7 +94,7 @@ void gather_copy_12_groups(const base_type *__restrict data, const Index * __res
     cout << "prefetch time: " << (t2 - t1)*1000 << " ms" << endl;
 
     t1 = omp_get_wtime();
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num() / 4;
 
@@ -110,7 +113,7 @@ void gather_copy_12_groups(const base_type *__restrict data, const Index * __res
 
 
     size_t error_count = 0;
-    #pragma omp parallel for num_threads(48) reduction(+: error_count)
+    #pragma omp parallel for num_threads(THREADS_PER_SOCKET) reduction(+: error_count)
     for(size_t i = 0; i < size; i++)
     {
         if(result[i] != data[indexes[i]])
@@ -126,7 +129,7 @@ void scatter_copy(base_type *data, const Index * __restrict indexes, base_type *
     base_type *copy;
     MemoryAPI::allocate_array(&copy, small_size*48);
 
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num();
         base_type *loc_data = &copy[tid*small_size];
@@ -137,7 +140,7 @@ void scatter_copy(base_type *data, const Index * __restrict indexes, base_type *
     }
 
     t1 = omp_get_wtime();
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num();
 
@@ -171,7 +174,7 @@ void scatter_copy_12_groups(base_type *data, const Index * __restrict indexes, b
     base_type *copy;
     MemoryAPI::allocate_array(&copy, small_size*12);
 
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num() / 4;
         base_type *loc_data = &copy[tid*small_size];
@@ -182,7 +185,7 @@ void scatter_copy_12_groups(base_type *data, const Index * __restrict indexes, b
     }
 
     t1 = omp_get_wtime();
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num() / 4;
 
@@ -216,7 +219,7 @@ void scatter_copy_6_groups(base_type *data, const Index * __restrict indexes, ba
     base_type *copy;
     MemoryAPI::allocate_array(&copy, small_size*6);
 
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num() / 8;
         base_type *loc_data = &copy[tid*small_size];
@@ -227,7 +230,7 @@ void scatter_copy_6_groups(base_type *data, const Index * __restrict indexes, ba
     }
 
     t1 = omp_get_wtime();
-    #pragma omp parallel num_threads(48)
+    #pragma omp parallel num_threads(THREADS_PER_SOCKET)
     {
         int tid = omp_get_thread_num() / 8;
 
@@ -257,7 +260,7 @@ void scatter_copy_6_groups(base_type *data, const Index * __restrict indexes, ba
 
 void scatter_one_sock(base_type *data, const Index * __restrict indexes, base_type * __restrict result, size_t size)
 {
-    #pragma omp parallel for num_threads(48)
+    #pragma omp parallel for num_threads(THREADS_PER_SOCKET)
     for(size_t i = 0; i < size; i++)
         data[indexes[i]] = result[i];
 }
@@ -317,11 +320,13 @@ Index main(void)
 
     size_t large_size = size;
 
-    const int num_tests = 5;//11;
-    size_t rads[num_tests] = {128*1024/sizeof(base_type),
-                              512*1024/sizeof(base_type),
+    const int inner_runs = 100;
+    const int num_tests = 6;//11;
+    size_t rads[num_tests] = {512*1024/sizeof(base_type),
                               1024*1024/sizeof(base_type),
+                              2*1024*1024/sizeof(base_type),
                               8*1024*1024/sizeof(base_type),
+                              16*1024*1024/sizeof(base_type),
                               64*1024*1024/sizeof(base_type)
                               /*128*1024*1024/sizeof(base_type),
                               256*1024*1024/sizeof(base_type)*/};
@@ -337,7 +342,51 @@ Index main(void)
 
         MemoryAPI::allocate_array(&result, large_size);
         MemoryAPI::allocate_array(&indexes, large_size);
-        MemoryAPI::allocate_array(&data, current_radius);
+        //MemoryAPI::allocate_array(&data, current_radius);
+        //data = memalign(2*1024*1024, current_radius*sizeof(base_type));
+        data = (base_type*)aligned_alloc(2*1024*1024, current_radius*sizeof(base_type));
+        /*if(madvise(data, current_radius, MADV_HUGEPAGE) == -1)
+        {
+            if (errno == EACCES)
+                cout << " EACCES " << endl;
+            if (errno == EAGAIN)
+                cout << " EAGAIN " << endl;
+            if (errno == EBADF)
+                cout << " EBADF " << endl;
+            if (errno == EINVAL)
+                cout << " EINVAL " << endl;
+            if (errno == EINVAL)
+                cout << " EINVAL " << endl;
+            if (errno == EIO)
+                cout << " EIO " << endl;
+            if (errno == ENOMEM)
+                cout << " ENOMEM " << endl;
+            if (errno == EAGAIN)
+                cout << " EAGAIN " << endl;
+            if (errno == EPERM)
+                cout << " EPERM " << endl;
+        }
+        if(madvise(data, current_radius,  MADV_HUGEPAGE | MADV_RANDOM) == -1)
+        {
+            if (errno == EACCES)
+                cout << " EACCES " << endl;
+            if (errno == EAGAIN)
+                cout << " EAGAIN " << endl;
+            if (errno == EBADF)
+                cout << " EBADF " << endl;
+            if (errno == EINVAL)
+                cout << " EINVAL " << endl;
+            if (errno == EINVAL)
+                cout << " EINVAL " << endl;
+            if (errno == EIO)
+                cout << " EIO " << endl;
+            if (errno == ENOMEM)
+                cout << " ENOMEM " << endl;
+            if (errno == EAGAIN)
+                cout << " EAGAIN " << endl;
+            if (errno == EPERM)
+                cout << " EPERM " << endl;
+        }*/
 
         #pragma omp parallel
         {
@@ -354,7 +403,7 @@ Index main(void)
 
         double t1, t2;
 
-        for(int i = 0; i < 50; i++)
+        for(int i = 0; i < inner_runs; i++)
         {
             t1 = omp_get_wtime();
             gather_one_sock(data, indexes, result, large_size);

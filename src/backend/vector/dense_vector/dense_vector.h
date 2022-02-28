@@ -1,4 +1,5 @@
 #pragma once
+#include <cstring>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -13,7 +14,7 @@ class DenseVector : public GenericVector<T>
 {
 public:
     DenseVector(VNT _size);
-    ~DenseVector();
+    virtual ~DenseVector();
 
     void print() const;
 
@@ -23,6 +24,14 @@ public:
 
     const T* get_vals () const {
         return vals;
+    }
+
+    VNT* get_ids () {
+        return nullptr;
+    }
+
+    const VNT* get_ids () const {
+        return nullptr;
     }
 
     LA_Info build(const T* values,
@@ -50,6 +59,27 @@ public:
     void fill_with_zeros();
 
     void convert(SparseVector<T> *_sparse_vector);
+
+    LA_Info fillAscending(Index nvals) {
+#pragma omp parallel for
+        for (Index i = 0; i < nvals; i++)
+            vals[i] = i;
+
+        return GrB_SUCCESS;
+    }
+
+    bool isDense() const {
+        return true;
+    }
+    bool isSparse() const {
+        return false;
+    }
+
+    void dup(GenericVector<T>* rhs) {
+        size = rhs->get_size();
+        MemoryAPI::resize(&vals, size);
+        std::memcpy(vals, rhs->get_vals(), sizeof(T) * rhs->get_size());
+    };
 
     Storage get_storage() {return GrB_DENSE; };
 

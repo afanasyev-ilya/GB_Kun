@@ -25,7 +25,9 @@ int main(int argc, char **argv) {
         int iters_taken = 0;
         lablas::Vector<float>* centrality;
 
-        SAVE_TEPS(LAGraph_VertexCentrality_PageRankGAP(&centrality, &graph, &iters_taken),
+        int max_iter = max(100, parser.get_iterations());
+
+        SAVE_TEPS(LAGraph_VertexCentrality_PageRankGAP(&centrality, &graph, &iters_taken, max_iter),
                   "Page_Rank", iters_taken, (graph.AT));
 
         delete centrality;

@@ -135,7 +135,10 @@ void SpMSpV(const Matrix<A> *_matrix,
     }
     else
     {
-        throw "Error in SpVSpM : unsupported additive operation in semiring";
+        if(!_transposed_matrix)
+            spmspv_unmasked_critical(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+        else
+            spmspv_unmasked_critical(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
     }
 
     if (_mask != 0)
@@ -202,7 +205,7 @@ void SpMSpV_alloc(const Matrix<T> *_matrix,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "spmspv_buckets.h"
-#include "spmspv_csr.h"
+#include "spmspv_atomics.h"
 
 }
 }

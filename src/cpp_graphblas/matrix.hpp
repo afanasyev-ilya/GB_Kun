@@ -14,6 +14,11 @@ public:
     Matrix() : _matrix() {};
     Matrix(Index nrows, Index ncols) : _matrix(nrows, ncols) {}
 
+    template<class U>
+    void print_graphviz(string file_name, backend::Vector<U>* label_vector) {
+        _matrix.print_graphviz(file_name, backend::VisualizationMode::VISUALISE_AS_UNDIRECTED, label_vector);
+    }
+
     backend::Matrix<T>* get_matrix() {
         return &_matrix;
     }
