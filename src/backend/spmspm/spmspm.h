@@ -79,7 +79,60 @@ void SpMSpM_unmasked_ijk(const Matrix<T> *_matrix1,
     _matrix_result->build(&row_ids[0], &col_ids[0], &values[0], matrix1_num_rows, nnz);
     double t3 = omp_get_wtime();
     double overall_time = t3 - t1;
-    printf("SpMSpM time: %lf seconds.\n", t3-t1);
+    printf("Unmasked IJK SpMSpM time: %lf seconds.\n", t3-t1);
+    printf("\t- Calculating result: %.1lf %%\n", (t2 - t1) / overall_time * 100.0);
+    printf("\t- Converting result: %.1lf %%\n", (t3 - t2) / overall_time * 100.0);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
+                         const Matrix<T> *_matrix2,
+                         Matrix<T> *_matrix_result)
+{
+    double t1 = omp_get_wtime();
+
+    vector<map<VNT, T>> matrix_result(_matrix1->get_csr()->get_num_rows());
+    // #pragma omp parallel for default(shared)
+    for (VNT i = 0; i < _matrix1->get_csr()->get_num_rows(); ++i) {
+        for (VNT k = 0; k < _matrix2->get_csr()->get_num_rows(); ++k) {
+            for (ENT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
+                 matrix1_col_id < _matrix1->get_csr()->get_row_ptr()[i + 1]; ++matrix1_col_id) {
+                VNT j = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
+                VNT found_matrix2_col_id = binary_search(_matrix2->get_csr()->get_col_ids(),
+                                                         _matrix2->get_csr()->get_row_ptr()[k],
+                                                         _matrix2->get_csr()->get_row_ptr()[k + 1] - 1,
+                                                         j);
+                if (found_matrix2_col_id != -1) {
+                    matrix_result[i][j] += _matrix1->get_csr()->get_vals()[matrix1_col_id] *
+                            _matrix2->get_csr()->get_vals()[found_matrix2_col_id];
+                }
+            }
+        }
+    }
+    double t2 = omp_get_wtime();
+    SpMSpM_alloc(_matrix_result);
+    vector<ENT> row_ptr;
+    vector<VNT> col_ids;
+    vector<T> vals;
+    for (VNT i = 0; i < _matrix1->get_csr()->get_num_rows(); ++i) {
+        vector<pair<VNT, T> > cur_row;
+        for (const auto& [col_id, val] : matrix_result[i]) {
+            if (val != 0) {
+                cur_row.push_back({col_id, val});
+                col_ids.push_back(col_id);
+                vals.push_back(val);
+            }
+        }
+        if (i == 0) {
+            row_ptr.push_back(0);
+        }
+        row_ptr.push_back(row_ptr[i - 1] + cur_row.size());
+    }
+    double t3 = omp_get_wtime();
+    double overall_time = t3 - t1;
+    printf("Unmasked IKJ SpMSpM time: %lf seconds.\n", t3-t1);
     printf("\t- Calculating result: %.1lf %%\n", (t2 - t1) / overall_time * 100.0);
     printf("\t- Converting result: %.1lf %%\n", (t3 - t2) / overall_time * 100.0);
 }

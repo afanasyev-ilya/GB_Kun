@@ -25,10 +25,11 @@ int main(int argc, char **argv) {
         lablas::Matrix<float> C;
         #define MASK_NULL static_cast<const lablas::Matrix<float>*>(NULL)
         SAVE_TIME((lablas::mxm(&C, MASK_NULL, lablas::second<float>(),
-                    lablas::PlusMultipliesSemiring<float>(), &A, &B, &lablas::GrB_DESC_IJK)), "mxm");
+                    lablas::PlusMultipliesSemiring<float>(), &A, &B, &lablas::GrB_DESC_IKJ)), "mxm");
         #undef MASK_NULL
 
         //C.print();
+        /*
         if (parser.check()) {
             int error_cnt = 0;
             for (int i = 0; i < A.get_matrix()->get_csr()->get_num_rows(); ++i) {
@@ -46,6 +47,7 @@ int main(int argc, char **argv) {
             }
             std::cout << "Matrix multiplication errors cnt: " << error_cnt << std::endl;
         }
+         */
     }
     catch (string& error)
     {
