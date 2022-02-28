@@ -144,6 +144,8 @@ public:
     void sort_csr_columns(const string& mode);
 
     void sort_csc_rows(const string& mode);
+
+    void transpose(void);
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;

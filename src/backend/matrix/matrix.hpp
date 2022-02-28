@@ -26,6 +26,31 @@ Matrix<T>::Matrix(Index ncols, Index nrows) : _format(CSR)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+template <typename T>
+void Matrix<T>::transpose() {
+    VNT csr_ncols = csr_data->get_num_cols();
+    VNT csr_nrows = csr_data->get_num_rows();
+    auto curr = new int[csr_ncols];
+
+    for (Index i = 0; i < csr_nrows; i++){
+        for (Index j = csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i+1]; j++) {
+            csc_data->get_row_ptr()[csr_data->get_col_ids()[j] + 1]++;
+        }
+    }
+    for (Index i = 1; i < csr_ncols + 1; i++){
+        csc_data->get_row_ptr()[i] += csc_data->get_row_ptr()[i - 1];
+    }
+    for (Index i = 0; i < csr_nrows; i++){
+        for (Index j = csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i+1]; j++) {
+            auto loc = csc_data->get_row_ptr()[csr_data->get_col_ids()[j]] + curr[csr_data->get_col_ids()[j]]++;
+            csc_data->get_col_ids()[loc] = i;
+            csc_data->get_vals()[loc] = csr_data->get_vals()[j];
+        }
+    }
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template<typename T>
 Matrix<T>::~Matrix()
 {
