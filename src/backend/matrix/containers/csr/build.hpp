@@ -98,6 +98,7 @@ void MatrixCSR<T>::numa_aware_realloc()
                     new_vals[j] = this->vals[j];
                 }
             }
+            new_row_ptr[num_rows] = this->row_ptr[num_rows];
         }
         else
         {
@@ -122,6 +123,7 @@ void MatrixCSR<T>::numa_aware_realloc()
                     }
                 }
             }
+            new_row_ptr[num_rows] = this->row_ptr[num_rows];
         }
     }
 
