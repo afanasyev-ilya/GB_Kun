@@ -412,9 +412,19 @@ LA_Info mxm(Matrix<c>* C,
     if (mask) {
         return GrB_PANIC;
     } else {
-        backend::SpMSpM_unmasked_ijk(A,
-                                     B,
-                                 C);
+        Desc_value multiplication_mode;
+        desc->get(GrB_MXMMODE, &multiplication_mode);
+        if (multiplication_mode == GrB_IJK) {
+            backend::SpMSpM_unmasked_ijk(A,
+                                         B,
+                                         C);
+        } else if (multiplication_mode == GrB_IKJ) {
+            backend::SpMSpM_unmasked_ikj(A,
+                                         B,
+                                         C);
+        } else {
+            return GrB_INVALID_VALUE;
+        }
         return GrB_SUCCESS;
     }
 }
