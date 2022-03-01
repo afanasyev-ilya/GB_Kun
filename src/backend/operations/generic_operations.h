@@ -36,7 +36,7 @@ LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
 #pragma omp parallel for num_threads(1)
             for (Index i = 0; i < _size; i++)
             {
-                if (mask_data[i])
+                if (!mask_data[i])
                     _lambda_op(i, i);
             }
         }
