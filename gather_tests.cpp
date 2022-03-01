@@ -285,7 +285,7 @@ Index main(void)
     cout << "threads: " << omp_get_max_threads() << endl;
 
     size_t size = 1610612736; // 6.4 GB each
-    base_type *x, *y, *z;
+    /*base_type *x, *y, *z;
     MemoryAPI::allocate_array(&x, size);
     MemoryAPI::allocate_array(&y, size);
     MemoryAPI::allocate_array(&z, size);
@@ -313,20 +313,23 @@ Index main(void)
     free(y);
     free(z);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));*/
 
     base_type *result, *data;
     Index *indexes;
 
     size_t large_size = size;
 
-    const int inner_runs = 100;
-    const int num_tests = 6;//11;
+    const int inner_runs = 80;
+    const int num_tests = 9;//11;
     size_t rads[num_tests] = {512*1024/sizeof(base_type),
                               1024*1024/sizeof(base_type),
+                              1*1024*1024/sizeof(base_type),
                               2*1024*1024/sizeof(base_type),
+                              4*1024*1024/sizeof(base_type),
                               8*1024*1024/sizeof(base_type),
                               16*1024*1024/sizeof(base_type),
+                              32*1024*1024/sizeof(base_type),
                               64*1024*1024/sizeof(base_type)
                               /*128*1024*1024/sizeof(base_type),
                               256*1024*1024/sizeof(base_type)*/};
