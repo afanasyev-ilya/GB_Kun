@@ -333,6 +333,7 @@ void Matrix<T>::build(const VNT *_row_indices,
                       const ENT _nnz)
 {
     VNT max_rows = 0, max_cols = 0;
+    #pragma omp parallel for reduction(max: max_rows, max_cols)
     for(ENT i = 0; i < _nnz; i++)
     {
         if(max_rows < _row_indices[i])
@@ -344,6 +345,14 @@ void Matrix<T>::build(const VNT *_row_indices,
         {
             max_cols = _row_indices[i];
         }
+    }
+
+    max_rows += 1;
+    max_cols += 1;
+    if(max_rows != max_cols)
+    {
+        cout << "Non-square matrix is not supported yet" << endl;
+        throw "Non-square matrix is not supported yet";
     }
 
     // CSR data creation
