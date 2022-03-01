@@ -239,7 +239,8 @@ def create_real_world_graph(graph_name):
             #    convert_to_mtx_if_no_loops_and_multiple_edges(source_name, output_graph_file_name, graph_name)
             #else:
             gen_mtx_graph(source_name, output_graph_file_name)
-            gen_undirected_mtx_graph(source_name, undir_output_graph_file_name)
+            if GENERATE_UNDIRECTED:
+                gen_undirected_mtx_graph(source_name, undir_output_graph_file_name)
 
             if verify_graph_existence(output_graph_file_name):
                 print("Graph " + output_graph_file_name + " has been created\n")

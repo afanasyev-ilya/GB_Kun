@@ -43,6 +43,8 @@ SCALING_STEP = 8
 SCALING_FOLDER_NAME = "./scaling"
 SCALING_ROW_DATA_NAME = "row_data.txt"
 
+GENERATE_UNDIRECTED = False
+
 
 
 # how to add new graph with new category
