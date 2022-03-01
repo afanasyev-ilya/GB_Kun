@@ -19,8 +19,7 @@ int main(int argc, char **argv) {
         lablas::Matrix<float> B;
         B.set_preferred_matrix_format(CSR);
         init_matrix(B, parser);
-        B.sort_csc_rows("STL_SORT");
-        B.sort_csr_columns("STL_SORT");
+        // B.sort_csc_rows("STL_SORT");
         // B.print();
 
         lablas::Matrix<float> C;
@@ -32,6 +31,7 @@ int main(int argc, char **argv) {
 
         // C.print();
 
+        /*
         if (parser.check()) {
             int error_cnt = 0;
             for (int i = 0; i < A.get_matrix()->get_csr()->get_num_rows(); ++i) {
@@ -49,6 +49,7 @@ int main(int argc, char **argv) {
             }
             std::cout << "Matrix multiplication errors cnt: " << error_cnt << std::endl;
         }
+         */
     }
     catch (string& error)
     {
