@@ -32,7 +32,6 @@ public:
     void build(const VNT *_row_indices,
                const VNT *_col_indices,
                const T *_values,
-               const VNT _size,
                const ENT _nnz);
 
     void init_from_mtx(const string &_mtx_file_name);

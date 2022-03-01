@@ -26,9 +26,13 @@ Matrix<T>::Matrix(Index ncols, Index nrows) : _format(CSR)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 template <typename T>
 void Matrix<T>::transpose() {
+
+    memset(csc_data->get_row_ptr(),0, (csc_data->get_num_rows() + 1) * sizeof(Index));
+    memset(csc_data->get_col_ids(),0, csc_data->get_nnz()* sizeof(Index));
+    memset(csc_data->get_vals(),0, csc_data->get_nnz()* sizeof(T));
+
     VNT csr_ncols = csr_data->get_num_cols();
     VNT csr_nrows = csr_data->get_num_rows();
     auto curr = new int[csr_ncols];
@@ -354,15 +358,33 @@ template<typename T>
 void Matrix<T>::build(const VNT *_row_indices,
                       const VNT *_col_indices,
                       const T *_values,
-                      const VNT _size, // todo remove
                       const ENT _nnz)
 {
     // CSR data creation
+    VNT max_rows = 0, max_cols = 0;
+#pragma omp parallel for reduction(max: max_rows, max_cols)
+    for(ENT i = 0; i < _nnz; i++)
+    {
+        if(max_rows < _row_indices[i])
+        {
+            max_rows = _row_indices[i];
+        }
+
+        if(max_cols < _col_indices[i])
+        {
+            max_cols = _row_indices[i];
+        }
+    }
+    max_cols++;
+    max_rows++;
+    if (max_rows!= max_cols) {
+        printf("Non square matrices are not implemented yet");
+    }
     double t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
-    csr_data->build(_row_indices, _col_indices, _values, _size, _size, _nnz, 0);
-    csc_data->build(_col_indices, _row_indices, _values, _size, _size, _nnz, 0);
+    csr_data->build(_row_indices, _col_indices, _values, max_rows, max_cols, _nnz, 0);
+    csc_data->build(_col_indices, _row_indices, _values, max_cols, max_rows, _nnz, 0);
     double t2 = omp_get_wtime();
     cout << "csr creation time: " << t2 - t1 << " sec" << endl;
 

@@ -79,6 +79,8 @@ STRING(REPLACE ";" " " headers_list "${headers_list}")
 STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" headers_list "${headers_list}")
 #message(STATUS "[INFO] header files list: ${headers_list}")
 #
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
 
 file(MAKE_DIRECTORY scripts)
 
@@ -105,4 +107,7 @@ target_include_directories(gemm PRIVATE)
 
 add_executable(gather_tests gather_tests.cpp)
 target_include_directories(gather_tests PRIVATE)
+
+add_executable(test_matrix src/test/test_matrix_ops.cpp)
+target_link_libraries(test_matrix ${GTEST_LIBRARIES})
 
