@@ -332,12 +332,35 @@ void Matrix<T>::build(const VNT *_row_indices,
                       const VNT _size, // todo remove
                       const ENT _nnz)
 {
+    VNT max_rows = 0, max_cols = 0;
+    #pragma omp parallel for reduction(max: max_rows, max_cols)
+    for(ENT i = 0; i < _nnz; i++)
+    {
+        if(max_rows < _row_indices[i])
+        {
+            max_rows = _row_indices[i];
+        }
+
+        if(max_cols < _col_indices[i])
+        {
+            max_cols = _row_indices[i];
+        }
+    }
+
+    max_rows += 1;
+    max_cols += 1;
+    if(max_rows != max_cols)
+    {
+        cout << "Non-square matrix is not supported yet" << endl;
+        throw "Non-square matrix is not supported yet";
+    }
+
     // CSR data creation
     double t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
-    csr_data->build(_row_indices, _col_indices, _values, _size, _size, _nnz, 0);
-    csc_data->build(_col_indices, _row_indices, _values, _size, _size, _nnz, 0);
+    csr_data->build(_row_indices, _col_indices, _values, max_rows, max_cols, _nnz, 0);
+    csc_data->build(_col_indices, _row_indices, _values, max_cols, max_rows, _nnz, 0);
     double t2 = omp_get_wtime();
     cout << "csr creation time: " << t2 - t1 << " sec" << endl;
 

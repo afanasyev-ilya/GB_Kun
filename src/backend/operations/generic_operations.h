@@ -8,6 +8,98 @@
 namespace lablas {
 namespace backend {
 
+template <typename M, typename LambdaOp>
+LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
+                                const Index _size,
+                                LambdaOp&& _lambda_op,
+                                Descriptor* _desc)
+{
+    if (_mask != NULL)
+    {
+        if (_mask->get_size() != _size)
+            return GrB_DIMENSION_MISMATCH;
+
+        if (_mask->is_sparse())
+        {
+            const Index* mask_ids = _mask->getSparse()->get_ids();
+            const Index mask_nvals = _mask->getSparse()->get_nvals();
+            #pragma omp parallel for
+            for (Index i = 0; i < mask_nvals; i++)
+            {
+                Index idx = mask_ids[i];
+                _lambda_op(idx, i);
+            }
+        }
+        else
+        {
+            const M* mask_data = _mask->getDense()->get_vals();
+            #pragma omp parallel for
+            for (Index i = 0; i < _size; i++)
+            {
+                if (mask_data[i])
+                    _lambda_op(i, i);
+            }
+        }
+    }
+    else
+    {
+        #pragma omp parallel for
+        for (Index i = 0; i < _size; i++)
+        {
+            _lambda_op(i, i);
+        }
+    }
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename M, typename LambdaOp>
+LA_Info generic_dense_vector_op_extract(const Vector<M>* _mask,
+                                       const Index _size,
+                                       LambdaOp&& _lambda_op,
+                                       Descriptor* _desc)
+{
+    if (_mask != NULL)
+    {
+        if (_mask->get_size() != _size)
+            return GrB_DIMENSION_MISMATCH;
+
+        if (_mask->is_sparse())
+        {
+            const Index* mask_ids = _mask->getSparse()->get_ids();
+            const Index mask_nvals = _mask->getSparse()->get_nvals();
+            #pragma omp parallel for
+            for (Index i = 0; i < mask_nvals; i++)
+            {
+                Index idx = mask_ids[i];
+                _lambda_op(i, idx);
+            }
+        }
+        else
+        {
+            const M* mask_data = _mask->getDense()->get_vals();
+            #pragma omp parallel for
+            for (Index i = 0; i < _size; i++)
+            {
+                if (mask_data[i])
+                    _lambda_op(i, i);
+            }
+        }
+    }
+    else
+    {
+        #pragma omp parallel for
+        for (Index i = 0; i < _size; i++)
+        {
+            _lambda_op(i, i);
+        }
+    }
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 template <typename M, typename LambdaOp>
 LA_Info generic_dense_vector_op(const Vector<M>* _mask,
