@@ -108,6 +108,6 @@ target_include_directories(gemm PRIVATE)
 add_executable(gather_tests gather_tests.cpp)
 target_include_directories(gather_tests PRIVATE)
 
-add_executable(test_matrix src/test/test_matrix_ops.cpp)
+add_executable(test_matrix test/test_matrix_ops.cpp)
 target_link_libraries(test_matrix ${GTEST_LIBRARIES})
 

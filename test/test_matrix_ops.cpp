@@ -1,4 +1,4 @@
-#include "../gb_kun.h"
+#include "../src/gb_kun.h"
 #include "gtest/gtest.h"
 
 float square_root(float a) {
@@ -12,7 +12,7 @@ TEST (TransposeTest, SmallTest) {
     const std::vector<int> csr_val = {10, 10, 10, 10, 10, 10, 10, 10, 10};
     matrix.build(&row_ids,&col_ids,&csr_val, 9, nullptr, nullptr);
 
-    matrix.get_matrix()->transpose();
+    matrix.get_matrix()->transpose_parallel();
 
     auto *row_result = matrix.get_matrix()->get_csc()->get_row_ptr();
     auto *col_result = matrix.get_matrix()->get_csc()->get_col_ids();
