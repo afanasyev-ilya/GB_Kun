@@ -378,7 +378,7 @@ LA_Info extract(Vector<W>*       w,
 
     Index vector_size = w->getDense()->get_size(); // can be called since force dense conversion before
     W* w_vals = w->getDense()->get_vals();
-    U* u_vals = u->getDense()->get_vals();
+    const U* u_vals = u->getDense()->get_vals();
 
     auto lambda_op = [w_vals, u_vals, &accum](Index idx1, Index idx2) {
         w_vals[idx1] = accum(w_vals[idx1], u_vals[idx2]);

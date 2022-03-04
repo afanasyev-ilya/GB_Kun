@@ -20,7 +20,7 @@ double my_bw = my_nvals * bytes_per_flop/((my_t2 - my_t1)*1e9);                 
 /*printf("%s BW %lf (GB/s)\n", op_name, bw);*/                                       \
 FILE *my_f;                                                                          \
 my_f = fopen("perf_stats.txt", "a");                                                 \
-fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
 fclose(my_f);                                                                           \
 
 #define SAVE_TIME(call_instruction, op_name)       \
@@ -33,7 +33,7 @@ double my_bw = 0;                                  \
 size_t my_nvals = 0;                               \
 FILE *my_f;                                                                          \
 my_f = fopen("perf_stats.txt", "a");                                                 \
-fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
 fclose(my_f);                                                                           \
 
 #define SAVE_TEPS(call_instruction, op_name, iterations, matrix)                        \
@@ -47,7 +47,7 @@ double my_perf = iterations*(my_nvals / ((my_t2 - my_t1)*1e6));                 
 double my_bw = 0;                                                                       \
 FILE *my_f;                                                                             \
 my_f = fopen("perf_stats.txt", "a");                                                    \
-fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %ld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
 fclose(my_f);                                                                           \
 
 void print_omp_stats()
