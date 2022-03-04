@@ -93,17 +93,30 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 {
     double t1 = omp_get_wtime();
 
+    long long bytes_requested = 0;
+
     vector<map<VNT, T>> matrix_result(_matrix1->get_csr()->get_num_rows());
+    bytes_requested += sizeof(matrix_result);
     #pragma omp parallel for
     for (VNT i = 0; i < _matrix1->get_csr()->get_num_rows(); ++i) {
+        bytes_requested += sizeof(_matrix1->get_csr()->get_num_rows());
         for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
                 matrix1_col_id < _matrix1->get_csr()->get_row_ptr()[i + 1]; ++matrix1_col_id) {
+            bytes_requested += sizeof(_matrix1->get_csr()->get_row_ptr()[i]);
+            bytes_requested += sizeof(_matrix1->get_csr()->get_row_ptr()[i + 1]);
             VNT k = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
+            bytes_requested += sizeof(_matrix1->get_csr()->get_col_ids()[matrix1_col_id]);
             for (VNT matrix2_col_id = _matrix2->get_csr()->get_row_ptr()[k];
                  matrix2_col_id < _matrix2->get_csr()->get_row_ptr()[k + 1]; ++matrix2_col_id) {
+                bytes_requested += sizeof(_matrix2->get_csr()->get_row_ptr()[k]);
+                bytes_requested += sizeof(_matrix2->get_csr()->get_row_ptr()[k + 1]);
                 VNT j = _matrix2->get_csr()->get_col_ids()[matrix2_col_id];
+                bytes_requested += sizeof(_matrix2->get_csr()->get_col_ids()[matrix2_col_id]);
                 matrix_result[i][j] += _matrix1->get_csr()->get_vals()[matrix1_col_id] *
                         _matrix2->get_csr()->get_vals()[matrix2_col_id];
+                bytes_requested += sizeof(_matrix1->get_csr()->get_vals()[matrix1_col_id]);
+                bytes_requested += sizeof(_matrix2->get_csr()->get_vals()[matrix2_col_id]);
+                bytes_requested += sizeof(matrix_result[i][j]);
             }
         }
     }
@@ -141,6 +154,7 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
     printf("Unmasked IKJ SpMSpM time: %lf seconds.\n", t3-t1);
     printf("\t- Calculating result: %.1lf %%\n", (t2 - t1) / overall_time * 100.0);
     printf("\t- Converting result: %.1lf %%\n", (t3 - t2) / overall_time * 100.0);
+    printf("\t- Sustained bandwidth: %.1lf GB/s\n", bytes_requested / 1e9 / (t2 - t1));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
