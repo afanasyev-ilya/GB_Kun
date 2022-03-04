@@ -4,6 +4,66 @@
 #define GrB_Vector lablas::Vector<float>*
 #define MASK_NULL static_cast<const lablas::Vector<float>*>(NULL)
 
+namespace lablas {
+namespace algorithm {
+
+void pr(Vector<float>*       p,
+        const Matrix<float> *A,     // column stochastic matrix
+        float alpha, // teleportation constant
+        float eps,   // threshold
+        Descriptor *desc,
+        int _max_iters)
+{
+    // Get number of vertices
+    Index A_nrows = A->nrows();
+
+    // Pagerank vector (p)
+    p->fill(1.f/A_nrows);
+
+    // Previous pagerank vector (p_prev)
+    Vector<float> p_prev(A_nrows);
+
+    // Temporary pagerank (p_temp)
+    Vector<float> p_swap(A_nrows);
+
+    // Residual vector (r)
+    Vector<float> r(A_nrows);
+    r.fill(1.f);
+
+    // Temporary residual (r_temp)
+    Vector<float> r_temp(A_nrows);
+
+    int iter;
+    float error_last = 0.f;
+    float error = 1.f;
+    Index unvisited = A_nrows;
+
+    for (iter = 1; error > eps && iter <= _max_iters; ++iter)
+    {
+        unvisited -= static_cast<int>(error);
+        error_last = error;
+        p_prev = *p;
+
+        // p = A*p + (1-alpha)*1
+        vxm<float, float, float, float>(&p_swap, nullptr, GrB_NULL,
+                                        PlusMultipliesSemiring<float>(), &p_prev, A, desc);
+        eWiseAdd<float, float, float, float>(p, nullptr, GrB_NULL,
+                                             PlusMultipliesSemiring<float>(), &p_swap, (1.f-alpha)/A_nrows, desc);
+
+        // error = l2loss(p, p_prev)
+        eWiseMult<float, float, float, float>(&r, GrB_NULL, GrB_NULL,
+                                              PlusMinusSemiring<float>(), p, &p_prev, desc);
+        eWiseAdd<float, float, float, float>(&r_temp, GrB_NULL, GrB_NULL,
+                                             MultipliesMultipliesSemiring<float>(), &r, &r, desc);
+        reduce<float, float>(&error, GrB_NULL, PlusMonoid<float>(), &r_temp, desc);
+        error = sqrt(error);
+    }
+}
+
+}
+}
+
+
 // code taken form LAGraph
 // add lecense
 int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(i): GAP-style pagerank of node i
@@ -41,6 +101,12 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
     // d = d_out / damping ;
     GrB_TRY (GrB_Vector_new (&d, GrB_FP32, n)) ;
     GrB_TRY (GrB_apply (d, MASK_NULL, NULL, GrB_DIV_FP32, d_out, damping, &desc)) ;
+
+    t->set_name("t");
+    r->set_name("r");
+    w->set_name("w");
+    d->set_name("d");
+    //(*centrality)->set_name("centrality");
 
     // d1 = 1 / damping
     float dmin = 1.0 / damping ;

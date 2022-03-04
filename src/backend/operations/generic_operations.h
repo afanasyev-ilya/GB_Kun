@@ -10,9 +10,9 @@ namespace backend {
 
 template <typename M, typename LambdaOp>
 LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
-                                const Index _size,
-                                LambdaOp&& _lambda_op,
-                                Descriptor* _desc)
+                                       const Index _size,
+                                       LambdaOp &&_lambda_op,
+                                       Descriptor *_desc)
 {
     if (_mask != NULL)
     {
@@ -56,9 +56,9 @@ LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
 
 template <typename M, typename LambdaOp>
 LA_Info generic_dense_vector_op_extract(const Vector<M>* _mask,
-                                       const Index _size,
-                                       LambdaOp&& _lambda_op,
-                                       Descriptor* _desc)
+                                        const Index _size,
+                                        LambdaOp &&_lambda_op,
+                                        Descriptor *_desc)
 {
     if (_mask != NULL)
     {

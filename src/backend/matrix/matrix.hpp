@@ -329,7 +329,6 @@ template<typename T>
 void Matrix<T>::build(const VNT *_row_indices,
                       const VNT *_col_indices,
                       const T *_values,
-                      const VNT _size, // todo remove
                       const ENT _nnz)
 {
     VNT max_rows = 0, max_cols = 0;
@@ -352,7 +351,9 @@ void Matrix<T>::build(const VNT *_row_indices,
     if(max_rows != max_cols)
     {
         cout << "Non-square matrix is not supported yet" << endl;
-        throw "Non-square matrix is not supported yet";
+        VNT max_dim = max(max_rows, max_cols);
+        max_rows = max_dim;
+        max_cols = max_dim;
     }
 
     // CSR data creation

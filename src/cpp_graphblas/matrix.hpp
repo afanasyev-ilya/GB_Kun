@@ -87,7 +87,7 @@ public:
         }
         /* doubling nvlas because _nnz = nvals in implementation - TODO remove*/
         if (!row_indices->empty()) {
-            _matrix.build(row_indices->data(), col_indices->data(), values->data(), nvals, row_indices->size());
+            _matrix.build(row_indices->data(), col_indices->data(), values->data(), row_indices->size());
         }
         return GrB_SUCCESS;
     }
