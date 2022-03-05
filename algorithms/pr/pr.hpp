@@ -7,12 +7,11 @@
 namespace lablas {
 namespace algorithm {
 
-void pr(Vector<float>*       p,
-        const Matrix<float> *A,     // column stochastic matrix
-        float alpha, // teleportation constant
-        float eps,   // threshold
-        Descriptor *desc,
-        int _max_iters)
+void page_rank_graph_blast(Vector<float>*       p,
+                           const Matrix<float> *A,     // column stochastic matrix
+                           float alpha, // teleportation constant
+                           Descriptor *desc,
+                           int _max_iters)
 {
     // Get number of vertices
     Index A_nrows = A->nrows();
@@ -30,6 +29,9 @@ void pr(Vector<float>*       p,
     Vector<float> r(A_nrows);
     r.fill(1.f);
 
+    Vector<float> const_alpha(A_nrows);
+    const_alpha.fill((1.f-alpha)/A_nrows);
+
     // Temporary residual (r_temp)
     Vector<float> r_temp(A_nrows);
 
@@ -38,25 +40,32 @@ void pr(Vector<float>*       p,
     float error = 1.f;
     Index unvisited = A_nrows;
 
-    for (iter = 1; error > eps && iter <= _max_iters; ++iter)
+    for (iter = 0; iter < _max_iters; ++iter)
     {
         unvisited -= static_cast<int>(error);
         error_last = error;
         p_prev = *p;
 
         // p = A*p + (1-alpha)*1
-        vxm<float, float, float, float>(&p_swap, nullptr, GrB_NULL,
+        vxm<float, float, float, float>(&p_swap, nullptr, second<float>(),
                                         PlusMultipliesSemiring<float>(), &p_prev, A, desc);
-        eWiseAdd<float, float, float, float>(p, nullptr, GrB_NULL,
-                                             PlusMultipliesSemiring<float>(), &p_swap, (1.f-alpha)/A_nrows, desc);
+        eWiseAdd<float, float, float, float>(p, nullptr, second<float>(),
+                                             plus<float>(), &p_swap, &const_alpha, desc);
+        // PlusMultipliesSemiring<float>()
 
         // error = l2loss(p, p_prev)
-        eWiseMult<float, float, float, float>(&r, GrB_NULL, GrB_NULL,
-                                              PlusMinusSemiring<float>(), p, &p_prev, desc);
-        eWiseAdd<float, float, float, float>(&r_temp, GrB_NULL, GrB_NULL,
-                                             MultipliesMultipliesSemiring<float>(), &r, &r, desc);
-        reduce<float, float>(&error, GrB_NULL, PlusMonoid<float>(), &r_temp, desc);
+        eWiseMult<float, float, float, float>(&r, nullptr, second<float>(),
+                                              minus<float>(), p, &p_prev, desc);
+        //PlusMinusSemiring
+        eWiseAdd<float, float, float, float>(&r_temp, nullptr, second<float>(),
+                                             multiplies<float>(), &r, &r, desc);
+        reduce<float, float>(&error, second<float>(), PlusMonoid<float>(), &r_temp, desc);
         error = sqrt(error);
+
+        float ranks_sum = 0;
+        reduce<float, float>(&ranks_sum, second<float>(), PlusMonoid<float>(), p, desc);
+        p->print();
+        cout << "ranks sum: " << ranks_sum << endl;
     }
 }
 
