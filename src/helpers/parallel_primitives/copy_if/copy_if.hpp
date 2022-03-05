@@ -309,6 +309,7 @@ inline int ParallelPrimitives::exclusive_scan(_T *_in_data,
         {
             _out_data[_size] = sum_array[omp_work_group_size];
         }
+        delete[] temp;
 
 #pragma omp barrier
     }
