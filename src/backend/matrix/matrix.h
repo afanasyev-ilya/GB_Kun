@@ -172,13 +172,16 @@ public:
 #pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
         for (int i = 0; i < csr_nrows; i++) {
             for (int j = csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i + 1]; j++) {
-                dloc[j] = my_fetch_add(&row_ptr[csr_data->get_col_ids()[j] + 1], static_cast<Index>(1));
+                dloc[j] = my_fetch_add(&row_ptr[csr_data->get_col_ids()[j]], static_cast<Index>(1));
             }
         }
-        /*TODO parallel scan*/
-        for (Index i = 1; i < csr_ncols + 1; i++){
-            csc_data->get_row_ptr()[i] += csc_data->get_row_ptr()[i - 1];
-        }
+
+        ParallelPrimitives::exclusive_scan(csc_data->get_row_ptr(),csc_data->get_row_ptr(),csr_ncols, csc_data->get_row_ptr(), 0);
+
+//        for (int i = 0; i < csr_ncols + 1; i++) {
+//            std::cout << csc_data->get_row_ptr()[i] << " ";
+//        }
+
 #pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
         for (Index i = 0; i < csr_nrows; i++) {
             for (Index j =csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i + 1]; j++) {

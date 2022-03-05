@@ -49,6 +49,15 @@ TEST (TransposeTest, SmallTest) {
         std::set<Index> cols (sss.data(), sss.data() + sss.size());
         ASSERT_EQ(cols, correct[i]);
     }
+//    for (int i = 0; i < num_cols + 1; i++) {
+//        std::cout << row_result[i] << " ";
+//    }
+//    std::cout << std::endl;
+//
+//    for (int i = 0; i < csr_val.size(); i++) {
+//        std::cout << col_result[i] << " ";
+//    }
+
 }
 
 TEST (TransposeTest, BigTest) {

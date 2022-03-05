@@ -35,6 +35,10 @@ public:
     VNT *get_col_ids() {return col_ids;};
     const VNT *get_col_ids() const {return col_ids;};
 
+    void set_row_ptr(ENT* ptr) {
+        row_ptr = ptr;
+    }
+
     VNT *get_rowdegrees() {return row_degrees;};
     const VNT *get_rowdegrees() const {return row_degrees;};
 
