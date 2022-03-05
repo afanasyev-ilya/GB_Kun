@@ -1,4 +1,4 @@
-#include "../src/gb_kun.h"
+#include "../../src/gb_kun.h"
 #include "gtest/gtest.h"
 
 float square_root(float a) {
@@ -55,7 +55,6 @@ TEST (TransposeTest, BigTest) {
     ASSERT_EQ (0.0, 1.0);
     ASSERT_EQ (0.0, 0.0);
 }
-
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
