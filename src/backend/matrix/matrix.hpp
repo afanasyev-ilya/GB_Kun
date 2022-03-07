@@ -383,13 +383,7 @@ void Matrix<T>::build(const VNT *_row_indices,
             max_cols = _row_indices[i];
         }
     }
-    if(max_rows != max_cols)
-    {
-        cout << "Non-square matrix is not supported yet" << endl;
-        VNT max_dim = max(max_rows, max_cols);
-        max_rows = max_dim;
-        max_cols = max_dim;
-    }
+
     max_rows += 1;
     max_cols += 1;
     if(max_rows != max_cols)
@@ -400,26 +394,6 @@ void Matrix<T>::build(const VNT *_row_indices,
         max_cols = max_dim;
     }
 
-    // CSR data creation
-    VNT max_rows = 0, max_cols = 0;
-#pragma omp parallel for reduction(max: max_rows, max_cols)
-    for(ENT i = 0; i < _nnz; i++)
-    {
-        if(max_rows < _row_indices[i])
-        {
-            max_rows = _row_indices[i];
-        }
-
-        if(max_cols < _col_indices[i])
-        {
-            max_cols = _row_indices[i];
-        }
-    }
-    max_cols++;
-    max_rows++;
-    if (max_rows!= max_cols) {
-        printf("Non square matrices are not implemented yet");
-    }
     double t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;

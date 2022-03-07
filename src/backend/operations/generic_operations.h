@@ -33,7 +33,6 @@ LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
         else
         {
             const M* mask_data = _mask->getDense()->get_vals();
-            #pragma omp parallel for
             Desc_value val;
              _desc->get(GrB_MASK, &val);
 //            std::cout << "MASK VAL IS " << val << std::endl;
