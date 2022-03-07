@@ -50,15 +50,14 @@ void page_rank_graph_blast(Vector<float>*       p,
         vxm<float, float, float, float>(&p_swap, nullptr, second<float>(),
                                         PlusMultipliesSemiring<float>(), &p_prev, A, desc);
         eWiseAdd<float, float, float, float>(p, nullptr, second<float>(),
-                                             plus<float>(), &p_swap, &const_alpha, desc);
-        // PlusMultipliesSemiring<float>()
+                                             plus<float>(), &p_swap, &const_alpha, desc); // PlusMultipliesSemiring<float>()
 
         // error = l2loss(p, p_prev)
         eWiseMult<float, float, float, float>(&r, nullptr, second<float>(),
-                                              minus<float>(), p, &p_prev, desc);
-        //PlusMinusSemiring
+                                              minus<float>(), p, &p_prev, desc); //PlusMinusSemiring
         eWiseAdd<float, float, float, float>(&r_temp, nullptr, second<float>(),
-                                             multiplies<float>(), &r, &r, desc);
+                                             multiplies<float>(), &r, &r, desc); // MultipliesMultipliesSemiring
+
         reduce<float, float>(&error, second<float>(), PlusMonoid<float>(), &r_temp, desc);
         error = sqrt(error);
 
@@ -149,6 +148,7 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
 
         float ranks_sum = 0;
         GrB_TRY (GrB_reduce (&ranks_sum, NULL, GrB_PLUS_MONOID_FP32, r, NULL));
+        cout << "ranks sum: " << ranks_sum << endl;
     }
 
     //--------------------------------------------------------------------------

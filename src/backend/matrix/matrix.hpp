@@ -345,7 +345,13 @@ void Matrix<T>::build(const VNT *_row_indices,
             max_cols = _row_indices[i];
         }
     }
-
+    if(max_rows != max_cols)
+    {
+        cout << "Non-square matrix is not supported yet" << endl;
+        VNT max_dim = max(max_rows, max_cols);
+        max_rows = max_dim;
+        max_cols = max_dim;
+    }
     max_rows += 1;
     max_cols += 1;
     if(max_rows != max_cols)

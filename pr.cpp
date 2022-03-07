@@ -27,11 +27,11 @@ int main(int argc, char **argv) {
 
         int max_iter = max(100, parser.get_iterations());
 
-        /*SAVE_TEPS(LAGraph_VertexCentrality_PageRankGAP(&centrality, &graph, &iters_taken, max_iter),
-                  "Page_Rank", iters_taken, (graph.AT));*/
+        SAVE_TEPS(LAGraph_VertexCentrality_PageRankGAP(&centrality, &graph, &iters_taken, max_iter),
+                  "Page_Rank", iters_taken, (graph.AT));
 
-        lablas::Vector<float> ranks(size);
-        lablas::algorithm::page_rank_graph_blast(&ranks, &matrix,  0.85, &desc, parser.get_iterations());
+        //lablas::Vector<float> ranks(size);
+        //lablas::algorithm::page_rank_graph_blast(&ranks, &matrix,  0.85, &desc, parser.get_iterations());
 
         delete centrality;
     }

@@ -11,7 +11,7 @@ Parser::Parser()
     no_check = false;
     out_file_name = "kun_out.mtx";
     file_name = "test.mtx";
-    iterations = 1;
+    iterations = 10;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
