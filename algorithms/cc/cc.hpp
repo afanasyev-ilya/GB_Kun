@@ -109,6 +109,9 @@ float cc(Vector<int>*       v,
         assign(&grandparent, &diff, nullptr,
                                     std::numeric_limits<int>::max(), GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK);
+        Desc_value a;
+        desc->get(GrB_MASK, &a);
+//        std::cout << "VALUE AFTER ASSIGN IS " << a << std::endl;
     }
     v->dup(&parent);
 

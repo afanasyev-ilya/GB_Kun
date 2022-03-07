@@ -1,4 +1,6 @@
 #pragma once
+#include <atomic>
+#include <array>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -24,6 +26,42 @@ Matrix<T>::Matrix(Index ncols, Index nrows) : _format(CSR)
     throw "Error: Matrix(Index ncols, Index nrows) not implemented yet";
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void Matrix<T>::transpose() {
+
+    memset(csc_data->get_row_ptr(),0, (csc_data->get_num_rows() + 1) * sizeof(Index));
+    memset(csc_data->get_col_ids(),0, csc_data->get_nnz()* sizeof(Index));
+    memset(csc_data->get_vals(),0, csc_data->get_nnz()* sizeof(T));
+
+    VNT csr_ncols = csr_data->get_num_cols();
+    VNT csr_nrows = csr_data->get_num_rows();
+    auto curr = new int[csr_ncols];
+
+    for (Index i = 0; i < csr_nrows; i++){
+        for (Index j = csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i+1]; j++) {
+            csc_data->get_row_ptr()[csr_data->get_col_ids()[j] + 1]++;
+        }
+    }
+    for (Index i = 1; i < csr_ncols + 1; i++){
+        csc_data->get_row_ptr()[i] += csc_data->get_row_ptr()[i - 1];
+    }
+    for (Index i = 0; i < csr_nrows; i++){
+        for (Index j = csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i+1]; j++) {
+            auto loc = csc_data->get_row_ptr()[csr_data->get_col_ids()[j]] + curr[csr_data->get_col_ids()[j]]++;
+            csc_data->get_col_ids()[loc] = i;
+            csc_data->get_vals()[loc] = csr_data->get_vals()[j];
+        }
+    }
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//template <typename T>
+//void Matrix<T>::transpose_parallel(void) {
+//
+//
+//}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
@@ -363,6 +401,25 @@ void Matrix<T>::build(const VNT *_row_indices,
     }
 
     // CSR data creation
+    VNT max_rows = 0, max_cols = 0;
+#pragma omp parallel for reduction(max: max_rows, max_cols)
+    for(ENT i = 0; i < _nnz; i++)
+    {
+        if(max_rows < _row_indices[i])
+        {
+            max_rows = _row_indices[i];
+        }
+
+        if(max_cols < _col_indices[i])
+        {
+            max_cols = _row_indices[i];
+        }
+    }
+    max_cols++;
+    max_rows++;
+    if (max_rows!= max_cols) {
+        printf("Non square matrices are not implemented yet");
+    }
     double t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;

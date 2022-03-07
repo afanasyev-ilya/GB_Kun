@@ -29,9 +29,9 @@ public:
         return _descriptor.get(field, value);
     }
 
-    void toggle(Desc_field field)
+    LA_Info toggle(Desc_field field)
     {
-         // TODO
+         return _descriptor.toggle(field);
     }
 
     Desc_value get(Desc_field field)

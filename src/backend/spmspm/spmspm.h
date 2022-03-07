@@ -76,7 +76,7 @@ void SpMSpM_unmasked_ijk(const Matrix<T> *_matrix1,
     }
     double t2 = omp_get_wtime();
     SpMSpM_alloc(_matrix_result);
-    _matrix_result->build(&row_ids[0], &col_ids[0], &values[0], matrix1_num_rows, nnz);
+    _matrix_result->build(&row_ids[0], &col_ids[0], &values[0],  nnz);
     double t3 = omp_get_wtime();
     double overall_time = t3 - t1;
     printf("SpMSpM time: %lf seconds.\n", t3-t1);

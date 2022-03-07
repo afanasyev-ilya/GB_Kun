@@ -7,11 +7,22 @@
 #include "../../cpp_graphblas/types.hpp"
 #include "../../helpers/cmd_parser/parser_options.h"
 #include "../la_backend.h"
+#include <atomic>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace lablas {
 namespace backend {
+
+template <class T>
+inline T my_fetch_add(T *ptr, T val) {
+#ifdef _OPENMP //201511
+        T t;
+#pragma omp atomic capture
+    { t = *ptr; *ptr += val; }
+    return t;
+#endif
+}
 
 
     enum VisualizationMode {
@@ -143,6 +154,44 @@ public:
     void sort_csr_columns(const string& mode);
 
     void sort_csc_rows(const string& mode);
+
+    void transpose(void);
+
+    void transpose_parallel(void) {
+        memset(csc_data->get_row_ptr(),0, (csc_data->get_num_rows() + 1) * sizeof(Index));
+        memset(csc_data->get_col_ids(),0, csc_data->get_nnz()* sizeof(Index));
+        memset(csc_data->get_vals(),0, csc_data->get_nnz()* sizeof(T));
+
+        VNT csr_ncols = csr_data->get_num_cols();
+        VNT csr_nrows = csr_data->get_num_rows();
+        auto dloc = new int[csr_data->get_nnz()];
+
+        Index temp;
+        Index* row_ptr = csc_data->get_row_ptr();
+
+#pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
+        for (int i = 0; i < csr_nrows; i++) {
+            for (int j = csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i + 1]; j++) {
+                dloc[j] = my_fetch_add(&row_ptr[csr_data->get_col_ids()[j]], static_cast<Index>(1));
+            }
+        }
+
+        ParallelPrimitives::exclusive_scan(csc_data->get_row_ptr(),csc_data->get_row_ptr(),csr_ncols, csc_data->get_row_ptr(), 0);
+
+//        for (int i = 0; i < csr_ncols + 1; i++) {
+//            std::cout << csc_data->get_row_ptr()[i] << " ";
+//        }
+
+#pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
+        for (Index i = 0; i < csr_nrows; i++) {
+            for (Index j =csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i + 1]; j++) {
+                auto loc = csc_data->get_row_ptr()[csr_data->get_col_ids()[j]] + dloc[j];
+                csc_data->get_col_ids()[loc] = i;
+                csc_data->get_vals()[loc] = csr_data->get_vals()[j];
+            }
+        }
+
+    }
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
