@@ -21,19 +21,26 @@ int main(int argc, char **argv) {
         lablas::Vector<float> levels(size);
 
         LAGraph_Graph<float> graph(matrix);
-
-        int iters_taken = 0;
-        lablas::Vector<float>* centrality;
-
         int max_iter = max(100, parser.get_iterations());
 
-        SAVE_TEPS(LAGraph_VertexCentrality_PageRankGAP(&centrality, &graph, &iters_taken, max_iter),
-                  "Page_Rank", iters_taken, (graph.AT));
+        if(parser.get_algo_name() == "lagraph")
+        {
+            int iters_taken = 0;
+            lablas::Vector<float> *centrality;
 
-        //lablas::Vector<float> ranks(size);
-        //lablas::algorithm::page_rank_graph_blast(&ranks, &matrix,  0.85, &desc, parser.get_iterations());
-
-        delete centrality;
+            SAVE_TEPS(LAGraph_VertexCentrality_PageRankGAP(&centrality, &graph, &iters_taken, max_iter),
+                      "Page_Rank", iters_taken, (graph.AT));
+            delete centrality;
+        }
+        else if(parser.get_algo_name() == "blast")
+        {
+            lablas::Vector<float> ranks(size);
+            lablas::algorithm::page_rank_graph_blast(&ranks, &matrix,  0.85, &desc, parser.get_iterations());
+        }
+        else
+        {
+            cout << "Unknown algorithm name in PR" << endl;
+        }
     }
     catch (string error)
     {

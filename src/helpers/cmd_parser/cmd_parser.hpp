@@ -6,12 +6,14 @@ Parser::Parser()
 {
     scale = 5;
     avg_degree = 3;
-    synthetic_graph_type = RMAT_GRAPH;
+    synthetic_graph_type = MTX_GRAPH;
     storage_format = CSR;
     no_check = false;
     out_file_name = "kun_out.mtx";
-    file_name = "test.mtx";
+    file_name = "karate.mtx";
     iterations = 10;
+
+    algo_name = "lagraph";
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,6 +38,11 @@ void Parser::parse_args(int _argc, char **_argv)
         if ((option == "-out") || (option == "-outfile"))
         {
             out_file_name = string(_argv[++i]);
+        }
+
+        if ((option == "-algo") || (option == "-alg"))
+        {
+            algo_name = _argv[++i];
         }
 
         if((option == "-graph") || (option == "-type"))
