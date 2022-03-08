@@ -31,6 +31,7 @@ using namespace std;
 #include "helpers/parallel_primitives/primitives.h"
 #include "helpers/stats/stats.h"
 #include "helpers/lib_kernels/format_conversions.h"
+#include "helpers/balancing/balancing.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
