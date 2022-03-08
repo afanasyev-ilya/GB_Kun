@@ -23,13 +23,6 @@ int main(int argc, char **argv) {
         LAGraph_Graph<float> graph(matrix);
         int max_iter = max(100, parser.get_iterations());
 
-        vector<ENT> row_ptrs;
-        vector<pair<VNT, VNT>> offsets;
-        row_ptrs.assign(matrix.get_matrix()->get_csr()->get_row_ptr(),
-                        matrix.get_matrix()->get_csr()->get_row_ptr() + matrix.get_matrix()->get_csr()->get_num_rows() + 1);
-        balance_matrix_rows(row_ptrs, offsets);
-        return 0;
-
         if(parser.get_algo_name() == "lagraph")
         {
             int iters_taken = 0;

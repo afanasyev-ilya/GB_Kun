@@ -341,10 +341,15 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
+    vector<ENT> row_ptrs;
+    vector<pair<VNT, VNT>> offsets;
+    row_ptrs.assign(_matrix->get_row_ptr(), _matrix->get_row_ptr() + _matrix->get_num_rows() + 1);
+    balance_matrix_rows(row_ptrs, offsets);
+
     #ifdef __DEBUG_BANDWIDTHS__
     double t1 = omp_get_wtime();
     #endif
-    #pragma omp parallel
+    /*#pragma omp parallel
     {
         for(int vg = 0; vg < _matrix->vg_num; vg++)
         {
@@ -365,10 +370,29 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
                 y_vals[row] = _accum(y_vals[row], res);
             }
         }
+    }*/
+
+    #pragma omp parallel
+    {
+        int tid = omp_get_thread_num();
+        VNT first_row = offsets[tid].first;
+        VNT last_row = offsets[tid].second;
+
+        for(VNT row = first_row; row < last_row; row++)
+        {
+            Y res = identity_val;
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+            {
+                VNT col = _matrix->col_ids[j];
+                A val = _matrix->vals[j];
+                res = add_op(res, mul_op(val, x_vals[col]));
+            }
+            y_vals[row] = _accum(y_vals[row], res);
+        }
     }
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
-    cout << "spmv time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "spmv slices time: " << (t2 - t1)*1000 << " ms" << endl;
     cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
     #endif
 }
