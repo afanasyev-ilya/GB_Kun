@@ -72,18 +72,16 @@ void MatrixCSR<T>::numa_aware_realloc()
     ENT *new_row_ptr;
     T *new_vals;
     VNT *new_col_ids;
-    VNT *new_row_degrees;
 
     MemoryAPI::allocate_array(&new_row_ptr, num_rows + 1);
     MemoryAPI::allocate_array(&new_col_ids, this->nnz);
     MemoryAPI::allocate_array(&new_vals, this->nnz);
-    MemoryAPI::allocate_array(&new_row_degrees, num_rows);
 
-    VNT *new_vg_vertices[vg_num];
+    /*VNT *new_vg_vertices[vg_num];
     for(int vg = 0; vg < vg_num; vg++)
-        MemoryAPI::allocate_array(&(new_vg_vertices[vg]), this->vertex_groups[vg].get_size());
+        MemoryAPI::allocate_array(&(new_vg_vertices[vg]), this->vertex_groups[vg].get_size());*/
 
-    #pragma omp parallel
+    /*#pragma omp parallel
     {
         if(can_use_static_balancing())
         {
@@ -131,19 +129,36 @@ void MatrixCSR<T>::numa_aware_realloc()
     {
         for(int vg = 0; vg < vg_num; vg++)
             this->vertex_groups[vg].replace_data(new_vg_vertices[vg]); // it also frees old memory inside !
+    }*/
+
+    auto offsets = get_load_balancing_offsets();
+    #pragma omp parallel
+    {
+        int tid = omp_get_thread_num();
+        VNT first_row = offsets[tid].first;
+        VNT last_row = offsets[tid].second;
+
+        for(VNT row = first_row; row < last_row; row++)
+        {
+            new_row_ptr[row] = this->row_ptr[row];
+            for(ENT j = this->row_ptr[row]; j < this->row_ptr[row + 1]; j++)
+            {
+                new_col_ids[j] = this->col_ids[j];
+                new_vals[j] = this->vals[j];
+            }
+        }
+        new_row_ptr[last_row] = this->row_ptr[last_row];
     }
 
     // free old ones
-    MemoryAPI::free_array(row_ptr);
-    MemoryAPI::free_array(col_ids);
-    MemoryAPI::free_array(vals);
-    MemoryAPI::free_array(row_degrees);
+    MemoryAPI::free_array(this->row_ptr);
+    MemoryAPI::free_array(this->col_ids);
+    MemoryAPI::free_array(this->vals);
 
     // copy new pointers into old
     row_ptr = new_row_ptr;
     vals = new_vals;
     col_ids = new_col_ids;
-    row_degrees = new_row_degrees;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -178,6 +193,8 @@ void MatrixCSR<T>::build(const VNT *_row_ids, const VNT *_col_ids, const T *_val
 
     check_if_static_can_be_used();
 
+    get_load_balancing_offsets();
+
     numa_aware_realloc();
 }
 
@@ -195,6 +212,8 @@ void MatrixCSR<T>::build(vector<vector<pair<VNT, T>>> &_tmp_csr, VNT _nrows, VNT
     calculate_degrees();
 
     check_if_static_can_be_used();
+
+    get_load_balancing_offsets();
 
     numa_aware_realloc();
 }

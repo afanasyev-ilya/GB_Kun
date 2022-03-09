@@ -21,11 +21,6 @@ void balance_matrix_rows(const vector<ENT> &_row_ptrs, vector<pair<VNT, VNT>> &_
 
         _offsets.push_back(make_pair<VNT, VNT>(low_pos - _row_ptrs.begin(), up_pos - _row_ptrs.begin()));
     }
-
-    /*for(auto i: _offsets)
-    {
-        cout << i.first << " - " << i.second << endl;
-    }*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

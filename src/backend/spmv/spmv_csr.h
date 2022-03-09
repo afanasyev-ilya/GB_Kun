@@ -44,53 +44,6 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
 
         int socket = tid / (THREADS_PER_SOCKET);
 
-        T *local_x_vals, *local_y_vals;
-
-        VNT vec_size = _matrix->size;
-        MatrixCSR<T> *local_matrix;
-        if(socket == 0)
-        {
-            local_x_vals = x_vals_first_socket;
-            local_matrix = _matrix;
-            in_socket_copy(local_x_vals, x_vals, vec_size);
-        }
-        else if(socket == 1)
-        {
-            local_x_vals = x_vals_second_socket;
-            local_matrix = _matrix_socket_dub;
-            in_socket_copy(local_x_vals, x_vals, vec_size);
-        }
-
-        #pragma omp barrier
-
-        for(int vg = 0; vg < _matrix->vg_num; vg++)
-        {
-            const VNT *vertices = _matrix->vertex_groups[vg].get_data();
-            VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
-
-            #pragma omp for nowait schedule(guided, 1)
-            for(VNT idx = 0; idx < vertex_group_size; idx++)
-            {
-                VNT row = vertices[idx];
-                T res = identity_val;
-                for(ENT j = local_matrix->row_ptr[row]; j < local_matrix->row_ptr[row + 1]; j++)
-                {
-                    VNT col = local_matrix->col_ids[j];
-                    T val = local_matrix->vals[j];
-                    res = add_op(res, mul_op(val, local_x_vals[col]));
-                }
-                y_vals[row] = _accum(y_vals[row], res);
-            }
-        }
-    }*/
-
-    #pragma omp parallel
-    {
-        int total_threads = omp_get_num_threads();
-        int tid = omp_get_thread_num();
-
-        int socket = tid / (THREADS_PER_SOCKET);
-
         X *local_x_vals = 0;
         if(socket == 0)
         {
@@ -141,6 +94,43 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
                     y_vals[row] = _accum(y_vals[row], res);
                 }
             }
+        }
+    }*/
+
+    auto offsets = _matrix->get_load_balancing_offsets();
+
+    #pragma omp parallel
+    {
+        int total_threads = omp_get_num_threads();
+        int tid = omp_get_thread_num();
+
+        int socket = tid / (THREADS_PER_SOCKET);
+
+        X *local_x_vals = 0;
+        if(socket == 0)
+        {
+            local_x_vals = x_vals_first_socket;
+            in_socket_copy(local_x_vals, x_vals, _matrix->nrows);
+        }
+        else if(socket == 1)
+        {
+            local_x_vals = x_vals_second_socket;
+            in_socket_copy(local_x_vals, x_vals, _matrix->nrows);
+        }
+
+        VNT first_row = offsets[tid].first;
+        VNT last_row = offsets[tid].second;
+
+        for(VNT row = first_row; row < last_row; row++)
+        {
+            Y res = identity_val;
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+            {
+                VNT col = _matrix->col_ids[j];
+                A val = _matrix->vals[j];
+                res = add_op(res, mul_op(val, local_x_vals[col]));
+            }
+            y_vals[row] = _accum(y_vals[row], res);
         }
     }
 }
@@ -341,10 +331,7 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
-    vector<ENT> row_ptrs;
-    vector<pair<VNT, VNT>> offsets;
-    row_ptrs.assign(_matrix->get_row_ptr(), _matrix->get_row_ptr() + _matrix->get_num_rows() + 1);
-    balance_matrix_rows(row_ptrs, offsets);
+    auto offsets = _matrix->get_load_balancing_offsets();
 
     #ifdef __DEBUG_BANDWIDTHS__
     double t1 = omp_get_wtime();

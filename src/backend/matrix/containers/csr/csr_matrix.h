@@ -47,6 +47,7 @@ public:
 
     T get(VNT _row, VNT _col) const;
 
+    const vector<pair<VNT, VNT>> &get_load_balancing_offsets() const;
 private:
     VNT nrows, ncols;
     ENT nnz;
@@ -55,6 +56,9 @@ private:
     T *vals;
     VNT *col_ids;
     VNT *row_degrees;
+
+    mutable vector<pair<VNT, VNT>> load_balancing_offsets;
+    mutable bool load_balancing_offsets_set;
 
     static const int vg_num = 9; // 9 is best currently
     VertexGroup vertex_groups[vg_num];

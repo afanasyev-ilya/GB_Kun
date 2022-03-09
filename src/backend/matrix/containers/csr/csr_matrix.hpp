@@ -4,6 +4,7 @@ template <typename T>
 MatrixCSR<T>::MatrixCSR()
 {
     target_socket = 0;
+    load_balancing_offsets_set = false;
     alloc(1, 1, 1, target_socket);
 }
 
@@ -63,6 +64,7 @@ void MatrixCSR<T>::deep_copy(MatrixCSR<T> *_copy, int _target_socket)
     MemoryAPI::copy(this->row_ptr, _copy->row_ptr, _copy->nrows + 1);
     MemoryAPI::copy(this->vals, _copy->vals, _copy->nnz);
     MemoryAPI::copy(this->col_ids, _copy->col_ids, _copy->nnz);
+    MemoryAPI::copy(this->row_degrees, _copy->row_degrees, _copy->nrows);
 
     for(int vg = 0; vg < vg_num; vg++)
     {
@@ -148,3 +150,21 @@ void MatrixCSR<T>::print() const
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+const vector<pair<VNT, VNT>> & MatrixCSR<T>::get_load_balancing_offsets() const
+{
+    if(!load_balancing_offsets_set) // recalculate then
+    {
+        vector<ENT> vector_row_ptr;
+        vector_row_ptr.assign(this->row_ptr, this->row_ptr + this->nrows + 1);
+        balance_matrix_rows(vector_row_ptr, load_balancing_offsets);
+        load_balancing_offsets_set = true;
+        cout << "CSR load balancing offsets are recalculated!" << endl;
+
+    }
+    return load_balancing_offsets;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
