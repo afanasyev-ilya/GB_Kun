@@ -37,7 +37,7 @@ void Matrix<T>::transpose() {
 
     VNT csr_ncols = csr_data->get_num_cols();
     VNT csr_nrows = csr_data->get_num_rows();
-    auto curr = new int[csr_ncols];
+    auto curr = new int[csr_ncols]();
 
     for (Index i = 0; i < csr_nrows; i++){
         for (Index j = csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i+1]; j++) {
