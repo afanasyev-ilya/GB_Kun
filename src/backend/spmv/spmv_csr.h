@@ -125,13 +125,20 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
         VNT first_row = offsets[tid].first;
         VNT last_row = offsets[tid].second;
 
+        ENT *shifts = _matrix->row_ptr;
+        VNT *connections_count = _matrix->row_degrees;
+        VNT *col_ids = _matrix->col_ids;
+        A *vals = _matrix->vals;
+
         for(VNT row = first_row; row < last_row; row++)
         {
             Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+            ENT shift = shifts[row];
+            VNT connections = connections_count[row];
+            for(ENT j = shift; j < shift + connections; j++)
             {
-                VNT col = _matrix->col_ids[j];
-                A val = _matrix->vals[j];
+                VNT col = col_ids[j];
+                A val = vals[j];
                 res = add_op(res, mul_op(val, local_x_vals[col]));
             }
             y_vals[row] = _accum(y_vals[row], res);
