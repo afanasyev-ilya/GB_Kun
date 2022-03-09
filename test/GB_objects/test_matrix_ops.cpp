@@ -1,6 +1,9 @@
 #include "../../src/gb_kun.h"
 #include "gtest/gtest.h"
 
+int my_argc;
+char** my_argv;
+
 float square_root(float a) {
     return 0.0;
 }
@@ -60,12 +63,63 @@ TEST (TransposeTest, SmallTest) {
 
 }
 
-TEST (TransposeTest, BigTest) {
-    ASSERT_EQ (0.0, 1.0);
-    ASSERT_EQ (0.0, 0.0);
+TEST (TransposeTest, RealTest) {
+
+    std::vector<Index> row_indices;
+    std::vector<Index> col_indices;
+    std::vector<int> values;
+    Index nrows, ncols, nvals;
+
+    Parser parser;
+    parser.parse_args(my_argc, my_argv);
+    VNT scale = parser.get_scale();
+    VNT avg_deg = parser.get_avg_degree();
+
+    // Matrix A
+    lablas::Matrix<int> A;
+    A.set_preferred_matrix_format(parser.get_storage_format());
+    init_matrix(A,parser);
+
+    lablas::Matrix<int> B;
+    B.set_preferred_matrix_format(parser.get_storage_format());
+    init_matrix(B,parser);
+
+    nrows = A.nrows();
+    ncols = A.ncols();
+    nvals = A.get_nvals(&nvals);
+
+    A.get_matrix()->transpose();
+    B.get_matrix()->transpose_parallel();
+
+    auto a_col_ptr = A.get_matrix()->get_csc()->get_row_ptr();
+    auto b_col_ptr = B.get_matrix()->get_csc()->get_row_ptr();
+
+    for (Index i = 0; i < ncols; i++) {
+        ASSERT_EQ(a_col_ptr[i], b_col_ptr[i]);
+    }
+
+    auto a_row_ids = A.get_matrix()->get_csc()->get_col_ids();
+    auto b_row_ids = A.get_matrix()->get_csc()->get_col_ids();
+
+    for (int i = 0; i < ncols; i++) {
+        std::vector<Index> res_a;
+        std::vector<Index> res_b;
+
+        for (Index j = a_col_ptr[i]; j < a_col_ptr[i+1]; j++) {
+            res_a.push_back(a_row_ids[j]);
+        }
+        for (Index j = b_col_ptr[i]; j < b_col_ptr[i+1]; j++) {
+            res_b.push_back(b_row_ids[j]);
+        }
+        std::set<Index> cols_a (res_a.data(), res_a.data() + res_a.size());
+        std::set<Index> cols_b (res_b.data(), res_b.data() + res_b.size());
+        ASSERT_EQ(cols_a, cols_b);
+    }
 }
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
+    my_argc = argc;
+    my_argv = argv;
     return RUN_ALL_TESTS();
 }
