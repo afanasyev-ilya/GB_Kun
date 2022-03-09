@@ -99,6 +99,10 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
 
     auto offsets = _matrix->get_load_balancing_offsets();
 
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t1 = omp_get_wtime();
+    #endif
+
     #pragma omp parallel
     {
         int total_threads = omp_get_num_threads();
@@ -133,6 +137,12 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
             y_vals[row] = _accum(y_vals[row], res);
         }
     }
+
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t2 = omp_get_wtime();
+    cout << "numa-aware spmv slices time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

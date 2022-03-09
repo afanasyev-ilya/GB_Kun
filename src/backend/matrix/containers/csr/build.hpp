@@ -72,8 +72,10 @@ void MatrixCSR<T>::numa_aware_realloc()
     ENT *new_row_ptr;
     T *new_vals;
     VNT *new_col_ids;
+    VNT *new_row_degrees;
 
     MemoryAPI::allocate_array(&new_row_ptr, num_rows + 1);
+    MemoryAPI::allocate_array(&new_row_degrees, num_rows);
     MemoryAPI::allocate_array(&new_col_ids, this->nnz);
     MemoryAPI::allocate_array(&new_vals, this->nnz);
 
@@ -132,6 +134,7 @@ void MatrixCSR<T>::numa_aware_realloc()
     }*/
 
     auto offsets = get_load_balancing_offsets();
+
     #pragma omp parallel
     {
         int tid = omp_get_thread_num();
@@ -141,6 +144,7 @@ void MatrixCSR<T>::numa_aware_realloc()
         for(VNT row = first_row; row < last_row; row++)
         {
             new_row_ptr[row] = this->row_ptr[row];
+            new_row_degrees[row] = this->row_degrees[row];
             for(ENT j = this->row_ptr[row]; j < this->row_ptr[row + 1]; j++)
             {
                 new_col_ids[j] = this->col_ids[j];
@@ -154,11 +158,13 @@ void MatrixCSR<T>::numa_aware_realloc()
     MemoryAPI::free_array(this->row_ptr);
     MemoryAPI::free_array(this->col_ids);
     MemoryAPI::free_array(this->vals);
+    MemoryAPI::free_array(this->row_degrees);
 
     // copy new pointers into old
     row_ptr = new_row_ptr;
     vals = new_vals;
     col_ids = new_col_ids;
+    row_degrees = new_row_degrees;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

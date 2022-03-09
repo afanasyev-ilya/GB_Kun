@@ -4,6 +4,7 @@
 
 void balance_matrix_rows(const vector<ENT> &_row_ptrs, vector<pair<VNT, VNT>> &_offsets)
 {
+    VNT nrows = _row_ptrs.size() - 1;
     ENT nnz = _row_ptrs.back();
     int threads_count = omp_get_max_threads();
     ENT approx_nnz_per_thread = (nnz - 1) / threads_count + 1;
@@ -19,8 +20,16 @@ void balance_matrix_rows(const vector<ENT> &_row_ptrs, vector<pair<VNT, VNT>> &_
         //cout << "tid: " << tid << " " << *low_pos << " | " << *up_pos << " processing " <<
         //    100.0*(*up_pos - *low_pos)/nnz << "% elements" << endl;
 
-        _offsets.push_back(make_pair<VNT, VNT>(low_pos - _row_ptrs.begin(), up_pos - _row_ptrs.begin()));
+        VNT low_val = low_pos - _row_ptrs.begin();
+        VNT up_val = min(nrows, (VNT)(up_pos - _row_ptrs.begin()));
+
+        _offsets.emplace_back(low_val, up_val);
     }
+
+    /*for(auto i: _offsets)
+    {
+        cout << i.first << " - " << i.second << endl;
+    }*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
