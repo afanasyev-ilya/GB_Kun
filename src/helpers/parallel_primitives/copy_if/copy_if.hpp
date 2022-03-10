@@ -280,14 +280,14 @@ inline int ParallelPrimitives::exclusive_scan(_T *_in_data,
                                                 size_t _size,
                                                 _T *_buffer,
                                                 const int _buffer_size) {
-    int omp_work_group_size = 4;
+    int omp_work_group_size = omp_get_max_threads();
 
     const int max_threads = 400;
     _T sum_array[max_threads];
     if (omp_work_group_size > max_threads)
         throw " Error in omp_copy_if_indexes : max_threads = 400 is too small for this architecture, please increase";
 
-#pragma omp parallel num_threads(4)
+#pragma omp parallel num_threads(omp_work_group_size)
     {
         const int ithread = omp_get_thread_num();
         const int nthreads = omp_work_group_size;
