@@ -143,7 +143,7 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 #endif
     double t1 = omp_get_wtime();
 
-    vector<map<VNT, T>> matrix_result(_matrix1->get_csr()->get_num_rows());
+    vector<unordered_map<VNT, T>> matrix_result(_matrix1->get_csr()->get_num_rows());
 
     vector<pair<VNT, VNT>> offsets;
     balance_matrix_rows(_matrix1->get_csr()->get_row_ptr(),
