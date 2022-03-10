@@ -37,7 +37,14 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
-    /*#pragma omp parallel
+    auto offsets = _matrix->get_load_balancing_offsets();
+
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t1 = omp_get_wtime();
+    #endif
+
+    #ifdef __USE_VERTEX_GROUPS__
+    #pragma omp parallel
     {
         int total_threads = omp_get_num_threads();
         int tid = omp_get_thread_num();
@@ -95,14 +102,10 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
                 }
             }
         }
-    }*/
-
-    auto offsets = _matrix->get_load_balancing_offsets();
-
-    #ifdef __DEBUG_BANDWIDTHS__
-    double t1 = omp_get_wtime();
+    }
     #endif
 
+    #ifdef __USE_SLICES__
     #pragma omp parallel
     {
         int total_threads = omp_get_num_threads();
@@ -144,6 +147,7 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
             y_vals[row] = _accum(y_vals[row], res);
         }
     }
+    #endif
 
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();

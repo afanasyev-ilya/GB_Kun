@@ -32,6 +32,9 @@
 //#define __CSR_SEG_MERGE_SMALL__
 #define CSR_VERTEX_GROUPS_NUM 6
 
+//#define __USE_SLICES__
+#define __USE_VERTEX_GROUPS__
+
 // SEG CSR settings
 #define SEG_CSR_CACHE_BLOCK_SIZE (512*1024)
 #define SEG_CSR_MERGE_BLOCK_SIZE (32*1024)

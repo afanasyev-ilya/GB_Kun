@@ -79,11 +79,12 @@ void MatrixCSR<T>::numa_aware_realloc()
     MemoryAPI::allocate_array(&new_col_ids, this->nnz);
     MemoryAPI::allocate_array(&new_vals, this->nnz);
 
-    /*VNT *new_vg_vertices[vg_num];
+    #ifdef __USE_VERTEX_GROUPS__
+    VNT *new_vg_vertices[vg_num];
     for(int vg = 0; vg < vg_num; vg++)
-        MemoryAPI::allocate_array(&(new_vg_vertices[vg]), this->vertex_groups[vg].get_size());*/
+        MemoryAPI::allocate_array(&(new_vg_vertices[vg]), this->vertex_groups[vg].get_size());
 
-    /*#pragma omp parallel
+    #pragma omp parallel
     {
         if(can_use_static_balancing())
         {
@@ -131,8 +132,10 @@ void MatrixCSR<T>::numa_aware_realloc()
     {
         for(int vg = 0; vg < vg_num; vg++)
             this->vertex_groups[vg].replace_data(new_vg_vertices[vg]); // it also frees old memory inside !
-    }*/
+    }
+    #endif
 
+    #ifdef __USE_SLICES__
     auto offsets = get_load_balancing_offsets();
 
     #pragma omp parallel
@@ -153,6 +156,7 @@ void MatrixCSR<T>::numa_aware_realloc()
         }
         new_row_ptr[last_row] = this->row_ptr[last_row];
     }
+    #endif
 
     // free old ones
     MemoryAPI::free_array(this->row_ptr);
