@@ -44,7 +44,7 @@ template <typename T>
 VNT DenseVector<T>::get_nvals() const
 {
     VNT loc_nvals = 0;
-//    #pragma omp parallel for reduction(+: loc_nvals)
+    #pragma omp parallel for reduction(+: loc_nvals)
     for(int i = 0; i < get_size(); i++)
         if(vals[i] != 0)
             loc_nvals++;
@@ -87,7 +87,9 @@ void DenseVector<T>::fill_with_zeros()
 template <typename T>
 void DenseVector<T>::convert(SparseVector<T> *_sparse_vector)
 {
+    #ifdef __DEBUG_INFO__
     cout << "converting sparse -> dense, name = " << this->name << endl;
+    #endif
     memset(this->vals, 0, size*sizeof(T));
 
     VNT *sparse_ids = _sparse_vector->get_ids();

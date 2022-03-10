@@ -161,15 +161,22 @@ LA_Info mxv (Vector<W>*       _w,
 {
     if(_u->is_dense())
     {
+        #ifdef __DEBUG_INFO__
         cout << "USING SpMV!!!!!" << endl;
+        #endif
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     else
     {
+        #ifdef __DEBUG_INFO__
         cout << "USING SpMSpV!!!!!" << endl;
+        #endif
         backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
     }
+    double t1 = omp_get_wtime();
     _w->convert_if_required();
+    double t2 = omp_get_wtime();
+    cout << "convert time: " << (t2 - t1)*1000 << " ms" << endl;
 
     return GrB_SUCCESS;
 }
