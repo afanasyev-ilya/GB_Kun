@@ -26,6 +26,28 @@ VNT binary_search(const Index* data, VNT left, VNT right, ENT value)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void balance_matrix_rows(const ENT *_row_ptrs, VNT num_rows, vector<pair<VNT, VNT>> &_offsets)
+{
+    ENT nnz = _row_ptrs[num_rows];
+    int threads_count = omp_get_max_threads();
+    ENT approx_nnz_per_thread = (nnz - 1) / threads_count + 1;
+    for(int tid = 0; tid < threads_count; tid++)
+    {
+        ENT expected_tid_left_border = approx_nnz_per_thread * tid;
+        ENT expected_tid_right_border = approx_nnz_per_thread * (tid + 1);
+
+        const ENT* left_border_ptr = _row_ptrs;
+        const ENT* right_border_ptr = _row_ptrs + num_rows;
+
+        auto low_pos = std::lower_bound(left_border_ptr, right_border_ptr, expected_tid_left_border);
+        auto up_pos = std::lower_bound(left_border_ptr, right_border_ptr, expected_tid_right_border);
+
+        _offsets.push_back(make_pair<VNT, VNT>(low_pos - left_border_ptr, up_pos - left_border_ptr));
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
 void SpMSpM_unmasked_ijk(const Matrix<T> *_matrix1,
                      const Matrix<T> *_matrix2,
@@ -112,8 +134,6 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
                 bytes_requested += sizeof(_matrix2->get_csr()->get_row_ptr()[k + 1]);
                 VNT j = _matrix2->get_csr()->get_col_ids()[matrix2_col_id];
                 bytes_requested += sizeof(_matrix2->get_csr()->get_col_ids()[matrix2_col_id]);
-                matrix_result[i][j] += _matrix1->get_csr()->get_vals()[matrix1_col_id] *
-                                       _matrix2->get_csr()->get_vals()[matrix2_col_id];
                 bytes_requested += sizeof(_matrix1->get_csr()->get_vals()[matrix1_col_id]);
                 bytes_requested += sizeof(_matrix2->get_csr()->get_vals()[matrix2_col_id]);
                 bytes_requested += sizeof(matrix_result[i][j]);
@@ -122,16 +142,24 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
     }
 #endif
 
-    #pragma omp parallel for reduction(+:bytes_requested)
-    for (VNT i = 0; i < _matrix1->get_csr()->get_num_rows(); ++i) {
-        for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
-                matrix1_col_id < _matrix1->get_csr()->get_row_ptr()[i + 1]; ++matrix1_col_id) {
-            VNT k = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
-            for (VNT matrix2_col_id = _matrix2->get_csr()->get_row_ptr()[k];
-                 matrix2_col_id < _matrix2->get_csr()->get_row_ptr()[k + 1]; ++matrix2_col_id) {
-                VNT j = _matrix2->get_csr()->get_col_ids()[matrix2_col_id];
-                matrix_result[i][j] += _matrix1->get_csr()->get_vals()[matrix1_col_id] *
-                        _matrix2->get_csr()->get_vals()[matrix2_col_id];
+    vector<pair<VNT, VNT>> offsets;
+    balance_matrix_rows(_matrix1->get_csr()->get_row_ptr(),
+                        _matrix1->get_csr()->get_num_rows(),
+                        offsets);
+
+    #pragma omp parallel
+    {
+        const auto thread_id = omp_get_thread_num();
+        for (VNT i = offsets[thread_id].first; i < offsets[thread_id].second; ++i) {
+            for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
+                 matrix1_col_id < _matrix1->get_csr()->get_row_ptr()[i + 1]; ++matrix1_col_id) {
+                VNT k = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
+                for (VNT matrix2_col_id = _matrix2->get_csr()->get_row_ptr()[k];
+                     matrix2_col_id < _matrix2->get_csr()->get_row_ptr()[k + 1]; ++matrix2_col_id) {
+                    VNT j = _matrix2->get_csr()->get_col_ids()[matrix2_col_id];
+                    matrix_result[i][j] += _matrix1->get_csr()->get_vals()[matrix1_col_id] *
+                                           _matrix2->get_csr()->get_vals()[matrix2_col_id];
+                }
             }
         }
     }
