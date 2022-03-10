@@ -93,15 +93,15 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 {
     double t1 = omp_get_wtime();
 
-    long long bytes_requested = 0;
-
     vector<map<VNT, T>> matrix_result(_matrix1->get_csr()->get_num_rows());
+
+#ifdef __DEBUG_BANDWIDTHS__
+    double bytes_requested = 0;
     bytes_requested += sizeof(matrix_result);
-    #pragma omp parallel for
     for (VNT i = 0; i < _matrix1->get_csr()->get_num_rows(); ++i) {
         bytes_requested += sizeof(_matrix1->get_csr()->get_num_rows());
         for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
-                matrix1_col_id < _matrix1->get_csr()->get_row_ptr()[i + 1]; ++matrix1_col_id) {
+             matrix1_col_id < _matrix1->get_csr()->get_row_ptr()[i + 1]; ++matrix1_col_id) {
             bytes_requested += sizeof(_matrix1->get_csr()->get_row_ptr()[i]);
             bytes_requested += sizeof(_matrix1->get_csr()->get_row_ptr()[i + 1]);
             VNT k = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
@@ -113,10 +113,25 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
                 VNT j = _matrix2->get_csr()->get_col_ids()[matrix2_col_id];
                 bytes_requested += sizeof(_matrix2->get_csr()->get_col_ids()[matrix2_col_id]);
                 matrix_result[i][j] += _matrix1->get_csr()->get_vals()[matrix1_col_id] *
-                        _matrix2->get_csr()->get_vals()[matrix2_col_id];
+                                       _matrix2->get_csr()->get_vals()[matrix2_col_id];
                 bytes_requested += sizeof(_matrix1->get_csr()->get_vals()[matrix1_col_id]);
                 bytes_requested += sizeof(_matrix2->get_csr()->get_vals()[matrix2_col_id]);
                 bytes_requested += sizeof(matrix_result[i][j]);
+            }
+        }
+    }
+#endif
+
+    #pragma omp parallel for reduction(+:bytes_requested)
+    for (VNT i = 0; i < _matrix1->get_csr()->get_num_rows(); ++i) {
+        for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
+                matrix1_col_id < _matrix1->get_csr()->get_row_ptr()[i + 1]; ++matrix1_col_id) {
+            VNT k = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
+            for (VNT matrix2_col_id = _matrix2->get_csr()->get_row_ptr()[k];
+                 matrix2_col_id < _matrix2->get_csr()->get_row_ptr()[k + 1]; ++matrix2_col_id) {
+                VNT j = _matrix2->get_csr()->get_col_ids()[matrix2_col_id];
+                matrix_result[i][j] += _matrix1->get_csr()->get_vals()[matrix1_col_id] *
+                        _matrix2->get_csr()->get_vals()[matrix2_col_id];
             }
         }
     }
@@ -151,10 +166,11 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
     _matrix_result->build(&row_ids_coo[0], &col_ids_coo[0], &values_coo[0], row_ptr.size() - 1, vals.size());
     double t3 = omp_get_wtime();
     double overall_time = t3 - t1;
-    printf("Unmasked IKJ SpMSpM time: %lf seconds.\n", t3-t1);
-    printf("\t- Calculating result: %.1lf %%\n", (t2 - t1) / overall_time * 100.0);
-    printf("\t- Converting result: %.1lf %%\n", (t3 - t2) / overall_time * 100.0);
-    printf("\t- Sustained bandwidth: %.1lf GB/s\n", bytes_requested / 1e9 / (t2 - t1));
+    printf("Unmasked IKJ SpMSpM time: %lf seconds.\n", t2-t1);
+    printf("Unmasked IKJ SpMSpM converting result time: %lf seconds.\n", t3-t2);
+#ifdef __DEBUG_BANDWIDTHS__
+    printf("\t- Sustained bandwidth: %lf GB/s\n", bytes_requested / 1e9 / (t2 - t1));
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
