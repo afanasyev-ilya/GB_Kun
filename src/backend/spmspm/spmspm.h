@@ -42,7 +42,10 @@ void balance_matrix_rows(const ENT *_row_ptrs, VNT num_rows, vector<pair<VNT, VN
         auto low_pos = std::lower_bound(left_border_ptr, right_border_ptr, expected_tid_left_border);
         auto up_pos = std::lower_bound(left_border_ptr, right_border_ptr, expected_tid_right_border);
 
-        _offsets.push_back(make_pair<VNT, VNT>(low_pos - left_border_ptr, up_pos - left_border_ptr));
+        VNT low_val = low_pos - left_border_ptr;
+        VNT up_val = min(num_rows, (VNT) (up_pos - left_border_ptr));
+
+        _offsets.emplace_back(low_val, up_val);
     }
 }
 
@@ -113,13 +116,10 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
                          const Matrix<T> *_matrix2,
                          Matrix<T> *_matrix_result)
 {
-    double t1 = omp_get_wtime();
-
-    vector<map<VNT, T>> matrix_result(_matrix1->get_csr()->get_num_rows());
 
 #ifdef __DEBUG_BANDWIDTHS__
     double bytes_requested = 0;
-    bytes_requested += sizeof(matrix_result);
+    bytes_requested += sizeof(vector<map<VNT, T>>);
     for (VNT i = 0; i < _matrix1->get_csr()->get_num_rows(); ++i) {
         bytes_requested += sizeof(_matrix1->get_csr()->get_num_rows());
         for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
@@ -136,11 +136,14 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
                 bytes_requested += sizeof(_matrix2->get_csr()->get_col_ids()[matrix2_col_id]);
                 bytes_requested += sizeof(_matrix1->get_csr()->get_vals()[matrix1_col_id]);
                 bytes_requested += sizeof(_matrix2->get_csr()->get_vals()[matrix2_col_id]);
-                bytes_requested += sizeof(matrix_result[i][j]);
+                bytes_requested += sizeof(T);
             }
         }
     }
 #endif
+    double t1 = omp_get_wtime();
+
+    vector<map<VNT, T>> matrix_result(_matrix1->get_csr()->get_num_rows());
 
     vector<pair<VNT, VNT>> offsets;
     balance_matrix_rows(_matrix1->get_csr()->get_row_ptr(),
