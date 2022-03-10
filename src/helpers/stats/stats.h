@@ -16,8 +16,9 @@ double my_perf = my_nvals * 2.0 / ((my_t2 - my_t1)*1e9);                        
 double my_bw = my_nvals * bytes_per_flop/((my_t2 - my_t1)*1e9);                                  \
 /*printf("edges: %lf\n", nvals);*/                                                   \
 /*printf("%s time %lf (ms)\n", op_name, (my_t2-my_t1)*1000); */                          \
-/*printf("%s perf %lf (GFLop/s)\n", op_name, perf);*/                                \
-/*printf("%s BW %lf (GB/s)\n", op_name, bw);*/                                       \
+/*printf("%s perf %lf (GFLop/s)\n", op_name, perf);*/                                   \
+printf("%s time = %lf (ms)\n", op_name, my_time);                                      \
+printf("%s BW = %lf (GB/s)\n", op_name, my_bw);                                      \
 FILE *my_f;                                                                          \
 my_f = fopen("perf_stats.txt", "a");                                                 \
 fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
