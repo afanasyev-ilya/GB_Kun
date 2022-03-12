@@ -2,7 +2,9 @@
 
 #include <stdio.h>
 #include <sched.h>
+#ifdef __USE_KUNPENG__
 #include <omp.h>
+#endif
 
 #define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, matrix)       \
 GrB_Index my_nvals = 0;                                                                 \
@@ -53,7 +55,8 @@ fclose(my_f);                                                                   
 
 void print_omp_stats()
 {
-    /*#pragma omp parallel
+    #ifdef __USE_KUNPENG__
+    #pragma omp parallel
     {
         int thread_num = omp_get_thread_num();
         int cpu_num = sched_getcpu();
@@ -75,7 +78,8 @@ void print_omp_stats()
     }
 
     cout << "Threads used: " << max_thread + 1 << endl;
-    cout << "Largest core used: " << max_core + 1 << " cores" << endl;*/
+    cout << "Largest core used: " << max_core + 1 << " cores" << endl;
+    #endif
 
     /*size_t size = 1024*1024*128*8;
     double *a, *b, *c;
