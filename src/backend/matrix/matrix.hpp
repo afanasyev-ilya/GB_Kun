@@ -11,9 +11,6 @@ Matrix<T>::Matrix(): _format(CSR)
     csc_data = NULL;
     data = NULL;
     transposed_data = NULL;
-    #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    data_socket_dub = NULL;
-    #endif
 
     workspace = NULL;
 }
@@ -77,11 +74,6 @@ Matrix<T>::~Matrix()
         delete data;
     if(transposed_data != NULL)
         delete transposed_data;
-
-    #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    if(data_socket_dub != NULL)
-        delete data_socket_dub;
-    #endif
 
     delete workspace;
 };
@@ -256,11 +248,6 @@ void Matrix<T>::init_optimized_structures()
     {
         data = NULL;
         transposed_data = NULL;
-
-        #ifdef __USE_SOCKET_OPTIMIZATIONS__
-        data_socket_dub = new MatrixCSR<T>;
-        ((MatrixCSR<T>*)data_socket_dub)->deep_copy((MatrixCSR<T>*)csr_data, 1);
-        #endif
         cout << "Using CSR matrix format as optimized representation" << endl;
     }
     else if (_format == CSR_SEG)
@@ -271,8 +258,6 @@ void Matrix<T>::init_optimized_structures()
                     csr_data->get_vals(), 0);
         ((MatrixSegmentedCSR<T>*)transposed_data)->build(csc_data->get_num_rows(), csc_data->get_nnz(), csc_data->get_row_ptr(), csc_data->get_col_ids(),
                     csc_data->get_vals(), 0);
-
-        data_socket_dub = NULL;
         cout << "Using CSR_SEG matrix format as optimized representation" << endl;
     }
     else if (_format == COO)
@@ -283,8 +268,6 @@ void Matrix<T>::init_optimized_structures()
                                      csr_data->get_vals(), 0);
         ((MatrixCOO<T>*)transposed_data)->build(csc_data->get_num_rows(), csc_data->get_nnz(), csc_data->get_row_ptr(), csc_data->get_col_ids(),
                                                 csc_data->get_vals(), 0);
-
-        data_socket_dub = NULL;
         cout << "Using COO matrix format as optimized representation" << endl;
     }
     else if (_format == SORTED_CSR)
@@ -305,8 +288,6 @@ void Matrix<T>::init_optimized_structures()
                                                     csc_data->get_row_ptr(),
                                                     csc_data->get_col_ids(),
                                                     csc_data->get_vals(), 0);
-
-        data_socket_dub = NULL;
         cout << "Using SORTED CSR matrix format as optimized representation" << endl;
     }
     else if (_format == SELL_C)
@@ -325,8 +306,6 @@ void Matrix<T>::init_optimized_structures()
                                                   csc_data->get_row_ptr(),
                                                   csc_data->get_col_ids(),
                                                   csc_data->get_vals(), 0);
-
-        data_socket_dub = NULL;
         cout << "Using SELL-C matrix format as optimized representation" << endl;
     }
     else if (_format == LAV)
@@ -347,8 +326,6 @@ void Matrix<T>::init_optimized_structures()
                                                   csc_data->get_row_ptr(),
                                                   csc_data->get_col_ids(),
                                                   csc_data->get_vals(), 0);
-
-        data_socket_dub = NULL;
         cout << "Using LAV matrix format as optimized representation" << endl;
     }
     else
@@ -397,8 +374,8 @@ void Matrix<T>::build(const VNT *_row_indices,
     double t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
-    csr_data->build(_row_indices, _col_indices, _values, max_rows, max_cols, _nnz, 0);
-    csc_data->build(_col_indices, _row_indices, _values, max_cols, max_rows, _nnz, 0);
+    csr_data->build(_row_indices, _col_indices, _values, max_rows, max_cols, _nnz);
+    csc_data->build(_col_indices, _row_indices, _values, max_cols, max_rows, _nnz);
     double t2 = omp_get_wtime();
     cout << "csr creation time: " << t2 - t1 << " sec" << endl;
 
@@ -420,8 +397,8 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     double t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
-    csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols, 0);
-    csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows, 0);
+    csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols);
+    csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows);
     double t2 = omp_get_wtime();
     cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;
 

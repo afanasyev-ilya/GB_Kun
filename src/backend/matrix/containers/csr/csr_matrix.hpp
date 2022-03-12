@@ -5,7 +5,7 @@ MatrixCSR<T>::MatrixCSR()
 {
     target_socket = 0;
     load_balancing_offsets_set = false;
-    alloc(1, 1, 1, target_socket);
+    alloc(1, 1, 1);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -19,17 +19,17 @@ MatrixCSR<T>::~MatrixCSR()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::alloc(VNT _nrows, VNT _ncols, ENT _nnz, int _target_socket)
+void MatrixCSR<T>::alloc(VNT _nrows, VNT _ncols, ENT _nnz)
 {
     this->nrows = _nrows;
     this->ncols = _ncols;
     this->nnz = _nnz;
-    target_socket = _target_socket;
+    target_socket = 0;
 
-    MemoryAPI::numa_aware_alloc(&row_ptr, this->nrows + 1, _target_socket);
-    MemoryAPI::numa_aware_alloc(&col_ids, this->nnz, _target_socket);
-    MemoryAPI::numa_aware_alloc(&vals, this->nnz, _target_socket);
-    MemoryAPI::numa_aware_alloc(&row_degrees, this->nrows, _target_socket);
+    MemoryAPI::allocate_array(&row_ptr, this->nrows + 1);
+    MemoryAPI::allocate_array(&col_ids, this->nnz);
+    MemoryAPI::allocate_array(&vals, this->nnz);
+    MemoryAPI::allocate_array(&row_degrees, this->nrows);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,10 +46,10 @@ void MatrixCSR<T>::free()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::resize(VNT _nrows, VNT _ncols, ENT _nnz, int _target_socket)
+void MatrixCSR<T>::resize(VNT _nrows, VNT _ncols, ENT _nnz)
 {
     this->free();
-    this->alloc(_nrows, _ncols, _nnz, _target_socket);
+    this->alloc(_nrows, _ncols, _nnz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,17 +59,12 @@ void MatrixCSR<T>::deep_copy(MatrixCSR<T> *_copy, int _target_socket)
 {
     if(_target_socket == -1)
         _target_socket = _copy->target_socket;
-    this->resize(_copy->nrows, _copy->ncols, _copy->nnz, _target_socket);
+    this->resize(_copy->nrows, _copy->ncols, _copy->nnz);
 
     MemoryAPI::copy(this->row_ptr, _copy->row_ptr, _copy->nrows + 1);
     MemoryAPI::copy(this->vals, _copy->vals, _copy->nnz);
     MemoryAPI::copy(this->col_ids, _copy->col_ids, _copy->nnz);
     MemoryAPI::copy(this->row_degrees, _copy->row_degrees, _copy->nrows);
-
-    for(int vg = 0; vg < vg_num; vg++)
-    {
-        this->vertex_groups[vg].deep_copy(_copy->vertex_groups[vg], _target_socket);
-    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -20,8 +20,7 @@ void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
-void SpMV_numa_aware(MatrixCSR<A> *_matrix,
-                     MatrixCSR<A> *_matrix_socket_dub,
+void SpMV_numa_aware(const MatrixCSR<A> *_matrix,
                      const DenseVector<X> *_x,
                      DenseVector<Y> *_y,
                      BinaryOpTAccum _accum,

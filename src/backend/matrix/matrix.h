@@ -110,12 +110,6 @@ public:
         return data;
     }
 
-    #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    MatrixContainer<T>* get_data_dub() { return data_socket_dub; }
-
-    MatrixContainer<T>* get_data_dub() const { return data_socket_dub; }
-    #endif
-
     const MatrixCSR<T> *get_csr() const { return csr_data; };
     const MatrixCSR<T> *get_csc() const { return csc_data; };
 
@@ -195,9 +189,6 @@ public:
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
-    #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    MatrixContainer<T> *data_socket_dub;
-    #endif
 
     MatrixCSR<T> *csr_data;
     MatrixCSR<T> *csc_data;
