@@ -28,6 +28,7 @@ public:
 
     void construct_load_balancing();
     const vector<pair<VNT, VNT>> &get_load_balancing_offsets() const;
+    pair<VNT, VNT> get_tid_load_balancing_offsets(int tid) const;
 private:
     vector<VNT> tmp_row_ids;
     vector<VNT> tmp_col_ids;
@@ -65,6 +66,8 @@ private:
     void check_if_static_can_be_used();
     mutable vector<pair<VNT, VNT>> load_balancing_offsets;
     mutable bool load_balancing_offsets_set;
+
+    void update_load_balancing_offsets() const;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -253,7 +256,7 @@ void SubgraphSegment<T>::dump()
 template<typename T>
 SubgraphSegment<T>::SubgraphSegment()
 {
-
+    load_balancing_offsets_set = false;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -333,15 +336,38 @@ const vector<pair<VNT, VNT>>& SubgraphSegment<T>::get_load_balancing_offsets() c
 {
     if(!load_balancing_offsets_set) // recalculate then
     {
-        vector<ENT> vector_row_ptr;
-        vector_row_ptr.assign(this->row_ptr, this->row_ptr + this->size + 1);
-        balance_matrix_rows(vector_row_ptr, load_balancing_offsets);
-        load_balancing_offsets_set = true;
-        cout << "CSR load balancing offsets are recalculated for SEG CSR segment!" << endl;
-
+        update_load_balancing_offsets();
     }
     return load_balancing_offsets;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void SubgraphSegment<T>::update_load_balancing_offsets() const
+{
+    vector<ENT> vector_row_ptr;
+    vector_row_ptr.assign(this->row_ptr, this->row_ptr + this->size + 1);
+    balance_matrix_rows(vector_row_ptr, load_balancing_offsets);
+    load_balancing_offsets_set = true;
+    cout << "CSR load balancing offsets are recalculated for SEG CSR segment!" << endl;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+pair<VNT, VNT> SubgraphSegment<T>::get_tid_load_balancing_offsets(int tid) const
+{
+    if(!load_balancing_offsets_set) // recalculate then
+    {
+        #pragma omp single
+        {
+            update_load_balancing_offsets();
+        }
+    }
+    return load_balancing_offsets[tid];
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
