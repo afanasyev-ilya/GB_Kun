@@ -27,6 +27,7 @@ public:
     void init_buffer_and_copy_edges();
 
     void construct_load_balancing();
+    const vector<pair<VNT, VNT>> &get_load_balancing_offsets() const;
 private:
     vector<VNT> tmp_row_ids;
     vector<VNT> tmp_col_ids;
@@ -62,6 +63,8 @@ private:
     friend class MatrixSegmentedCSR;
 
     void check_if_static_can_be_used();
+    mutable vector<pair<VNT, VNT>> load_balancing_offsets;
+    mutable bool load_balancing_offsets_set;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -321,6 +324,23 @@ void SubgraphSegment<T>::check_if_static_can_be_used()
         if(fabs(real_percent - supposed_percent) > 4) // if difference is more than 4%, static not ok to use
             static_ok_to_use = false;
     }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+const vector<pair<VNT, VNT>>& SubgraphSegment<T>::get_load_balancing_offsets() const
+{
+    if(!load_balancing_offsets_set) // recalculate then
+    {
+        vector<ENT> vector_row_ptr;
+        vector_row_ptr.assign(this->row_ptr, this->row_ptr + this->size + 1);
+        balance_matrix_rows(vector_row_ptr, load_balancing_offsets);
+        load_balancing_offsets_set = true;
+        cout << "CSR load balancing offsets are recalculated for SEG CSR segment!" << endl;
+
+    }
+    return load_balancing_offsets;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
