@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 
         lablas::Matrix<float> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
-        SAVE_TIME((init_matrix(matrix, parser)), "init matrix");
+        SAVE_TIME((init_matrix(matrix, parser)), "read_and_init_matrix_(preprocessing)");
 
         GrB_Index size;
         matrix.get_nrows(&size);

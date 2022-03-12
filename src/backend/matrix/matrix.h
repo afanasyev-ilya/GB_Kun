@@ -24,11 +24,11 @@ inline T my_fetch_add(T *ptr, T val) {
 #endif
 }
 
+enum VisualizationMode {
+    VISUALISE_AS_DIRECTED,
+    VISUALISE_AS_UNDIRECTED
+};
 
-    enum VisualizationMode {
-        VISUALISE_AS_DIRECTED,
-        VISUALISE_AS_UNDIRECTED
-    };
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
