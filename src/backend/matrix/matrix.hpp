@@ -391,13 +391,13 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     // read mtx file and get tmp representations of csr and csc matrix
     vector<vector<pair<VNT, T>>> csr_tmp_matrix;
     vector<vector<pair<VNT, T>>> csc_tmp_matrix;
-    read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+    SAVE_TIME((read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "mtx_file_read");
     VNT tmp_nrows = csr_tmp_matrix.size(), tmp_ncols = csc_tmp_matrix.size();
 
     double t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
-    csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols);
+    SAVE_TIME_SEC(csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols)), "preprocessing");
     csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows);
     double t2 = omp_get_wtime();
     cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;

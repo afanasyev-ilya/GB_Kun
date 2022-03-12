@@ -29,8 +29,7 @@
 
 // CSR format settings
 #define CSR_SORTED_BALANCING 256
-//#define __CSR_SEG_MERGE_SMALL__
-#define CSR_VERTEX_GROUPS_NUM 6
+#define __CSR_SEG_MERGE_SMALL__
 
 #define __USE_SLICES__
 //#define __USE_VERTEX_GROUPS__
