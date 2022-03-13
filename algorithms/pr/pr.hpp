@@ -81,7 +81,7 @@ int LAGraph_page_rank_sinks (GrB_Vector* centrality, // centrality(i): GAP-style
 )
 {
     GrB_Matrix AT = G->AT;
-    lablas::Vector<Index>* d_out = G->rowdegree ;
+    lablas::Vector<Index>* d_out = G->coldegree; // TODO row degree and transpose
     GrB_Vector r = NULL, *d = NULL, *t = NULL, *w = NULL, *d1 = NULL ;
     lablas::Descriptor desc;
 

@@ -20,11 +20,11 @@ void init_matrix(lablas::Matrix<T> &_matrix, Parser &_parser)
         {
             GraphGenerationAPI::random_uniform(edges_container,
                                                pow(2.0, scale),
-                                               avg_deg * pow(2.0, scale), UNDIRECTED_GRAPH);
+                                               avg_deg * pow(2.0, scale), DIRECTED_GRAPH);
         }
         else if(_parser.get_synthetic_graph_type() == RMAT_GRAPH)
         {
-            GraphGenerationAPI::RMAT(edges_container, pow(2.0, scale), avg_deg * pow(2.0, scale), 57, 19, 19, 5, UNDIRECTED_GRAPH);
+            GraphGenerationAPI::RMAT(edges_container, pow(2.0, scale), avg_deg * pow(2.0, scale), 57, 19, 19, 5, DIRECTED_GRAPH);
         }
         else if(_parser.get_synthetic_graph_type() == HPCG_GRAPH)
         {
