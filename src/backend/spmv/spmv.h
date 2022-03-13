@@ -98,14 +98,14 @@ void VSpM(const Matrix<A> *_matrix,
             if(num_sockets_used() > 1)
             {
                 #ifdef __DEBUG_INFO__
-                cout << "Using NUMA-aware SPMV" << endl;
+                cout << "Using NUMA-aware VSpM" << endl;
                 #endif
                 SpMV_numa_aware(_matrix->get_csc(), _x, _y, _accum, _op, _matrix->get_workspace());
             }
             else
             {
                 #ifdef __DEBUG_INFO__
-                cout << "Using single socket SPMV" << endl;
+                cout << "Using single socket VSpM" << endl;
                 #endif
                 if(_x == _y)
                 {

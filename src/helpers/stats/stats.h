@@ -1,10 +1,11 @@
 #pragma once
 
 #include <stdio.h>
-#include <sched.h>
 #ifdef __USE_KUNPENG__
-#include <omp.h>
+#include <sched.h>
 #endif
+#include <omp.h>
+#include <unistd.h>
 
 #define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, matrix)       \
 GrB_Index my_nvals = 0;                                                                 \
