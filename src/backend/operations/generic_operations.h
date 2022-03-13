@@ -35,11 +35,10 @@ LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
             const M* mask_data = _mask->getDense()->get_vals();
             Desc_value val;
              _desc->get(GrB_MASK, &val);
-//            std::cout << "MASK VAL IS " << val << std::endl;
             #pragma omp parallel for
             for (Index i = 0; i < _size; i++)
             {
-                if (!mask_data[i] && val == GrB_SCMP || mask_data[i] && val == GrB_DEFAULT)
+                if (!mask_data[i] && val == GrB_STR_COMP || mask_data[i] && (val == GrB_DEFAULT || val == GrB_STRUCTURE))
                     _lambda_op(i, i);
             }
         }

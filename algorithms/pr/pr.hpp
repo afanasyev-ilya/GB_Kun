@@ -63,7 +63,6 @@ void page_rank_graph_blast(Vector<float>*       p,
 
         float ranks_sum = 0;
         reduce<float, float>(&ranks_sum, second<float>(), PlusMonoid<float>(), p, desc);
-        p->print();
         cout << "ranks sum: " << ranks_sum << endl;
     }
 }
@@ -116,7 +115,8 @@ int LAGraph_page_rank_sinks (GrB_Vector* centrality, // centrality(i): GAP-style
     // d_out(i) not present.  LAGraph_Property_RowDegree computes d_out =
     // G->rowdegree so that it has no explicit zeros, so a structural mask can
     // be used here.
-    GrB_Vector sink = NULL, *rsink = NULL;
+    lablas::Vector<bool>* sink = NULL;
+    lablas::Vector<float>* rsink = NULL;
     GrB_Index nsinks, nvals ;
     GrB_TRY (GrB_Vector_nvals (&nvals, d_out)) ;
     nsinks = n - nvals ;
@@ -124,9 +124,8 @@ int LAGraph_page_rank_sinks (GrB_Vector* centrality, // centrality(i): GAP-style
     {
         // sink<!struct(d_out)> = true
         GrB_TRY (GrB_Vector_new (&sink, GrB_BOOL, n)) ;
-        GrB_TRY (GrB_assign (sink, d_out, NULL, (bool) true, GrB_ALL, n,
-                             GrB_DESC_SC)) ;
-        GrB_TRY (GrB_Vector_new (&rsink, GrB_FP32, n)) ;
+        GrB_TRY (GrB_assign (sink, d_out, NULL, (bool)true, GrB_ALL, n, GrB_DESC_SC)) ;
+        GrB_TRY (GrB_Vector_new (&rsink, GrB_FP32, n));
         sink->set_name("sink");
         rsink->set_name("rsink");
     }
@@ -150,16 +149,16 @@ int LAGraph_page_rank_sinks (GrB_Vector* centrality, // centrality(i): GAP-style
         float teleport = scaled_damping ; // teleport = (1 - damping) / n
         if (nsinks > 0)
         {
-            cout << "nsinks: " << nsinks << endl;
             const float damping_over_n = damping / n ;
             // handle the sinks: teleport += (damping/n) * sum (r (sink))
             // rsink<struct(sink)> = r
             GrB_TRY (GrB_Vector_clear (rsink)) ;
+
             GrB_TRY (GrB_assign (rsink, sink, NULL, r, GrB_ALL, n, GrB_DESC_S));
+
             // sum_rsink = sum (rsink)
             float sum_rsink = 0 ;
             GrB_TRY (GrB_reduce (&sum_rsink, NULL, GrB_PLUS_MONOID_FP32, rsink, NULL)) ;
-            cout << "sum_rsink: " << sum_rsink << endl;
             teleport += damping_over_n * sum_rsink ;
         }
 
