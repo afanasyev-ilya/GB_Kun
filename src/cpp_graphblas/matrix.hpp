@@ -58,15 +58,11 @@ public:
         return GrB_SUCCESS;
     }
 
-    Index* get_rowdegrees()
-    {
-        return _matrix.get_rowdegrees();
-    }
+    Index* get_rowdegrees() { return _matrix.get_rowdegrees(); }
+    [[nodiscard]] const Index* get_rowdegrees() const { return _matrix.get_rowdegrees(); }
 
-    Index* get_coldegrees()
-    {
-        return _matrix.get_coldegrees();
-    }
+    Index* get_coldegrees() { return _matrix.get_coldegrees(); }
+    [[nodiscard]] const Index* get_coldegrees() const { return _matrix.get_coldegrees(); }
 
     template <typename BinaryOpT>
     LA_Info build (const std::vector<Index>*   row_indices,

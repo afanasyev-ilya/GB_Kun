@@ -2,41 +2,47 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename _T>
-double PR::seq_page_rank(VGL_Graph &_graph,
-                         VerticesArray<_T> &_page_ranks,
-                         _T _convergence_factor,
-                         int _max_iterations)
-{
-    Timer tm;
-    tm.start();
+namespace lablas{
+namespace algorithm {
 
-    int vertices_count = _graph.get_vertices_count();
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void seq_page_rank(Vector <T> *_ranks,
+                   const Matrix <T> *_graph,
+                   int *iters,                     // output: number of iterations taken
+                   int itermax = 100,              // maximum number of iterations (typically 100)
+                   double damping = 0.85,          // damping factor (typically 0.85)
+                   double tol = 1e-4)               // stopping tolerance (typically 1e-4) ;
+{
+    Index vertices_count = _ranks->get_vector()->getDense()->get_size();
+    T* ranks = _ranks->get_vector()->getDense()->get_vals();
+    backend::MatrixCSR<T> *graph = ((backend::MatrixCSR<T> *) _graph->get_matrix()->get_csr());
 
     // set PR parameters
-    _T d = 0.85;
-    _T k = (1.0 - d) / ((_T)vertices_count);
+    T d = 0.85;
+    T k = (1.0 - d) / ((T)vertices_count);
 
-    VerticesArray<int> number_of_loops(_graph, GATHER);
-    VerticesArray<int> incoming_degrees(_graph, GATHER);
-    VerticesArray<int> incoming_degrees_without_loops(_graph, GATHER);
-    VerticesArray<_T> old_page_ranks(_graph, SCATTER);
+    std::vector<int> number_of_loops(vertices_count, 0);
+    std::vector<int> incoming_degrees(vertices_count, 0);
+    std::vector<int> incoming_degrees_without_loops(vertices_count, 0);
+    std::vector<T> old_page_ranks(vertices_count, 0);
 
     // init ranks and other data
     for(int i = 0; i < vertices_count; i++)
     {
-        _page_ranks[i] = 1.0/vertices_count;
+        ranks[i] = 1.0/((T)vertices_count);
         number_of_loops[i] = 0;
     }
 
     // calculate number of loops
     for(int src_id = 0; src_id < vertices_count; src_id++)
     {
-        const int connections_count = _graph.get_incoming_connections_count(src_id);
-
-        for (int edge_pos = 0; edge_pos < connections_count; edge_pos++)
+        Index shift = graph->get_row_ptr()[src_id];
+        Index connections_count = graph->get_row_ptr()[src_id + 1] - graph->get_row_ptr()[src_id];
+        for(Index edge_pos = 0; edge_pos < connections_count; edge_pos++)
         {
-            int dst_id = _graph.get_incoming_edge_dst(src_id, edge_pos);
+            Index dst_id = graph->get_col_ids()[shift + edge_pos];
             if(src_id == dst_id)
                 number_of_loops[src_id]++;
         }
@@ -45,7 +51,7 @@ double PR::seq_page_rank(VGL_Graph &_graph,
     // calculate incoming degrees without loops
     for(int i = 0; i < vertices_count; i++)
     {
-        incoming_degrees[i] = _graph.get_incoming_connections_count(i);
+        incoming_degrees[i] = _graph->get_coldegrees()[i]; // TODO rowdegrees?
     }
 
     // calculate incoming degrees without loops
@@ -54,20 +60,17 @@ double PR::seq_page_rank(VGL_Graph &_graph,
         incoming_degrees_without_loops[i] = incoming_degrees[i] - number_of_loops[i];
     }
 
-    incoming_degrees_without_loops.reorder(SCATTER);
-
-    int iterations_count = 0;
-    for(iterations_count = 0; iterations_count < _max_iterations; iterations_count++)
+    for(int iterations_count = 0; iterations_count < itermax; iterations_count++)
     {
         // copy ranks from prev iteration to temporary array
         for(int i = 0; i < vertices_count; i++)
         {
-            old_page_ranks[i] = _page_ranks[i];
-            _page_ranks[i] = 0;
+            old_page_ranks[i] = ranks[i];
+            ranks[i] = 0;
         }
 
         // calculate dangling input
-        _T dangling_input = 0;
+        T dangling_input = 0;
         for(int i = 0; i < vertices_count; i++)
         {
             if(incoming_degrees_without_loops[i] <= 0)
@@ -79,35 +82,35 @@ double PR::seq_page_rank(VGL_Graph &_graph,
         // traverse graph and calculate page ranks
         for(int src_id = 0; src_id < vertices_count; src_id++)
         {
-            int connections_count = _graph.get_outgoing_connections_count(src_id);
-            for(int edge_pos = 0; edge_pos < connections_count; edge_pos++)
+            Index shift = graph->get_row_ptr()[src_id];
+            Index connections_count = graph->get_row_ptr()[src_id + 1] - graph->get_row_ptr()[src_id];
+            for(Index edge_pos = 0; edge_pos < connections_count; edge_pos++)
             {
-                int dst_id = _graph.get_outgoing_edge_dst(src_id, edge_pos);
-                _T dst_rank = old_page_ranks[dst_id];
+                Index dst_id = graph->get_col_ids()[shift + edge_pos];
+                T dst_rank = old_page_ranks[dst_id];
 
-                _T dst_links_num = 1.0 / incoming_degrees_without_loops[dst_id];
+                T dst_links_num = 1.0 / incoming_degrees_without_loops[dst_id];
                 if(incoming_degrees_without_loops[dst_id] == 0)
                     dst_links_num = 0;
 
                 if(src_id != dst_id)
-                    _page_ranks[src_id] += dst_rank * dst_links_num;
+                    ranks[src_id] += dst_rank * dst_links_num;
             }
 
-            _page_ranks[src_id] = k + d * (_page_ranks[src_id] + dangling_input);
+            ranks[src_id] = k + d * (ranks[src_id] + dangling_input);
         }
 
         // calculate new ranks sum
         double ranks_sum = 0;
         for(int i = 0; i < vertices_count; i++)
         {
-            ranks_sum += _page_ranks[i];
+            ranks_sum += ranks[i];
         }
         cout << "ranks sum: " << ranks_sum << endl;
     }
-
-    tm.end();
-
-    return _max_iterations*performance_stats.get_algorithm_performance(tm.get_time(), _graph.get_edges_count());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+}
+}

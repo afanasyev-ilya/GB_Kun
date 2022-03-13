@@ -9,7 +9,7 @@ namespace algorithm {
 template <typename T>
 void cc_bfs_based_sequential(Vector <T> *_components,
                              const Matrix <T> *_graph)
-                             {
+{
     Index vertices_count = _components->get_vector()->getDense()->get_size();
     T* components = _components->get_vector()->getDense()->get_vals();
     backend::MatrixCSR<T> *graph = ((backend::MatrixCSR<T> *) _graph->get_matrix()->get_csr());

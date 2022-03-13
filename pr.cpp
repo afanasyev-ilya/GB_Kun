@@ -1,8 +1,10 @@
 #include "src/gb_kun.h"
 
 #include "algorithms/pr/pr.hpp"
+#include "algorithms/pr/pr_traditional.hpp"
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     try
     {
         Parser parser;
@@ -23,24 +25,22 @@ int main(int argc, char **argv) {
         LAGraph_Graph<float> graph(matrix);
         int max_iter = parser.get_iterations();
 
+        int iters_taken = 0;
         if(parser.get_algo_name() == "lagraph")
         {
-            int iters_taken = 0;
             lablas::Vector<float> *centrality;
 
             SAVE_TEPS(LAGraph_page_rank_sinks(&centrality, &graph, &iters_taken, max_iter),
                       "Page_Rank", iters_taken, (graph.AT));
             delete centrality;
         }
-        else if(parser.get_algo_name() == "blast")
-        {
-            lablas::Vector<float> ranks(size);
-            lablas::algorithm::page_rank_graph_blast(&ranks, &matrix,  0.85, &desc, parser.get_iterations());
-        }
         else
         {
             cout << "Unknown algorithm name in PR" << endl;
         }
+
+        lablas::Vector<float> check_ranks(size);
+        lablas::algorithm::seq_page_rank(&check_ranks, &matrix, &iters_taken, max_iter);
     }
     catch (string error)
     {

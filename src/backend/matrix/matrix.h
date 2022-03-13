@@ -137,13 +137,15 @@ public:
 
     void print() const { csr_data->print(); }
 
-    ENT get_nnz() const {return csr_data->get_nnz();};
+    [[nodiscard]] ENT get_nnz() const {return csr_data->get_nnz();};
 
-    ENT* get_rowdegrees() { return csr_data->get_rowdegrees(); }
+    [[nodiscard]] ENT* get_rowdegrees() { return csr_data->get_rowdegrees(); }
+    [[nodiscard]] const ENT* get_rowdegrees() const { return csr_data->get_rowdegrees(); }
 
-    ENT* get_coldegrees() { return csc_data->get_rowdegrees(); }
+    [[nodiscard]] ENT* get_coldegrees() { return csc_data->get_rowdegrees(); }
+    [[nodiscard]] const ENT* get_coldegrees() const { return csc_data->get_rowdegrees(); }
 
-    Workspace *get_workspace() const { return (const_cast <Matrix<T>*> (this))->workspace; };
+    [[nodiscard]] Workspace *get_workspace() const { return (const_cast <Matrix<T>*> (this))->workspace; };
 
     void sort_csr_columns(const string& mode);
 
@@ -163,7 +165,7 @@ public:
         Index temp;
         Index* row_ptr = csc_data->get_row_ptr();
 
-#pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
+        #pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
         for (int i = 0; i < csr_nrows; i++) {
             for (int j = csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i + 1]; j++) {
                 dloc[j] = my_fetch_add(&row_ptr[csr_data->get_col_ids()[j]], static_cast<Index>(1));
