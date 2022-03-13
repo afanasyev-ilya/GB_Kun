@@ -7,6 +7,8 @@
 namespace lablas {
 namespace algorithm {
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void page_rank_graph_blast(Vector<float>*       p,
                            const Matrix<float> *A,     // column stochastic matrix
                            float alpha, // teleportation constant
@@ -70,6 +72,7 @@ void page_rank_graph_blast(Vector<float>*       p,
 }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int LAGraph_page_rank_sinks (GrB_Vector* centrality, // centrality(i): GAP-style pagerank of node i
                              // inputs:
@@ -205,9 +208,13 @@ int LAGraph_page_rank_sinks (GrB_Vector* centrality, // centrality(i): GAP-style
     return 0;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #undef GrB_Matrix
 #undef GrB_Vector
 #undef MASK_NULL
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Алгоритм преобразования LAGraph кода графового алгоритма к коду, совместимому с GB_Kun
 // удалить инициализуию LAgraph

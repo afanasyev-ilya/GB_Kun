@@ -57,9 +57,27 @@ void MatrixCSR<T>::resize(VNT _nrows, VNT _ncols, ENT _nnz)
 template <typename T>
 void MatrixCSR<T>::deep_copy(MatrixCSR<T> *_copy, int _target_socket)
 {
+    this->free();
+    this->nrows = _copy->nrows;
+    this->ncols = _copy->ncols;
+    this->nnz = _copy->nnz;
+
     if(_target_socket == -1)
-        _target_socket = _copy->target_socket;
-    this->resize(_copy->nrows, _copy->ncols, _copy->nnz);
+    {
+        this->target_socket = _copy->target_socket;
+        MemoryAPI::allocate_array(&this->row_ptr, this->nrows + 1);
+        MemoryAPI::allocate_array(&this->col_ids, this->nnz);
+        MemoryAPI::allocate_array(&this->vals, this->nnz);
+        MemoryAPI::allocate_array(&this->row_degrees, this->nrows);
+    }
+    else
+    {
+        this->target_socket = _target_socket;
+        MemoryAPI::numa_aware_alloc(&this->row_ptr, this->nrows + 1, this->target_socket);
+        MemoryAPI::numa_aware_alloc(&this->col_ids, this->nnz, this->target_socket);
+        MemoryAPI::numa_aware_alloc(&this->vals, this->nnz, this->target_socket);
+        MemoryAPI::numa_aware_alloc(&this->row_degrees, this->nrows, this->target_socket);
+    }
 
     MemoryAPI::copy(this->row_ptr, _copy->row_ptr, _copy->nrows + 1);
     MemoryAPI::copy(this->vals, _copy->vals, _copy->nnz);
