@@ -121,3 +121,38 @@ void print_omp_stats()
     MemoryAPI::free_array(b);
     MemoryAPI::free_array(c);*/
 }
+
+int num_sockets_used()
+{
+    #ifdef __USE_KUNPENG__
+    const int numCPU = sysconf(_SC_NPROCESSORS_ONLN);
+    int threads_amount;
+    int cpu[numCPU];
+    #pragma omp parallel
+    {
+        threads_amount = omp_get_num_threads();
+        int cpu_num = sched_getcpu();
+        cpu[omp_get_thread_num()] = cpu_num;
+    }
+    bool socket[2];
+    socket[0] = false;
+    socket[1] = false;
+    for (int i = 0; i < threads_amount && !(socket[0] && socket[1]); i++)
+    {
+        if (cpu[i] < numCPU / 2)
+        {
+            socket[0] = true;
+        }
+        else
+        {
+            socket[1] = true;
+        }
+    }
+    if(socket[0] && socket[1])
+        return 2;
+    else
+        return 1;
+    #else
+    return 1;
+    #endif
+}

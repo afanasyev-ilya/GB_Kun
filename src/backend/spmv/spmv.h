@@ -32,12 +32,18 @@ void SpMV(const Matrix<A> *_matrix,
         _matrix->get_format(&format);
         if(format == CSR)
         {
-            if(omp_get_max_threads() == THREADS_PER_SOCKET*2) // TODO for non-96
+            if(num_sockets_used() > 1)
             {
+                #ifdef __DEBUG_INFO__
+                cout << "Using NUMA-aware SPMV" << endl;
+                #endif
                 SpMV_numa_aware(_matrix->get_csr(), _x, _y, _accum, _op, _matrix->get_workspace());
             }
             else
             {
+                #ifdef __DEBUG_INFO__
+                cout << "Using single socket SPMV" << endl;
+                #endif
                 if(_x == _y)
                 {
                     SpMV_all_active_same_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
@@ -89,13 +95,26 @@ void VSpM(const Matrix<A> *_matrix,
         _matrix->get_format(&format);
         if(format == CSR)
         {
-            if(_x == _y)
+            if(num_sockets_used() > 1)
             {
-                SpMV_all_active_same_vectors(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                #ifdef __DEBUG_INFO__
+                cout << "Using NUMA-aware SPMV" << endl;
+                #endif
+                SpMV_numa_aware(_matrix->get_csc(), _x, _y, _accum, _op, _matrix->get_workspace());
             }
             else
             {
-                SpMV_all_active_diff_vectors(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                #ifdef __DEBUG_INFO__
+                cout << "Using single socket SPMV" << endl;
+                #endif
+                if(_x == _y)
+                {
+                    SpMV_all_active_same_vectors(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                }
+                else
+                {
+                    SpMV_all_active_diff_vectors(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                }
             }
         }
         else if(format == SELL_C)
