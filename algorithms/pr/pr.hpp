@@ -74,13 +74,13 @@ void page_rank_graph_blast(Vector<float>*       p,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int LAGraph_page_rank_sinks (GrB_Vector* centrality, // centrality(i): GAP-style pagerank of node i
-                             // inputs:
-                             LAGraph_Graph<float> *G,        // input graph
-                             int *iters,                     // output: number of iterations taken
-                             int itermax = 100,              // maximum number of iterations (typically 100)
-                             double damping = 0.85,           // damping factor (typically 0.85)
-                             double tol = 1e-4               // stopping tolerance (typically 1e-4) ;
+void LAGraph_page_rank_sinks (GrB_Vector centrality, // centrality(i): GAP-style pagerank of node i
+        // inputs:
+                              LAGraph_Graph<float> *G,        // input graph
+                              int *iters,                     // output: number of iterations taken
+                              int itermax = 100,              // maximum number of iterations (typically 100)
+                              double damping = 0.85,           // damping factor (typically 0.85)
+                              double tol = 1e-4               // stopping tolerance (typically 1e-4) ;
 )
 {
     GrB_Matrix AT = G->AT;
@@ -93,7 +93,6 @@ int LAGraph_page_rank_sinks (GrB_Vector* centrality, // centrality(i): GAP-style
     //--------------------------------------------------------------------------
 
     GrB_Index n ;
-    (*centrality) = NULL ;
     GrB_TRY (GrB_Matrix_nrows (&n, AT)) ;
 
     const double scaled_damping = (1 - damping) / n ;
@@ -195,17 +194,17 @@ int LAGraph_page_rank_sinks (GrB_Vector* centrality, // centrality(i): GAP-style
     // free workspace and return result
     //--------------------------------------------------------------------------
 
-    (*centrality) = r ;
+    centrality->dup(r);
     GrB_free (&d1) ;
     GrB_free (&d);
     GrB_free (&t);
     GrB_free (&w);
+    GrB_free (&r);
     if (nsinks > 0)
     {
         GrB_free (&sink);
         GrB_free (&rsink);
     }
-    return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

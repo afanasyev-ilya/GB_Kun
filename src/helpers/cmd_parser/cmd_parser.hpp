@@ -4,8 +4,8 @@
 
 Parser::Parser()
 {
-    scale = 10;
-    avg_degree = 5;
+    scale = 14;
+    avg_degree = 7;
     synthetic_graph_type = RMAT_GRAPH;
     storage_format = CSR;
     no_check = false;

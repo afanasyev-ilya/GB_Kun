@@ -26,21 +26,33 @@ int main(int argc, char **argv)
         int max_iter = parser.get_iterations();
 
         int iters_taken = 0;
+        lablas::Vector<float> ranks(size);
         if(parser.get_algo_name() == "lagraph")
         {
-            lablas::Vector<float> *centrality;
-
-            SAVE_TEPS(LAGraph_page_rank_sinks(&centrality, &graph, &iters_taken, max_iter),
+            SAVE_TEPS(LAGraph_page_rank_sinks(&ranks, &graph, &iters_taken, max_iter),
                       "Page_Rank", iters_taken, (graph.AT));
-            delete centrality;
         }
         else
         {
             cout << "Unknown algorithm name in PR" << endl;
         }
 
-        lablas::Vector<float> check_ranks(size);
-        lablas::algorithm::seq_page_rank(&check_ranks, &matrix, &iters_taken, max_iter);
+        if(parser.check())
+        {
+            lablas::Vector<float> check_ranks(size);
+            lablas::algorithm::seq_page_rank(&check_ranks, &matrix, &iters_taken, max_iter);
+
+            if(ranks == check_ranks)
+            {
+                cout << "page ranks are equal" << endl;
+            }
+            else
+            {
+                cout << "page ranks are NOT equal" << endl;
+            }
+        }
+
+
     }
     catch (string error)
     {

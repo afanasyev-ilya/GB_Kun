@@ -34,10 +34,9 @@ int main(int argc, char **argv)
             lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex);
         }
 
-        cout << "check source vertex: " << source_vertex << endl;
-
         if(parser.check())
         {
+            cout << "check source vertex: " << source_vertex << endl;
             lablas::Vector<float> check_distances(size);
 
             lablas::algorithm::sssp_traditional_dijkstra(&check_distances, &matrix, source_vertex);
