@@ -21,7 +21,8 @@ int main(int argc, char **argv) {
         lablas::Vector<float> levels(size);
 
         LAGraph_Graph<float> graph(matrix);
-        int max_iter = max(100, parser.get_iterations());
+        int max_iter = max(5, parser.get_iterations());
+        matrix.print();
 
         if(parser.get_algo_name() == "lagraph")
         {

@@ -97,7 +97,6 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
     GrB_TRY (GrB_Matrix_nrows (&n, AT)) ;
 
     const double scaled_damping = (1 - damping) / n ;
-    const double teleport = scaled_damping ; // teleport = (1 - damping) / n
     float rdiff = 1 ;       // first iteration is always done
 
     // r = 1 / n
@@ -115,29 +114,56 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
     double init_rank = 1.0/n;
     GrB_TRY (GrB_assign (r, MASK_NULL, NULL, init_rank, GrB_ALL, n, NULL)) ;
 
+    // find all sinks, where sink(i) = true if node i has d_out(i)=0, or with
+    // d_out(i) not present.  LAGraph_Property_RowDegree computes d_out =
+    // G->rowdegree so that it has no explicit zeros, so a structural mask can
+    // be used here.
+    GrB_Vector sink = NULL, *rsink = NULL;
+    GrB_Index nsinks, nvals ;
+    GrB_TRY (GrB_Vector_nvals (&nvals, d_out)) ;
+    nsinks = n - nvals ;
+    if (nsinks > 0)
+    {
+        // sink<!struct(d_out)> = true
+        GrB_TRY (GrB_Vector_new (&sink, GrB_BOOL, n)) ;
+        GrB_TRY (GrB_assign (sink, d_out, NULL, (bool) true, GrB_ALL, n,
+                             GrB_DESC_SC)) ;
+        GrB_TRY (GrB_Vector_new (&rsink, GrB_FP32, n)) ;
+        sink->set_name("sink");
+        rsink->set_name("rsink");
+    }
+
     // prescale with damping factor, so it isn't done each iteration
     // d = d_out / damping ;
     GrB_TRY (GrB_apply (d, MASK_NULL, NULL, GrB_DIV_FP32, d_out, damping, &desc)) ;
-
-    //(*centrality)->set_name("centrality");
 
     // d1 = 1 / damping
     float dmin = 1.0 / damping ;
     GrB_TRY (GrB_assign (d1, MASK_NULL, NULL, dmin, GrB_ALL, n, NULL)) ;
 
-    d->print();
-    d1->print();
-
     // d = max (d1, d)
     GrB_TRY (GrB_eWiseAdd (d, MASK_NULL, NULL, GrB_MAX_FP32, d1, d, NULL)) ;
-
-    d->print();
 
     //--------------------------------------------------------------------------
     // pagerank iterations
     //--------------------------------------------------------------------------
     for ((*iters) = 0 ; (*iters) < itermax; (*iters)++)
     {
+        float teleport = scaled_damping ; // teleport = (1 - damping) / n
+        if (nsinks > 0)
+        {
+            cout << "nsinks: " << nsinks << endl;
+            const float damping_over_n = damping / n ;
+            // handle the sinks: teleport += (damping/n) * sum (r (sink))
+            // rsink<struct(sink)> = r
+            GrB_TRY (GrB_Vector_clear (rsink)) ;
+            GrB_TRY (GrB_assign (rsink, sink, NULL, r, GrB_ALL, n, GrB_DESC_S));
+            // sum_rsink = sum (rsink)
+            float sum_rsink = 0 ;
+            GrB_TRY (GrB_reduce (&sum_rsink, NULL, GrB_PLUS_MONOID_FP32, rsink, NULL)) ;
+            teleport += damping_over_n * sum_rsink ;
+        }
+
         double ranks_sum = 0;
         // swap t and r ; now t is the old score
         GrB_Vector temp = t ; t = r ; r = temp ;
@@ -163,7 +189,6 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
         //float ranks_sum = 0;
         GrB_TRY (GrB_reduce (&ranks_sum, NULL, GrB_PLUS_MONOID_FP32, r, NULL));
         cout << "ranks sum: " << ranks_sum << endl;
-        break;
     }
 
     //--------------------------------------------------------------------------
