@@ -7,25 +7,37 @@
 #include <omp.h>
 #include <unistd.h>
 
+#ifdef __DEBUG_INFO__
 #define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, matrix)       \
 GrB_Index my_nvals = 0;                                                                 \
 GrB_Matrix_nvals(&my_nvals, matrix);                                                    \
-/*printf("matrix has %ld\n edges", nvals);*/                                            \
 double my_t1 = omp_get_wtime();                                                         \
 call_instruction;                                                                       \
 double my_t2 = omp_get_wtime();                                                         \
-double my_time = (my_t2 - my_t1)*1000;                                                           \
-double my_perf = my_nvals * 2.0 / ((my_t2 - my_t1)*1e9);                                         \
-double my_bw = my_nvals * bytes_per_flop/((my_t2 - my_t1)*1e9);                                  \
-/*printf("edges: %lf\n", nvals);*/                                                   \
-/*printf("%s time %lf (ms)\n", op_name, (my_t2-my_t1)*1000); */                          \
-/*printf("%s perf %lf (GFLop/s)\n", op_name, perf);*/                                   \
+double my_time = (my_t2 - my_t1)*1000;                                                  \
+double my_perf = my_nvals * 2.0 / ((my_t2 - my_t1)*1e9);                                \
+double my_bw = my_nvals * bytes_per_flop/((my_t2 - my_t1)*1e9);                         \
 printf("%s time = %lf (ms)\n", op_name, my_time);                                      \
 printf("%s BW = %lf (GB/s)\n", op_name, my_bw);                                      \
 FILE *my_f;                                                                          \
 my_f = fopen("perf_stats.txt", "a");                                                 \
 fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
-fclose(my_f);                                                                           \
+fclose(my_f);
+#else
+#define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, matrix)       \
+GrB_Index my_nvals = 0;                                                                 \
+GrB_Matrix_nvals(&my_nvals, matrix);                                                    \
+double my_t1 = omp_get_wtime();                                                         \
+call_instruction;                                                                       \
+double my_t2 = omp_get_wtime();                                                         \
+double my_time = (my_t2 - my_t1)*1000;                                                  \
+double my_perf = my_nvals * 2.0 / ((my_t2 - my_t1)*1e9);                                \
+double my_bw = my_nvals * bytes_per_flop/((my_t2 - my_t1)*1e9);                         \
+FILE *my_f;                                                                          \
+my_f = fopen("perf_stats.txt", "a");                                                 \
+fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+fclose(my_f);
+#endif
 
 #define SAVE_TIME(call_instruction, op_name)       \
 double my_t1 = omp_get_wtime();                                                         \

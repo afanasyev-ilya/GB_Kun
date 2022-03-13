@@ -173,7 +173,9 @@ const vector<pair<VNT, VNT>> & MatrixCSR<T>::get_load_balancing_offsets() const
         vector_row_ptr.assign(this->row_ptr, this->row_ptr + this->nrows + 1);
         balance_matrix_rows(vector_row_ptr, load_balancing_offsets);
         load_balancing_offsets_set = true;
+        #ifdef __DEBUG_INFO__
         cout << "CSR load balancing offsets are recalculated!" << endl;
+        #endif
 
     }
     return load_balancing_offsets;

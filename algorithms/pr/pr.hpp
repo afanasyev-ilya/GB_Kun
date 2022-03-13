@@ -65,7 +65,9 @@ void page_rank_graph_blast(Vector<float>*       p,
 
         float ranks_sum = 0;
         reduce<float, float>(&ranks_sum, second<float>(), PlusMonoid<float>(), p, desc);
+        #ifdef __DEBUG_INFO__
         cout << "ranks sum: " << ranks_sum << endl;
+        #endif
     }
 }
 
@@ -187,7 +189,9 @@ void LAGraph_page_rank_sinks (GrB_Vector centrality, // centrality(i): GAP-style
         //float ranks_sum = 0;
         double ranks_sum = 0;
         GrB_TRY (GrB_reduce (&ranks_sum, NULL, GrB_PLUS_MONOID_FP32, r, NULL));
+        #ifdef __DEBUG_INFO__
         cout << "ranks sum: " << ranks_sum << endl;
+        #endif
     }
 
     //--------------------------------------------------------------------------

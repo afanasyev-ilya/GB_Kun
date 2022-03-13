@@ -42,6 +42,6 @@
 #define HUB_VERTICES 131072
 
 // debug settings
-#define __DEBUG_BANDWIDTHS__
-#define __DEBUG_INFO__
+//#define __DEBUG_BANDWIDTHS__
+//#define __DEBUG_INFO__
 #define __SHORT_VECTOR_PRINT__

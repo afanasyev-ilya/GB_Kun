@@ -173,10 +173,7 @@ LA_Info mxv (Vector<W>*       _w,
         #endif
         backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
     }
-    double t1 = omp_get_wtime();
     _w->convert_if_required();
-    double t2 = omp_get_wtime();
-    cout << "convert time: " << (t2 - t1)*1000 << " ms" << endl;
 
     return GrB_SUCCESS;
 }

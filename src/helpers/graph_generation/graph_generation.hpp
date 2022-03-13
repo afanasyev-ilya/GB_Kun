@@ -40,7 +40,9 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
                                         ENT _edges_count,
                                         DirectionType _direction_type)
 {
+    #ifdef __DEBUG_INFO__
     cout << "Creating Random Uniform matrix" << endl;
+    #endif
     VNT vertices_count = _vertices_count;
     ENT edges_count = _edges_count;
     
@@ -98,7 +100,9 @@ void GraphGenerationAPI::RMAT(EdgeListContainer<T> &_edges_container,
                               int _d_prob,
                               DirectionType _direction_type)
 {
+    #ifdef __DEBUG_INFO__
     cout << "Creating RMAT matrix" << endl;
+    #endif
     VNT n = (VNT)log2(_vertices_count);
     VNT vertices_count = _vertices_count;
     ENT edges_count = _edges_count;
