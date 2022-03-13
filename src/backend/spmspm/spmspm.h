@@ -26,10 +26,9 @@ VNT binary_search(const Index* data, VNT left, VNT right, ENT value)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void balance_matrix_rows(const ENT *_row_ptrs, VNT num_rows, vector<pair<VNT, VNT>> &_offsets)
+void balance_matrix_rows(const ENT *_row_ptrs, VNT num_rows, pair<VNT, VNT> *_offsets, int threads_count)
 {
     ENT nnz = _row_ptrs[num_rows];
-    int threads_count = omp_get_max_threads();
     ENT approx_nnz_per_thread = (nnz - 1) / threads_count + 1;
     for(int tid = 0; tid < threads_count; tid++)
     {
@@ -45,7 +44,7 @@ void balance_matrix_rows(const ENT *_row_ptrs, VNT num_rows, vector<pair<VNT, VN
         VNT low_val = low_pos - left_border_ptr;
         VNT up_val = min(num_rows, (VNT) (up_pos - left_border_ptr));
 
-        _offsets.emplace_back(low_val, up_val);
+        _offsets[tid] = make_pair(low_val, up_val);
     }
 }
 
@@ -119,7 +118,7 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 
 #ifdef __DEBUG_BANDWIDTHS__
     double bytes_requested = 0;
-    bytes_requested += sizeof(vector<map<VNT, T>>);
+    bytes_requested += sizeof(vector<unordered_map<VNT, T>>);
     for (VNT i = 0; i < _matrix1->get_csr()->get_num_rows(); ++i) {
         bytes_requested += sizeof(_matrix1->get_csr()->get_num_rows());
         for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
@@ -143,60 +142,90 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 #endif
     double t1 = omp_get_wtime();
 
-    vector<unordered_map<VNT, T>> matrix_result(_matrix1->get_csr()->get_num_rows());
+    const auto n = _matrix1->get_csr()->get_num_rows();
 
-    vector<pair<VNT, VNT>> offsets;
+    auto matrix_result = new unordered_map<VNT, T>[n];
+
+    int threads_count = omp_get_max_threads();
+    auto offsets = new pair<VNT, VNT>[threads_count];
     balance_matrix_rows(_matrix1->get_csr()->get_row_ptr(),
-                        _matrix1->get_csr()->get_num_rows(),
-                        offsets);
+                        n,
+                        offsets,
+                        threads_count);
+
+    auto matrix1_val_ptr = _matrix1->get_csr()->get_vals();
+    auto matrix2_val_ptr = _matrix2->get_csr()->get_vals();
+    auto matrix1_row_ptr = _matrix1->get_csr()->get_row_ptr();
+    auto matrix2_row_ptr = _matrix2->get_csr()->get_row_ptr();
+    auto matrix1_col_ptr = _matrix1->get_csr()->get_col_ids();
+    auto matrix2_col_ptr = _matrix2->get_csr()->get_col_ids();
 
     #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();
         for (VNT i = offsets[thread_id].first; i < offsets[thread_id].second; ++i) {
-            for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
-                 matrix1_col_id < _matrix1->get_csr()->get_row_ptr()[i + 1]; ++matrix1_col_id) {
-                VNT k = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
-                for (VNT matrix2_col_id = _matrix2->get_csr()->get_row_ptr()[k];
-                     matrix2_col_id < _matrix2->get_csr()->get_row_ptr()[k + 1]; ++matrix2_col_id) {
-                    VNT j = _matrix2->get_csr()->get_col_ids()[matrix2_col_id];
-                    matrix_result[i][j] += _matrix1->get_csr()->get_vals()[matrix1_col_id] *
-                                           _matrix2->get_csr()->get_vals()[matrix2_col_id];
+            for (VNT matrix1_col_id = matrix1_row_ptr[i]; matrix1_col_id < matrix1_row_ptr[i + 1]; ++matrix1_col_id) {
+                VNT k = matrix1_col_ptr[matrix1_col_id];
+                for (VNT matrix2_col_id = matrix2_row_ptr[k]; matrix2_col_id < matrix2_row_ptr[k + 1]; ++matrix2_col_id) {
+                    VNT j = matrix2_col_ptr[matrix2_col_id];
+                    matrix_result[i][j] += matrix1_val_ptr[matrix1_col_id] * matrix2_val_ptr[matrix2_col_id];
                 }
             }
         }
     }
+
     double t2 = omp_get_wtime();
+
+    delete [] offsets;
+
     SpMSpM_alloc(_matrix_result);
-    vector<ENT> row_ptr;
-    row_ptr.push_back(0);
-    vector<VNT> col_ids;
-    vector<T> vals;
-    for (VNT i = 0; i < _matrix1->get_csr()->get_num_rows(); ++i) {
+
+    ENT nnz_approx = 0;
+
+    for (VNT i = 0; i < n; ++i) {
+        nnz_approx += matrix_result[i].size();
+    }
+
+    auto row_ptr = new ENT[n + 1];
+    row_ptr[0] = 0;
+    auto col_ids = new VNT[nnz_approx];
+    auto vals = new T[nnz_approx];
+
+    ENT nnz = 0;
+
+    for (VNT i = 0; i < n; ++i) {
         ENT cur_row_size = 0;
         for (const auto& [col_id, val] : matrix_result[i]) {
             if (val != 0) {
+                col_ids[nnz] = col_id;
+                vals[nnz] = val;
                 ++cur_row_size;
-                col_ids.push_back(col_id);
-                vals.push_back(val);
+                ++nnz;
             }
         }
-        row_ptr.push_back(row_ptr.back() + cur_row_size);
+        row_ptr[i + 1] = row_ptr[i] + cur_row_size;
     }
+
+    delete [] matrix_result;
+
+    double t3 = omp_get_wtime();
+
     // Getting COO format from CSR until needed build functions are implemented:
     vector<VNT> row_ids_coo;
     vector<VNT> col_ids_coo;
     vector<T> values_coo;
-    for (VNT i = 0; i < row_ptr.size() - 1; ++i) {
+    for (VNT i = 0; i < n; ++i) {
         for (VNT j = row_ptr[i]; j < row_ptr[i + 1]; ++j) {
             row_ids_coo.push_back(i);
             col_ids_coo.push_back(col_ids[j]);
             values_coo.push_back(vals[j]);
         }
     }
-    _matrix_result->build(&row_ids_coo[0], &col_ids_coo[0], &values_coo[0], row_ptr.size() - 1, vals.size());
-    double t3 = omp_get_wtime();
-    double overall_time = t3 - t1;
+    delete [] row_ptr;
+    delete [] col_ids;
+    delete [] vals;
+    _matrix_result->build(&row_ids_coo[0], &col_ids_coo[0], &values_coo[0], n, nnz);
+
     printf("Unmasked IKJ SpMSpM time: %lf seconds.\n", t2-t1);
     printf("Unmasked IKJ SpMSpM converting result time: %lf seconds.\n", t3-t2);
 #ifdef __DEBUG_BANDWIDTHS__
