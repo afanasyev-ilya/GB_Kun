@@ -16,15 +16,20 @@ void init_matrix(lablas::Matrix<T> &_matrix, Parser &_parser)
     {
         EdgeListContainer<T> edges_container;
 
+        DirectionType dir_type = DIRECTED_GRAPH;
+        #ifdef __REQUIRES_UNDIRECTED_GRAPHS__
+        dir_type = UNDIRECTED_GRAPH;
+        #endif
+
         if(_parser.get_synthetic_graph_type() == RANDOM_UNIFORM_GRAPH)
         {
             GraphGenerationAPI::random_uniform(edges_container,
                                                pow(2.0, scale),
-                                               avg_deg * pow(2.0, scale), DIRECTED_GRAPH);
+                                               avg_deg * pow(2.0, scale), dir_type);
         }
         else if(_parser.get_synthetic_graph_type() == RMAT_GRAPH)
         {
-            GraphGenerationAPI::RMAT(edges_container, pow(2.0, scale), avg_deg * pow(2.0, scale), 57, 19, 19, 5, DIRECTED_GRAPH);
+            GraphGenerationAPI::RMAT(edges_container, pow(2.0, scale), avg_deg * pow(2.0, scale), 57, 19, 19, 5, dir_type);
         }
         else if(_parser.get_synthetic_graph_type() == HPCG_GRAPH)
         {

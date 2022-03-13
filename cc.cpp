@@ -1,3 +1,4 @@
+#define __REQUIRES_UNDIRECTED_GRAPHS__
 #include "src/gb_kun.h"
 
 #include "algorithms/cc/cc.hpp"

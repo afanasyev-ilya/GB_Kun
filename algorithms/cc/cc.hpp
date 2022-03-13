@@ -97,8 +97,11 @@ float cc(Vector<int>*       v,
         eWiseMult(&diff, MASK_NULL, GrB_NULL,
                   lablas::not_equal_to<int>(), &grandparent_temp, &grandparent, desc);
         reduce<int, bool>(&succ, second<int>(), PlusMonoid<int>(), &diff, desc);
+        #ifdef __DEBUG_INFO__
         cout << "succ: " << succ << endl;
-        if (succ == 0) {
+        #endif
+        if (succ == 0)
+        {
             break;
         }
         grandparent_temp.dup(&grandparent);
@@ -111,11 +114,8 @@ float cc(Vector<int>*       v,
         desc->toggle(GrB_MASK);
         Desc_value a;
         desc->get(GrB_MASK, &a);
-//        std::cout << "VALUE AFTER ASSIGN IS " << a << std::endl;
     }
     v->dup(&parent);
-
-    //v->print();
 
     return 0.f;
 }
