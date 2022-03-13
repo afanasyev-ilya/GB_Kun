@@ -79,8 +79,8 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
                                           LAGraph_Graph<float> *G,        // input graph
                                           int *iters,                     // output: number of iterations taken
                                           int itermax = 100,              // maximum number of iterations (typically 100)
-                                          float damping = 0.85,           // damping factor (typically 0.85)
-                                          float tol = 1e-4               // stopping tolerance (typically 1e-4) ;
+                                          double damping = 0.85,           // damping factor (typically 0.85)
+                                          double tol = 1e-4               // stopping tolerance (typically 1e-4) ;
                                           )
 {
     GrB_Matrix AT = G->AT;
@@ -103,7 +103,8 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
     GrB_TRY (GrB_Vector_new (&t, GrB_FP32, n)) ;
     GrB_TRY (GrB_Vector_new (&r, GrB_FP32, n)) ;
     GrB_TRY (GrB_Vector_new (&w, GrB_FP32, n)) ;
-    GrB_TRY (GrB_assign (r, MASK_NULL, NULL, 1.0 / n, GrB_ALL, n, NULL)) ;
+    double init_rank = 1.0/n;
+    GrB_TRY (GrB_assign (r, MASK_NULL, NULL, init_rank, GrB_ALL, n, NULL)) ;
 
     // prescale with damping factor, so it isn't done each iteration
     // d = d_out / damping ;
@@ -128,11 +129,17 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
     //--------------------------------------------------------------------------
     for ((*iters) = 0 ; (*iters) < itermax; (*iters)++)
     {
-        float ranks_sum = 0;
+        double ranks_sum = 0;
         // swap t and r ; now t is the old score
         GrB_Vector temp = t ; t = r ; r = temp ;
         // w = t ./ d
+
+        t->print();
+        d->print();
+
         GrB_TRY (GrB_eWiseMult (w, MASK_NULL, NULL, GrB_DIV_FP32, t, d, NULL)) ;
+
+
         // r = teleport
         GrB_TRY (GrB_assign (r, MASK_NULL, NULL, teleport, GrB_ALL, n, NULL)) ;
 
@@ -150,6 +157,7 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
         //float ranks_sum = 0;
         GrB_TRY (GrB_reduce (&ranks_sum, NULL, GrB_PLUS_MONOID_FP32, r, NULL));
         cout << "ranks sum: " << ranks_sum << endl;
+        break;
     }
 
     //--------------------------------------------------------------------------

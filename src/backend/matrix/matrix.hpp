@@ -397,7 +397,7 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     double t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
-    SAVE_TIME_SEC(csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols)), "preprocessing");
+    csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols);
     csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows);
     double t2 = omp_get_wtime();
     cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;

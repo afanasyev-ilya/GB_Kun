@@ -58,6 +58,8 @@ enum GrB_Type
 #define GrB_ABS_FP32 lablas::abs<float>()
 #define GrB_SECOND_INT64 lablas::second<long long int>()
 #define GrB_SECOND_INT32 lablas::second<int>()
+#define GrB_SECOND_FLT32 lablas::second<float>()
+
 
 // semirings
 #define LAGraph_plus_second_fp32 lablas::PlusSecondSemiring<float>()
