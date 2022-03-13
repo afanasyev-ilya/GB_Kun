@@ -96,33 +96,42 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
     (*centrality) = NULL ;
     GrB_TRY (GrB_Matrix_nrows (&n, AT)) ;
 
-    const double teleport = (1 - damping) / n;
+    const double scaled_damping = (1 - damping) / n ;
+    const double teleport = scaled_damping ; // teleport = (1 - damping) / n
     float rdiff = 1 ;       // first iteration is always done
 
     // r = 1 / n
     GrB_TRY (GrB_Vector_new (&t, GrB_FP32, n)) ;
     GrB_TRY (GrB_Vector_new (&r, GrB_FP32, n)) ;
     GrB_TRY (GrB_Vector_new (&w, GrB_FP32, n)) ;
+    GrB_TRY (GrB_Vector_new (&d, GrB_FP32, n)) ;
+    GrB_TRY (GrB_Vector_new (&d1, GrB_FP32, n)) ;
+    t->set_name("t");
+    r->set_name("r");
+    w->set_name("w");
+    d->set_name("d");
+    d1->set_name("d1");
+
     double init_rank = 1.0/n;
     GrB_TRY (GrB_assign (r, MASK_NULL, NULL, init_rank, GrB_ALL, n, NULL)) ;
 
     // prescale with damping factor, so it isn't done each iteration
     // d = d_out / damping ;
-    GrB_TRY (GrB_Vector_new (&d, GrB_FP32, n)) ;
     GrB_TRY (GrB_apply (d, MASK_NULL, NULL, GrB_DIV_FP32, d_out, damping, &desc)) ;
 
-    t->set_name("t");
-    r->set_name("r");
-    w->set_name("w");
-    d->set_name("d");
     //(*centrality)->set_name("centrality");
 
     // d1 = 1 / damping
     float dmin = 1.0 / damping ;
-    GrB_TRY (GrB_Vector_new (&d1, GrB_FP32, n)) ;
     GrB_TRY (GrB_assign (d1, MASK_NULL, NULL, dmin, GrB_ALL, n, NULL)) ;
+
+    d->print();
+    d1->print();
+
     // d = max (d1, d)
     GrB_TRY (GrB_eWiseAdd (d, MASK_NULL, NULL, GrB_MAX_FP32, d1, d, NULL)) ;
+
+    d->print();
 
     //--------------------------------------------------------------------------
     // pagerank iterations
@@ -133,9 +142,6 @@ int LAGraph_VertexCentrality_PageRankGAP (GrB_Vector* centrality, // centrality(
         // swap t and r ; now t is the old score
         GrB_Vector temp = t ; t = r ; r = temp ;
         // w = t ./ d
-
-        t->print();
-        d->print();
 
         GrB_TRY (GrB_eWiseMult (w, MASK_NULL, NULL, GrB_DIV_FP32, t, d, NULL)) ;
 
