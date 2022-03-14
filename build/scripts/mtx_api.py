@@ -5,14 +5,6 @@ import time
 
 
 def gen_graph(in_filename, out_filename, undir_out_filename, options):
-    try:
-        os.remove(out_filename)
-        os.remove(undir_out_filename)
-        os.remove(out_filename + "bin")
-        os.remove(undir_out_filename + "bin")
-    except OSError:
-        pass
-
     edge_freqs = {}
     undir_edge_freqs = {}
 
@@ -72,6 +64,15 @@ def gen_graph(in_filename, out_filename, undir_out_filename, options):
     if starts_from_zero:
         nrows += 1
         ncols += 1
+
+    # remove old graphs now
+    try:
+        os.remove(out_filename)
+        os.remove(undir_out_filename)
+        os.remove(out_filename + "bin")
+        os.remove(undir_out_filename + "bin")
+    except OSError:
+        pass
 
     cnt = 0
     with tqdm.tqdm(total=nnz) as pbar:

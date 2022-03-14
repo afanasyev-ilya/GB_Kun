@@ -1,7 +1,5 @@
 from enum import Enum
 
-
-GENERATE_UNDIRECTED_GRAPHS = False
 UNDIRECTED_PREFIX = "undir_"
 
 # "fast" - very fast mode (only small graphs),
@@ -20,8 +18,6 @@ available_formats = ["CSR", "COO", "CSR_SEG", "LAV", "SELL_C", "SORT"] # TODO
 
 
 def requires_undir_graphs(app_name):
-    if not GENERATE_UNDIRECTED_GRAPHS:
-        return False
     if app_name in ["cc", "coloring"]:
         return True
     return False

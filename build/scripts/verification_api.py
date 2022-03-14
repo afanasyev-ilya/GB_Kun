@@ -28,13 +28,19 @@ def verify_app(app_name, benchmarking_results, graph_format, run_speed_mode, tim
     if app_name in benchmark_args:
         arguments = benchmark_args[app_name]
 
+    file_extension = "mtx"
+    if options.use_binary_graphs:
+        file_extension = "mtxbin"
     for current_args in arguments:
         benchmarking_results.add_correctness_test_name_to_xls_table(app_name, current_args + common_args)
 
         for current_graph in list_of_graphs:
+            if requires_undir_graphs(app_name):
+                current_graph = UNDIRECTED_PREFIX + current_graph
+
             start = time.time()
             cmd = ["bash", "./benchmark.sh", get_binary_path(app_name), "-graph mtx ",
-                   get_path_to_graph(current_graph, "mtx")] + current_args + common_args
+                   get_path_to_graph(current_graph, file_extension)] + current_args + common_args
             print(' '.join(cmd))
             proc = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             timer = Timer(int(timeout_length), proc.kill)
