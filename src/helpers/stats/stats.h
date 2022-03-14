@@ -53,15 +53,15 @@ fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, m
 fclose(my_f);                                                                           \
 
 #define SAVE_TIME_SEC(call_instruction, op_name)       \
-my_t1 = omp_get_wtime();                                                         \
+double my_t1 = omp_get_wtime();                                                         \
 call_instruction;                                                                       \
-my_t2 = omp_get_wtime();                                                         \
-my_time = (my_t2 - my_t1)*1000;                                                           \
-my_perf = 0;                                        \
-my_bw = 0;                                  \
-my_nvals = 0;                               \
-my_f = fopen("perf_stats.txt", "a");                                                 \
-fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+double my_t2 = omp_get_wtime();                                                         \
+double my_time = (my_t2 - my_t1);                                                           \
+double my_perf = 0;                                        \
+double my_bw = 0;                                  \
+double my_nvals = 0;                               \
+FILE *my_f = fopen("perf_stats.txt", "a");                                                 \
+fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
 fclose(my_f);
 
 #define SAVE_TEPS(call_instruction, op_name, iterations, matrix)                        \
