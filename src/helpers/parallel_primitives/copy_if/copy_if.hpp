@@ -281,7 +281,6 @@ inline void ParallelPrimitives::exclusive_scan(_T *_in_data,
                                                 _T *_buffer,
                                                 const int _buffer_size) {
     int omp_work_group_size = omp_get_max_threads();
-    std::cout << "Running scan on " << omp_work_group_size << " threads" << std::endl;
     const int max_threads = 400;
     _T sum_array[max_threads];
     if (omp_work_group_size > max_threads)
@@ -300,8 +299,7 @@ inline void ParallelPrimitives::exclusive_scan(_T *_in_data,
             local_size = _size / nthreads;
             offset = (_size % nthreads) * (local_size + 1) + (ithread - _size % nthreads) * local_size;
         }
-        _T* temp = new _T [local_size + 1];
-        //std::exclusive_scan(_in_data + offset, _in_data + offset + local_size + 1, temp, 0);
+        _T* temp = new _T [local_size + 1]();
         scan(_in_data + offset, temp,static_cast<_T>(0), local_size);
         _T local_max = temp[local_size];
 
@@ -310,9 +308,7 @@ inline void ParallelPrimitives::exclusive_scan(_T *_in_data,
 #pragma omp barrier
 #pragma omp single
         {
-            //std::exclusive_scan(sum_array, sum_array + omp_work_group_size + 1, sum_array, 0);
             scan(sum_array, sum_array, static_cast<_T>(0), omp_work_group_size);
-		std::cout << "Running sum array scan" << std::endl;
         }
 
         _T local_additive = sum_array[ithread];
@@ -320,15 +316,12 @@ inline void ParallelPrimitives::exclusive_scan(_T *_in_data,
         for (int i = 0; i < local_size; i++) {
             _out_data[i + offset] = temp[i] + local_additive;
         }
-	std::cout << "somewhere there" << std::endl;
 #pragma omp single
         {
             _out_data[_size] = sum_array[omp_work_group_size];
         }
-	std::cout << "before deleting " << std::endl;
 
         delete[] temp;
-
 
     }
 }

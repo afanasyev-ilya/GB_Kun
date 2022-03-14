@@ -164,7 +164,7 @@ public:
 
         VNT csr_ncols = csr_data->get_num_cols();
         VNT csr_nrows = csr_data->get_num_rows();
-        auto dloc = new int[csr_data->get_nnz()];
+        auto dloc = new int[csr_data->get_nnz()]();
 
         Index temp;
         Index* row_ptr = csc_data->get_row_ptr();
@@ -181,8 +181,6 @@ public:
 //        for (int i = 0; i < csr_ncols + 1; i++) {
 //            std::cout << csc_data->get_row_ptr()[i] << " ";
 //        }
-	std::cout << "Running after scan\n\n\n\n " << std::endl;	
-	std::cout << std::flush;
 #pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
         for (Index i = 0; i < csr_nrows; i++) {
             for (Index j =csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i + 1]; j++) {
