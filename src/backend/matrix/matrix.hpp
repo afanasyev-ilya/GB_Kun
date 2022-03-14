@@ -237,6 +237,132 @@ void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void binary_read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, ENT _nnz)
+{
+    ENT end_pos = _ln_pos + MTX_READ_PARTITION_SIZE;
+
+    VNT buf_size = MTX_READ_PARTITION_SIZE * 2 * sizeof(VNT);
+    VNT *buf = (VNT *)malloc(buf_size);
+    fread(buf, sizeof(VNT), 2 * MTX_READ_PARTITION_SIZE, _fp);
+    for(size_t ln = _ln_pos, i = 0; ln < min(_nnz, end_pos); ln++, i += 2)
+    {
+        VNT src_id = -2, dst_id = -2;
+        src_id = buf[i];
+        dst_id = buf[i + 1];
+        _src_ids[ln - _ln_pos] = src_id;
+        _dst_ids[ln - _ln_pos] = dst_id;
+        if(src_id <= 0 || dst_id <= 0)
+            cout << "Error in read_portion, <= 0 src/dst ids" << endl;
+    }
+    free(buf);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+void Matrix<T>::binary_read_mtx_file_pipelined(const string &_mtx_file_name,
+                                               vector<vector<pair<VNT, T>>> &_csr_matrix,
+                                               vector<vector<pair<VNT, T>>> &_csc_matrix)
+{
+    double t1, t2;
+    t1 = omp_get_wtime();
+    FILE *fp = fopen(_mtx_file_name.c_str(), "rb");
+    if(fp == 0)
+    {
+        cout << "Error: Can not open .mtx " << _mtx_file_name.c_str() << " file!"  << endl;
+        throw "Error: Can not open .mtx file";
+    }
+
+    long long int tmp_rows = 0, tmp_cols = 0, tmp_nnz = 0;
+    fread(&tmp_rows, sizeof(long long), 1, fp);
+    fread(&tmp_cols, sizeof(long long), 1, fp);
+    fread(&tmp_nnz, sizeof(long long), 1, fp);
+
+    VNT *proc_src_ids, *proc_dst_ids;
+    VNT *read_src_ids, *read_dst_ids;
+    MemoryAPI::allocate_array(&proc_src_ids, MTX_READ_PARTITION_SIZE);
+    MemoryAPI::allocate_array(&proc_dst_ids, MTX_READ_PARTITION_SIZE);
+    MemoryAPI::allocate_array(&read_src_ids, MTX_READ_PARTITION_SIZE);
+    MemoryAPI::allocate_array(&read_dst_ids, MTX_READ_PARTITION_SIZE);
+
+    ENT ln_pos = 0;
+
+    _csr_matrix.resize(tmp_rows);
+    _csc_matrix.resize(tmp_cols);
+
+    int min_seq_steps = 8;
+
+    if(tmp_nnz >= MTX_READ_PARTITION_SIZE*min_seq_steps)
+    {
+        #pragma omp parallel num_threads(2) shared(ln_pos)
+        {
+            int tid = omp_get_thread_num();
+
+            if(tid == 0)
+            {
+                binary_read_portion(fp, proc_src_ids, proc_dst_ids, ln_pos, (ENT)tmp_nnz);
+                ln_pos += MTX_READ_PARTITION_SIZE;
+            }
+
+            #pragma omp barrier
+
+            while(ln_pos < tmp_nnz)
+            {
+                #pragma omp barrier
+
+                if(tid == 0)
+                {
+                    binary_read_portion(fp, read_src_ids, read_dst_ids, ln_pos, (ENT)tmp_nnz);
+                }
+                if(tid == 1)
+                {
+                    process_portion(proc_src_ids, proc_dst_ids, _csr_matrix, _csc_matrix,
+                                    ln_pos - MTX_READ_PARTITION_SIZE, tmp_nnz);
+                }
+
+                #pragma omp barrier
+
+                if(tid == 0)
+                {
+                    ptr_swap(read_src_ids, proc_src_ids);
+                    ptr_swap(read_dst_ids, proc_dst_ids);
+                    ln_pos += MTX_READ_PARTITION_SIZE;
+                }
+
+                #pragma omp barrier
+            }
+
+            if(tid == 1)
+            {
+                process_portion(proc_src_ids, proc_dst_ids, _csr_matrix, _csc_matrix, ln_pos - MTX_READ_PARTITION_SIZE, tmp_nnz);
+            }
+
+            #pragma omp barrier
+        }
+    }
+    else
+    {
+        ln_pos = 0;
+        while(ln_pos < tmp_nnz)
+        {
+            binary_read_portion(fp, proc_src_ids, proc_dst_ids, ln_pos, (ENT)tmp_nnz);
+            process_portion(proc_src_ids, proc_dst_ids, _csr_matrix, _csc_matrix, ln_pos, tmp_nnz);
+            ln_pos += MTX_READ_PARTITION_SIZE;
+        }
+    }
+
+    MemoryAPI::free_array(proc_src_ids);
+    MemoryAPI::free_array(proc_dst_ids);
+    MemoryAPI::free_array(read_src_ids);
+    MemoryAPI::free_array(read_dst_ids);
+
+    fclose(fp);
+    t2 = omp_get_wtime();
+    cout << "CSR generation + C-style file read time: " << t2 - t1 << " sec" << endl;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template<typename T>
 void Matrix<T>::init_optimized_structures()
 {

@@ -100,7 +100,8 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
     int iter = 1;
     int succ = 0;
     cout << "------------------------------ alg started ------------------------------------ " << endl;
-    do {
+    do
+    {
         GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, GrB_NULL));
         GrB_TRY( GrB_vxm(f2, v, NULL, lablas::LogicalOrAndSemiring<int>(), f1, A, GrB_DESC_SC));
 
@@ -109,7 +110,8 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
         GrB_TRY (GrB_reduce (&succ, NULL, GrB_PLUS_MONOID_INT32, f1, GrB_NULL)) ;
 
         iter++;
-    } while(succ > 0);
+    }
+    while(succ > 0);
     cout << "------------------------------ alg done ------------------------------------ " << endl;
 
     //v->force_to_dense();

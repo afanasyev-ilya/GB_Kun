@@ -178,7 +178,7 @@ public:
 //            std::cout << csc_data->get_row_ptr()[i] << " ";
 //        }
 
-#pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
+        #pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
         for (Index i = 0; i < csr_nrows; i++) {
             for (Index j =csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i + 1]; j++) {
                 auto loc = csc_data->get_row_ptr()[csr_data->get_col_ids()[j]] + dloc[j];
@@ -202,6 +202,10 @@ private:
     void read_mtx_file_pipelined(const string &_mtx_file_name,
                                  vector<vector<pair<VNT, T>>> &_csr_matrix,
                                  vector<vector<pair<VNT, T>>> &_csc_matrix);
+
+    void binary_read_mtx_file_pipelined(const string &_mtx_file_name,
+                                        vector<vector<pair<VNT, T>>> &_csr_matrix,
+                                        vector<vector<pair<VNT, T>>> &_csc_matrix);
 
     void init_optimized_structures();
 };
