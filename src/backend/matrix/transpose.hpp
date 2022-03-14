@@ -4,7 +4,21 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Matrix<T>::transpose() {
+LA_Info Matrix<T>::transpose()
+{
+    #ifdef __PARALLEL_TRANSPOSE__
+    transpose_parallel();
+    #elif
+    transpose_sequential();
+    #endif
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void Matrix<T>::transpose_sequential()
+{
 
     memset(csc_data->get_row_ptr(),0, (csc_data->get_num_rows() + 1) * sizeof(Index));
     memset(csc_data->get_col_ids(),0, csc_data->get_nnz()* sizeof(Index));
@@ -49,7 +63,7 @@ void Matrix<T>::transpose_parallel(void) {
 
     double fetch_a = omp_get_wtime();
 
-#pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
+    #pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
     for (int i = 0; i < csr_nrows; i++) {
         for (int j = csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i + 1]; j++) {
             dloc[j] = my_fetch_add(&row_ptr[csr_data->get_col_ids()[j]], static_cast<Index>(1));
@@ -64,7 +78,7 @@ void Matrix<T>::transpose_parallel(void) {
     double scan_b = omp_get_wtime();
 
     double final_a = omp_get_wtime();
-#pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
+    #pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
     for (Index i = 0; i < csr_nrows; i++) {
         for (Index j =csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i + 1]; j++) {
             auto loc = csc_data->get_row_ptr()[csr_data->get_col_ids()[j]] + dloc[j];
@@ -72,10 +86,15 @@ void Matrix<T>::transpose_parallel(void) {
             csc_data->get_vals()[loc] = csr_data->get_vals()[j];
         }
     }
-#pragma omp barrier
+    #pragma omp barrier
     double final_b = omp_get_wtime();
 
-#ifdef __DEBUG_BANDWIDTHS__
+    if(num_sockets_used() > 1)
+    {
+        //csc_data->numa_aware_alloc(); // TODO
+    }
+
+    #ifdef __DEBUG_BANDWIDTHS__
     std::cout << "Inner time for mem " << mem_b - mem_a << " seconds" << std::endl;
     std::cout << "Inner time for fetch " << fetch_b - fetch_a << " seconds" << std::endl;
     std::cout << "Inner time for scan " << scan_b - scan_a << " seconds" << std::endl;
@@ -100,7 +119,7 @@ void Matrix<T>::transpose_parallel(void) {
     total_bw /= (final_b - mem_a);
 
     std::cout << "Overall bandwidth " << total_bw / 1000000000 << "GByte/sec" << std::endl;
-#endif
+    #endif
 }
 
 #endif //GB_KUN_TRANSPOSE_HPP

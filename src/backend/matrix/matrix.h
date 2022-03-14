@@ -151,8 +151,9 @@ public:
 
     void sort_csc_rows(const string& mode);
 
-    void transpose(void);
+    LA_Info  transpose();
 
+    void transpose_sequential(void);
     void transpose_parallel(void);
 private:
     MatrixContainer<T> *data;
