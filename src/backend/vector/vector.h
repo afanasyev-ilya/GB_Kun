@@ -203,6 +203,13 @@ public:
         ptr_swap(this->main_container, _another->main_container);
         ptr_swap(this->secondary_container, _another->secondary_container);
     }
+
+    LA_Info clear()
+    {
+        swap_to_sparse();
+        main_container->fill_with_zeros();
+        return GrB_SUCCESS;
+    }
 private:
     GenericVector<T> *main_container;
     GenericVector<T> *secondary_container;

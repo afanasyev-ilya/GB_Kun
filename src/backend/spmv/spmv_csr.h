@@ -20,8 +20,7 @@ void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
-void SpMV_numa_aware(MatrixCSR<A> *_matrix,
-                     MatrixCSR<A> *_matrix_socket_dub,
+void SpMV_numa_aware(const MatrixCSR<A> *_matrix,
                      const DenseVector<X> *_x,
                      DenseVector<Y> *_y,
                      BinaryOpTAccum _accum,
@@ -37,52 +36,11 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
-    /*#pragma omp parallel
-    {
-        int total_threads = omp_get_num_threads();
-        int tid = omp_get_thread_num();
+    auto offsets = _matrix->get_load_balancing_offsets();
 
-        int socket = tid / (THREADS_PER_SOCKET);
-
-        T *local_x_vals, *local_y_vals;
-
-        VNT vec_size = _matrix->size;
-        MatrixCSR<T> *local_matrix;
-        if(socket == 0)
-        {
-            local_x_vals = x_vals_first_socket;
-            local_matrix = _matrix;
-            in_socket_copy(local_x_vals, x_vals, vec_size);
-        }
-        else if(socket == 1)
-        {
-            local_x_vals = x_vals_second_socket;
-            local_matrix = _matrix_socket_dub;
-            in_socket_copy(local_x_vals, x_vals, vec_size);
-        }
-
-        #pragma omp barrier
-
-        for(int vg = 0; vg < _matrix->vg_num; vg++)
-        {
-            const VNT *vertices = _matrix->vertex_groups[vg].get_data();
-            VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
-
-            #pragma omp for nowait schedule(guided, 1)
-            for(VNT idx = 0; idx < vertex_group_size; idx++)
-            {
-                VNT row = vertices[idx];
-                T res = identity_val;
-                for(ENT j = local_matrix->row_ptr[row]; j < local_matrix->row_ptr[row + 1]; j++)
-                {
-                    VNT col = local_matrix->col_ids[j];
-                    T val = local_matrix->vals[j];
-                    res = add_op(res, mul_op(val, local_x_vals[col]));
-                }
-                y_vals[row] = _accum(y_vals[row], res);
-            }
-        }
-    }*/
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t1 = omp_get_wtime();
+    #endif
 
     #pragma omp parallel
     {
@@ -103,46 +61,34 @@ void SpMV_numa_aware(MatrixCSR<A> *_matrix,
             in_socket_copy(local_x_vals, x_vals, _matrix->nrows);
         }
 
-        if(_matrix->can_use_static_balancing())
-        {
-            #pragma omp for schedule(static)
-            for(VNT row = 0; row < _matrix->nrows; row++)
-            {
-                A res = identity_val;
-                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
-                {
-                    VNT col = _matrix->col_ids[j];
-                    A val = _matrix->vals[j];
-                    res = add_op(res, mul_op(val, local_x_vals[col]));
-                }
-                y_vals[row] = _accum(y_vals[row], res);
-            }
-        }
-        else
-        {
-            #pragma omp barrier
+        VNT first_row = offsets[tid].first;
+        VNT last_row = offsets[tid].second;
 
-            for(int vg = 0; vg < _matrix->vg_num; vg++)
-            {
-                const VNT *vertices = _matrix->vertex_groups[vg].get_data();
-                VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
+        ENT *shifts = _matrix->row_ptr;
+        VNT *connections_count = _matrix->row_degrees;
+        VNT *col_ids = _matrix->col_ids;
+        A *vals = _matrix->vals;
 
-                #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
-                for(VNT idx = 0; idx < vertex_group_size; idx++)
-                {
-                    VNT row = vertices[idx];
-                    Y res = identity_val;
-                    for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
-                    {
-                        VNT col = _matrix->col_ids[j];
-                        A val = _matrix->vals[j];
-                        res = add_op(res, mul_op(val, local_x_vals[col]));
-                    }
-                    y_vals[row] = _accum(y_vals[row], res);
-                }
+        for(VNT row = first_row; row < last_row; row++)
+        {
+            Y res = identity_val;
+            ENT shift = shifts[row];
+            VNT connections = connections_count[row];
+            for(ENT j = shift; j < shift + connections; j++)
+            {
+                VNT col = col_ids[j];
+                A val = vals[j];
+                res = add_op(res, mul_op(val, local_x_vals[col]));
             }
+            y_vals[row] = _accum(y_vals[row], res);
         }
     }
+
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t2 = omp_get_wtime();
+    cout << "spmv slices (numa-aware), unmasked time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -341,34 +287,32 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
+    auto offsets = _matrix->get_load_balancing_offsets();
+
     #ifdef __DEBUG_BANDWIDTHS__
     double t1 = omp_get_wtime();
     #endif
     #pragma omp parallel
     {
-        for(int vg = 0; vg < _matrix->vg_num; vg++)
-        {
-            const VNT *vertices = _matrix->vertex_groups[vg].get_data();
-            VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
+        int tid = omp_get_thread_num();
+        VNT first_row = offsets[tid].first;
+        VNT last_row = offsets[tid].second;
 
-            #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
-            for(VNT idx = 0; idx < vertex_group_size; idx++)
+        for(VNT row = first_row; row < last_row; row++)
+        {
+            Y res = identity_val;
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
-                VNT row = vertices[idx];
-                Y res = identity_val;
-                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
-                {
-                    VNT col = _matrix->col_ids[j];
-                    A val = _matrix->vals[j];
-                    res = add_op(res, mul_op(val, x_vals[col]));
-                }
-                y_vals[row] = _accum(y_vals[row], res);
+                VNT col = _matrix->col_ids[j];
+                A val = _matrix->vals[j];
+                res = add_op(res, mul_op(val, x_vals[col]));
             }
+            y_vals[row] = _accum(y_vals[row], res);
         }
     }
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
-    cout << "spmv time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "spmv slices (diff vector), unmasked time: " << (t2 - t1)*1000 << " ms" << endl;
     cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
     #endif
 }
@@ -390,28 +334,29 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
+    auto offsets = _matrix->get_load_balancing_offsets();
     Y *buffer = (Y*)_workspace->get_first_socket_vector();
+
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t1 = omp_get_wtime();
+    #endif
 
     #pragma omp parallel
     {
-        for(int vg = 0; vg < _matrix->vg_num; vg++)
-        {
-            const VNT *vertices = _matrix->vertex_groups[vg].get_data();
-            VNT vertex_group_size = _matrix->vertex_groups[vg].get_size();
+        int tid = omp_get_thread_num();
+        VNT first_row = offsets[tid].first;
+        VNT last_row = offsets[tid].second;
 
-            #pragma omp for nowait schedule(static, CSR_SORTED_BALANCING)
-            for(VNT idx = 0; idx < vertex_group_size; idx++)
+        for(VNT row = first_row; row < last_row; row++)
+        {
+            Y res = identity_val;
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
-                VNT row = vertices[idx];
-                Y res = identity_val;
-                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
-                {
-                    VNT col = _matrix->col_ids[j];
-                    A val = _matrix->vals[j];
-                    res = add_op(res, mul_op(val, x_vals[col]));
-                }
-                buffer[row] = res;
+                VNT col = _matrix->col_ids[j];
+                A val = _matrix->vals[j];
+                res = add_op(res, mul_op(val, x_vals[col]));
             }
+            buffer[row] = res;
         }
 
         #pragma omp barrier
@@ -422,6 +367,12 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
             y_vals[row] = _accum(y_vals[row], buffer[row]);
         }
     }
+
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t2 = omp_get_wtime();
+    cout << "spmv slices (same vector), unmasked time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

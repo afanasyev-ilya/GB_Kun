@@ -222,8 +222,7 @@ LA_Info assignScatter(Vector<W>*       _w,
                const Vector<I> *_indices,
                const Index _nindices,
                Descriptor*  _desc)
-               {
-
+{
     if(not_initialized(_w))
         return GrB_UNINITIALIZED_OBJECT;
     if(dims_mismatched(_w, _u))

@@ -11,9 +11,6 @@ Matrix<T>::Matrix(): _format(CSR)
     csc_data = NULL;
     data = NULL;
     transposed_data = NULL;
-    #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    data_socket_dub = NULL;
-    #endif
 
     workspace = NULL;
 }
@@ -41,11 +38,6 @@ Matrix<T>::~Matrix()
         delete data;
     if(transposed_data != NULL)
         delete transposed_data;
-
-    #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    if(data_socket_dub != NULL)
-        delete data_socket_dub;
-    #endif
 
     delete workspace;
 };
@@ -209,6 +201,132 @@ void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void binary_read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, ENT _nnz)
+{
+    ENT end_pos = _ln_pos + MTX_READ_PARTITION_SIZE;
+
+    VNT buf_size = MTX_READ_PARTITION_SIZE * 2 * sizeof(VNT);
+    VNT *buf = (VNT *)malloc(buf_size);
+    fread(buf, sizeof(VNT), 2 * MTX_READ_PARTITION_SIZE, _fp);
+    for(size_t ln = _ln_pos, i = 0; ln < min(_nnz, end_pos); ln++, i += 2)
+    {
+        VNT src_id = -2, dst_id = -2;
+        src_id = buf[i];
+        dst_id = buf[i + 1];
+        _src_ids[ln - _ln_pos] = src_id;
+        _dst_ids[ln - _ln_pos] = dst_id;
+        if(src_id <= 0 || dst_id <= 0)
+            cout << "Error in read_portion, <= 0 src/dst ids" << endl;
+    }
+    free(buf);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+void Matrix<T>::binary_read_mtx_file_pipelined(const string &_mtx_file_name,
+                                               vector<vector<pair<VNT, T>>> &_csr_matrix,
+                                               vector<vector<pair<VNT, T>>> &_csc_matrix)
+{
+    double t1, t2;
+    t1 = omp_get_wtime();
+    FILE *fp = fopen(_mtx_file_name.c_str(), "rb");
+    if(fp == 0)
+    {
+        cout << "Error: Can not open .mtx " << _mtx_file_name.c_str() << " file!"  << endl;
+        throw "Error: Can not open .mtx file";
+    }
+
+    long long int tmp_rows = 0, tmp_cols = 0, tmp_nnz = 0;
+    fread(&tmp_rows, sizeof(long long), 1, fp);
+    fread(&tmp_cols, sizeof(long long), 1, fp);
+    fread(&tmp_nnz, sizeof(long long), 1, fp);
+
+    VNT *proc_src_ids, *proc_dst_ids;
+    VNT *read_src_ids, *read_dst_ids;
+    MemoryAPI::allocate_array(&proc_src_ids, MTX_READ_PARTITION_SIZE);
+    MemoryAPI::allocate_array(&proc_dst_ids, MTX_READ_PARTITION_SIZE);
+    MemoryAPI::allocate_array(&read_src_ids, MTX_READ_PARTITION_SIZE);
+    MemoryAPI::allocate_array(&read_dst_ids, MTX_READ_PARTITION_SIZE);
+
+    ENT ln_pos = 0;
+
+    _csr_matrix.resize(tmp_rows);
+    _csc_matrix.resize(tmp_cols);
+
+    int min_seq_steps = 8;
+
+    if(tmp_nnz >= MTX_READ_PARTITION_SIZE*min_seq_steps)
+    {
+        #pragma omp parallel num_threads(2) shared(ln_pos)
+        {
+            int tid = omp_get_thread_num();
+
+            if(tid == 0)
+            {
+                binary_read_portion(fp, proc_src_ids, proc_dst_ids, ln_pos, (ENT)tmp_nnz);
+                ln_pos += MTX_READ_PARTITION_SIZE;
+            }
+
+            #pragma omp barrier
+
+            while(ln_pos < tmp_nnz)
+            {
+                #pragma omp barrier
+
+                if(tid == 0)
+                {
+                    binary_read_portion(fp, read_src_ids, read_dst_ids, ln_pos, (ENT)tmp_nnz);
+                }
+                if(tid == 1)
+                {
+                    process_portion(proc_src_ids, proc_dst_ids, _csr_matrix, _csc_matrix,
+                                    ln_pos - MTX_READ_PARTITION_SIZE, tmp_nnz);
+                }
+
+                #pragma omp barrier
+
+                if(tid == 0)
+                {
+                    ptr_swap(read_src_ids, proc_src_ids);
+                    ptr_swap(read_dst_ids, proc_dst_ids);
+                    ln_pos += MTX_READ_PARTITION_SIZE;
+                }
+
+                #pragma omp barrier
+            }
+
+            if(tid == 1)
+            {
+                process_portion(proc_src_ids, proc_dst_ids, _csr_matrix, _csc_matrix, ln_pos - MTX_READ_PARTITION_SIZE, tmp_nnz);
+            }
+
+            #pragma omp barrier
+        }
+    }
+    else
+    {
+        ln_pos = 0;
+        while(ln_pos < tmp_nnz)
+        {
+            binary_read_portion(fp, proc_src_ids, proc_dst_ids, ln_pos, (ENT)tmp_nnz);
+            process_portion(proc_src_ids, proc_dst_ids, _csr_matrix, _csc_matrix, ln_pos, tmp_nnz);
+            ln_pos += MTX_READ_PARTITION_SIZE;
+        }
+    }
+
+    MemoryAPI::free_array(proc_src_ids);
+    MemoryAPI::free_array(proc_dst_ids);
+    MemoryAPI::free_array(read_src_ids);
+    MemoryAPI::free_array(read_dst_ids);
+
+    fclose(fp);
+    t2 = omp_get_wtime();
+    cout << "CSR generation + C-style file read time: " << t2 - t1 << " sec" << endl;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template<typename T>
 void Matrix<T>::init_optimized_structures()
 {
@@ -220,12 +338,9 @@ void Matrix<T>::init_optimized_structures()
     {
         data = NULL;
         transposed_data = NULL;
-
-        #ifdef __USE_SOCKET_OPTIMIZATIONS__
-        data_socket_dub = new MatrixCSR<T>;
-        ((MatrixCSR<T>*)data_socket_dub)->deep_copy((MatrixCSR<T>*)csr_data, 1);
-        #endif
+        #ifdef __DEBUG_INFO__
         cout << "Using CSR matrix format as optimized representation" << endl;
+        #endif
     }
     else if (_format == CSR_SEG)
     {
@@ -235,9 +350,9 @@ void Matrix<T>::init_optimized_structures()
                     csr_data->get_vals(), 0);
         ((MatrixSegmentedCSR<T>*)transposed_data)->build(csc_data->get_num_rows(), csc_data->get_nnz(), csc_data->get_row_ptr(), csc_data->get_col_ids(),
                     csc_data->get_vals(), 0);
-
-        data_socket_dub = NULL;
+        #ifdef __DEBUG_INFO__
         cout << "Using CSR_SEG matrix format as optimized representation" << endl;
+        #endif
     }
     else if (_format == COO)
     {
@@ -247,9 +362,9 @@ void Matrix<T>::init_optimized_structures()
                                      csr_data->get_vals(), 0);
         ((MatrixCOO<T>*)transposed_data)->build(csc_data->get_num_rows(), csc_data->get_nnz(), csc_data->get_row_ptr(), csc_data->get_col_ids(),
                                                 csc_data->get_vals(), 0);
-
-        data_socket_dub = NULL;
+        #ifdef __DEBUG_INFO__
         cout << "Using COO matrix format as optimized representation" << endl;
+        #endif
     }
     else if (_format == SORTED_CSR)
     {
@@ -269,9 +384,9 @@ void Matrix<T>::init_optimized_structures()
                                                     csc_data->get_row_ptr(),
                                                     csc_data->get_col_ids(),
                                                     csc_data->get_vals(), 0);
-
-        data_socket_dub = NULL;
+        #ifdef __DEBUG_INFO__
         cout << "Using SORTED CSR matrix format as optimized representation" << endl;
+        #endif
     }
     else if (_format == SELL_C)
     {
@@ -289,9 +404,9 @@ void Matrix<T>::init_optimized_structures()
                                                   csc_data->get_row_ptr(),
                                                   csc_data->get_col_ids(),
                                                   csc_data->get_vals(), 0);
-
-        data_socket_dub = NULL;
+        #ifdef __DEBUG_INFO__
         cout << "Using SELL-C matrix format as optimized representation" << endl;
+        #endif
     }
     else if (_format == LAV)
     {
@@ -311,16 +426,18 @@ void Matrix<T>::init_optimized_structures()
                                                   csc_data->get_row_ptr(),
                                                   csc_data->get_col_ids(),
                                                   csc_data->get_vals(), 0);
-
-        data_socket_dub = NULL;
+        #ifdef __DEBUG_INFO__
         cout << "Using LAV matrix format as optimized representation" << endl;
+        #endif
     }
     else
     {
         throw "Error: unsupported format in Matrix<T>::build";
     }
     t2 = omp_get_wtime();
+    #ifdef __DEBUG_INFO__
     cout << "creating optimized representation time: " << t2 - t1 << " sec" << endl;
+    #endif
 
     workspace = new Workspace(get_nrows(), get_ncols());
 }
@@ -333,9 +450,8 @@ void Matrix<T>::build(const VNT *_row_indices,
                       const T *_values,
                       const ENT _nnz)
 {
-    // CSR data creation
     VNT max_rows = 0, max_cols = 0;
-#pragma omp parallel for reduction(max: max_rows, max_cols)
+    #pragma omp parallel for reduction(max: max_rows, max_cols)
     for(ENT i = 0; i < _nnz; i++)
     {
         if(max_rows < _row_indices[i])
@@ -348,18 +464,26 @@ void Matrix<T>::build(const VNT *_row_indices,
             max_cols = _row_indices[i];
         }
     }
-    max_cols++;
-    max_rows++;
-    if (max_rows!= max_cols) {
-        printf("Non square matrices are not implemented yet");
+
+    max_rows += 1;
+    max_cols += 1;
+    if(max_rows != max_cols)
+    {
+        cout << "Non-square matrix is not supported yet" << endl;
+        VNT max_dim = max(max_rows, max_cols);
+        max_rows = max_dim;
+        max_cols = max_dim;
     }
+
     double t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
-    csr_data->build(_row_indices, _col_indices, _values, max_rows, max_cols, _nnz, 0);
-    csc_data->build(_col_indices, _row_indices, _values, max_cols, max_rows, _nnz, 0);
+    csr_data->build(_row_indices, _col_indices, _values, max_rows, max_cols, _nnz);
+    csc_data->build(_col_indices, _row_indices, _values, max_cols, max_rows, _nnz);
     double t2 = omp_get_wtime();
+    #ifdef __DEBUG_INFO__
     cout << "csr creation time: " << t2 - t1 << " sec" << endl;
+    #endif
 
     // initializing additional data structures time
     init_optimized_structures();
@@ -373,14 +497,27 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     // read mtx file and get tmp representations of csr and csc matrix
     vector<vector<pair<VNT, T>>> csr_tmp_matrix;
     vector<vector<pair<VNT, T>>> csc_tmp_matrix;
-    read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+    if(ends_with(_mtx_file_name, "mtx"))
+    {
+        SAVE_TIME_SEC((read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "mtx_read");
+    }
+    else if(ends_with(_mtx_file_name, "mtxbin"))
+    {
+        SAVE_TIME_SEC((binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "binary_read");
+    }
+    else
+    {
+        cout << "Unsupported matrix file format. can be either .mtx or .mtx.bin";
+        throw "Aborting...";
+    }
+
     VNT tmp_nrows = csr_tmp_matrix.size(), tmp_ncols = csc_tmp_matrix.size();
 
     double t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
-    csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols, 0);
-    csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows, 0);
+    csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols);
+    csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows);
     double t2 = omp_get_wtime();
     cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;
 

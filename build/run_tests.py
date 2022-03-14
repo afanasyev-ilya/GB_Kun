@@ -18,7 +18,7 @@ def run_compile(options):
 
 
 def run_prepare(options):
-    create_graphs_if_required(get_list_of_all_graphs(options.mode), options.mode)
+    create_graphs_if_required(get_list_of_all_graphs(options.mode), options.mode, options)
 
 
 def run_benchmarks(options, benchmarking_results):
@@ -30,7 +30,7 @@ def run_benchmarks(options, benchmarking_results):
     for app_name in list_of_apps:
         if is_valid(app_name, options):
             algorithms_tested += benchmark_app(app_name, benchmarking_results, options.format, options.mode,
-                                               options.timeout)
+                                               options.timeout, options)
         else:
             print("Error! Can not benchmark " + app_name + ", several errors occurred.")
     return algorithms_tested
@@ -42,16 +42,20 @@ def run_scaling(options, benchmarking_results):
     output_file = open(SCALING_FILE, 'w', encoding='utf-8')  # clear file
     output_file.close()
 
+    scaling_data = []
+
     for app_name in list_of_apps:
         max_cores = get_cores_count()
         for threads_num in range(0, max_cores + 1, SCALING_STEP):
             threads_used = max(1, threads_num)
             print("using " + str(threads_used) + " threads")
             if is_valid(app_name, options):
-                scale_app(app_name, benchmarking_results, options.format, options.mode,
-                          options.timeout, threads_used)
+                scaling_data += scale_app(app_name, benchmarking_results, options.format, options.mode,
+                                          options.timeout, threads_used, options)
             else:
                 print("Error! Can not benchmark " + app_name + ", several errors occurred.")
+    print(scaling_data)
+    post_process_scaling_data(scaling_data)
 
 
 def run_verify(options, benchmarking_results):
@@ -65,7 +69,7 @@ def run_verify(options, benchmarking_results):
             continue
         if is_valid(app_name, options):
             algorithms_verified += verify_app(app_name, benchmarking_results, options.format, options.mode,
-                                              options.timeout)
+                                              options.timeout, options)
         else:
             print("Error! Can not compile " + app_name + ", several errors occurred.")
     return algorithms_verified
@@ -162,6 +166,9 @@ def main():
     parser.add_option('-d', '--download',
                       action="store_true", dest="download",
                       help="download all real-world graphs from internet collections (default false)", default=False)
+    parser.add_option('--binary',
+                      action="store_true", dest="use_binary_graphs",
+                      help="use optimized binary representation instead of mtx", default=False)
     parser.add_option('-t', '--timeout',
                       action="store", dest="timeout",
                       help="execution time (in seconds), after which tested app is automatically aborted. "

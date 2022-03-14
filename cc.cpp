@@ -1,3 +1,4 @@
+#define __REQUIRES_UNDIRECTED_GRAPHS__
 #include "src/gb_kun.h"
 
 #include "algorithms/cc/cc.hpp"
@@ -40,7 +41,7 @@ bool equal_components(lablas::Vector<T> &_first,
             error_count++;
         }
     }
-    cout << "error count: " << error_count << endl;
+    cout << "error count: " << error_count << " / " << vertices_count << endl;
     if(error_count == 0)
         cout << "Results are equal" << endl;
     else

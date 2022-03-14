@@ -18,9 +18,9 @@ public:
 
     void deep_copy(MatrixCSR<T> *_copy, int _target_socket = -1);
 
-    void build(vector<vector<pair<VNT, T>>> &_tmp_csr, VNT _nrows, VNT _ncols, int _target_socket);
+    void build(vector<vector<pair<VNT, T>>> &_tmp_csr, VNT _nrows, VNT _ncols);
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _nrows, VNT _ncols,
-               ENT _nnz, int _target_socket = 0);
+               ENT _nnz);
 
     void print() const;
 
@@ -42,11 +42,11 @@ public:
     VNT *get_rowdegrees() {return row_degrees;};
     const VNT *get_rowdegrees() const {return row_degrees;};
 
-    bool can_use_static_balancing() const {return static_ok_to_use;};
     ENT get_degree(VNT _row) {return row_ptr[_row + 1] - row_ptr[_row];};
 
     T get(VNT _row, VNT _col) const;
 
+    const vector<pair<VNT, VNT>> &get_load_balancing_offsets() const;
 private:
     VNT nrows, ncols;
     ENT nnz;
@@ -56,15 +56,14 @@ private:
     VNT *col_ids;
     VNT *row_degrees;
 
-    static const int vg_num = 9; // 9 is best currently
-    VertexGroup vertex_groups[vg_num];
-    bool static_ok_to_use;
+    mutable vector<pair<VNT, VNT>> load_balancing_offsets;
+    mutable bool load_balancing_offsets_set;
 
     int target_socket;
 
-    void alloc(VNT _nrows, VNT _ncols, ENT _nnz, int _target_socket);
+    void alloc(VNT _nrows, VNT _ncols, ENT _nnz);
     void free();
-    void resize(VNT _nrows, VNT _ncols, ENT _nnz, int _target_socket);
+    void resize(VNT _nrows, VNT _ncols, ENT _nnz);
 
     bool is_non_zero(VNT _row, VNT _col);
 
@@ -107,8 +106,7 @@ private:
                             Workspace *_workspace);
 
     template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
-    friend void SpMV_numa_aware(MatrixCSR<A> *_matrix,
-                                MatrixCSR<A> *_matrix_socket_dub,
+    friend void SpMV_numa_aware(const MatrixCSR<A> *_matrix,
                                 const DenseVector<X> *_x,
                                 DenseVector<Y> *_y,
                                 BinaryOpTAccum _accum,
@@ -151,9 +149,16 @@ private:
                                    Descriptor *_desc,
                                    Workspace *_workspace);
 
-    void prepare_vg_lists(int _target_socket);
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
+                                         const SparseVector<X> *_x,
+                                         DenseVector<Y> *_y,
+                                         BinaryOpTAccum _accum,
+                                         SemiringT _op,
+                                         Descriptor *_desc,
+                                         Workspace *_workspace);
+
     void numa_aware_realloc();
-    void check_if_static_can_be_used();
     void calculate_degrees();
 };
 

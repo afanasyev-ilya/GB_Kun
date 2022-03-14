@@ -35,7 +35,9 @@ void SparseVector<T>::set_all_constant(T _val)
 template <typename T>
 void SparseVector<T>::convert(DenseVector<T> *_dense_vector)
 {
+    #ifdef __DEBUG_INFO__
     cout << "converting dense -> sparse, name = " << this->name << endl;
+    #endif
     VNT dense_size = _dense_vector->get_size();
     T* dense_vals = _dense_vector->get_vals();
 

@@ -71,7 +71,7 @@ float cc(Vector<int>*       v,
         //cout << "min_neighbor_paren: ";
         //min_neighbor_parent.print();
 
-        // f[f[u]] = mngf[u]. Second does nothing
+        // f[f[u]] = mngf[u]. Second does nothing (imitating comma operator)
         assignScatter(&parent, MASK_NULL, second<int>(),
                                            &min_neighbor_parent, &parent_temp, parent_temp.nvals(), desc);
 
@@ -80,34 +80,28 @@ float cc(Vector<int>*       v,
 
         // 2) Aggressive hooking.
         // f = min(f, mngf)
-        eWiseAdd(&parent, MASK_NULL, GrB_NULL,
-                 minimum<int>(), &parent, &min_neighbor_parent, desc);
+        eWiseAdd(&parent, MASK_NULL, GrB_NULL,minimum<int>(), &parent, &min_neighbor_parent, desc);
 
         //cout << "after hooking: ";
         //parent.print();
 
         // 3) Shortcutting.
         // f = min(f, gf)
-        eWiseAdd(&parent, MASK_NULL, GrB_NULL,
-                 minimum<int>(), &parent, &parent_temp, desc);
+        eWiseAdd(&parent, MASK_NULL, GrB_NULL, minimum<int>(), &parent, &parent_temp, desc);
 
         // 4) Calculate grandparents.
         // gf[u] = f[f[u]]
-        extract(&grandparent, MASK_NULL, second<int>(),
-                                           &parent, &parent, desc);
+        extract(&grandparent, MASK_NULL, second<int>(), &parent, &parent, desc);
 
         // 5) Check termination.
-        cout << "grandparent: ";
-        grandparent.print();
-        cout << "grandparent_temp: ";
-        grandparent_temp.print();
         eWiseMult(&diff, MASK_NULL, GrB_NULL,
-                  lablas::not_equal_to<int>(), &grandparent_temp,
-                                        &grandparent, desc);
-        cout << "diff: ";
-        diff.print();
+                  lablas::not_equal_to<int>(), &grandparent_temp, &grandparent, desc);
         reduce<int, bool>(&succ, second<int>(), PlusMonoid<int>(), &diff, desc);
-        if (succ == 0) {
+        #ifdef __DEBUG_INFO__
+        cout << "succ: " << succ << endl;
+        #endif
+        if (succ == 0)
+        {
             break;
         }
         grandparent_temp.dup(&grandparent);
@@ -120,11 +114,8 @@ float cc(Vector<int>*       v,
         desc->toggle(GrB_MASK);
         Desc_value a;
         desc->get(GrB_MASK, &a);
-//        std::cout << "VALUE AFTER ASSIGN IS " << a << std::endl;
     }
     v->dup(&parent);
-
-    //v->print();
 
     return 0.f;
 }

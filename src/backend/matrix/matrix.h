@@ -24,11 +24,11 @@ inline T my_fetch_add(T *ptr, T val) {
 #endif
 }
 
+enum VisualizationMode {
+    VISUALISE_AS_DIRECTED,
+    VISUALISE_AS_UNDIRECTED
+};
 
-    enum VisualizationMode {
-        VISUALISE_AS_DIRECTED,
-        VISUALISE_AS_UNDIRECTED
-    };
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
@@ -110,12 +110,6 @@ public:
         return data;
     }
 
-    #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    MatrixContainer<T>* get_data_dub() { return data_socket_dub; }
-
-    MatrixContainer<T>* get_data_dub() const { return data_socket_dub; }
-    #endif
-
     const MatrixCSR<T> *get_csr() const { return csr_data; };
     const MatrixCSR<T> *get_csc() const { return csc_data; };
 
@@ -143,27 +137,27 @@ public:
 
     void print() const { csr_data->print(); }
 
-    ENT get_nnz() const {return csr_data->get_nnz();};
+    [[nodiscard]] ENT get_nnz() const {return csr_data->get_nnz();};
 
-    ENT* get_rowdegrees() { return csr_data->get_rowdegrees(); }
+    [[nodiscard]] ENT* get_rowdegrees() { return csr_data->get_rowdegrees(); }
+    [[nodiscard]] const ENT* get_rowdegrees() const { return csr_data->get_rowdegrees(); }
 
-    ENT* get_coldegrees() { return csc_data->get_rowdegrees(); }
+    [[nodiscard]] ENT* get_coldegrees() { return csc_data->get_rowdegrees(); }
+    [[nodiscard]] const ENT* get_coldegrees() const { return csc_data->get_rowdegrees(); }
 
-    Workspace *get_workspace() const { return (const_cast <Matrix<T>*> (this))->workspace; };
+    [[nodiscard]] Workspace *get_workspace() const { return (const_cast <Matrix<T>*> (this))->workspace; };
 
     void sort_csr_columns(const string& mode);
 
     void sort_csc_rows(const string& mode);
 
-    void transpose(void);
+    LA_Info  transpose();
 
+    void transpose_sequential(void);
     void transpose_parallel(void);
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
-    #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    MatrixContainer<T> *data_socket_dub;
-    #endif
 
     MatrixCSR<T> *csr_data;
     MatrixCSR<T> *csc_data;
@@ -175,6 +169,10 @@ private:
     void read_mtx_file_pipelined(const string &_mtx_file_name,
                                  vector<vector<pair<VNT, T>>> &_csr_matrix,
                                  vector<vector<pair<VNT, T>>> &_csc_matrix);
+
+    void binary_read_mtx_file_pipelined(const string &_mtx_file_name,
+                                        vector<vector<pair<VNT, T>>> &_csr_matrix,
+                                        vector<vector<pair<VNT, T>>> &_csc_matrix);
 
     void init_optimized_structures();
 };
