@@ -41,7 +41,7 @@ bool equal_components(lablas::Vector<T> &_first,
             error_count++;
         }
     }
-    cout << "error count: " << error_count << " / " << vertices_count << endl;
+    cout << "error_count: " << error_count << " / " << vertices_count << endl;
     if(error_count == 0)
         cout << "Results are equal" << endl;
     else
