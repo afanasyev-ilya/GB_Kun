@@ -8,7 +8,7 @@ float square_root(float a) {
     return 0.0;
 }
 
-TEST (TransposeTest, SmallTest) {
+/*TEST (TransposeTest, SmallTest) {
     lablas::Matrix<int> matrix;
     const std::vector<Index> row_ids = {0, 0, 1, 1, 1, 2, 3, 4, 5};
     const std::vector<Index> col_ids = {2, 4, 0, 3, 5, 1, 4, 2, 0};
@@ -61,7 +61,7 @@ TEST (TransposeTest, SmallTest) {
 //        std::cout << col_result[i] << " ";
 //    }
 
-}
+}*/
 
 TEST (TransposeTest, RealTest) {
 

@@ -275,13 +275,13 @@ inline int ParallelPrimitives::omp_copy_if_data(CopyCondition &&_cond,
 
 
 template <typename _T>
-inline int ParallelPrimitives::exclusive_scan(_T *_in_data,
+inline void ParallelPrimitives::exclusive_scan(_T *_in_data,
                                                 _T *_out_data,
                                                 size_t _size,
                                                 _T *_buffer,
                                                 const int _buffer_size) {
     int omp_work_group_size = omp_get_max_threads();
-
+    std::cout << "Running scan on " << omp_work_group_size << " threads" << std::endl;
     const int max_threads = 400;
     _T sum_array[max_threads];
     if (omp_work_group_size > max_threads)
@@ -312,6 +312,7 @@ inline int ParallelPrimitives::exclusive_scan(_T *_in_data,
         {
             //std::exclusive_scan(sum_array, sum_array + omp_work_group_size + 1, sum_array, 0);
             scan(sum_array, sum_array, static_cast<_T>(0), omp_work_group_size);
+		std::cout << "Running sum array scan" << std::endl;
         }
 
         _T local_additive = sum_array[ithread];
@@ -319,13 +320,16 @@ inline int ParallelPrimitives::exclusive_scan(_T *_in_data,
         for (int i = 0; i < local_size; i++) {
             _out_data[i + offset] = temp[i] + local_additive;
         }
+	std::cout << "somewhere there" << std::endl;
 #pragma omp single
         {
             _out_data[_size] = sum_array[omp_work_group_size];
         }
+	std::cout << "before deleting " << std::endl;
+
         delete[] temp;
 
-#pragma omp barrier
+
     }
 }
 
