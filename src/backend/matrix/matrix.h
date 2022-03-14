@@ -157,41 +157,7 @@ public:
 
     void transpose(void);
 
-    void transpose_parallel(void) {
-        memset(csc_data->get_row_ptr(),0, (csc_data->get_num_rows() + 1) * sizeof(Index));
-        memset(csc_data->get_col_ids(),0, csc_data->get_nnz()* sizeof(Index));
-        memset(csc_data->get_vals(),0, csc_data->get_nnz()* sizeof(T));
-
-        VNT csr_ncols = csr_data->get_num_cols();
-        VNT csr_nrows = csr_data->get_num_rows();
-        auto dloc = new int[csr_data->get_nnz()]();
-
-        Index temp;
-        Index* row_ptr = csc_data->get_row_ptr();
-
-#pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
-        for (int i = 0; i < csr_nrows; i++) {
-            for (int j = csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i + 1]; j++) {
-                dloc[j] = my_fetch_add(&row_ptr[csr_data->get_col_ids()[j]], static_cast<Index>(1));
-            }
-        }
-
-        ParallelPrimitives::exclusive_scan(csc_data->get_row_ptr(),csc_data->get_row_ptr(),csr_ncols, csc_data->get_row_ptr(), 0);
-
-//        for (int i = 0; i < csr_ncols + 1; i++) {
-//            std::cout << csc_data->get_row_ptr()[i] << " ";
-//        }
-#pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
-        for (Index i = 0; i < csr_nrows; i++) {
-            for (Index j =csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i + 1]; j++) {
-                auto loc = csc_data->get_row_ptr()[csr_data->get_col_ids()[j]] + dloc[j];
-                csc_data->get_col_ids()[loc] = i;
-                csc_data->get_vals()[loc] = csr_data->get_vals()[j];
-            }
-        }
-	
-
-    }
+    void transpose_parallel(void);
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
@@ -216,6 +182,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "matrix.hpp"
+#include "transpose.hpp"
 
 }
 }

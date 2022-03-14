@@ -52,15 +52,6 @@ TEST (TransposeTest, SmallTest) {
         std::set<Index> cols (sss.data(), sss.data() + sss.size());
         ASSERT_EQ(cols, correct[i]);
     }
-//    for (int i = 0; i < num_cols + 1; i++) {
-//        std::cout << row_result[i] << " ";
-//    }
-//    std::cout << std::endl;
-//
-//    for (int i = 0; i < csr_val.size(); i++) {
-//        std::cout << col_result[i] << " ";
-//    }
-
 }
 
 TEST (TransposeTest, RealTest) {
@@ -95,8 +86,8 @@ TEST (TransposeTest, RealTest) {
     B.get_matrix()->transpose_parallel();
     double par_b = omp_get_wtime();
 
-    std::cout << "Time for sequential " << seq_b - seq_a << " seconds" << std::endl;
-    std::cout << "Time for parallel " << par_b - par_a << "seconds" << std::endl;
+    std::cout << "OVERALL Time for sequential " << seq_b - seq_a << " seconds" << std::endl;
+    std::cout << "OVERALL Time for parallel " << par_b - par_a << " seconds" << std::endl;
 
     auto a_col_ptr = A.get_matrix()->get_csc()->get_row_ptr();
     auto b_col_ptr = B.get_matrix()->get_csc()->get_row_ptr();
