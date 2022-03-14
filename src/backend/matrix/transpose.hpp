@@ -72,8 +72,8 @@ void Matrix<T>::transpose_parallel(void) {
             csc_data->get_vals()[loc] = csr_data->get_vals()[j];
         }
     }
-    double final_b = omp_get_wtime();
 #pragma omp barrier
+    double final_b = omp_get_wtime();
 
 #ifdef __DEBUG_BANDWIDTHS__
     std::cout << "Inner time for mem " << mem_b - mem_a << " seconds" << std::endl;
