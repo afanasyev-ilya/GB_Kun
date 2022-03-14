@@ -1,5 +1,6 @@
 #ifndef GB_KUN_MATRIX_HPP
 #define GB_KUN_MATRIX_HPP
+#define PARALLEL_TRANSPOSE
 
 #include "../backend/matrix/matrix.h"
 #include "types.hpp"
@@ -66,6 +67,14 @@ public:
     Index* get_coldegrees()
     {
         return _matrix.get_coldegrees();
+    }
+
+    LA_Info transpose() {
+#ifdef PARALLEL_TRANSPOSE
+        return _matrix.transpose_parallel();
+#elif
+        return _matrix.transpose();
+#endif
     }
 
     template <typename BinaryOpT>

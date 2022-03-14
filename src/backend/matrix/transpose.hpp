@@ -63,10 +63,6 @@ void Matrix<T>::transpose_parallel(void) {
     ParallelPrimitives::exclusive_scan(csc_data->get_row_ptr(),csc_data->get_row_ptr(),csr_ncols, csc_data->get_row_ptr(), 0);
     double scan_b = omp_get_wtime();
 
-//        for (int i = 0; i < csr_ncols + 1; i++) {
-//            std::cout << csc_data->get_row_ptr()[i] << " ";
-//        }
-
     double final_a = omp_get_wtime();
 #pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
     for (Index i = 0; i < csr_nrows; i++) {
@@ -79,6 +75,7 @@ void Matrix<T>::transpose_parallel(void) {
     double final_b = omp_get_wtime();
 #pragma omp barrier
 
+#ifdef __DEBUG_BANDWIDTHS__
     std::cout << "Inner time for mem " << mem_b - mem_a << " seconds" << std::endl;
     std::cout << "Inner time for fetch " << fetch_b - fetch_a << " seconds" << std::endl;
     std::cout << "Inner time for scan " << scan_b - scan_a << " seconds" << std::endl;
@@ -103,6 +100,7 @@ void Matrix<T>::transpose_parallel(void) {
     total_bw /= (final_b - mem_a);
 
     std::cout << "Overall bandwidth " << total_bw / 1000000000 << "GByte/sec" << std::endl;
+#endif
 }
 
 #endif //GB_KUN_TRANSPOSE_HPP
