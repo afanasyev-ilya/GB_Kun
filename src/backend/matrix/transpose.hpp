@@ -41,7 +41,7 @@ void Matrix<T>::transpose_parallel(void) {
 
     VNT csr_ncols = csr_data->get_num_cols();
     VNT csr_nrows = csr_data->get_num_rows();
-    auto dloc = new int[csr_data->get_nnz()]();
+    auto dloc = new Index[csr_data->get_nnz()]();
     double mem_b = omp_get_wtime();
 
     Index temp;
@@ -84,7 +84,25 @@ void Matrix<T>::transpose_parallel(void) {
     std::cout << "Inner time for scan " << scan_b - scan_a << " seconds" << std::endl;
     std::cout << "Inner time for final " << final_b - final_a << " seconds" << std::endl;
 
+    double total_bw  =
+            2 * sizeof(Index) * csr_data->get_num_rows() +
+            2 * sizeof(Index) * csr_data->get_nnz() +
+            sizeof(Index) * csr_data->get_num_rows() +
+            2 * sizeof(Index) * csr_data->get_nnz() +
+            2 * sizeof(Index) * omp_get_num_threads() +
+            2 * sizeof(Index) * csr_data->get_nnz() +
+            2 * sizeof(Index) * csr_data->get_num_rows() +
+            2 * sizeof(Index) * csr_data->get_nnz() +
+            sizeof(Index) * csr_data->get_num_rows() +
+            1 * sizeof(Index) * csr_data->get_nnz() +
+            2 * sizeof(T) * csr_data->get_nnz() +
 
+                    (csc_data->get_num_rows() + 1) * sizeof(Index) + csc_data->get_nnz()* sizeof(Index) +
+                    csc_data->get_nnz()* sizeof(T);
+
+    total_bw /= (final_b - mem_a);
+
+    std::cout << "Overall bandwidth " << total_bw / 1000000000 << "GByte/sec" << std::endl;
 }
 
 #endif //GB_KUN_TRANSPOSE_HPP
