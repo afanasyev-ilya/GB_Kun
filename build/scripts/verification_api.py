@@ -16,10 +16,10 @@ def check_app_correctness(output):
     return matched_lines
 
 
-def verify_app(app_name, benchmarking_results, graph_format, run_speed_mode, timeout_length):
+def verify_app(app_name, benchmarking_results, graph_format, run_speed_mode, timeout_length, options):
     list_of_graphs = get_list_of_verification_graphs(run_speed_mode)
 
-    create_graphs_if_required(list_of_graphs, run_speed_mode)
+    create_graphs_if_required(list_of_graphs, run_speed_mode, options)
     common_args = ["-it", "1", "-format", graph_format]
 
     algorithms_verified = 0

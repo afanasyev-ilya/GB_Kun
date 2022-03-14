@@ -90,7 +90,7 @@ LA_Info assign(Vector<W>* _w,
                Descriptor *_desc)
 {
     LA_Info info = GrB_SUCCESS;
-    if(false && (_mask != NULL) && (_mask->is_sparse()) && (_indices == NULL))
+    if(false && (_mask != NULL) && (_mask->is_sparse()) && (_indices == NULL)) // TODO fix correctness of this optimization
     {
         const Index mask_nvals = _mask->getSparse()->get_nvals();
 

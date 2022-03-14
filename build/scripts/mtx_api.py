@@ -211,7 +211,7 @@ def binary_gen_mtx_graph(in_filename, out_filename):
             f.write(nrows.to_bytes(8, 'little'))
             f.write(ncols.to_bytes(8, 'little'))
             f.write(nnz.to_bytes(8, 'little'))
-            for key, v in tqdm.tqdm(edge_freqs.items(), desc="Saving MTX file progress"):
+            for key, v in tqdm.tqdm(edge_freqs.items(), desc="Saving BINARY file progress"):
                 pbar.update(cnt)
                 vals = [int(s) for s in key.split("_") if s.isdigit()]
 
@@ -295,7 +295,7 @@ def binary_gen_undirected_mtx_graph(in_filename, out_filename):
             f.write(ncols.to_bytes(8, 'little'))
             f.write(nnz.to_bytes(8, 'little'))
 
-            for key, v in tqdm.tqdm(edge_freqs.items(), desc="Saving MTX file progress"):
+            for key, v in tqdm.tqdm(edge_freqs.items(), desc="Saving BINARY file progress"):
                 pbar.update(cnt)
                 vals = [int(s) for s in key.split("_") if s.isdigit()]
 
