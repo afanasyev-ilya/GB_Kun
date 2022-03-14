@@ -206,12 +206,23 @@ def check_if_no_loops_and_multiple_edges(graph_name):
         return False
 
 
+def graph_missing(output_graph_file_name, undir_output_graph_file_name):
+    if not file_exists(output_graph_file_name):
+        return True
+    if not file_exists(undir_output_graph_file_name):
+        return True
+    if not file_exists(output_graph_file_name + "bin"):
+        return True
+    if not file_exists(undir_output_graph_file_name + "bin"):
+        return True
+    return False
+
+
 def create_real_world_graph(graph_name, options):
     graph_format = "mtx"
     output_graph_file_name = get_path_to_graph(graph_name, graph_format)
     undir_output_graph_file_name = get_path_to_graph("undir_" + graph_name, graph_format)
-    print(output_graph_file_name)
-    if (not file_exists(output_graph_file_name)) or (not file_exists(output_graph_file_name + "bin")):
+    if graph_missing(output_graph_file_name, undir_output_graph_file_name):
         if 'GAP' in graph_name:
             clear_dir(SOURCE_GRAPH_DIR)
             download_graph(graph_name)
@@ -236,17 +247,11 @@ def create_real_world_graph(graph_name, options):
             else:
                 source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["link"]
 
+            # it does not work
             #if check_if_no_loops_and_multiple_edges(graph_name):
             #    convert_to_mtx_if_no_loops_and_multiple_edges(source_name, output_graph_file_name, graph_name)
             #else:
-            gen_mtx_graph(source_name, output_graph_file_name)
-            if options.use_binary_graphs:
-                binary_gen_mtx_graph(source_name, output_graph_file_name + "bin")
-
-            if GENERATE_UNDIRECTED:
-                gen_undirected_mtx_graph(source_name, undir_output_graph_file_name)
-                if options.use_binary_graphs:
-                    binary_gen_undirected_mtx_graph(source_name, undir_output_graph_file_name + "bin")
+            gen_graph(source_name, output_graph_file_name, undir_output_graph_file_name, options)
 
             if verify_graph_existence(output_graph_file_name):
                 print("Graph " + output_graph_file_name + " has been created\n")

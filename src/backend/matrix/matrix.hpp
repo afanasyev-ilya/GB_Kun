@@ -533,7 +533,8 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     // read mtx file and get tmp representations of csr and csc matrix
     vector<vector<pair<VNT, T>>> csr_tmp_matrix;
     vector<vector<pair<VNT, T>>> csc_tmp_matrix;
-    SAVE_TIME((read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "mtx_file_read");
+    read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+    //binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
     VNT tmp_nrows = csr_tmp_matrix.size(), tmp_ncols = csc_tmp_matrix.size();
 
     double t1 = omp_get_wtime();
