@@ -88,8 +88,15 @@ TEST (TransposeTest, RealTest) {
     ncols = A.ncols();
     nvals = A.get_nvals(&nvals);
 
+    double seq_a = omp_get_wtime();
     A.get_matrix()->transpose();
+    double seq_b = omp_get_wtime();
+    double par_a = omp_get_wtime();
     B.get_matrix()->transpose_parallel();
+    double par_b = omp_get_wtime();
+
+    std::cout << "Time for sequential " << seq_b - seq_a << " seconds" << std::endl;
+    std::cout << "Time for parallel " << par_b - par_a << "seconds" << std::endl;
 
     auto a_col_ptr = A.get_matrix()->get_csc()->get_row_ptr();
     auto b_col_ptr = B.get_matrix()->get_csc()->get_row_ptr();
