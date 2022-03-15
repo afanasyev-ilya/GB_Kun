@@ -540,7 +540,9 @@ void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_contain
     FILE *fp;
     fp = fopen(_mtx_file_name.c_str(), "r");
     char header_line[1024];
-    fgets(header_line, 1024, fp);
+    if(fgets(header_line, 1024, fp) == NULL)
+        throw "Error: unexpected end of graph file! Aborting...";
+
     string header(header_line);
     if(header.find("%%MatrixMarket matrix coordinate pattern general") == std::string::npos)
     {
