@@ -29,9 +29,7 @@ int main(int argc, char **argv)
         {
             source_vertex = rand() % size;
             cout << "starting from source: " << source_vertex << endl;
-            /*SAVE_TEPS((lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex));,
-                      "sssp", 1, &matrix);*/
-            lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex);
+            SAVE_TEPS((lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex)), "sssp", 1, &matrix);
         }
 
         if(parser.check())

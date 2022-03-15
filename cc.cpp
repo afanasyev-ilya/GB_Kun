@@ -62,35 +62,28 @@ int main(int argc, char** argv)
     VNT scale = parser.get_scale();
     VNT avg_deg = parser.get_avg_degree();
 
-
-//    // Descriptor desc
-//    graphblas::Descriptor desc;
-//    CHECK(desc.loadArgs(vm));
-//    if (transpose)
-//        CHECK(desc.toggle(graphblas::GrB_INP1));
-
     // Matrix A
-    lablas::Matrix<int> A;
-    A.set_preferred_matrix_format(parser.get_storage_format());
-    init_matrix(A,parser);
+    lablas::Matrix<int> matrix;
+    matrix.set_preferred_matrix_format(parser.get_storage_format());
+    init_matrix(matrix,parser);
 
-    nrows = A.nrows();
-    ncols = A.ncols();
-    nvals = A.get_nvals(&nvals);
+    nrows = matrix.nrows();
+    ncols = matrix.ncols();
+    nvals = matrix.get_nvals(&nvals);
 
     lablas::Vector<int> components(nrows);
 
     lablas::Descriptor desc;
 
     for (int i = 0; i < 1; i++) {
-        lablas::algorithm::cc(&components, &A, 0, &desc);
+        SAVE_TEPS((lablas::algorithm::cc(&components, &matrix, 0, &desc)), "cc", 1, &matrix);
     }
 
     if(parser.check())
     {
         lablas::Vector<int> check_components(nrows);
 
-        lablas::algorithm::cc_bfs_based_sequential(&check_components, &A);
+        lablas::algorithm::cc_bfs_based_sequential(&check_components, &matrix);
 
         equal_components(components, check_components);
     }

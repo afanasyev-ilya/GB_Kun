@@ -8,7 +8,7 @@
 
 #define MTX_READ_PARTITION_SIZE 1024
 
-#define SPARSE_VECTOR_THRESHOLD 0.15
+#define SPARSE_VECTOR_THRESHOLD 0.15 // 15% is really optimal according to preliminary tests, at least for BFS
 
 #ifdef __USE_NEC_SX_AURORA__
 #define LLC_CACHE_SIZE (16*1024*1024)
@@ -31,9 +31,6 @@
 #define __CSR_SEG_MERGE_SMALL__
 #define __PARALLEL_TRANSPOSE__
 //#define __CSR_PRINT_DATA_ARRAYS__
-
-#define __USE_SLICES__
-//#define __USE_VERTEX_GROUPS__
 
 // SEG CSR settings
 #define SEG_CSR_CACHE_BLOCK_SIZE (512*1024)
