@@ -111,6 +111,9 @@ target_include_directories(gather_tests PRIVATE)
 add_executable(sparse_test sparse_test.cpp)
 target_include_directories(sparse_test PRIVATE)
 
+add_executable(transpose transpose.cpp)
+target_include_directories(transpose PRIVATE)
+
 #add_executable(test_matrix test/GB_objects/test_matrix_ops.cpp)
 #target_link_libraries(test_matrix ${GTEST_LIBRARIES})
 
