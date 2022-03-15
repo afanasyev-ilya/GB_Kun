@@ -120,6 +120,14 @@ void test_spmv(int argc, char **argv)
     }
 
     #undef MASK_NULL
+
+    const Index row_ptr[] = {0, 3, 4, 6};
+    const Index col_ids[] = {2, 3, 1, 1, 0, 2};
+    const float vals[] = {1, 1, 1, 1, 1, 1};
+    lablas::Matrix<float> matrix_small;
+    matrix_small.build_from_csr_arrays(reinterpret_cast<const Index*>(row_ptr), reinterpret_cast<const Index*>(col_ids),
+                                reinterpret_cast<const float*>(vals), 3, 6);
+    matrix_small.print();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

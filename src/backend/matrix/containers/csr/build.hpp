@@ -95,10 +95,29 @@ void MatrixCSR<T>::build(vector<vector<pair<VNT, T>>> &_tmp_csr, VNT _nrows, VNT
     vector_of_vectors_to_csr(_tmp_csr, row_ptr, col_ids, vals);
 
     calculate_degrees();
-
     get_load_balancing_offsets();
-
     numa_aware_realloc();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MatrixCSR<T>::build_from_csr_arrays(const ENT *_row_ptrs,
+                                         const VNT *_col_ids,
+                                         const T *_vals,
+                                         VNT _nrows,
+                                         VNT _ncols,
+                                         ENT _nnz)
+{
+    resize(_nrows, _ncols, _nnz);
+
+    MemoryAPI::copy(this->row_ptr, _row_ptrs, _nrows + 1);
+    MemoryAPI::copy(this->col_ids, _col_ids, _nnz);
+    MemoryAPI::copy(this->vals, _vals, _nnz);
+
+    calculate_degrees();
+    get_load_balancing_offsets();
+    //numa_aware_realloc();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

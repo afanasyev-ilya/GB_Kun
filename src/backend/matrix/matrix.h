@@ -43,7 +43,13 @@ public:
     void build(const VNT *_row_indices,
                const VNT *_col_indices,
                const T *_values,
-               const ENT _nnz);
+               ENT _nnz);
+
+    void build_from_csr_arrays(const ENT* _row_ptrs,
+                               const VNT *_col_ids,
+                               const T *_values,
+                               Index _nrows,
+                               Index _nnz);
 
     void init_from_mtx(const string &_mtx_file_name);
 
@@ -123,7 +129,7 @@ public:
         *_nrows = csr_data->get_num_rows();
     }
 
-    VNT get_nrows() const {
+    [[nodiscard]] VNT get_nrows() const {
         return csr_data->get_num_rows();
     }
 
@@ -131,7 +137,7 @@ public:
         *_ncols = csr_data->get_ncols();
     }
 
-    VNT get_ncols() const {
+    [[nodiscard]] VNT get_ncols() const {
         return csr_data->get_num_cols();
     }
 
@@ -181,6 +187,7 @@ private:
 
 #include "matrix.hpp"
 #include "transpose.hpp"
+#include "build.hpp"
 
 }
 }

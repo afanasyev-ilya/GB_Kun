@@ -1,3 +1,4 @@
+#define __DEBUG_INFO__
 #include "src/gb_kun.h"
 
 #include "algorithms/bfs/bfs.hpp"

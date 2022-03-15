@@ -8,7 +8,7 @@ LA_Info Matrix<T>::transpose()
 {
     #ifdef __PARALLEL_TRANSPOSE__
     transpose_parallel();
-    #elif
+    #else
     transpose_sequential();
     #endif
     return GrB_SUCCESS;
@@ -19,7 +19,6 @@ LA_Info Matrix<T>::transpose()
 template <typename T>
 void Matrix<T>::transpose_sequential()
 {
-
     memset(csc_data->get_row_ptr(),0, (csc_data->get_num_rows() + 1) * sizeof(Index));
     memset(csc_data->get_col_ids(),0, csc_data->get_nnz()* sizeof(Index));
     memset(csc_data->get_vals(),0, csc_data->get_nnz()* sizeof(T));
@@ -47,7 +46,8 @@ void Matrix<T>::transpose_sequential()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T>
-void Matrix<T>::transpose_parallel(void) {
+void Matrix<T>::transpose_parallel(void)
+{
     double mem_a = omp_get_wtime();
     memset(csc_data->get_row_ptr(),0, (csc_data->get_num_rows() + 1) * sizeof(Index));
     memset(csc_data->get_col_ids(),0, csc_data->get_nnz()* sizeof(Index));
