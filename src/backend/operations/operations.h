@@ -364,6 +364,26 @@ LA_Info reduce(T *_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/* w = op(w, u[i]) for each i; */
+template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
+LA_Info reduce(T *_val,
+               BinaryOpTAccum _accum,
+               MonoidT _op,
+               const Matrix<U> *_u,
+               Descriptor *_desc)
+{
+    T reduce_result = _op.identity();
+    Index nvals = _u->get_csr()->get_nnz();
+    const U* u_vals = _u->get_csr()->get_vals();
+
+    backend::generic_sparse_vals_reduce_op(&reduce_result, u_vals, nvals, _op, _desc);
+    *_val = _accum(*_val, reduce_result);
+
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /* Assume that we have allocated memory in w of size sizeof(indices) */
 template <typename W, typename M, typename U, typename I, typename BinaryOpT>
 LA_Info extract(Vector<W>*       w,

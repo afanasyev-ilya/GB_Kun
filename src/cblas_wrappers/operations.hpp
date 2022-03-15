@@ -273,5 +273,15 @@ LA_Info GrB_reduce(T *_val,
     return lablas::reduce(_val, lablas::second<T, T, T>(), _op, _u, _desc);
 }
 
+template <typename T, typename U, typename MonoidT>
+LA_Info GrB_reduce(T *_val,
+                   NULL_TYPE _accum,
+                   MonoidT _op,
+                   const lablas::Matrix<U>* _u,
+                   lablas::Descriptor* _desc)
+{
+    return lablas::reduce(_val, lablas::second<T, T, T>(), _op, _u, _desc);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

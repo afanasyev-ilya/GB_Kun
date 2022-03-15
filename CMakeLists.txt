@@ -103,6 +103,9 @@ target_include_directories(gen PRIVATE)
 add_executable(gemm gemm.cpp)
 target_include_directories(gemm PRIVATE)
 
+add_executable(tc tc.cpp tc.cpp)
+target_include_directories(tc PRIVATE)
+
 add_executable(gather_tests gather_tests.cpp)
 target_include_directories(gather_tests PRIVATE)
 
