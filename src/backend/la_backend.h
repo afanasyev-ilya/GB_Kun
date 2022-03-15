@@ -8,7 +8,7 @@
 
 #define MTX_READ_PARTITION_SIZE 1024
 
-#define SPARSE_VECTOR_THRESHOLD 0.6
+#define SPARSE_VECTOR_THRESHOLD 0.4
 
 
 #ifdef __USE_NEC_SX_AURORA__
@@ -44,6 +44,6 @@
 #define HUB_VERTICES 131072
 
 // debug settings
-//#define __DEBUG_BANDWIDTHS__
+#define __DEBUG_BANDWIDTHS__
 //#define __DEBUG_INFO__
 #define __SHORT_VECTOR_PRINT__
