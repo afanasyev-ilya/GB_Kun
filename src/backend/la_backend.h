@@ -31,6 +31,7 @@
 #define CSR_SORTED_BALANCING 256
 #define __CSR_SEG_MERGE_SMALL__
 //#define __PARALLEL_TRANSPOSE__
+//#define __CSR_PRINT_DATA_ARRAYS__
 
 #define __USE_SLICES__
 //#define __USE_VERTEX_GROUPS__

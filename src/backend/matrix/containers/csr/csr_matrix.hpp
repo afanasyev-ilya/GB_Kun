@@ -126,6 +126,8 @@ void MatrixCSR<T>::print() const
         cout << endl;
     }
     cout << "--------------------\n";
+
+    #ifdef __CSR_PRINT_DATA_ARRAYS__
     cout << "nrows: " << get_num_rows() << endl;
     cout << "ncols: " << get_num_cols() << endl;
     cout << "nnz: " << nnz << endl;
@@ -160,6 +162,7 @@ void MatrixCSR<T>::print() const
     cout << "]\n";
 
     cout << "--------------------\n";
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -182,22 +182,22 @@ void Matrix<T>::build_from_csr_arrays(const ENT* _row_ptrs,
             max_cols = _col_ids[i];
         }
     }
+    max_cols += 1; // to correct process last col correctly
 
-    if(max_rows > max_cols)
+    if(max_rows != max_cols)
     {
         cout << "Non-square matrix is not supported yet" << endl;
         VNT max_dim = max(max_rows, max_cols);
+        max_rows = max_dim;
         max_cols = max_dim;
     }
-    else if(max_cols > max_rows)
-    {
-        cout << "Can't build CSR matrix if max_cols > max_rows from arrays" << endl;
-        throw "Aborting...";
-    }
+
+    vector<ENT> extended_ptrs(max_rows + 1, _nnz); // this one is needed since number of rows could be increased before
+    MemoryAPI::copy(&extended_ptrs[0], _row_ptrs, _nrows + 1);
 
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
-    csr_data->build_from_csr_arrays(_row_ptrs, _col_ids, _values, max_rows, max_cols, _nnz);
+    csr_data->build_from_csr_arrays(&extended_ptrs[0], _col_ids, _values, max_rows, max_cols, _nnz);
     csc_data->resize(max_cols, max_rows, _nnz);
     transpose();
 
