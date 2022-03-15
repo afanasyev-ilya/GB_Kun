@@ -19,15 +19,15 @@ int main(int argc, char **argv) {
 
         Index nrows;
         matrix.get_nrows(&nrows);
-        Index source_vertex = select_non_trivial_vertex(matrix);
-
-        lablas::Vector<int> *levels = NULL;
 
         LAGraph_Graph<int> graph(matrix);
 
         uint64_t ntriangles;
 
-        SAVE_TEPS(LAGr_TriangleCount(&ntriangles, ),
+        SAVE_TEPS(lablas::algorithm::LAGr_TriangleCount(&ntriangles, &graph,
+                                     lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Burkhardt,
+                                     lablas::algorithm::LAGraph_TriangleCount_Presort::LAGraph_TriangleCount_NoSort,
+                                     NULL),
                   "TriangleCount", 1,(graph.AT));
     }
     catch (string& error)

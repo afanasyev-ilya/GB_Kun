@@ -84,7 +84,7 @@ static int tricount_prep
 */
 int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
                        LAGraph_TriangleCount_Method method,
-                       LAGraph_TriangleCount_Presort *presort, const char *msg)
+                       LAGraph_TriangleCount_Presort presort, const char *msg)
 {
     LG_CLEAR_MSG ;
     GrB_Matrix C = NULL, L = NULL, U = NULL, T = NULL ;
