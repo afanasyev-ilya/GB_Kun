@@ -6,6 +6,15 @@
 template <typename T>
 LA_Info Matrix<T>::transpose()
 {
+    ptr_swap(csr_data, csc_data);
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+LA_Info Matrix<T>::csr_to_csc()
+{
     #ifdef __PARALLEL_TRANSPOSE__
     transpose_parallel();
     #else

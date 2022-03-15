@@ -199,7 +199,7 @@ void Matrix<T>::build_from_csr_arrays(const ENT* _row_ptrs,
     csc_data = new MatrixCSR<T>;
     csr_data->build_from_csr_arrays(&extended_ptrs[0], _col_ids, _values, max_rows, max_cols, _nnz);
     csc_data->resize(max_cols, max_rows, _nnz);
-    transpose();
+    csr_to_csc();
 
     // initializing additional data structures time
     init_optimized_structures();

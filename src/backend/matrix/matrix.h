@@ -157,7 +157,8 @@ public:
 
     void sort_csc_rows(const string& mode);
 
-    LA_Info  transpose();
+    LA_Info transpose();
+    LA_Info csr_to_csc();
 
     void transpose_sequential(void);
     void transpose_parallel(void);
