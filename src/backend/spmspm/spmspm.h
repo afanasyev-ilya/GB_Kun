@@ -119,6 +119,7 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 #ifdef __DEBUG_BANDWIDTHS__
     double bytes_requested = 0;
     bytes_requested += sizeof(vector<unordered_map<VNT, T>>);
+    #pragma omp parallel for reduction(+:bytes_requested)
     for (VNT i = 0; i < _matrix1->get_csr()->get_num_rows(); ++i) {
         bytes_requested += sizeof(_matrix1->get_csr()->get_num_rows());
         for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
@@ -209,6 +210,16 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
     delete [] matrix_result;
 
     double t3 = omp_get_wtime();
+
+    double my_bw = 0;
+    #ifdef __DEBUG_BANDWIDTHS__
+    my_bw = bytes_requested / 1e9 / (t2 - t1);
+    #endif
+
+    FILE *my_f;
+    my_f = fopen("perf_stats.txt", "a");
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "Hash_Based_mxm", t3 - t1, 0.0, my_bw, 0ll);
+    fclose(my_f);
 
     // Getting COO format from CSR until needed build functions are implemented:
     vector<VNT> row_ids_coo;
