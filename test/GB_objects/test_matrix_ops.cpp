@@ -115,6 +115,17 @@ TEST (TransposeTest, RealTest) {
     }
 }
 
+TEST (TransposeTest, SymmetricTest) {
+    lablas::Matrix<int> matrix;
+    const std::vector<Index> row_ids = {0, 0, 1, 2, 2, 3, 4, 4, 5};
+    const std::vector<Index> col_ids = {1, 3, 0, 2, 4, 0, 2, 5, 4};
+    const std::vector<int> csr_val = {10, 10, 10, 10, 10, 10, 10, 10, 10};
+    matrix.build(&row_ids,&col_ids,&csr_val, 9, nullptr, nullptr);
+
+
+    ASSERT_TRUE(matrix.is_symmetric());
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     my_argc = argc;

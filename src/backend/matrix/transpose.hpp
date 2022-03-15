@@ -62,12 +62,19 @@ void Matrix<T>::transpose_parallel(void) {
     Index* row_ptr = csc_data->get_row_ptr();
 
     double fetch_a = omp_get_wtime();
+    auto offsets = this->get_csr()->get_load_balancing_offsets();
 
-    #pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
-    for (int i = 0; i < csr_nrows; i++) {
-        for (int j = csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i + 1]; j++) {
+    #pragma omp parallel shared(csr_nrows, csr_ncols, row_ptr, dloc)
+    {
+    int tid = omp_get_thread_num();
+    VNT first_row = offsets[tid].first;
+    VNT last_row = offsets[tid].second;
+
+    for(VNT row = first_row; row < last_row; row++) {
+        for (int j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++) {
             dloc[j] = my_fetch_add(&row_ptr[csr_data->get_col_ids()[j]], static_cast<Index>(1));
         }
+    }
     }
 
     double fetch_b = omp_get_wtime();
@@ -78,13 +85,18 @@ void Matrix<T>::transpose_parallel(void) {
     double scan_b = omp_get_wtime();
 
     double final_a = omp_get_wtime();
-    #pragma omp parallel for schedule(dynamic) shared(csr_nrows, csr_ncols, row_ptr, dloc)
-    for (Index i = 0; i < csr_nrows; i++) {
-        for (Index j =csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i + 1]; j++) {
+    #pragma omp parallel shared(csr_nrows, csr_ncols, row_ptr, dloc)
+    {
+    int tid = omp_get_thread_num();
+    VNT first_row = offsets[tid].first;
+    VNT last_row = offsets[tid].second;
+    for(VNT row = first_row; row < last_row; row++) {
+        for (Index j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++) {
             auto loc = csc_data->get_row_ptr()[csr_data->get_col_ids()[j]] + dloc[j];
-            csc_data->get_col_ids()[loc] = i;
+            csc_data->get_col_ids()[loc] = row;
             csc_data->get_vals()[loc] = csr_data->get_vals()[j];
         }
+    }
     }
     #pragma omp barrier
     double final_b = omp_get_wtime();

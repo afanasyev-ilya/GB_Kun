@@ -155,6 +155,9 @@ public:
 
     void transpose_sequential(void);
     void transpose_parallel(void);
+    bool is_symmetric() {
+        return (*csr_data == *csc_data);
+    }
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;

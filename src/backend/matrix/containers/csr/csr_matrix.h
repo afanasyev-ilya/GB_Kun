@@ -56,7 +56,12 @@ private:
     VNT *col_ids;
     VNT *row_degrees;
 
+    /* Vector of number_of_running_threads size
+     * for i-th thread [i].first element means the beginning row to process
+     * [i]. second means the first row not to be processed by i-th thread (right-non-inclusive intervals) */
     mutable vector<pair<VNT, VNT>> load_balancing_offsets;
+
+    /* If load_balancing_offsets vector contains balanced offsets */
     mutable bool load_balancing_offsets_set;
 
     int target_socket;
@@ -161,7 +166,6 @@ private:
     void numa_aware_realloc();
     void calculate_degrees();
 };
-
 #include "csr_matrix.hpp"
 #include "build.hpp"
 
