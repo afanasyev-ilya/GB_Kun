@@ -122,8 +122,28 @@ TEST (TransposeTest, SymmetricTest) {
     const std::vector<int> csr_val = {10, 10, 10, 10, 10, 10, 10, 10, 10};
     matrix.build(&row_ids,&col_ids,&csr_val, 9, nullptr, nullptr);
 
-
     ASSERT_TRUE(matrix.is_symmetric());
+}
+
+
+TEST (TransposeTest, SymmetricBigTest) {
+
+    std::vector<Index> row_indices;
+    std::vector<Index> col_indices;
+    std::vector<int> values;
+    Index nrows, ncols, nvals;
+
+    Parser parser;
+    parser.parse_args(my_argc, my_argv);
+    VNT scale = parser.get_scale();
+    VNT avg_deg = parser.get_avg_degree();
+
+    // Matrix A
+    lablas::Matrix<int> A;
+    A.set_preferred_matrix_format(parser.get_storage_format());
+    init_matrix(A,parser);
+
+    ASSERT_TRUE(A.is_symmetric());
 }
 
 int main(int argc, char** argv) {

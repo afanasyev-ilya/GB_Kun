@@ -13,6 +13,11 @@ float cc(Vector<int>*       v,
          const Matrix<int>* A,
          int                seed,
          Descriptor*        desc) {
+
+    if(!A->is_symmetric()) {
+        std::cout << "Matrix is not symmetric, aborting CC..." << std::endl;
+        return 1;
+    };
     Index A_nrows;
     A->get_nrows(&A_nrows);
     // Difference vector.

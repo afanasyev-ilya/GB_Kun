@@ -103,7 +103,7 @@ void Matrix<T>::transpose_parallel(void) {
 
     if(num_sockets_used() > 1)
     {
-        //csc_data->numa_aware_alloc(); // TODO
+        csc_data->numa_aware_realloc();
     }
 
     #ifdef __DEBUG_BANDWIDTHS__

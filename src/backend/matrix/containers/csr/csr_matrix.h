@@ -47,6 +47,7 @@ public:
     T get(VNT _row, VNT _col) const;
 
     const vector<pair<VNT, VNT>> &get_load_balancing_offsets() const;
+    void numa_aware_realloc();
 private:
     VNT nrows, ncols;
     ENT nnz;
@@ -163,7 +164,7 @@ private:
                                          Descriptor *_desc,
                                          Workspace *_workspace);
 
-    void numa_aware_realloc();
+
     void calculate_degrees();
 };
 #include "csr_matrix.hpp"
