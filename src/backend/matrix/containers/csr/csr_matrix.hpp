@@ -1,3 +1,5 @@
+//#define USE_UNORDERED
+#define USE_ORDERED
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -208,9 +210,14 @@ bool operator== (const MatrixCSR<T> &c1, const MatrixCSR<T> &c2) {
         if (row1[i] != row2[i]) {
             return false;
         }
-
+#ifdef USE_UNORDERED
         unordered_set<VNT> set_1;
         unordered_set<VNT> set_2;
+#endif
+#ifdef USE_ORDERED
+        unordered_set<VNT> set_1;
+        unordered_set<VNT> set_2;
+#endif
         if (i != nrows1) {
             for (VNT j = row1[i]; j < row1[i + 1]; j++) {
                 set_1.insert(col1[j]);

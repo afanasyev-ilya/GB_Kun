@@ -143,7 +143,11 @@ TEST (TransposeTest, SymmetricBigTest) {
     A.set_preferred_matrix_format(parser.get_storage_format());
     init_matrix(A,parser);
 
+    double a_time = omp_get_wtime();
     ASSERT_TRUE(A.is_symmetric());
+    double b_time = omp_get_wtime();
+
+    std::cout << "Symm check time is " << b_time - a_time << " seconds" << std::endl;
 }
 
 int main(int argc, char** argv) {

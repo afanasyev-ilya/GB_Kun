@@ -17,6 +17,7 @@
 #include <queue>
 #include <functional>
 #include <unordered_set>
+#include <set>
 
 #include <omp.h>
 
