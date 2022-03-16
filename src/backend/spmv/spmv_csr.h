@@ -95,7 +95,6 @@ void SpMV_numa_aware(const MatrixCSR<A> *_matrix,
             }
         }
 
-
         VNT first_row = offsets[tid].first;
         VNT last_row = offsets[tid].second;
 

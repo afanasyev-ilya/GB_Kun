@@ -159,17 +159,18 @@ LA_Info mxv (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    _u->print_threshold_info();
     if(_u->is_dense())
     {
+        #ifdef __DEBUG_INFO__
         cout << "USING SpMV!!!!!" << endl;
-        _u->print_threshold_info();
+        #endif
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     else
     {
+        #ifdef __DEBUG_INFO__
         cout << "USING SpMSpV!!!!!" << endl;
-        _u->print_threshold_info();
+        #endif
         backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     _w->convert_if_required();
@@ -191,14 +192,16 @@ LA_Info vxm (Vector<W>*       _w,
 {
     if(_u->is_dense())
     {
+        #ifdef __DEBUG_INFO__
         cout << "USING SpMV!!!!!" << endl;
-        _u->print_threshold_info();
+        #endif
         backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     else
     {
+        #ifdef __DEBUG_INFO__
         cout << "USING SpMSpV!!!!!" << endl;
-        _u->print_threshold_info();
+        #endif
         backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     _w->convert_if_required();
