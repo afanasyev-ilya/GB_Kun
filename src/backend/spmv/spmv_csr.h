@@ -8,10 +8,10 @@ namespace backend {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size)
+void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size, int _max_threads_per_socket)
 {
-    int tid = omp_get_thread_num() % THREADS_PER_SOCKET;
-    VNT work_per_thread = (_size - 1) / THREADS_PER_SOCKET + 1;
+    int tid = omp_get_thread_num() % _max_threads_per_socket;
+    VNT work_per_thread = (_size - 1) / _max_threads_per_socket + 1;
 
     for(VNT i = min(_size, tid*work_per_thread); i < min(_size, (tid + 1)*work_per_thread); i++)
     {
@@ -44,24 +44,57 @@ void SpMV_numa_aware(const MatrixCSR<A> *_matrix,
     double t1 = omp_get_wtime();
     #endif
 
+    #ifdef __USE_KUNPENG__
+    const int max_threads_per_socket = sysconf(_SC_NPROCESSORS_ONLN)/2;
+    #else
+    const int max_threads_per_socket = omp_get_max_threads();
+    #endif
+
     #pragma omp parallel
     {
-        int total_threads = omp_get_num_threads();
-        int tid = omp_get_thread_num();
+        const int tid = omp_get_thread_num();
+        #ifdef __USE_KUNPENG__
+        const int cpu_id = sched_getcpu();
+        #else
+        const int cpu_id = tid;
+        #endif
 
-        int socket = tid / (THREADS_PER_SOCKET);
+        const int socket = cpu_id / (max_threads_per_socket);
 
         X *local_x_vals = 0;
-        if(socket == 0)
+        const int total_threads = omp_get_num_threads();
+        if(total_threads == max_threads_per_socket*2) // if 96 or 128 threads
         {
-            local_x_vals = x_vals_first_socket;
-            in_socket_copy(local_x_vals, x_vals, _matrix->nrows);
+            if(socket == 0) // we use in socket copy, which works only on max_threads_per_socket threads
+            {
+                local_x_vals = x_vals_first_socket;
+                in_socket_copy(local_x_vals, x_vals, _matrix->nrows, max_threads_per_socket);
+            }
+            else if(socket == 1)
+            {
+                local_x_vals = x_vals_second_socket;
+                in_socket_copy(local_x_vals, x_vals, _matrix->nrows, max_threads_per_socket);
+            }
         }
-        else if(socket == 1)
+        else
         {
-            local_x_vals = x_vals_second_socket;
-            in_socket_copy(local_x_vals, x_vals, _matrix->nrows);
+            #pragma omp for
+            for(VNT i = 0; i < _matrix->nrows; i++)
+            {
+                x_vals_first_socket[i] = x_vals[i];
+                x_vals_second_socket[i] = x_vals[i];
+            }
+
+            if(socket == 0)
+            {
+                local_x_vals = x_vals_first_socket;
+            }
+            else if(socket == 1)
+            {
+                local_x_vals = x_vals_second_socket;
+            }
         }
+
 
         VNT first_row = offsets[tid].first;
         VNT last_row = offsets[tid].second;

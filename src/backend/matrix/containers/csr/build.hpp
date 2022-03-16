@@ -4,9 +4,8 @@ template <typename T>
 void MatrixCSR<T>::numa_aware_realloc()
 {
     int cores_num = omp_get_max_threads();
-    if(cores_num <= THREADS_PER_SOCKET)
+    if(num_sockets_used() == 1)
         return;
-
     VNT num_rows = this->nrows;
 
     ENT *new_row_ptr;

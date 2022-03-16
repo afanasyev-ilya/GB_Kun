@@ -13,15 +13,12 @@
 #ifdef __USE_NEC_SX_AURORA__
 #define LLC_CACHE_SIZE (16*1024*1024)
 #define VECTOR_LENGTH 256
-#define THREADS_PER_SOCKET 8
 #elif __USE_KUNPENG__
-#define THREADS_PER_SOCKET 48
 #define LLC_CACHE_SIZE (64*1024*1024)
 #define VECTOR_LENGTH 4
 #else
 #define LLC_CACHE_SIZE (64*1024*1024)
 #define VECTOR_LENGTH 4
-#define THREADS_PER_SOCKET 48
 #endif
 
 // different format settings
