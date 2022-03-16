@@ -215,8 +215,8 @@ bool operator== (const MatrixCSR<T> &c1, const MatrixCSR<T> &c2) {
         unordered_set<VNT> set_2;
 #endif
 #ifdef USE_ORDERED
-        unordered_set<VNT> set_1;
-        unordered_set<VNT> set_2;
+        set<VNT> set_1;
+        set<VNT> set_2;
 #endif
         if (i != nrows1) {
             for (VNT j = row1[i]; j < row1[i + 1]; j++) {

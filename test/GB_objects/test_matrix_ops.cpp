@@ -80,7 +80,7 @@ TEST (TransposeTest, RealTest) {
     nvals = A.get_nvals(&nvals);
 
     double seq_a = omp_get_wtime();
-    A.get_matrix()->transpose();
+    A.get_matrix()->transpose_sequential();
     double seq_b = omp_get_wtime();
     double par_a = omp_get_wtime();
     B.get_matrix()->transpose_parallel();
