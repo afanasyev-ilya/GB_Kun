@@ -18,6 +18,8 @@ private:
     int iterations;
 
     bool no_check;
+
+    string algo_name;
 public:
     Parser();
     
@@ -36,6 +38,8 @@ public:
     MatrixStorageFormat get_storage_format() {return storage_format;};
 
     void parse_args(int _argc, char **_argv);
+
+    string get_algo_name() {return algo_name;};
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

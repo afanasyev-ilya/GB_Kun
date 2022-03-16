@@ -164,6 +164,7 @@ void MatrixSegmentedCSR<T>::build(VNT _num_rows,
              100.0*(double)subgraphs[seg_id].nnz/nnz << "%) ";
         cout << "avg degree: " << (double)subgraphs[seg_id].nnz / subgraphs[seg_id].size << ", balancing: " <<
         subgraphs[seg_id].static_ok_to_use << endl;
+        subgraphs[seg_id].get_load_balancing_offsets();
     }
 }
 

@@ -130,10 +130,24 @@ public:
     }
 
     void set_name(const string &_name) { main_container->set_name(_name); secondary_container->set_name(_name); };
-    const string &get_name() { return main_container->get_name(); };
+    const string &get_name() const { return main_container->get_name(); };
 
     bool is_sparse() const { return get_storage() == GrB_SPARSE;};
     bool is_dense() const { return get_storage() == GrB_DENSE;};
+
+    void print_threshold_info() const
+    {
+        VNT nvals = main_container->get_nvals();
+
+        if(nvals > (VNT)(get_size() * SPARSE_VECTOR_THRESHOLD))
+        {
+            cout << "vector " << get_name() << " is DENSE since it contains > " << (100.0*nvals)/get_size() << " > " << 100.0*SPARSE_VECTOR_THRESHOLD << " % elems" << endl;
+        }
+        else
+        {
+            cout << "vector " << get_name() << " is SPARSE since it contains " << (100.0*nvals)/get_size() << " <= " << 100.0*SPARSE_VECTOR_THRESHOLD << " % elems" << endl;
+        }
+    }
 
     LA_Info build (const Index* _indices,
                    const T*     _values,
@@ -202,6 +216,13 @@ public:
     {
         ptr_swap(this->main_container, _another->main_container);
         ptr_swap(this->secondary_container, _another->secondary_container);
+    }
+
+    LA_Info clear()
+    {
+        swap_to_sparse();
+        main_container->fill_with_zeros();
+        return GrB_SUCCESS;
     }
 private:
     GenericVector<T> *main_container;

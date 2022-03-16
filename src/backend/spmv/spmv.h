@@ -32,29 +32,27 @@ void SpMV(const Matrix<A> *_matrix,
         _matrix->get_format(&format);
         if(format == CSR)
         {
-            #ifdef __USE_SOCKET_OPTIMIZATIONS__
-            if(omp_get_max_threads() == THREADS_PER_SOCKET*2)
+            if(num_sockets_used() > 1)
             {
-                SpMV_numa_aware(((MatrixCSR<A> *) _matrix->get_csr()), ((MatrixCSR<A> *) _matrix->get_data_dub()),
-                                _x, _y, _accum, _op, _matrix->get_workspace());
+                #ifdef __DEBUG_INFO__
+                cout << "Using NUMA-aware SPMV" << endl;
+                #endif
+                SpMV_numa_aware(_matrix->get_csr(), _x, _y, _accum, _op, _matrix->get_workspace());
             }
             else
             {
+                #ifdef __DEBUG_INFO__
+                cout << "Using single socket SPMV" << endl;
+                #endif
                 if(_x == _y)
                 {
                     SpMV_all_active_same_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
                 }
                 else
                 {
-                    if(_matrix->get_csr()->can_use_static_balancing())
-                        SpMV_all_active_static(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
-                    else
-                        SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                    SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
                 }
             }
-            #else
-            SpMV_all_active(((MatrixCSR<T> *) _matrix->get_csr()), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
-            #endif
         }
         else if(format == LAV)
             SpMV(((MatrixLAV<A> *) _matrix->get_data()), _x, _y, _accum, _op, _matrix->get_workspace());
@@ -97,13 +95,26 @@ void VSpM(const Matrix<A> *_matrix,
         _matrix->get_format(&format);
         if(format == CSR)
         {
-            if(_x == _y)
+            if(num_sockets_used() > 1)
             {
-                SpMV_all_active_same_vectors(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                #ifdef __DEBUG_INFO__
+                cout << "Using NUMA-aware VSpM" << endl;
+                #endif
+                SpMV_numa_aware(_matrix->get_csc(), _x, _y, _accum, _op, _matrix->get_workspace());
             }
             else
             {
-                SpMV_all_active_diff_vectors(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                #ifdef __DEBUG_INFO__
+                cout << "Using single socket VSpM" << endl;
+                #endif
+                if(_x == _y)
+                {
+                    SpMV_all_active_same_vectors(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                }
+                else
+                {
+                    SpMV_all_active_diff_vectors(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                }
             }
         }
         else if(format == SELL_C)

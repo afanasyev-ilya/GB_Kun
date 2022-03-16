@@ -109,6 +109,8 @@ public:
     void convert(DenseVector<T> *_dense_vector);
 
     VNT get_size() const {return size;};
+
+    void set_size(VNT _nvals) { nvals = _nvals; };
 private:
     VNT size;
     ENT nvals;

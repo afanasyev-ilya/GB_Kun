@@ -7,17 +7,28 @@
 #include "../../cpp_graphblas/types.hpp"
 #include "../../helpers/cmd_parser/parser_options.h"
 #include "../la_backend.h"
+#include <atomic>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace lablas {
 namespace backend {
 
+template <class T>
+inline T my_fetch_add(T *ptr, T val) {
+#ifdef _OPENMP //201511
+        T t;
+#pragma omp atomic capture
+    { t = *ptr; *ptr += val; }
+    return t;
+#endif
+}
 
-    enum VisualizationMode {
-        VISUALISE_AS_DIRECTED,
-        VISUALISE_AS_UNDIRECTED
-    };
+enum VisualizationMode {
+    VISUALISE_AS_DIRECTED,
+    VISUALISE_AS_UNDIRECTED
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
@@ -32,8 +43,13 @@ public:
     void build(const VNT *_row_indices,
                const VNT *_col_indices,
                const T *_values,
-               const VNT _size,
-               const ENT _nnz);
+               ENT _nnz);
+
+    void build_from_csr_arrays(const ENT* _row_ptrs,
+                               const VNT *_col_ids,
+                               const T *_values,
+                               Index _nrows,
+                               Index _nnz);
 
     void build(vector<vector<pair<VNT, T>>>& csc_tmp_matrix,
                vector<vector<pair<VNT, T>>>& csr_tmp_matrix);
@@ -103,12 +119,6 @@ public:
         return data;
     }
 
-    #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    MatrixContainer<T>* get_data_dub() { return data_socket_dub; }
-
-    MatrixContainer<T>* get_data_dub() const { return data_socket_dub; }
-    #endif
-
     const MatrixCSR<T> *get_csr() const { return csr_data; };
     const MatrixCSR<T> *get_csc() const { return csc_data; };
 
@@ -122,7 +132,7 @@ public:
         *_nrows = csr_data->get_num_rows();
     }
 
-    VNT get_nrows() const {
+    [[nodiscard]] VNT get_nrows() const {
         return csr_data->get_num_rows();
     }
 
@@ -130,29 +140,34 @@ public:
         *_ncols = csr_data->get_ncols();
     }
 
-    VNT get_ncols() const {
+    [[nodiscard]] VNT get_ncols() const {
         return csr_data->get_num_cols();
     }
 
     void print() const { csr_data->print(); }
 
-    ENT get_nnz() const {return csr_data->get_nnz();};
+    [[nodiscard]] ENT get_nnz() const {return csr_data->get_nnz();};
 
-    ENT* get_rowdegrees() { return csr_data->get_rowdegrees(); }
+    [[nodiscard]] ENT* get_rowdegrees() { return csr_data->get_rowdegrees(); }
+    [[nodiscard]] const ENT* get_rowdegrees() const { return csr_data->get_rowdegrees(); }
 
-    ENT* get_coldegrees() { return csc_data->get_rowdegrees(); }
+    [[nodiscard]] ENT* get_coldegrees() { return csc_data->get_rowdegrees(); }
+    [[nodiscard]] const ENT* get_coldegrees() const { return csc_data->get_rowdegrees(); }
 
-    Workspace *get_workspace() const { return (const_cast <Matrix<T>*> (this))->workspace; };
+    [[nodiscard]] Workspace *get_workspace() const { return (const_cast <Matrix<T>*> (this))->workspace; };
 
     void sort_csr_columns(const string& mode);
 
     void sort_csc_rows(const string& mode);
+
+    LA_Info transpose();
+    LA_Info csr_to_csc();
+
+    void transpose_sequential(void);
+    void transpose_parallel(void);
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
-    #ifdef __USE_SOCKET_OPTIMIZATIONS__
-    MatrixContainer<T> *data_socket_dub;
-    #endif
 
     MatrixCSR<T> *csr_data;
     MatrixCSR<T> *csc_data;
@@ -165,12 +180,18 @@ private:
                                  vector<vector<pair<VNT, T>>> &_csr_matrix,
                                  vector<vector<pair<VNT, T>>> &_csc_matrix);
 
+    void binary_read_mtx_file_pipelined(const string &_mtx_file_name,
+                                        vector<vector<pair<VNT, T>>> &_csr_matrix,
+                                        vector<vector<pair<VNT, T>>> &_csc_matrix);
+
     void init_optimized_structures();
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "matrix.hpp"
+#include "transpose.hpp"
+#include "build.hpp"
 
 }
 }

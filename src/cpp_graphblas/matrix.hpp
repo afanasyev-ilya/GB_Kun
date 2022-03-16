@@ -35,7 +35,7 @@ public:
         return _matrix.set_preferred_matrix_format(_format);
     }
 
-    LA_Info get_nrows(Index* _nrows) const{
+    LA_Info get_nrows(Index* _nrows) const {
         *_nrows = _matrix.get_nrows();
         return GrB_SUCCESS;
     }
@@ -58,15 +58,13 @@ public:
         return GrB_SUCCESS;
     }
 
-    Index* get_rowdegrees()
-    {
-        return _matrix.get_rowdegrees();
-    }
+    Index* get_rowdegrees() { return _matrix.get_rowdegrees(); }
+    [[nodiscard]] const Index* get_rowdegrees() const { return _matrix.get_rowdegrees(); }
 
-    Index* get_coldegrees()
-    {
-        return _matrix.get_coldegrees();
-    }
+    Index* get_coldegrees() { return _matrix.get_coldegrees(); }
+    [[nodiscard]] const Index* get_coldegrees() const { return _matrix.get_coldegrees(); }
+
+    LA_Info transpose() { return _matrix.transpose(); }
 
     template <typename BinaryOpT>
     LA_Info build (const std::vector<Index>*   row_indices,
@@ -85,10 +83,24 @@ public:
         if (row_indices->size() != col_indices ->size()) {
             return GrB_DIMENSION_MISMATCH;
         }
-        /* doubling nvlas because _nnz = nvals in implementation - TODO remove*/
+
         if (!row_indices->empty()) {
-            _matrix.build(row_indices->data(), col_indices->data(), values->data(), nvals, row_indices->size());
+            _matrix.build(row_indices->data(), col_indices->data(), values->data(), row_indices->size());
         }
+        return GrB_SUCCESS;
+    }
+
+    LA_Info build_from_csr_arrays(const Index* _row_ptrs,
+                                  const Index *_col_ids,
+                                  const T *_values,
+                                  Index _nrows,
+                                  Index _nvals)
+    {
+        if (_row_ptrs == nullptr || _col_ids == nullptr || _values == nullptr) {
+            return GrB_NULL_POINTER;
+        }
+
+        _matrix.build_from_csr_arrays(_row_ptrs, _col_ids, _values, _nrows, _nvals);
         return GrB_SUCCESS;
     }
 

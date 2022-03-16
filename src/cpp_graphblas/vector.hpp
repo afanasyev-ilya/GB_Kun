@@ -47,6 +47,11 @@ public:
         return GrB_SUCCESS;
     }
 
+    LA_Info clear()
+    {
+        return _vector.clear();
+    }
+
     LA_Info set_element(T val, VNT pos)
     {
         _vector.set_element(val, pos);

@@ -20,7 +20,7 @@
                     GrB_NDESCFIELD,
                     GrB_MXMMODE};
 
-    enum Desc_value {reserved = 0,
+    enum Desc_value {GrB_SCMP = 0,
                     GrB_REPLACE = 1, // for GrB_OUTP
                     GrB_COMP = 2, // for GrB_MASK
                     GrB_TRAN = 3, // for GrB_INP0, GrB_INP1

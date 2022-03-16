@@ -31,11 +31,11 @@ void DenseVector<T>::print() const
     for(VNT i = 0; i < size; i++)
     {
         if(fabs(vals[i]) >= 1000000/*std::numeric_limits<T>::max()*/)
-            cout << "inf" << " ";
+            cout << "[" << i << "]:" << "inf" << " ";
         else
-            cout << vals[i] << " ";
+            cout << "[" << i << "]:" << vals[i] << " ";
     }
-    cout << endl;
+    cout << endl << endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +87,9 @@ void DenseVector<T>::fill_with_zeros()
 template <typename T>
 void DenseVector<T>::convert(SparseVector<T> *_sparse_vector)
 {
+    #ifdef __DEBUG_INFO__
     cout << "converting sparse -> dense, name = " << this->name << endl;
+    #endif
     memset(this->vals, 0, size*sizeof(T));
 
     VNT *sparse_ids = _sparse_vector->get_ids();

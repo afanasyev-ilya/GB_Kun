@@ -19,25 +19,25 @@ LA_Info assign(Vector<W>* _w,
                U _value,
                const Vector<I>* _indices,
                const Index _nindices,
-               Descriptor* _desc) {
-
+               Descriptor* _desc)
+{
+    LA_Info info;
     _w->force_to_dense();
 
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
     W* w_vals = _w->getDense()->get_vals();
 
-    auto lambda_op = [w_vals, _value] (Index idx) {
-        w_vals[idx] = _value;
+    auto lambda_op = [w_vals, _value] (Index idx1, Index idx2) {
+        w_vals[idx1] = _value;
     };
 
-    LA_Info info;
     if (_indices == NULL)
     {
-        info = backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
+        info = backend::generic_dense_vector_op_assign(_mask, vector_size, lambda_op, _desc);
     }
     else
     {
-        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
+        info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
     return info;
@@ -53,84 +53,29 @@ LA_Info assign(Vector<W>* _w,
                Vector<U>* _u,
                const Vector<I>* _indices,
                const Index _nindices,
-               Descriptor* _desc) {
-
+               Descriptor* _desc)
+{
     _w->force_to_dense();
 
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
     W* w_vals = _w->getDense()->get_vals();
     U* u_vals = _u->getDense()->get_vals();
 
-    auto lambda_op = [w_vals, u_vals, &_accum](Index idx) {
-        w_vals[idx] = _accum(w_vals[idx], u_vals[idx]);
+    auto lambda_op = [w_vals, u_vals, &_accum](Index idx1, Index idx2) {
+        w_vals[idx1] = _accum(w_vals[idx1], u_vals[idx2]);
     };
 
     LA_Info info;
     if (_indices == NULL)
     {
-        info = backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
+        info = backend::generic_dense_vector_op_assign(_mask, vector_size, lambda_op, _desc);
     }
     else
     {
-        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
+        info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
     return info;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// w += Au
-template <typename W, typename M, typename A, typename U,
-        typename BinaryOpTAccum, typename SemiringT>
-LA_Info mxv (Vector<W>*       _w,
-             const Vector<M>* _mask,
-             BinaryOpTAccum   _accum,
-             SemiringT        _op,
-             const Matrix<A>* _matrix,
-             const Vector<U>* _u,
-             Descriptor*      _desc)
-{
-    if(_u->is_dense())
-    {
-        cout << "USING SpMV!!!!!" << endl;
-        backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
-    }
-    else
-    {
-        cout << "USING SpMSpV!!!!!" << endl;
-        backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
-    }
-    _w->convert_if_required();
-
-    return GrB_SUCCESS;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename W, typename M, typename A, typename U,
-        typename BinaryOpTAccum, typename SemiringT>
-LA_Info vxm (Vector<W>*       _w,
-             const Vector<M>* _mask,
-             BinaryOpTAccum   _accum,
-             SemiringT        _op,
-             const Matrix<A>* _matrix,
-             const Vector<U>* _u,
-             Descriptor*      _desc)
-{
-    if(_u->is_dense())
-    {
-        cout << "USING SpMV!!!!!" << endl;
-        backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
-    }
-    else
-    {
-        cout << "USING SpMSpV!!!!!" << endl;
-        backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
-    }
-    _w->convert_if_required();
-
-    return GrB_SUCCESS;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,23 +89,23 @@ LA_Info assign(Vector<W>* _w,
                const Index _nindices,
                Descriptor *_desc)
 {
+    LA_Info info = GrB_SUCCESS;
     _w->force_to_dense();
 
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
     W* w_vals = _w->getDense()->get_vals();
 
-    auto lambda_op = [w_vals, _value] (Index idx) {
-        w_vals[idx] = _value;
+    auto lambda_op = [w_vals, _value] (Index idx1, Index idx2) {
+        w_vals[idx1] = _value;
     };
 
-    LA_Info info;
     if (_indices == NULL)
     {
-        info = backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
+        info = backend::generic_dense_vector_op_assign(_mask, vector_size, lambda_op, _desc);
     }
     else
     {
-        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
+        info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
     return info;
@@ -184,22 +129,86 @@ LA_Info assign(Vector<W> *_w,
     W* w_vals = _w->getDense()->get_vals();
     U* u_vals = _u->getDense()->get_vals();
 
-    auto lambda_op = [w_vals, u_vals, &_accum](Index idx) {
-        w_vals[idx] = _accum(w_vals[idx], u_vals[idx]);
+    auto lambda_op = [w_vals, u_vals, &_accum](Index idx1, Index idx2) {
+        w_vals[idx1] = _accum(w_vals[idx1], u_vals[idx2]);
     };
 
     LA_Info info;
     if (_indices == NULL)
     {
-        info = backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
+        info = backend::generic_dense_vector_op_assign(_mask, vector_size, lambda_op, _desc);
     }
     else
     {
-        info = backend::indexed_dense_vector_op(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
+        info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
     return info;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// w += Au
+template <typename W, typename M, typename A, typename U,
+        typename BinaryOpTAccum, typename SemiringT>
+LA_Info mxv (Vector<W>*       _w,
+             const Vector<M>* _mask,
+             BinaryOpTAccum   _accum,
+             SemiringT        _op,
+             const Matrix<A>* _matrix,
+             const Vector<U>* _u,
+             Descriptor*      _desc)
+{
+    if(_u->is_dense())
+    {
+        #ifdef __DEBUG_INFO__
+        cout << "USING SpMV!!!!!" << endl;
+        #endif
+        backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+    }
+    else
+    {
+        #ifdef __DEBUG_INFO__
+        cout << "USING SpMSpV!!!!!" << endl;
+        #endif
+        backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+    }
+    _w->convert_if_required();
+
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename W, typename M, typename A, typename U,
+        typename BinaryOpTAccum, typename SemiringT>
+LA_Info vxm (Vector<W>*       _w,
+             const Vector<M>* _mask,
+             BinaryOpTAccum   _accum,
+             SemiringT        _op,
+             const Matrix<A>* _matrix,
+             const Vector<U>* _u,
+             Descriptor*      _desc)
+{
+    if(_u->is_dense())
+    {
+        #ifdef __DEBUG_INFO__
+        cout << "USING SpMV!!!!!" << endl;
+        #endif
+        backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+    }
+    else
+    {
+        #ifdef __DEBUG_INFO__
+        cout << "USING SpMSpV!!!!!" << endl;
+        #endif
+        backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+    }
+    _w->convert_if_required();
+
+    return GrB_SUCCESS;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -393,26 +402,27 @@ LA_Info extract(Vector<W>*       w,
                 const Vector<I>* indices,
                 Descriptor*      desc)
 {
-    for (Index i = 0; i < indices->get_size(); i++)
+    w->force_to_dense();
+
+    Index vector_size = w->getDense()->get_size(); // can be called since force dense conversion before
+    W* w_vals = w->getDense()->get_vals();
+    const U* u_vals = u->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, u_vals, &accum](Index idx1, Index idx2) {
+        w_vals[idx1] = accum(w_vals[idx1], u_vals[idx2]);
+    };
+
+    LA_Info info;
+    if (indices == NULL)
     {
-        if (indices->is_dense())
-        {
-            if (u->is_dense())
-            {
-                w->getDense()->get_vals()[i] = accum(w->getDense()->get_vals()[i], u->getDense()->get_vals()[i]);
-            }
-            if (u->is_sparse())
-            {
-                w->getDense()->get_vals()[i] = accum(w->getDense()->get_vals()[i], u->getSparse()->get_vals()[i]);
-            }
-        }
-        else
-        {
-            cout << "Error in extract: sparse indecies not supported yet" << endl;
-            throw "Error in extract: sparse indecies not supported yet";
-        }
+        info = backend::generic_dense_vector_op_extract(mask, vector_size, lambda_op, desc);
     }
-    return GrB_SUCCESS;
+    else
+    {
+        info = backend::indexed_dense_vector_op_extract(mask, indices, indices->get_size(), vector_size, lambda_op, desc);
+    }
+    w->convert_if_required();
+    return info;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

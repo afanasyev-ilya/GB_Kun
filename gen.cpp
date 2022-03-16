@@ -1,3 +1,4 @@
+#define NEED_GEMM
 #include "src/gb_kun.h"
 
 int main(int argc, char **argv) {

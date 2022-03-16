@@ -19,44 +19,43 @@ void MemoryAPI::allocate_array(T **_ptr, size_t _size)
 template <typename T>
 void MemoryAPI::numa_aware_alloc(T **_ptr, size_t _size, int _target_socket)
 {
-    *_ptr = (T*)malloc(_size*sizeof(T));
+    *_ptr = (T*)malloc(_size*sizeof(T)); // malloc uses first-touch policy for memory allocations
 
-    int max_threads = omp_get_max_threads();
-    if(max_threads == 2*THREADS_PER_SOCKET)
+    #ifdef __USE_KUNPENG__ // currently only Kunpeng platform has 2 sockets, where numa-aware malloc makes sense
+    const int threads_per_socket = sysconf(_SC_NPROCESSORS_ONLN)/2;
+    int threads_active_on_target_socket = 0;
+    #pragma omp parallel
     {
-        #pragma omp parallel num_threads(2*THREADS_PER_SOCKET)
-        {
-            size_t sock = omp_get_thread_num() / THREADS_PER_SOCKET;
-            size_t tid = omp_get_thread_num() % THREADS_PER_SOCKET;
+        int cur_cpu = sched_getcpu();
+        int cur_socket = cur_cpu / threads_per_socket;
 
-            size_t work_per_thread = (_size - 1)/THREADS_PER_SOCKET + 1;
-            if(sock == _target_socket)
+        if(cur_socket == _target_socket)
+        {
+            #pragma omp atomic
+            threads_active_on_target_socket += 1;
+            // we need to consider situations, when for example 10 threads run
+            // on first socket, while 2 -- on second
+        }
+
+        #pragma omp barrier // wait for all atomics to finish
+
+        size_t work_per_thread = (_size - 1)/threads_active_on_target_socket + 1;
+        if(cur_socket == _target_socket) // init target array using threads only from target socket
+        {
+            int tid = omp_get_thread_num();
+            for(size_t i = tid*work_per_thread; i < min((tid+1)*work_per_thread, _size); i++)
             {
-                for(size_t i = tid*work_per_thread; i < min((tid+1)*work_per_thread, _size); i++)
-                {
-                    (*_ptr)[i] = 0;
-                }
+                (*_ptr)[i] = 0;
             }
         }
     }
-    else if(omp_get_max_threads() == THREADS_PER_SOCKET)
+    #else
+    #pragma omp parallel for
+    for(size_t i = 0; i < _size; i++)
     {
-        #pragma omp parallel for num_threads(THREADS_PER_SOCKET)
-        for(size_t i = 0; i < _size; i++)
-        {
-            (*_ptr)[i] = 0;
-        }
+        (*_ptr)[i] = 0;
     }
-    else
-    {
-        #pragma omp parallel for
-        for(size_t i = 0; i < _size; i++)
-        {
-            (*_ptr)[i] = 0;
-        }
-    }
-
-
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

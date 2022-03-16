@@ -2,7 +2,7 @@ from .helpers import *
 from .settings import *
 import os.path
 from os import path
-from .mtx_api import gen_mtx_graph, gen_undirected_mtx_graph
+from .mtx_api import *
 from os import listdir
 from os.path import isfile, join
 from urllib.request import urlopen
@@ -109,8 +109,8 @@ def download_graph(graph_name):
         download_konect(graph_name)
 
 
-def get_path_to_graph(short_name, graph_format):
-    return GRAPHS_DIR + short_name + "." + graph_format
+def get_path_to_graph(short_name, extension):
+    return GRAPHS_DIR + short_name + "." + extension
 
 
 def verify_graph_existence(graph_file_name):
@@ -206,11 +206,23 @@ def check_if_no_loops_and_multiple_edges(graph_name):
         return False
 
 
-def create_real_world_graph(graph_name):
+def graph_missing(output_graph_file_name, undir_output_graph_file_name):
+    if not file_exists(output_graph_file_name):
+        return True
+    if not file_exists(undir_output_graph_file_name):
+        return True
+    if not file_exists(output_graph_file_name + "bin"):
+        return True
+    if not file_exists(undir_output_graph_file_name + "bin"):
+        return True
+    return False
+
+
+def create_real_world_graph(graph_name, options):
     graph_format = "mtx"
     output_graph_file_name = get_path_to_graph(graph_name, graph_format)
-    undir_output_graph_file_name = get_path_to_graph("undir_" + graph_name, graph_format)
-    if not file_exists(output_graph_file_name):
+    undir_output_graph_file_name = get_path_to_graph(UNDIRECTED_PREFIX + graph_name, graph_format)
+    if graph_missing(output_graph_file_name, undir_output_graph_file_name):
         if 'GAP' in graph_name:
             clear_dir(SOURCE_GRAPH_DIR)
             download_graph(graph_name)
@@ -235,12 +247,11 @@ def create_real_world_graph(graph_name):
             else:
                 source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["link"]
 
+            # it does not work
             #if check_if_no_loops_and_multiple_edges(graph_name):
             #    convert_to_mtx_if_no_loops_and_multiple_edges(source_name, output_graph_file_name, graph_name)
             #else:
-            gen_mtx_graph(source_name, output_graph_file_name)
-            if GENERATE_UNDIRECTED:
-                gen_undirected_mtx_graph(source_name, undir_output_graph_file_name)
+            gen_graph(source_name, output_graph_file_name, undir_output_graph_file_name, options)
 
             if verify_graph_existence(output_graph_file_name):
                 print("Graph " + output_graph_file_name + " has been created\n")
@@ -254,7 +265,7 @@ def create_real_world_graph(graph_name):
         print("Warning! Graph " + output_graph_file_name + " already exists!")
 
 
-def create_synthetic_graph(graph_name):
+def create_synthetic_graph(graph_name, options):
     graph_format = "mtx"
     dat = graph_name.split("_")
     type = dat[1]
@@ -262,12 +273,15 @@ def create_synthetic_graph(graph_name):
     edge_factor = dat[3]
 
     output_graph_file_name = get_path_to_graph(graph_name, graph_format)
-    if not file_exists(output_graph_file_name):
+    undir_output_graph_file_name = get_path_to_graph(UNDIRECTED_PREFIX + graph_name, graph_format)
+    if graph_missing(output_graph_file_name, undir_output_graph_file_name):
         cmd = [get_binary_path(MTX_GENERATOR_BIN_NAME), "-s", scale, "-e", edge_factor, "-type", type,
                "-outfile", output_graph_file_name]
         print(' '.join(cmd))
 
         subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE).wait()
+
+        gen_graph(output_graph_file_name, output_graph_file_name, undir_output_graph_file_name, options)
 
         if verify_graph_existence(output_graph_file_name):
             print("Graph " + output_graph_file_name + " has been created\n")
@@ -275,14 +289,14 @@ def create_synthetic_graph(graph_name):
         print("Warning! Graph " + output_graph_file_name + " already exists!")
 
 
-def create_graph(graph_name, run_speed_mode):
+def create_graph(graph_name, run_speed_mode, options):
     if graph_name in get_list_of_synthetic_graphs(run_speed_mode):
-        create_synthetic_graph(graph_name)
+        create_synthetic_graph(graph_name, options)
     elif graph_name in get_list_of_real_world_graphs(run_speed_mode):
-        create_real_world_graph(graph_name)
+        create_real_world_graph(graph_name, options)
 
 
-def create_graphs_if_required(list_of_graphs, run_speed_mode):
+def create_graphs_if_required(list_of_graphs, run_speed_mode, options):
     create_dir(GRAPHS_DIR)
     create_dir(SOURCE_GRAPH_DIR)
 
@@ -290,5 +304,5 @@ def create_graphs_if_required(list_of_graphs, run_speed_mode):
         make_binary(MTX_GENERATOR_BIN_NAME)
 
     for current_graph in list_of_graphs:
-        create_graph(current_graph, run_speed_mode)
+        create_graph(current_graph, run_speed_mode, options)
 
