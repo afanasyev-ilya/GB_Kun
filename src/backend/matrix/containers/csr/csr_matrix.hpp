@@ -223,5 +223,6 @@ bool operator== (const MatrixCSR<T> &c1, const MatrixCSR<T> &c2) {
             }
         }
     }
+    return true;
 }
 

@@ -52,7 +52,7 @@ void read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, ENT _nnz
     for(size_t ln = _ln_pos; ln < min(_nnz, end_pos); ln++)
     {
         long long int src_id = -2, dst_id = -2;
-        fgets (buffer,buffer_size, _fp);
+        auto ret_val = fgets (buffer,buffer_size, _fp);
         sscanf(buffer, "%lld %lld", &src_id, &dst_id);
         _src_ids[ln - _ln_pos] = src_id;
         _dst_ids[ln - _ln_pos] = dst_id;
@@ -106,7 +106,7 @@ void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
 
     while(true)
     {
-        fgets(header_line, 4096, fp);
+        auto ret_val = fgets(header_line, 4096, fp);
         if(header_line[0] != '%')
             break;
     }
@@ -207,7 +207,7 @@ void binary_read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, E
 
     VNT buf_size = MTX_READ_PARTITION_SIZE * 2 * sizeof(VNT);
     VNT *buf = (VNT *)malloc(buf_size);
-    fread(buf, sizeof(VNT), 2 * MTX_READ_PARTITION_SIZE, _fp);
+    auto ret_val = fread(buf, sizeof(VNT), 2 * MTX_READ_PARTITION_SIZE, _fp);
     for(size_t ln = _ln_pos, i = 0; ln < min(_nnz, end_pos); ln++, i += 2)
     {
         VNT src_id = -2, dst_id = -2;
@@ -238,9 +238,10 @@ void Matrix<T>::binary_read_mtx_file_pipelined(const string &_mtx_file_name,
     }
 
     long long int tmp_rows = 0, tmp_cols = 0, tmp_nnz = 0;
-    fread(&tmp_rows, sizeof(long long), 1, fp);
-    fread(&tmp_cols, sizeof(long long), 1, fp);
-    fread(&tmp_nnz, sizeof(long long), 1, fp);
+
+    auto fread_ret = fread(&tmp_rows, sizeof(long long), 1, fp);
+    fread_ret = fread(&tmp_cols, sizeof(long long), 1, fp);
+    fread_ret = fread(&tmp_nnz, sizeof(long long), 1, fp);
 
     VNT *proc_src_ids, *proc_dst_ids;
     VNT *read_src_ids, *read_dst_ids;
