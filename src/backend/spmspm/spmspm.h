@@ -209,7 +209,6 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 
     delete [] matrix_result;
 
-    double t3 = omp_get_wtime();
 
     double my_bw = 0;
     #ifdef __DEBUG_BANDWIDTHS__
@@ -218,29 +217,22 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
-    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "Hash_Based_mxm", t3 - t1, 0.0, my_bw, 0ll);
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "Hash_Based_mxm", t2 - t1, 0.0, my_bw, 0ll);
     fclose(my_f);
 
-    // Getting COO format from CSR until needed build functions are implemented:
-    vector<VNT> row_ids_coo;
-    vector<VNT> col_ids_coo;
-    vector<T> values_coo;
-    for (VNT i = 0; i < n; ++i) {
-        for (VNT j = row_ptr[i]; j < row_ptr[i + 1]; ++j) {
-            row_ids_coo.push_back(i);
-            col_ids_coo.push_back(col_ids[j]);
-            values_coo.push_back(vals[j]);
-        }
-    }
-    delete [] row_ptr;
-    delete [] col_ids;
-    delete [] vals;
-    _matrix_result->build(&row_ids_coo[0], &col_ids_coo[0], &values_coo[0], n, nnz);
+    double t3 = omp_get_wtime();
 
-    printf("Unmasked IKJ SpMSpM time: %lf seconds.\n", t2-t1);
-    printf("Unmasked IKJ SpMSpM converting result time: %lf seconds.\n", t3-t2);
+    SpMSpM_alloc(_matrix_result);
+    _matrix_result->build_from_csr_arrays(row_ptr, col_ids, vals, n, nnz);
+
+    double t4 = omp_get_wtime();
+
+    printf("Unmasked IKJ SpMSpM main loop time: %lf seconds.\n", t2-t1);
+    printf("Unmasked IKJ SpMSpM converting result hash-map to CSR time: %lf seconds.\n", t3-t2);
+    printf("Unmasked IKJ SpMSpM converting CSR to Matrix object time: %lf seconds.\n", t4-t3);
+    printf("Unmasked IKJ SpMSpM total time: %lf seconds.\n", t4-t1);
 #ifdef __DEBUG_BANDWIDTHS__
-    printf("\t- Sustained bandwidth: %lf GB/s\n", bytes_requested / 1e9 / (t2 - t1));
+    printf("\t- Sustained bandwidth: %lf GB/s\n", bytes_requested / 1e9 / (t4 - t1));
 #endif
 }
 

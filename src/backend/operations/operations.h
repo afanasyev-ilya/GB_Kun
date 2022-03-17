@@ -440,7 +440,9 @@ LA_Info mxm(Matrix<c>* C,
     // auto add_op = extractAdd(op);
     // auto mul_op = extractMul(op);
     if (mask) {
-        return GrB_PANIC;
+        backend::SpMSpM_unmasked_ikj(A,
+                                     B,
+                                     C);
     } else {
         Desc_value multiplication_mode;
         desc->get(GrB_MXMMODE, &multiplication_mode);
@@ -455,8 +457,8 @@ LA_Info mxm(Matrix<c>* C,
         } else {
             return GrB_INVALID_VALUE;
         }
-        return GrB_SUCCESS;
     }
+    return GrB_SUCCESS;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

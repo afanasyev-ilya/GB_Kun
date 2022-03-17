@@ -87,7 +87,10 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
                        LAGraph_TriangleCount_Presort presort, const char *msg)
 {
     LG_CLEAR_MSG ;
-    GrB_Matrix C = NULL, L = NULL, U = NULL, T = NULL ;
+    GrB_Matrix C = NULL;
+    GrB_Matrix L = NULL;
+    GrB_Matrix U = NULL;
+    GrB_Matrix T = NULL;
     int64_t *P = NULL ;
     /*
     LG_ASSERT_MSG (
@@ -209,7 +212,10 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
     }
     */
     int64_t ntri ;
-
+    GrB_TRY (GrB_mxm (C, A, NULL, semiring, A, A, GrB_DESC_S)) ;
+    GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
+    ntri /= 6 ;
+    /*
     switch (method)
     {
 
@@ -221,35 +227,32 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
             break ;
 
         case LAGraph_TriangleCount_Cohen: // 2: sum (sum ((L * U) .* A)) / 2
-            /*
+
             LG_TRY (tricount_prep (&L, &U, A, msg)) ;
             GrB_TRY (GrB_mxm (C, A, NULL, semiring, L, U, GrB_DESC_S)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
             ntri /= 2 ;
-            */
             break ;
 
         case LAGraph_TriangleCount_Sandia: // 3: sum (sum ((L * L) .* L))
-            /*
+
             // using the masked saxpy3 method
             LG_TRY (tricount_prep (&L, NULL, A, msg)) ;
             GrB_TRY (GrB_mxm (C, L, NULL, semiring, L, L, GrB_DESC_S)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
-             */
             break ;
 
         case LAGraph_TriangleCount_Sandia2: // 4: sum (sum ((U * U) .* U))
-            /*
+
             // using the masked saxpy3 method
             LG_TRY (tricount_prep (NULL, &U, A, msg)) ;
             GrB_TRY (GrB_mxm (C, U, NULL, semiring, U, U, GrB_DESC_S)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
-             */
             break ;
 
         default:
         case LAGraph_TriangleCount_SandiaDot: // 5: sum (sum ((L * U') .* L))
-            /*
+
             // This tends to be the fastest method for most large matrices, but
             // the SandiaDot2 method is also very fast.
 
@@ -257,19 +260,17 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
             LG_TRY (tricount_prep (&L, &U, A, msg)) ;
             GrB_TRY (GrB_mxm (C, L, NULL, semiring, L, U, GrB_DESC_ST1)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
-            */
             break ;
 
         case LAGraph_TriangleCount_SandiaDot2: // 6: sum (sum ((U * L') .* U))
-            /*
+
             // using the masked dot product
             LG_TRY (tricount_prep (&L, &U, A, msg)) ;
             GrB_TRY (GrB_mxm (C, U, NULL, semiring, U, L, GrB_DESC_ST1)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
-            */
             break ;
     }
-
+    */
     //LG_FREE_ALL ;
     (*ntriangles) = (uint64_t) ntri ;
     return (GrB_SUCCESS) ;

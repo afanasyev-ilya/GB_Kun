@@ -227,6 +227,33 @@ LA_Info GrB_vxm (lablas::Vector<W>*       _w,
 
 template <typename W, typename M, typename a, typename U,
         typename BinaryOpTAccum, typename SemiringT>
+LA_Info GrB_mxm (lablas::Matrix<W>*       _c,
+                 const lablas::Matrix<M>* _mask,
+                 BinaryOpTAccum        _accum,
+                 SemiringT        _op,
+                 const lablas::Matrix<U>* _a,
+                 const lablas::Matrix<a>* _b,
+                 lablas::Descriptor*      _desc)
+{
+    return lablas::mxm(_c, _mask, _accum, _op, _a, _b, _desc);
+}
+
+template <typename W, typename M, typename a, typename U, typename SemiringT>
+LA_Info GrB_mxm (lablas::Matrix<W>*       _c,
+                 const lablas::Matrix<M>* _mask,
+                 NULL_TYPE        _accum,
+                 SemiringT        _op,
+                 const lablas::Matrix<U>* _a,
+                 const lablas::Matrix<a>* _b,
+                 lablas::Descriptor*      _desc)
+{
+    return lablas::mxm(_c, _mask, lablas::second<U, W, U>(), _op, _a, _b, _desc);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename W, typename M, typename a, typename U,
+        typename BinaryOpTAccum, typename SemiringT>
 LA_Info GrB_mxv (lablas::Vector<W>*       _w,
                  const lablas::Vector<M>* _mask,
                  BinaryOpTAccum        _accum,

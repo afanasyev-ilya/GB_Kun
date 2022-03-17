@@ -29,6 +29,7 @@ int main(int argc, char **argv) {
                                      lablas::algorithm::LAGraph_TriangleCount_Presort::LAGraph_TriangleCount_NoSort,
                                      NULL),
                   "TriangleCount", 1,(graph.AT));
+        cout << "Found triangles: " << ntriangles << endl;
     }
     catch (string& error)
     {
