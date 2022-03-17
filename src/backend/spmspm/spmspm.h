@@ -149,11 +149,14 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
     auto row_nnz = new ENT[n];
 
     int threads_count = omp_get_max_threads();
-    auto offsets = new pair<VNT, VNT>[threads_count];
+    // auto offsets = new pair<VNT, VNT>[threads_count];
+    auto offsets = _matrix1->get_csr()->get_load_balancing_offsets();
+    /*
     balance_matrix_rows(_matrix1->get_csr()->get_row_ptr(),
                         n,
                         offsets,
                         threads_count);
+    */
 
     auto matrix1_val_ptr = _matrix1->get_csr()->get_vals();
     auto matrix2_val_ptr = _matrix2->get_csr()->get_vals();
@@ -214,7 +217,7 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
     }
 
     delete [] matrix_result;
-    delete [] offsets;
+    // delete [] offsets;
 
     double t3 = omp_get_wtime();
 
