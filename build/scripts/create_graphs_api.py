@@ -11,6 +11,8 @@ from bs4 import BeautifulSoup
 
 # synthetic
 def get_list_of_synthetic_graphs(run_speed_mode):
+    if "rw" in run_speed_mode:
+        return []
     if run_speed_mode == "tiny-only":
         return syn_tiny_only
     elif run_speed_mode == "small-only":
@@ -32,17 +34,17 @@ def get_list_of_synthetic_graphs(run_speed_mode):
 
 
 def get_list_of_real_world_graphs(run_speed_mode):
-    if run_speed_mode == "tiny-only":
+    if run_speed_mode == "tiny-only" or run_speed_mode == "tiny-only-rw":
         return konect_tiny_only
-    elif run_speed_mode == "small-only":
+    elif run_speed_mode == "small-only" or run_speed_mode == "small-only-rw":
         return konect_small_only
-    elif run_speed_mode == "medium-only":
+    elif run_speed_mode == "medium-only" or run_speed_mode == "medium-only-rw":
         return konect_medium_only
-    elif run_speed_mode == "large-only":
+    elif run_speed_mode == "large-only" or run_speed_mode == "large-only-rw":
         return konect_large_only
-    elif run_speed_mode == "tiny-small":
+    elif run_speed_mode == "tiny-small" or run_speed_mode == "tiny-small-rw":
         return konect_tiny_small
-    elif run_speed_mode == "tiny-small-medium":
+    elif run_speed_mode == "tiny-small-medium" or run_speed_mode == "tiny-small-medium-rw":
         return konect_tiny_small_medium
     elif run_speed_mode == "fastest":
         return konect_fastest
