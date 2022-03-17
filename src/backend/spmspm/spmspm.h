@@ -225,7 +225,7 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
-    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "Hash_Based_mxm", t2 - t1, 0.0, my_bw, 0ll);
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "Hash_Based_mxm", (t3 - t1) * 1000, 0.0, my_bw, 0ll);
     fclose(my_f);
 
     double t4 = omp_get_wtime();
