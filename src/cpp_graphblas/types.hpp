@@ -22,9 +22,10 @@
                     GrB_MXVMODE,
                     GrB_TOL,
                     GrB_BACKEND,
-                    GrB_NDESCFIELD};
+                    GrB_NDESCFIELD,
+                    GrB_MXMMODE};
 
-    enum Desc_value {reserved = 0,
+    enum Desc_value {GrB_SCMP = 0,
                     GrB_REPLACE = 1, // for GrB_OUTP
                     GrB_COMP = 2, // for GrB_MASK
                     GrB_TRAN = 3, // for GrB_INP0, GrB_INP1
@@ -44,7 +45,10 @@
                     GrB_128        =  128,
                     GrB_256        =  256,
                     GrB_512        =  512,
-                    GrB_1024       = 1024};
+                    GrB_1024       = 1024,
+                    GrB_IJK        = 20,    // for GrB_MXMMODE
+                    GrB_IKJ        = 21,    // for GrB_MXMMODE
+    };
 
 
     typedef enum {
@@ -167,6 +171,13 @@ namespace lablas{
             }
         };
 
+        template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>
+        struct not_equal_to {
+            inline  T_out operator()(T_in1 lhs, T_in2 rhs) {
+                return lhs != rhs;
+            }
+        };
+
         template <typename T_in1 = bool, typename T_in2 = bool, typename T_out = bool>
         struct logical_and {
             inline T_out operator()(const T_in1 lhs, const T_in2 rhs) const {
@@ -245,6 +256,9 @@ REGISTER_SEMIRING(PlusSecondSemiring, PlusMonoid, second)
 REGISTER_SEMIRING(StructuralBool, LogicalOrMonoid, GrB_ONEB_T)
 REGISTER_SEMIRING(MinimumPlusSemiring, MinimumMonoid, plus)
 REGISTER_SEMIRING(CustomLessPlusSemiring, CustomLessMonoid, plus)
+REGISTER_SEMIRING(MinimumSelectSecondSemiring, MinimumMonoid, second)
+REGISTER_SEMIRING(MinimumNotEqualToSemiring, MinimumMonoid, not_equal_to)
+REGISTER_SEMIRING(PlusOneSemiring, PlusMonoid, GrB_ONEB_T)
 // MinimumPlusSemiring
 // CustomLessPlusSemiring
 

@@ -1,8 +1,10 @@
 #include "src/gb_kun.h"
 
 #include "algorithms/pr/pr.hpp"
+#include "algorithms/pr/pr_traditional.hpp"
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     try
     {
         Parser parser;
@@ -14,21 +16,43 @@ int main(int argc, char **argv) {
 
         lablas::Matrix<float> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
-        init_matrix(matrix, parser);
+        SAVE_TIME_SEC((init_matrix(matrix, parser)), "whole_preprocess");
 
         GrB_Index size;
         matrix.get_nrows(&size);
         lablas::Vector<float> levels(size);
 
         LAGraph_Graph<float> graph(matrix);
+        int max_iter = parser.get_iterations();
 
         int iters_taken = 0;
-        lablas::Vector<float>* centrality;
+        lablas::Vector<float> ranks(size);
+        if(parser.get_algo_name() == "lagraph")
+        {
+            SAVE_TEPS(LAGraph_page_rank_sinks(&ranks, &graph, &iters_taken, max_iter),
+                      "Page_Rank", iters_taken, (graph.AT));
+        }
+        else
+        {
+            cout << "Unknown algorithm name in PR" << endl;
+        }
 
-        SAVE_TEPS(LAGraph_VertexCentrality_PageRankGAP(&centrality, &graph, &iters_taken),
-                  "Page_Rank", iters_taken, (graph.AT));
+        if(parser.check())
+        {
+            lablas::Vector<float> check_ranks(size);
+            lablas::algorithm::seq_page_rank(&check_ranks, &matrix, &iters_taken, max_iter);
 
-        delete centrality;
+            if(ranks == check_ranks)
+            {
+                cout << "page ranks are equal" << endl;
+            }
+            else
+            {
+                cout << "page ranks are NOT equal" << endl;
+            }
+        }
+
+
     }
     catch (string error)
     {

@@ -100,7 +100,7 @@ void EdgeListContainer<T>::remove_duplicated_edges()
     ENT *sort_indexes;
     MemoryAPI::allocate_array(&sort_indexes, edges_count);
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for(ENT i = 0; i < edges_count; i++)
         sort_indexes[i] = i;
 

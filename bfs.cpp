@@ -3,14 +3,30 @@
 #include "algorithms/bfs/bfs.hpp"
 #include "algorithms/bfs/bfs_traditional.hpp"
 
-int main(int argc, char **argv) {
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+Index select_non_trivial_vertex(lablas::Matrix<T> &_matrix)
+{
+    Index max_val = min(_matrix.ncols(), _matrix.nrows());
+    Index vertex = 0;
+    srand(time(NULL));
+    do {
+        vertex = rand() %  max_val;
+    } while((_matrix.get_rowdegrees()[vertex] == 0) || (_matrix.get_coldegrees()[vertex] == 0));
+    return vertex;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int main(int argc, char **argv)
+{
     try
     {
         Parser parser;
         parser.parse_args(argc, argv);
         VNT scale = parser.get_scale();
         VNT avg_deg = parser.get_avg_degree();
-
 
         lablas::Descriptor desc;
 
@@ -20,9 +36,9 @@ int main(int argc, char **argv) {
 
         Index nrows;
         matrix.get_nrows(&nrows);
-        Index source_vertex = rand() % nrows;
+        Index source_vertex = select_non_trivial_vertex(matrix);
 
-        lablas::Vector<int> *parents = NULL, *levels = NULL;
+        lablas::Vector<int> *levels = NULL;
 
         LAGraph_Graph<int> graph(matrix);
 
@@ -47,16 +63,13 @@ int main(int argc, char **argv) {
 
         if(levels != NULL)
             delete levels;
-        if(parents != NULL)
-            delete parents;
-    }
-    catch (string error)
-    {
-        cout << error << endl;
     }
     catch (const char * error)
     {
         cout << error << endl;
+        return 0;
     }
     return 0;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

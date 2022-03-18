@@ -40,7 +40,9 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
                                         ENT _edges_count,
                                         DirectionType _direction_type)
 {
+    #ifdef __DEBUG_INFO__
     cout << "Creating Random Uniform matrix" << endl;
+    #endif
     VNT vertices_count = _vertices_count;
     ENT edges_count = _edges_count;
     
@@ -98,7 +100,9 @@ void GraphGenerationAPI::RMAT(EdgeListContainer<T> &_edges_container,
                               int _d_prob,
                               DirectionType _direction_type)
 {
+    #ifdef __DEBUG_INFO__
     cout << "Creating RMAT matrix" << endl;
+    #endif
     VNT n = (VNT)log2(_vertices_count);
     VNT vertices_count = _vertices_count;
     ENT edges_count = _edges_count;
@@ -536,7 +540,9 @@ void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_contain
     FILE *fp;
     fp = fopen(_mtx_file_name.c_str(), "r");
     char header_line[1024];
-    fgets(header_line, 1024, fp);
+    if(fgets(header_line, 1024, fp) == NULL)
+        throw "Error: unexpected end of graph file! Aborting...";
+
     string header(header_line);
     if(header.find("%%MatrixMarket matrix coordinate pattern general") == std::string::npos)
     {

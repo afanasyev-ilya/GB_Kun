@@ -19,6 +19,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
+    // start of BW testing region (without load balancing)
     /*ENT max_nnz = 0;
     for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++) {
         SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
@@ -28,6 +29,9 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
 
     Y *result;
     MemoryAPI::allocate_array(&result, max_nnz);
+    #pragma omp parallel for
+    for(ENT i = 0; i < max_nnz; i++)
+        result[i] = 0;
 
     double new_way_time = 0;
     for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
@@ -45,20 +49,40 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         }
         double t2_check = omp_get_wtime();
         new_way_time += t2_check - t1_check;
-        cout << "check BW: " << segment->nnz * (3.0*sizeof(X) + sizeof(Index)) / ((t2_check - t1_check)*1e9) << " GB/s, " << "time: " << (t2_check - t1_check)*1000 << endl;
+        cout << "check BW: " << segment->nnz * (3.0*sizeof(X) + sizeof(Index)) / ((t2_check - t1_check)*1e9) << " GB/s, " << "time: " << (t2_check - t1_check)*1000 << " | a.d.=" << ((double)segment->nnz)/segment->size << endl;
     }
-    MemoryAPI::free_array(result);*/
+    MemoryAPI::free_array(result);
+    // end of testing region*/
 
     double t1 = omp_get_wtime();
     int cores_num = omp_get_max_threads();
     #pragma omp parallel // parallelism within each segment
     {
+        int tid = omp_get_thread_num();
+
         for(int seg_id = 0; seg_id < _matrix->num_segments; seg_id++)
         {
             SubgraphSegment<A> *segment = &(_matrix->subgraphs[seg_id]);
             Y *buffer = (Y*)segment->vertex_buffer;
 
-            if(segment->static_ok_to_use)
+            auto offsets = segment->get_tid_load_balancing_offsets(tid);
+
+            VNT first_row = offsets.first;
+            VNT last_row = offsets.second;
+
+            for(VNT row = first_row; row < last_row; row++)
+            {
+                Y res = identity_val;
+                for(ENT j = segment->row_ptr[row]; j < segment->row_ptr[row + 1]; j++)
+                {
+                    VNT col = segment->col_ids[j];
+                    A val = segment->vals[j];
+                    res = add_op(res, mul_op(val, x_vals[col]));
+                }
+                buffer[row] = res;
+            }
+
+            /*if(segment->static_ok_to_use)
             {
                 #pragma omp for nowait schedule(static, 32)
                 for(VNT i = 0; i < segment->size; i++)
@@ -90,7 +114,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
                         buffer[row] = res;
                     }
                 }
-            }
+            }*/
         }
     }
 
@@ -196,9 +220,11 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
             }
         }
     }*/
+    #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
-    cout << "inner (seg) time: " << (t2 - t1)*1000 << " ms " << endl;
-    cout << "inner (seg) BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    cout << "inner (seg) slices time: " << (t2 - t1)*1000 << " ms " << endl;
+    cout << "inner (seg) slices BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    #endif
 
     double t3 = omp_get_wtime();
     Y *merge_result = (Y*)_workspace->get_first_socket_vector();
@@ -271,10 +297,12 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
         }
     }
 
+    #ifdef __DEBUG_BANDWIDTHS__
     double t4 = omp_get_wtime();
     cout << "merge time: " << (t4 - t3)*1000 << " ms" << endl;
     cout << "wall spmv time: " << (t4 - t1)*1000 << " ms" << endl;
     cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t4 - t1)*1e9) << " GB/s" << endl << endl;
+    #endif
 
     //cout << "compare: " << (t2 - t1)*1000 << "(edge proc) vs " << (t4 - t3)*1000 << "(cache-aware) vs " << (t6 - t5)*1000 << "(usual merge)" << endl;
 }

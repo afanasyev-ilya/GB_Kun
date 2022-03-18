@@ -1,29 +1,70 @@
 #pragma once
 
 #include <stdio.h>
+#ifdef __USE_KUNPENG__
 #include <sched.h>
+#endif
 #include <omp.h>
+#include <unistd.h>
 
+#ifdef __DEBUG_INFO__
 #define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, matrix)       \
 GrB_Index my_nvals = 0;                                                                 \
 GrB_Matrix_nvals(&my_nvals, matrix);                                                    \
-/*printf("matrix has %ld\n edges", nvals);*/                                            \
+double my_t1 = omp_get_wtime();                                                         \
+call_instruction;                                                                       \
+double my_t2 = omp_get_wtime();                                                         \
+double my_time = (my_t2 - my_t1)*1000;                                                  \
+double my_perf = my_nvals * 2.0 / ((my_t2 - my_t1)*1e9);                                \
+double my_bw = my_nvals * bytes_per_flop/((my_t2 - my_t1)*1e9);                         \
+printf("%s time = %lf (ms)\n", op_name, my_time);                                      \
+printf("%s BW = %lf (GB/s)\n", op_name, my_bw);                                      \
+FILE *my_f;                                                                          \
+my_f = fopen("perf_stats.txt", "a");                                                 \
+fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+fclose(my_f);
+#else
+#define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, matrix)       \
+GrB_Index my_nvals = 0;                                                                 \
+GrB_Matrix_nvals(&my_nvals, matrix);                                                    \
+double my_t1 = omp_get_wtime();                                                         \
+call_instruction;                                                                       \
+double my_t2 = omp_get_wtime();                                                         \
+double my_time = (my_t2 - my_t1)*1000;                                                  \
+double my_perf = my_nvals * 2.0 / ((my_t2 - my_t1)*1e9);                                \
+double my_bw = my_nvals * bytes_per_flop/((my_t2 - my_t1)*1e9);                         \
+FILE *my_f;                                                                          \
+my_f = fopen("perf_stats.txt", "a");                                                 \
+fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+fclose(my_f);
+#endif
+
+#define SAVE_TIME(call_instruction, op_name)       \
 double my_t1 = omp_get_wtime();                                                         \
 call_instruction;                                                                       \
 double my_t2 = omp_get_wtime();                                                         \
 double my_time = (my_t2 - my_t1)*1000;                                                           \
-double my_perf = my_nvals * 2.0 / ((my_t2 - my_t1)*1e9);                                         \
-double my_bw = my_nvals * bytes_per_flop/((my_t2 - my_t1)*1e9);                                  \
-/*printf("edges: %lf\n", nvals);*/                                                   \
-/*printf("%s time %lf (ms)\n", op_name, (my_t2-my_t1)*1000); */                          \
-/*printf("%s perf %lf (GFLop/s)\n", op_name, perf);*/                                \
-/*printf("%s BW %lf (GB/s)\n", op_name, bw);*/                                       \
+double my_perf = 0;                                        \
+double my_bw = 0;                                  \
+size_t my_nvals = 0;                               \
 FILE *my_f;                                                                          \
 my_f = fopen("perf_stats.txt", "a");                                                 \
-fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
 fclose(my_f);                                                                           \
 
-#define SAVE_TEPS(call_instruction, op_name, iterations, matrix)                                    \
+#define SAVE_TIME_SEC(call_instruction, op_name)       \
+double my_t1 = omp_get_wtime();                                                         \
+call_instruction;                                                                       \
+double my_t2 = omp_get_wtime();                                                         \
+double my_time = (my_t2 - my_t1);                                                           \
+double my_perf = 0;                                        \
+double my_bw = 0;                                  \
+size_t my_nvals = 0;                               \
+FILE *my_f = fopen("perf_stats.txt", "a");                                                 \
+fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+fclose(my_f);
+
+#define SAVE_TEPS(call_instruction, op_name, iterations, matrix)                        \
 GrB_Index my_nvals = 0;                                                                 \
 GrB_Matrix_nvals(&my_nvals, matrix);                                                    \
 double my_t1 = omp_get_wtime();                                                         \
@@ -31,14 +72,53 @@ call_instruction;                                                               
 double my_t2 = omp_get_wtime();                                                         \
 double my_time = (my_t2 - my_t1)*1000;                                                  \
 double my_perf = iterations*(my_nvals / ((my_t2 - my_t1)*1e6));                         \
+double my_bw = 0;                                                                       \
 FILE *my_f;                                                                             \
 my_f = fopen("perf_stats.txt", "a");                                                    \
-fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %ld\n", op_name, my_time, my_perf, 0, my_nvals);\
+fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
 fclose(my_f);                                                                           \
+
+void save_teps(const char *_op_name, double _time, size_t _nvals, int _iterations = 1)
+{
+    double my_time = _time*1000;
+    double my_perf = _iterations*(_nvals / (_time*1e6));
+    double my_bw = 0;
+    FILE *my_f;
+    my_f = fopen("perf_stats.txt", "a");
+    fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %lld\n", _op_name, my_time, my_perf, my_bw, _nvals);
+    fclose(my_f);
+}
+
+void save_time_in_ms(const char *_op_name, double _time)
+{
+    double my_t2 = omp_get_wtime();
+    double my_time = (_time)*1000;
+    double my_perf = 0;
+    double my_bw = 0;
+    size_t my_nvals = 0;
+    FILE *my_f;
+    my_f = fopen("perf_stats.txt", "a");
+    fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", _op_name, my_time, my_perf, my_bw, my_nvals);
+    fclose(my_f);
+}
+
+void save_time_in_sec(const char *_op_name, double _time)
+{
+    double my_t2 = omp_get_wtime();
+    double my_time = (_time);
+    double my_perf = 0;
+    double my_bw = 0;
+    size_t my_nvals = 0;
+    FILE *my_f;
+    my_f = fopen("perf_stats.txt", "a");
+    fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", _op_name, my_time, my_perf, my_bw, my_nvals);
+    fclose(my_f);
+}
 
 void print_omp_stats()
 {
-    /*#pragma omp parallel
+    #ifdef __USE_KUNPENG__
+    #pragma omp parallel
     {
         int thread_num = omp_get_thread_num();
         int cpu_num = sched_getcpu();
@@ -60,7 +140,8 @@ void print_omp_stats()
     }
 
     cout << "Threads used: " << max_thread + 1 << endl;
-    cout << "Largest core used: " << max_core + 1 << " cores" << endl;*/
+    cout << "Largest core used: " << max_core + 1 << " cores" << endl;
+    #endif
 
     /*size_t size = 1024*1024*128*8;
     double *a, *b, *c;
@@ -89,4 +170,39 @@ void print_omp_stats()
     MemoryAPI::free_array(a);
     MemoryAPI::free_array(b);
     MemoryAPI::free_array(c);*/
+}
+
+int num_sockets_used()
+{
+    #ifdef __USE_KUNPENG__
+    const int numCPU = sysconf(_SC_NPROCESSORS_ONLN);
+    int threads_amount;
+    int cpu[numCPU];
+    #pragma omp parallel
+    {
+        threads_amount = omp_get_num_threads();
+        int cpu_num = sched_getcpu();
+        cpu[omp_get_thread_num()] = cpu_num;
+    }
+    bool socket[2];
+    socket[0] = false;
+    socket[1] = false;
+    for (int i = 0; i < threads_amount && !(socket[0] && socket[1]); i++)
+    {
+        if (cpu[i] < numCPU / 2)
+        {
+            socket[0] = true;
+        }
+        else
+        {
+            socket[1] = true;
+        }
+    }
+    if(socket[0] && socket[1])
+        return 2;
+    else
+        return 1;
+    #else
+    return 1;
+    #endif
 }

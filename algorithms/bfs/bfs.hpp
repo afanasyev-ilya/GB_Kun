@@ -75,7 +75,7 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
         GrB_TRY( GrB_Vector_nvals(&nvals, frontier) );
     } while (nvals > 0);
 
-    l_level->force_to_dense();
+    //l_level->force_to_dense();
 
     (*level ) = l_level;
     return (0);
@@ -91,9 +91,9 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
     GrB_TRY( GrB_Matrix_nrows (&n, A) );
 
     GrB_Vector f1 = NULL, *f2 = NULL, *v = NULL;
-    GrB_TRY(GrB_Vector_new(&f1, GrB_INT32, n));
-    GrB_TRY(GrB_Vector_new(&f2, GrB_INT32, n));
-    GrB_TRY(GrB_Vector_new(&v, GrB_INT32, n));
+    GrB_TRY(GrB_Vector_new(&f1, GrB_INT32, n, "f1"));
+    GrB_TRY(GrB_Vector_new(&f2, GrB_INT32, n, "f2"));
+    GrB_TRY(GrB_Vector_new(&v, GrB_INT32, n, "v"));
 
     double t1 = omp_get_wtime();
 
@@ -105,9 +105,9 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
     int iter = 1;
     int succ = 0;
     cout << "------------------------------ alg started ------------------------------------ " << endl;
-    do {
+    do
+    {
         GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, GrB_NULL));
-
         GrB_TRY( GrB_vxm(f2, v, NULL, lablas::LogicalOrAndSemiring<int>(), f1, A, GrB_DESC_SC));
 
         std::swap(f1, f2);
@@ -115,10 +115,11 @@ int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
         GrB_TRY (GrB_reduce (&succ, NULL, GrB_PLUS_MONOID_INT32, f1, GrB_NULL)) ;
 
         iter++;
-    } while(succ > 0);
+    }
+    while(succ > 0);
     cout << "------------------------------ alg done ------------------------------------ " << endl;
 
-    v->force_to_dense();
+    //v->force_to_dense();
     *levels = v;
 
     double t2 = omp_get_wtime();

@@ -3,7 +3,8 @@
 #include "algorithms/sssp/sssp.hpp"
 #include "algorithms/sssp/sssp_traditional.hpp"
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     try
     {
         Parser parser;
@@ -17,8 +18,6 @@ int main(int argc, char **argv) {
 
         GrB_Index size;
         matrix.get_nrows(&size);
-        lablas::Vector<float> levels(size);
-
         LAGraph_Graph<float> graph(matrix);
 
         lablas::Vector<float> distances(size);
@@ -30,15 +29,12 @@ int main(int argc, char **argv) {
         {
             source_vertex = rand() % size;
             cout << "starting from source: " << source_vertex << endl;
-            /*SAVE_TEPS((lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex));,
-                      "sssp", 1, &matrix);*/
-            lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex);
+            SAVE_TEPS((lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex)), "sssp", 1, &matrix);
         }
-
-        cout << "check source vertex: " << source_vertex << endl;
 
         if(parser.check())
         {
+            cout << "check source vertex: " << source_vertex << endl;
             lablas::Vector<float> check_distances(size);
 
             lablas::algorithm::sssp_traditional_dijkstra(&check_distances, &matrix, source_vertex);

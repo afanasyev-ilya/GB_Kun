@@ -4,7 +4,8 @@ template <typename T>
 MatrixCSR<T>::MatrixCSR()
 {
     target_socket = 0;
-    alloc(1, 1, 1, target_socket);
+    load_balancing_offsets_set = false;
+    alloc(1, 1, 1);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -18,17 +19,17 @@ MatrixCSR<T>::~MatrixCSR()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::alloc(VNT _nrows, VNT _ncols, ENT _nnz, int _target_socket)
+void MatrixCSR<T>::alloc(VNT _nrows, VNT _ncols, ENT _nnz)
 {
     this->nrows = _nrows;
     this->ncols = _ncols;
     this->nnz = _nnz;
-    target_socket = _target_socket;
+    target_socket = 0;
 
-    MemoryAPI::numa_aware_alloc(&row_ptr, this->nrows + 1, _target_socket);
-    MemoryAPI::numa_aware_alloc(&col_ids, this->nnz, _target_socket);
-    MemoryAPI::numa_aware_alloc(&vals, this->nnz, _target_socket);
-    MemoryAPI::numa_aware_alloc(&row_degrees, this->nrows, _target_socket);
+    MemoryAPI::allocate_array(&row_ptr, this->nrows + 1);
+    MemoryAPI::allocate_array(&col_ids, this->nnz);
+    MemoryAPI::allocate_array(&vals, this->nnz);
+    MemoryAPI::allocate_array(&row_degrees, this->nrows);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,10 +46,10 @@ void MatrixCSR<T>::free()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::resize(VNT _nrows, VNT _ncols, ENT _nnz, int _target_socket)
+void MatrixCSR<T>::resize(VNT _nrows, VNT _ncols, ENT _nnz)
 {
     this->free();
-    this->alloc(_nrows, _ncols, _nnz, _target_socket);
+    this->alloc(_nrows, _ncols, _nnz);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,18 +57,32 @@ void MatrixCSR<T>::resize(VNT _nrows, VNT _ncols, ENT _nnz, int _target_socket)
 template <typename T>
 void MatrixCSR<T>::deep_copy(MatrixCSR<T> *_copy, int _target_socket)
 {
+    this->free();
+    this->nrows = _copy->nrows;
+    this->ncols = _copy->ncols;
+    this->nnz = _copy->nnz;
+
     if(_target_socket == -1)
-        _target_socket = _copy->target_socket;
-    this->resize(_copy->nrows, _copy->ncols, _copy->nnz, _target_socket);
+    {
+        this->target_socket = _copy->target_socket;
+        MemoryAPI::allocate_array(&this->row_ptr, this->nrows + 1);
+        MemoryAPI::allocate_array(&this->col_ids, this->nnz);
+        MemoryAPI::allocate_array(&this->vals, this->nnz);
+        MemoryAPI::allocate_array(&this->row_degrees, this->nrows);
+    }
+    else
+    {
+        this->target_socket = _target_socket;
+        MemoryAPI::numa_aware_alloc(&this->row_ptr, this->nrows + 1, this->target_socket);
+        MemoryAPI::numa_aware_alloc(&this->col_ids, this->nnz, this->target_socket);
+        MemoryAPI::numa_aware_alloc(&this->vals, this->nnz, this->target_socket);
+        MemoryAPI::numa_aware_alloc(&this->row_degrees, this->nrows, this->target_socket);
+    }
 
     MemoryAPI::copy(this->row_ptr, _copy->row_ptr, _copy->nrows + 1);
     MemoryAPI::copy(this->vals, _copy->vals, _copy->nnz);
     MemoryAPI::copy(this->col_ids, _copy->col_ids, _copy->nnz);
-
-    for(int vg = 0; vg < vg_num; vg++)
-    {
-        this->vertex_groups[vg].deep_copy(_copy->vertex_groups[vg], _target_socket);
-    }
+    MemoryAPI::copy(this->row_degrees, _copy->row_degrees, _copy->nrows);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,6 +126,8 @@ void MatrixCSR<T>::print() const
         cout << endl;
     }
     cout << "--------------------\n";
+
+    #ifdef __CSR_PRINT_DATA_ARRAYS__
     cout << "nrows: " << get_num_rows() << endl;
     cout << "ncols: " << get_num_cols() << endl;
     cout << "nnz: " << nnz << endl;
@@ -145,6 +162,27 @@ void MatrixCSR<T>::print() const
     cout << "]\n";
 
     cout << "--------------------\n";
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+const vector<pair<VNT, VNT>> & MatrixCSR<T>::get_load_balancing_offsets() const
+{
+    if(!load_balancing_offsets_set) // recalculate then
+    {
+        vector<ENT> vector_row_ptr;
+        vector_row_ptr.assign(this->row_ptr, this->row_ptr + this->nrows + 1);
+        balance_matrix_rows(vector_row_ptr, load_balancing_offsets);
+        load_balancing_offsets_set = true;
+        #ifdef __DEBUG_INFO__
+        cout << "CSR load balancing offsets are recalculated!" << endl;
+        #endif
+
+    }
+    return load_balancing_offsets;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+

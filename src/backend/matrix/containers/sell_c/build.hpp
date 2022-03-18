@@ -258,7 +258,6 @@ void MatrixSellC<T>::permute(VNT *perm, VNT* invPerm)
 
     //first find newRowPtr; therefore we can do proper NUMA init
     VNT permIdx=0;
-    printf("size = %d\n", size);
     for(VNT row=0; row<size; ++row)
     {
         //row permutation

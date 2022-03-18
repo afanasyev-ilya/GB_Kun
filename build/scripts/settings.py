@@ -1,7 +1,5 @@
 from enum import Enum
 
-
-GENERATE_UNDIRECTED_GRAPHS = False
 UNDIRECTED_PREFIX = "undir_"
 
 # "fast" - very fast mode (only small graphs),
@@ -20,8 +18,6 @@ available_formats = ["CSR", "COO", "CSR_SEG", "LAV", "SELL_C", "SORT"] # TODO
 
 
 def requires_undir_graphs(app_name):
-    if not GENERATE_UNDIRECTED_GRAPHS:
-        return False
     if app_name in ["cc", "coloring"]:
         return True
     return False
@@ -38,6 +34,13 @@ SOURCE_GRAPH_DIR = DATASETS_DIR + "/source_graphs/"
 MTX_GENERATOR_BIN_NAME = "gen"
 
 PERF_DATA_FILE = "./perf_stats.txt"
+SCALING_FILE = "./scaling.txt"
+SCALING_STEP = 8
+SCALING_FOLDER_NAME = "./scaling"
+SCALING_ROW_DATA_NAME = "row_data.txt"
+
+GENERATE_UNDIRECTED = False
+
 
 
 # how to add new graph with new category

@@ -47,6 +47,11 @@ public:
         return GrB_SUCCESS;
     }
 
+    LA_Info clear()
+    {
+        return _vector.clear();
+    }
+
     LA_Info set_element(T val, VNT pos)
     {
         _vector.set_element(val, pos);
@@ -79,14 +84,25 @@ public:
         _vector.print_storage_type();
     }
 
-    Index nvals() const { return _vector.nvals();};
+    // we can name vectors for debug purposes
+    void set_name(const string &_name) {_vector.set_name(_name); };
 
-    void force_to_dense() {_vector.force_to_dense();};
+    Index nvals() const { return _vector.get_nvals();};
+    Index size() const {return _vector.get_size();};
 
     void swap(Vector *_another)
     {
         _vector.swap(_another->get_vector());
     }
+
+    LA_Info fillAscending(Index nvals) {
+        return _vector.fillAscending(nvals);
+    }
+
+    LA_Info dup (const Vector<T>* rhs) {
+        return _vector.dup(rhs->get_vector());
+    }
+
 private:
     backend::Vector<T> _vector;
 
