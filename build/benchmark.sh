@@ -8,7 +8,7 @@ do
    program_args+=(${args[c]})
 done
 
-export OMP_NUM_THREADS=48
+export OMP_NUM_THREADS=96
 export OMP_PROC_BIND=close
 export OMP_PLACES=cores
 

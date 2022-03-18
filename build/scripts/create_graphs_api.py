@@ -212,14 +212,14 @@ def graph_missing(output_graph_file_name, undir_output_graph_file_name, options)
     if options.use_binary_graphs:
         if not file_exists(output_graph_file_name + "bin"):
             return True
-        if not file_exists(undir_output_graph_file_name + "bin"):
-            return True
+        #if not file_exists(undir_output_graph_file_name + "bin"):
+        #    return True
         return False
     else:
         if not file_exists(output_graph_file_name):
             return True
-        if not file_exists(undir_output_graph_file_name):
-            return True
+        #if not file_exists(undir_output_graph_file_name):
+        #    return True
         return False
 
 
