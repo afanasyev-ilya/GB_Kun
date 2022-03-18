@@ -208,23 +208,27 @@ def check_if_no_loops_and_multiple_edges(graph_name):
         return False
 
 
-def graph_missing(output_graph_file_name, undir_output_graph_file_name):
-    if not file_exists(output_graph_file_name):
-        return True
-    if not file_exists(undir_output_graph_file_name):
-        return True
-    if not file_exists(output_graph_file_name + "bin"):
-        return True
-    if not file_exists(undir_output_graph_file_name + "bin"):
-        return True
-    return False
+def graph_missing(output_graph_file_name, undir_output_graph_file_name, options):
+    if options.use_binary_graphs:
+        if not file_exists(output_graph_file_name + "bin"):
+            return True
+        if not file_exists(undir_output_graph_file_name + "bin"):
+            return True
+        return False
+    else:
+        if not file_exists(output_graph_file_name):
+            return True
+        if not file_exists(undir_output_graph_file_name):
+            return True
+        return False
 
 
 def create_real_world_graph(graph_name, options):
     graph_format = "mtx"
     output_graph_file_name = get_path_to_graph(graph_name, graph_format)
     undir_output_graph_file_name = get_path_to_graph(UNDIRECTED_PREFIX + graph_name, graph_format)
-    if graph_missing(output_graph_file_name, undir_output_graph_file_name):
+    if graph_missing(output_graph_file_name, undir_output_graph_file_name, options):
+        print("Creating new graph!! " + output_graph_file_name)
         if 'GAP' in graph_name:
             clear_dir(SOURCE_GRAPH_DIR)
             download_graph(graph_name)
@@ -276,7 +280,8 @@ def create_synthetic_graph(graph_name, options):
 
     output_graph_file_name = get_path_to_graph(graph_name, graph_format)
     undir_output_graph_file_name = get_path_to_graph(UNDIRECTED_PREFIX + graph_name, graph_format)
-    if graph_missing(output_graph_file_name, undir_output_graph_file_name):
+    if graph_missing(output_graph_file_name, undir_output_graph_file_name, options):
+        print("Creating new graph!! " + output_graph_file_name)
         cmd = [get_binary_path(MTX_GENERATOR_BIN_NAME), "-s", scale, "-e", edge_factor, "-type", type,
                "-outfile", output_graph_file_name]
         print(' '.join(cmd))
