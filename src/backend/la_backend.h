@@ -6,7 +6,7 @@
 
 #define __USE_SOCKET_OPTIMIZATIONS__
 
-#define MTX_READ_PARTITION_SIZE 1024
+#define MTX_READ_PARTITION_SIZE (32*1024)
 
 #define SPARSE_VECTOR_THRESHOLD 0.15 // 15% is really optimal according to preliminary tests, at least for BFS
 
