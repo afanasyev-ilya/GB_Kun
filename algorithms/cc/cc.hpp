@@ -50,7 +50,7 @@ float cc(Vector<int>*       v,
     int iter = 1;
     int succ = 0;
     float gpu_tight_time = 0.f;
-    int niter = 10;
+    int niter = 30;
 
     for (iter = 1; iter <= niter; ++iter) {
         // Duplicate parent.
@@ -100,10 +100,10 @@ float cc(Vector<int>*       v,
         #ifdef __DEBUG_INFO__
         cout << "succ: " << succ << endl;
         #endif
-        if (succ == 0)
+        /*if (succ == 0)
         {
             break;
-        }
+        }*/
         grandparent_temp.dup(&grandparent);
 
         // 6) Similar to BFS and SSSP, we should filter out the unproductive

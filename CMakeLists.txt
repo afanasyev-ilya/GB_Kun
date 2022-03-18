@@ -14,13 +14,8 @@ else ()
     message(STATUS "Number of cores: ${N}")
     if(N EQUAL 48 OR N EQUAL 64 OR N EQUAL 96 OR N EQUAL 128)
         message("COMPILING FOR KUNPENG 920")
-        set(CMAKE_CXX_STANDARD 14)
-
-        # a64fx
-        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_KUNPENG__ -O3 -fopenmp -ftree-vectorize -std=c++17 -mtune=a64fx -fopenmp -msve-vector-bits=512 -march=armv8.2-a+sve -Ofast -funroll-loops -ffast-math -fpermissive")
-
-        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++14 -fno-trapping-math -fopenmp-simd -fopenmp  -ffreestanding -ffast-math -march=armv8.2-a -mtune=tsv110 -fpermissive")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_KUNPENG__ -O3 -std=c++14 -fno-trapping-math -fopenmp-simd -fopenmp  -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays")
+        set(CMAKE_CXX_STANDARD 17)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_KUNPENG__ -O3 -std=c++17 -fno-trapping-math -fopenmp-simd -fopenmp  -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays")
     else ()
         message("CLION compilation") # this is for local testing
         set(CMAKE_CXX_STANDARD 17)
