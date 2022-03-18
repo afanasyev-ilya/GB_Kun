@@ -115,7 +115,7 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
                          const Matrix<T> *_matrix2,
                          Matrix<T> *_matrix_result)
 {
-/*
+
 #ifdef __DEBUG_BANDWIDTHS__
     double bytes_requested = 0;
     bytes_requested += sizeof(vector<unordered_map<VNT, T>>);
@@ -245,7 +245,7 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
     printf("Unmasked IKJ SpMSpM total time: %lf seconds.\n", t5-t1);
 #ifdef __DEBUG_BANDWIDTHS__
     printf("\t- Sustained bandwidth: %lf GB/s\n", bytes_requested / 1e9 / (t2 - t1));
-#endif*/
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
