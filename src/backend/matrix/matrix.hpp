@@ -335,6 +335,25 @@ void Matrix<T>::binary_read_mtx_file_pipelined(const string &_mtx_file_name,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
+void Matrix<T>::build(vector<vector<pair<VNT, T>>>& csr_tmp_matrix, vector<vector<pair<VNT, T>>>& csc_tmp_matrix)
+{
+    // read mtx file and get tmp representations of csr and csc matrix
+    VNT tmp_nrows = csr_tmp_matrix.size(), tmp_ncols = csc_tmp_matrix.size();
+
+    double t1 = omp_get_wtime();
+    csr_data = new MatrixCSR<T>;
+    csc_data = new MatrixCSR<T>;
+    csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols, 0);
+    csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows, 0);
+    double t2 = omp_get_wtime();
+    cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;
+
+    init_optimized_structures();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
 void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
 {
     // read mtx file and get tmp representations of csr and csc matrix
@@ -490,9 +509,9 @@ void Matrix<T>::sort_csc_rows(const string& mode)
     } else if (mode == "STL_SORT") {
         #pragma omp parallel for
         for (int i = 0; i < get_csc()->get_num_rows(); i++) {
-            Index* begin_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i];
-            Index* end_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i + 1];
-            std::sort(begin_ptr, end_ptr);
+            VNT* begin_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i];
+            VNT* end_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i + 1];
+            sort(begin_ptr, end_ptr);
         }
     } else {
         throw mode;

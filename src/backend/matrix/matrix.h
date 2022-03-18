@@ -51,6 +51,9 @@ public:
                                Index _nrows,
                                Index _nnz);
 
+    void build(vector<vector<pair<VNT, T>>>& csc_tmp_matrix,
+               vector<vector<pair<VNT, T>>>& csr_tmp_matrix);
+
     void init_from_mtx(const string &_mtx_file_name);
 
     /* CSR, COO...*/
