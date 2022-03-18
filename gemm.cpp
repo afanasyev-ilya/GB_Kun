@@ -25,12 +25,11 @@ int main(int argc, char **argv) {
         lablas::Matrix<float> C;
 
         #define MASK_NULL static_cast<const lablas::Matrix<float>*>(NULL)
-        SAVE_TIME((lablas::mxm(&C, MASK_NULL, lablas::second<float>(),
-                    lablas::PlusMultipliesSemiring<float>(), &A, &B, &lablas::GrB_DESC_IKJ)), "mxm");
+        lablas::mxm(&C, MASK_NULL, lablas::second<float>(),
+                    lablas::PlusMultipliesSemiring<float>(), &A, &B, &lablas::GrB_DESC_IKJ);
         #undef MASK_NULL
 
         // C.print();
-
         /*
         if (parser.check()) {
             int error_cnt = 0;

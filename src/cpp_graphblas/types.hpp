@@ -253,6 +253,7 @@ REGISTER_SEMIRING(MinimumPlusSemiring, MinimumMonoid, plus)
 REGISTER_SEMIRING(CustomLessPlusSemiring, CustomLessMonoid, plus)
 REGISTER_SEMIRING(MinimumSelectSecondSemiring, MinimumMonoid, second)
 REGISTER_SEMIRING(MinimumNotEqualToSemiring, MinimumMonoid, not_equal_to)
+REGISTER_SEMIRING(PlusOneSemiring, PlusMonoid, GrB_ONEB_T)
 // MinimumPlusSemiring
 // CustomLessPlusSemiring
 

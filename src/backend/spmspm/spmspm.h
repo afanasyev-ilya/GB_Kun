@@ -119,6 +119,7 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 #ifdef __DEBUG_BANDWIDTHS__
     double bytes_requested = 0;
     bytes_requested += sizeof(vector<unordered_map<VNT, T>>);
+    #pragma omp parallel for reduction(+:bytes_requested)
     for (VNT i = 0; i < _matrix1->get_csr()->get_num_rows(); ++i) {
         bytes_requested += sizeof(_matrix1->get_csr()->get_num_rows());
         for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
@@ -145,13 +146,17 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
     const auto n = _matrix1->get_csr()->get_num_rows();
 
     auto matrix_result = new unordered_map<VNT, T>[n];
+    auto row_nnz = new ENT[n];
 
     int threads_count = omp_get_max_threads();
-    auto offsets = new pair<VNT, VNT>[threads_count];
+    // auto offsets = new pair<VNT, VNT>[threads_count];
+    auto offsets = _matrix1->get_csr()->get_load_balancing_offsets();
+    /*
     balance_matrix_rows(_matrix1->get_csr()->get_row_ptr(),
                         n,
                         offsets,
                         threads_count);
+    */
 
     auto matrix1_val_ptr = _matrix1->get_csr()->get_vals();
     auto matrix2_val_ptr = _matrix2->get_csr()->get_vals();
@@ -171,63 +176,73 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
                     matrix_result[i][j] += matrix1_val_ptr[matrix1_col_id] * matrix2_val_ptr[matrix2_col_id];
                 }
             }
+            row_nnz[i] = 0;
+            for (const auto& [col_id, val] : matrix_result[i]) {
+                if (val != 0) {
+                    ++row_nnz[i];
+                }
+            }
         }
     }
 
     double t2 = omp_get_wtime();
 
-    delete [] offsets;
-
-    SpMSpM_alloc(_matrix_result);
-
-    ENT nnz_approx = 0;
-
+    ENT nnz = 0;
+    #pragma omp parallel for reduction(+:nnz)
     for (VNT i = 0; i < n; ++i) {
-        nnz_approx += matrix_result[i].size();
+        nnz += row_nnz[i];
     }
 
     auto row_ptr = new ENT[n + 1];
-    row_ptr[0] = 0;
-    auto col_ids = new VNT[nnz_approx];
-    auto vals = new T[nnz_approx];
 
-    ENT nnz = 0;
+    ParallelPrimitives::exclusive_scan(row_nnz, row_ptr, n, row_ptr, 0);
 
-    for (VNT i = 0; i < n; ++i) {
-        ENT cur_row_size = 0;
-        for (const auto& [col_id, val] : matrix_result[i]) {
-            if (val != 0) {
-                col_ids[nnz] = col_id;
-                vals[nnz] = val;
-                ++cur_row_size;
-                ++nnz;
+    auto col_ids = new VNT[nnz];
+    auto vals = new T[nnz];
+
+    #pragma omp parallel
+    {
+        const auto thread_id = omp_get_thread_num();
+        for (VNT i = offsets[thread_id].first; i < offsets[thread_id].second; ++i) {
+            ENT cur_col_ids_start = row_ptr[i];
+            ENT cur_col_ids_offset = 0;
+            for (const auto& [col_id, val] : matrix_result[i]) {
+                if (val != 0) {
+                    col_ids[cur_col_ids_start + cur_col_ids_offset] = col_id;
+                    vals[cur_col_ids_start + cur_col_ids_offset] = val;
+                    ++cur_col_ids_offset;
+                }
             }
         }
-        row_ptr[i + 1] = row_ptr[i] + cur_row_size;
     }
 
     delete [] matrix_result;
+    // delete [] offsets;
 
     double t3 = omp_get_wtime();
 
-    // Getting COO format from CSR until needed build functions are implemented:
-    vector<VNT> row_ids_coo;
-    vector<VNT> col_ids_coo;
-    vector<T> values_coo;
-    for (VNT i = 0; i < n; ++i) {
-        for (VNT j = row_ptr[i]; j < row_ptr[i + 1]; ++j) {
-            row_ids_coo.push_back(i);
-            col_ids_coo.push_back(col_ids[j]);
-            values_coo.push_back(vals[j]);
-        }
-    }
-    delete [] row_ptr;
-    delete [] col_ids;
-    delete [] vals;
-    _matrix_result->build(&row_ids_coo[0], &col_ids_coo[0], &values_coo[0], n, nnz);
+    double my_bw = 0;
+    #ifdef __DEBUG_BANDWIDTHS__
+    my_bw = bytes_requested / 1e9 / (t2 - t1);
+    #endif
 
-    printf("Unmasked IKJ SpMSpM time: %lf seconds.\n", t2-t1);
-    printf("Unmasked IKJ SpMSpM converting result time: %lf seconds.\n", t3-t2);
+    FILE *my_f;
+    my_f = fopen("perf_stats.txt", "a");
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "Hash_Based_mxm", (t3 - t1) * 1000, 0.0, my_bw, 0ll);
+    fclose(my_f);
+
+    double t4 = omp_get_wtime();
+
+    SpMSpM_alloc(_matrix_result);
+    _matrix_result->build_from_csr_arrays(row_ptr, col_ids, vals, n, nnz);
+
+    double t5 = omp_get_wtime();
+
+    printf("Unmasked IKJ SpMSpM main loop: %lf seconds.\n", t2-t1);
+    printf("Unmasked IKJ SpMSpM converting result hash-map to CSR time: %lf seconds.\n", t3-t2);
+    printf("Unmasked IKJ SpMSpM exporting results to a file time: %lf seconds.\n", t4-t3);
+    printf("Unmasked IKJ SpMSpM converting CSR to Matrix object time: %lf seconds.\n", t5-t4);
+    printf("Unmasked IKJ SpMSpM total time: %lf seconds.\n", t5-t1);
 #ifdef __DEBUG_BANDWIDTHS__
     printf("\t- Sustained bandwidth: %lf GB/s\n", bytes_requested / 1e9 / (t2 - t1));
 #endif*/
