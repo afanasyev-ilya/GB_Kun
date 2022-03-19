@@ -37,11 +37,12 @@ def post_process_scaling_data(arr):
             cnt += 1
             fig, axs = plt.subplots(2, figsize=(8, 7))
             fig.suptitle("App: " + app + ", Graph: " + graph)
-            plt.xticks(p[app][graph]["threads"], p[app][graph]["threads"])
 
+            axs[0].set_xticks(p[app][graph]["threads"], p[app][graph]["threads"])
             axs[0].plot(p[app][graph]["threads"], p[app][graph]["performance"], 'r--')
             axs[0].set(xlabel='threads', ylabel='Performance')
 
+            axs[1].set_xticks(p[app][graph]["threads"], p[app][graph]["threads"])
             axs[1].plot(p[app][graph]["threads"], p[app][graph]["time"], 'b--')
             axs[1].set(xlabel='threads', ylabel='Time')
 
