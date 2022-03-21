@@ -3,11 +3,23 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+Index detect_row_idx(ENT *row_ptr, Index idx, VNT nrows, Index start_index) {
+    for (Index i = start_index; i < nrows; i++) {
+        if (idx >= row_ptr[i] && idx < row_ptr[i+1]) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
 LA_Info Matrix<T>::transpose()
 {
     #ifdef __PARALLEL_TRANSPOSE__
-    transpose_parallel();
+//    transpose_parallel();
+    scantrans();
     #elif
     transpose_sequential();
     #endif
@@ -48,6 +60,7 @@ void Matrix<T>::transpose_sequential()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T>
 void Matrix<T>::transpose_parallel(void) {
+    int max_threads = omp_get_max_threads();
     double mem_a = omp_get_wtime();
     memset(csc_data->get_row_ptr(),0, (csc_data->get_num_rows() + 1) * sizeof(Index));
     memset(csc_data->get_col_ids(),0, csc_data->get_nnz()* sizeof(Index));
@@ -84,15 +97,26 @@ void Matrix<T>::transpose_parallel(void) {
     ParallelPrimitives::exclusive_scan(csc_data->get_row_ptr(),csc_data->get_row_ptr(),csr_ncols, csc_data->get_row_ptr(), 0);
     double scan_b = omp_get_wtime();
 
+    CommonWorkspace ccp(csr_data->get_num_cols() + 1, csc_data->get_row_ptr());
+
+
     double final_a = omp_get_wtime();
     #pragma omp parallel shared(csr_nrows, csr_ncols, row_ptr, dloc)
     {
     int tid = omp_get_thread_num();
     VNT first_row = offsets[tid].first;
     VNT last_row = offsets[tid].second;
+    Index* this_csc;
+
+    if ( sched_getcpu() / THREADS_PER_SOCKET == 0) {
+        this_csc = ccp.get_first_socket_vector();
+    } else {
+        this_csc = ccp.get_second_socket_vector();
+    }
+
     for(VNT row = first_row; row < last_row; row++) {
-        for (Index j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++) {
-            auto loc = csc_data->get_row_ptr()[csr_data->get_col_ids()[j]] + dloc[j];
+        for (Index j = this_csc[row]; j < this_csc[row + 1]; j++) {
+            auto loc = this_csc[csr_data->get_col_ids()[j]] + dloc[j];
             csc_data->get_col_ids()[loc] = row;
             csc_data->get_vals()[loc] = csr_data->get_vals()[j];
         }
@@ -103,7 +127,7 @@ void Matrix<T>::transpose_parallel(void) {
 
     if(num_sockets_used() > 1)
     {
-        csc_data->numa_aware_realloc();
+        csc_data->numa_aware_realloc_row_imported(ccp.get_first_socket_vector());
     }
 
     #ifdef __DEBUG_BANDWIDTHS__
@@ -134,4 +158,117 @@ void Matrix<T>::transpose_parallel(void) {
     #endif
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+void Matrix<T>::scantrans(void) {
+    double mem_a = omp_get_wtime();
+    memset(csc_data->get_row_ptr(),0, (csc_data->get_num_rows() + 1) * sizeof(Index));
+    memset(csc_data->get_col_ids(),0, csc_data->get_nnz() * sizeof(Index));
+    memset(csc_data->get_vals(),0, csc_data->get_nnz() * sizeof(T));
+
+    Index* intra; Index* inter; VNT* csr_row_idx;
+    int max_threads = omp_get_max_threads();
+
+    ReducedWorkspace<T> csr_row_idx_ws(csc_data->get_nnz());
+    ReducedWorkspace<T> intra_ws(csc_data->get_nnz());
+    ReducedWorkspace<T> inter_ws((max_threads + 1) * csr_data->get_num_cols());
+
+    auto ncols = csr_data->get_num_cols();
+    auto nrows = csr_data->get_num_rows();
+
+    std::cout << "Entering parallel region" << std::endl;
+
+#pragma omp parallel num_threads(max_threads)
+{
+    int ithread = omp_get_thread_num();
+    Index len; Index offset;
+
+    if (ithread < csc_data->get_nnz() % max_threads) {
+        len = csc_data->get_nnz() / max_threads + 1;
+        offset = len * ithread;
+    } else {
+        len = csc_data->get_nnz() / max_threads;
+        offset = (csc_data->get_nnz() % max_threads) * (len + 1) + (ithread -  csc_data->get_nnz() % max_threads) * len;
+    }
+
+    //std::cout << "Counted offsets " << len << " "<< offset << std::endl;
+
+    Index start_index = 0;
+
+    for (Index j = offset; j < offset + len; j++) {
+        start_index = detect_row_idx(csr_data->get_row_ptr(), j, nrows, start_index);
+        //std::cout << start_index << " on index " << j << std::endl;
+        csr_row_idx_ws.get_element(j) = start_index;
+        //std::cout << "got element " << std::endl;
+    }
+
+    for (Index i = 0; i < len; i++) {
+        intra_ws.get_element(offset + i) =
+                inter_ws.get_element((ithread + 1) * ncols + csr_data->get_col_ids()[offset + i])++;
+    }
+}
+
+    std::cout << std::endl<< "Exited parallel region" << std::endl;
+
+
+/*Vertical scan - maybe TODO*/
+#pragma omp parallel for schedule(dynamic)
+    for (VNT i = 0; i < ncols; i++) {
+        for (VNT j = 1; j < max_threads + 1; j++) {
+            inter_ws.get_element(i + ncols * j) += inter_ws.get_element(i + ncols * (j - 1));
+        }
+    }
+
+    std::cout << "Exited vertical scan" << std::endl;
+//    for (int i = 0; i < (max_threads + 1) * csr_data->get_num_cols(); i++) {
+//        std::cout << inter_ws.get_element(i) << " ";
+//    }
+//    std::cout << std::endl;
+
+#pragma omp parallel for schedule(dynamic)
+    for (VNT i = 0; i < ncols; i++) {
+        csc_data->get_row_ptr()[i] = inter_ws.get_element(ncols * max_threads + i);
+    }
+
+    std::cout << "Exited copying " << std::endl;
+
+    ParallelPrimitives::exclusive_scan(csc_data->get_row_ptr(), csc_data->get_row_ptr(), ncols,
+                                       csc_data->get_row_ptr(), 0);
+
+    std::cout << "Exited exclusive scan " << std::endl;
+
+//    for (int i = 0; i < csc_data->get_num_rows() + 1; i++) {
+//        std::cout << csc_data->get_row_ptr()[i] << " ";
+//    }
+//    std::cout << std::endl;
+
+#pragma omp parallel num_threads(max_threads)
+    {
+        int ithread = omp_get_thread_num();
+        Index len; Index offset;
+
+        if (ithread < csc_data->get_nnz() % max_threads) {
+            len = csc_data->get_nnz() / max_threads + 1;
+            offset = len * ithread;
+        } else {
+            len = csc_data->get_nnz() / max_threads;
+            offset = (csc_data->get_nnz() % max_threads) * (len + 1) + (ithread -  csc_data->get_nnz() % max_threads) * len;
+        }
+
+        for (Index i = 0; i < len; i++) {
+            auto loc = csc_data->get_row_ptr()[csr_data->get_col_ids()[offset + i]] +
+                    inter_ws.get_element(ithread * ncols + csr_data->get_col_ids()[offset + i]) +
+                    intra_ws.get_element(offset + i);
+            csc_data->get_col_ids()[loc] = csr_row_idx_ws.get_element(offset + i);
+            csc_data->get_vals()[loc] = csr_data->get_vals()[offset + i];
+        }
+    }
+#ifdef __DEBUG_BANDWIDTHS__
+    std::cout << "Inner time for mem " << mem_b - mem_a << " seconds" << std::endl;
+    std::cout << "Inner time for fetch " << fetch_b - fetch_a << " seconds" << std::endl;
+    std::cout << "Inner time for scan " << scan_b - scan_a << " seconds" << std::endl;
+    std::cout << "Inner time for final " << final_b - final_a << " seconds" << std::endl;
+#endif
+}
 #endif //GB_KUN_TRANSPOSE_HPP
+//sdfjshfkhskdfksjdfkshdfkh

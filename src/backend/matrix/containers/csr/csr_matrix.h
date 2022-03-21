@@ -48,6 +48,7 @@ public:
 
     const vector<pair<VNT, VNT>> &get_load_balancing_offsets() const;
     void numa_aware_realloc();
+    void numa_aware_realloc_row_imported(VNT* row_ptr);
 private:
     VNT nrows, ncols;
     ENT nnz;

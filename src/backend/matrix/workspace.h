@@ -41,5 +41,116 @@ private:
     char *spmspv_buffer;
 };
 
+/*In order to divide vector between two sockets */
+template <typename T>
+class ReducedWorkspace {
+public:
+    explicit ReducedWorkspace(Index size)
+    {
+        auto max_threads = omp_get_max_threads();
+        if (max_threads == THREADS_PER_SOCKET * 2) {
+            one_socket = false;
+            threshold = (size / 2) + (size % 2);
+            MemoryAPI::numa_aware_alloc(&first_socket_vector, threshold, 0);
+            MemoryAPI::numa_aware_alloc(&second_socket_vector, size - threshold, 1);
+        }
+        if (max_threads == THREADS_PER_SOCKET) {
+            one_socket = true;
+            MemoryAPI::numa_aware_alloc(&first_socket_vector, size, 0);
+        }
+        /* for local debug */
+        if (max_threads < THREADS_PER_SOCKET) {
+            one_socket = true;
+            MemoryAPI::allocate_array_new(&first_socket_vector, size);
+        }
+    }
+
+    ~ReducedWorkspace()
+    {
+        MemoryAPI::free_array_new(first_socket_vector);
+        if (!one_socket) {
+            MemoryAPI::free_array_new(second_socket_vector);
+        }
+    }
+    T *get_first_socket_vector() { return first_socket_vector; };
+
+    T *get_second_socket_vector() { return second_socket_vector; };
+
+    inline T& get_element(Index i) {
+        if (one_socket) {
+            return first_socket_vector[i];
+        }
+        if (!one_socket) {
+            if (i < threshold) {
+                return first_socket_vector[i];
+            } else {
+                return second_socket_vector[i - threshold];
+            }
+        }
+        return first_socket_vector[i];
+    }
+
+private:
+    T *first_socket_vector;
+    T *second_socket_vector;
+    bool one_socket;
+    Index threshold;
+};
+
+
+template <typename T>
+class CommonWorkspace {
+public:
+    explicit CommonWorkspace(Index size, T* vals)
+    {
+        auto max_threads = omp_get_max_threads();
+        if (max_threads == THREADS_PER_SOCKET * 2 or max_threads > THREADS_PER_SOCKET) {
+            MemoryAPI::numa_aware_alloc_valued(&first_socket_vector, size, 0, vals);
+            MemoryAPI::numa_aware_alloc_valued(&second_socket_vector, size, 1, vals);
+            one_socket = false;
+        }
+        if (max_threads == THREADS_PER_SOCKET) {
+            one_socket = true;
+            MemoryAPI::numa_aware_alloc_valued(&first_socket_vector, size, 0, vals);
+        }
+        /* for local debug */
+        if (max_threads < THREADS_PER_SOCKET) {
+            one_socket = true;
+            MemoryAPI::numa_aware_alloc_valued(&first_socket_vector, size, 0, vals);
+        }
+    }
+
+    ~CommonWorkspace()
+    {
+        MemoryAPI::free_array(first_socket_vector);
+        if (!one_socket) {
+            MemoryAPI::free_array(second_socket_vector);
+        }
+    }
+
+    T *get_first_socket_vector() { return first_socket_vector; };
+
+    T *get_second_socket_vector() { return second_socket_vector; };
+
+//    inline T& get_element(Index i) {
+//        if (one_socket) {
+//            return first_socket_vector[i];
+//        }
+//        if (!one_socket) {
+//            if (i < threshold) {
+//                return first_socket_vector[i];
+//            } else {
+//                return second_socket_vector[i - threshold];
+//            }
+//        }
+//        return first_socket_vector[i];
+//    }
+
+private:
+    T *first_socket_vector;
+    T *second_socket_vector;
+    bool one_socket;
+};
+
 }
 }
