@@ -50,7 +50,7 @@ float cc(Vector<int>*       v,
     int iter = 1;
     int succ = 0;
     float gpu_tight_time = 0.f;
-    int niter = 30;
+    int niter = 100;
 
     for (iter = 1; iter <= niter; ++iter) {
         // Duplicate parent.

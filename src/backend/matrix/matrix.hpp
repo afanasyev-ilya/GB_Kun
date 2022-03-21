@@ -361,11 +361,19 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     vector<vector<pair<VNT, T>>> csc_tmp_matrix;
     if(ends_with(_mtx_file_name, "mtx"))
     {
+        #ifdef __DEBUG_FILE_IO__
         SAVE_TIME_SEC((read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "mtx_read");
+        #else
+        read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+        #endif
     }
     else if(ends_with(_mtx_file_name, "mtxbin"))
     {
+        #ifdef __DEBUG_FILE_IO__
         SAVE_TIME_SEC((binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "binary_read");
+        #else
+        binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+        #endif
     }
     else
     {
@@ -381,15 +389,12 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols);
     csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows);
     double t2 = omp_get_wtime();
-    save_time_in_sec("build_matrix", t2 - t1);
+    save_time_in_sec("build_matrix_from_file", t2 - t1);
     #ifdef __DEBUG_INFO__
     cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;
     #endif
 
-    t1 = omp_get_wtime();
     init_optimized_structures();
-    t2 = omp_get_wtime();
-    save_time_in_sec("create_optimized_structures", t2 - t1);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

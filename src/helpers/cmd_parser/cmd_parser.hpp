@@ -4,9 +4,9 @@
 
 Parser::Parser()
 {
-    scale = 4;
-    avg_degree = 3;
-    synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
+    scale = 10;
+    avg_degree = 12;
+    synthetic_graph_type = RMAT_GRAPH;
     storage_format = CSR;
     no_check = false;
     out_file_name = "kun_out.mtx";

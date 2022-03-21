@@ -18,11 +18,12 @@ void test_spmv(int argc, char **argv)
     const Index *col_ids = matrix.get_matrix()->get_csr()->get_col_ids();
     const float *vals = matrix.get_matrix()->get_csr()->get_vals();
     lablas::Matrix<float> matrix_small;
+
+    double t1 = omp_get_wtime();
     matrix_small.build_from_csr_arrays(reinterpret_cast<const Index*>(row_ptr), reinterpret_cast<const Index*>(col_ids),
                                        reinterpret_cast<const float*>(vals), matrix.get_matrix()->get_csr()->get_num_rows(), matrix.get_matrix()->get_csr()->get_nnz());
-    matrix_small.print();
-    matrix_small.transpose();
-    matrix_small.print();
+    double t2 = omp_get_wtime();
+    save_teps("build_from_csr", t2 - t1, matrix.get_nnz());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
