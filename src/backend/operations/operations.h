@@ -443,7 +443,8 @@ LA_Info mxm(Matrix<c>* C,
         backend::SpMSpM_masked_ikj(mask,
                                    A,
                                    B,
-                                   C);
+                                   C,
+                                   op);
     } else {
         Desc_value multiplication_mode;
         desc->get(GrB_MXMMODE, &multiplication_mode);

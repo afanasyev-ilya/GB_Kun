@@ -244,13 +244,17 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, typename mask_type>
+template <typename T, typename mask_type, typename SemiringT>
 void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                        const Matrix<T> *_matrix1,
                        const Matrix<T> *_matrix2,
-                       Matrix<T> *_matrix_result)
+                       Matrix<T> *_matrix_result,
+                       SemiringT _op)
 {
     double t1 = omp_get_wtime();
+
+    auto add_op = extractAdd(_op);
+    auto mul_op = extractMul(_op);
 
     const auto n = _matrix1->get_csr()->get_num_rows();
 
@@ -278,8 +282,9 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                 for (VNT matrix2_col_id = matrix2_row_ptr[k]; matrix2_col_id < matrix2_row_ptr[k + 1]; ++matrix2_col_id) {
                     VNT j = matrix2_col_ptr[matrix2_col_id];
                     if (mask_ptr->get(i, j)) {
-                        matrix_result[i][j] +=
-                                matrix1_val_ptr[matrix1_col_id] * matrix2_val_ptr[matrix2_col_id];
+                        matrix_result[i][j] =
+                                add_op(matrix_result[i][j],
+                                       mul_op(matrix1_val_ptr[matrix1_col_id], matrix2_val_ptr[matrix2_col_id]));
                     }
                 }
             }
