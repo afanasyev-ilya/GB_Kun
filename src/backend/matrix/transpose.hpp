@@ -17,10 +17,18 @@ Index detect_row_idx(ENT *row_ptr, Index idx, VNT nrows, Index start_index) {
 template <typename T>
 LA_Info Matrix<T>::transpose()
 {
+    ptr_swap(csr_data, csc_data);
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+LA_Info Matrix<T>::csr_to_csc()
+{
     #ifdef __PARALLEL_TRANSPOSE__
-//    transpose_parallel();
-    scantrans();
-    #elif
+    transpose_parallel();
+    #else
     transpose_sequential();
     #endif
     return GrB_SUCCESS;
@@ -31,7 +39,6 @@ LA_Info Matrix<T>::transpose()
 template <typename T>
 void Matrix<T>::transpose_sequential()
 {
-
     memset(csc_data->get_row_ptr(),0, (csc_data->get_num_rows() + 1) * sizeof(Index));
     memset(csc_data->get_col_ids(),0, csc_data->get_nnz()* sizeof(Index));
     memset(csc_data->get_vals(),0, csc_data->get_nnz()* sizeof(T));
@@ -45,9 +52,10 @@ void Matrix<T>::transpose_sequential()
             csc_data->get_row_ptr()[csr_data->get_col_ids()[j] + 1]++;
         }
     }
-    for (Index i = 1; i < csr_ncols + 1; i++){
+    for (Index i = 1; i < csr_ncols + 1; i++) {
         csc_data->get_row_ptr()[i] += csc_data->get_row_ptr()[i - 1];
     }
+
     for (Index i = 0; i < csr_nrows; i++){
         for (Index j = csr_data->get_row_ptr()[i]; j < csr_data->get_row_ptr()[i+1]; j++) {
             auto loc = csc_data->get_row_ptr()[csr_data->get_col_ids()[j]] + curr[csr_data->get_col_ids()[j]]++;
@@ -128,6 +136,7 @@ void Matrix<T>::transpose_parallel(void) {
     if(num_sockets_used() > 1)
     {
         csc_data->numa_aware_realloc_row_imported(ccp.get_first_socket_vector());
+        // TODO check if
     }
 
     #ifdef __DEBUG_BANDWIDTHS__
@@ -271,4 +280,3 @@ void Matrix<T>::scantrans(void) {
 #endif
 }
 #endif //GB_KUN_TRANSPOSE_HPP
-//sdfjshfkhskdfksjdfkshdfkh

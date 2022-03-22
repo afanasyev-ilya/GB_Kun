@@ -17,7 +17,8 @@
                     GrB_MXVMODE,
                     GrB_TOL,
                     GrB_BACKEND,
-                    GrB_NDESCFIELD};
+                    GrB_NDESCFIELD,
+                    GrB_MXMMODE};
 
     enum Desc_value {GrB_SCMP = 0,
                     GrB_REPLACE = 1, // for GrB_OUTP
@@ -39,7 +40,10 @@
                     GrB_128        =  128,
                     GrB_256        =  256,
                     GrB_512        =  512,
-                    GrB_1024       = 1024};
+                    GrB_1024       = 1024,
+                    GrB_IJK        = 20,    // for GrB_MXMMODE
+                    GrB_IKJ        = 21,    // for GrB_MXMMODE
+    };
 
 
     typedef enum {
@@ -249,6 +253,7 @@ REGISTER_SEMIRING(MinimumPlusSemiring, MinimumMonoid, plus)
 REGISTER_SEMIRING(CustomLessPlusSemiring, CustomLessMonoid, plus)
 REGISTER_SEMIRING(MinimumSelectSecondSemiring, MinimumMonoid, second)
 REGISTER_SEMIRING(MinimumNotEqualToSemiring, MinimumMonoid, not_equal_to)
+REGISTER_SEMIRING(PlusOneSemiring, PlusMonoid, GrB_ONEB_T)
 // MinimumPlusSemiring
 // CustomLessPlusSemiring
 

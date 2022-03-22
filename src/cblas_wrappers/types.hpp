@@ -47,7 +47,8 @@ enum GrB_Type
 {
     GrB_FP32 = 0,
     GrB_BOOL = 1,
-    GrB_INT32 = 2
+    GrB_INT32 = 2,
+    GrB_INT64 = 3
 };
 
 // binary operations
@@ -64,10 +65,12 @@ enum GrB_Type
 // semirings
 #define LAGraph_plus_second_fp32 lablas::PlusSecondSemiring<float>()
 #define LAGraph_structural_bool lablas::StructuralBool<bool>()
+#define LAGraph_plus_one_int64 lablas::PlusOneSemiring<long long>()
 
 // monoids
 #define GrB_PLUS_MONOID_FP32 lablas::PlusMonoid<float>()
 #define GrB_PLUS_MONOID_INT32 lablas::PlusMonoid<int>()
+#define GrB_PLUS_MONOID_INT64 lablas::PlusMonoid<long long>()
 
 
 // descriptors

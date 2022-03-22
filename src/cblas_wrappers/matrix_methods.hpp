@@ -2,6 +2,28 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename T>
+LA_Info GrB_Matrix_new(lablas::Matrix<T> **_matrix, GrB_Type _type, GrB_Index _nrows, GrB_Index _ncols)
+{
+    // types can be checked
+    // *_matrix = new lablas::Matrix<T>(_nrows, _ncols); // to be implemented
+    *_matrix = new lablas::Matrix<T>();
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+LA_Info GrB_free(lablas::Matrix<T> **_matrix)
+{
+    // types can be checked
+    delete (*_matrix);
+    *_matrix = NULL;
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template<typename T>
 LA_Info GrB_Matrix_nrows(GrB_Index *_nrows, lablas::Matrix<T> *_matrix)
 {

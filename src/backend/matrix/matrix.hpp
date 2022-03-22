@@ -52,7 +52,9 @@ void read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, ENT _nnz
     for(size_t ln = _ln_pos; ln < min(_nnz, end_pos); ln++)
     {
         long long int src_id = -2, dst_id = -2;
-        auto ret_val = fgets (buffer,buffer_size, _fp);
+        if(fgets (buffer, buffer_size, _fp) == NULL)
+            throw "Error: unexpected end of graph file! Aborting...";
+
         sscanf(buffer, "%lld %lld", &src_id, &dst_id);
         _src_ids[ln - _ln_pos] = src_id;
         _dst_ids[ln - _ln_pos] = dst_id;
@@ -106,7 +108,8 @@ void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
 
     while(true)
     {
-        auto ret_val = fgets(header_line, 4096, fp);
+        if(fgets(header_line, 4096, fp) == NULL)
+            throw "Error: unexpected end of graph file! Aborting...";
         if(header_line[0] != '%')
             break;
     }
@@ -207,7 +210,8 @@ void binary_read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, E
 
     VNT buf_size = MTX_READ_PARTITION_SIZE * 2 * sizeof(VNT);
     VNT *buf = (VNT *)malloc(buf_size);
-    auto ret_val = fread(buf, sizeof(VNT), 2 * MTX_READ_PARTITION_SIZE, _fp);
+    if(fread(buf, sizeof(VNT), 2 * MTX_READ_PARTITION_SIZE, _fp) == 0)
+        throw "Error! Unexpected end of binary file";
     for(size_t ln = _ln_pos, i = 0; ln < min(_nnz, end_pos); ln++, i += 2)
     {
         VNT src_id = -2, dst_id = -2;
@@ -238,10 +242,12 @@ void Matrix<T>::binary_read_mtx_file_pipelined(const string &_mtx_file_name,
     }
 
     long long int tmp_rows = 0, tmp_cols = 0, tmp_nnz = 0;
-
-    auto fread_ret = fread(&tmp_rows, sizeof(long long), 1, fp);
-    fread_ret = fread(&tmp_cols, sizeof(long long), 1, fp);
-    fread_ret = fread(&tmp_nnz, sizeof(long long), 1, fp);
+    if(fread(&tmp_rows, sizeof(long long), 1, fp) == 0)
+        throw "Error! Unexpected end of binary file";
+    if(fread(&tmp_cols, sizeof(long long), 1, fp) == 0)
+        throw "Error! Unexpected end of binary file";
+    if(fread(&tmp_nnz, sizeof(long long), 1, fp) == 0)
+        throw "Error! Unexpected end of binary file";
 
     VNT *proc_src_ids, *proc_dst_ids;
     VNT *read_src_ids, *read_dst_ids;
@@ -329,164 +335,19 @@ void Matrix<T>::binary_read_mtx_file_pipelined(const string &_mtx_file_name,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void Matrix<T>::init_optimized_structures()
+void Matrix<T>::build(vector<vector<pair<VNT, T>>>& csr_tmp_matrix, vector<vector<pair<VNT, T>>>& csc_tmp_matrix)
 {
-    double t1, t2;
-
-    t1 = omp_get_wtime();
-    // optimized representation creation
-    if (_format == CSR)
-    {
-        data = NULL;
-        transposed_data = NULL;
-        #ifdef __DEBUG_INFO__
-        cout << "Using CSR matrix format as optimized representation" << endl;
-        #endif
-    }
-    else if (_format == CSR_SEG)
-    {
-        data = new MatrixSegmentedCSR<T>;
-        transposed_data = new MatrixSegmentedCSR<T>;
-        ((MatrixSegmentedCSR<T>*)data)->build(csr_data->get_num_rows(), csr_data->get_nnz(), csr_data->get_row_ptr(), csr_data->get_col_ids(),
-                    csr_data->get_vals(), 0);
-        ((MatrixSegmentedCSR<T>*)transposed_data)->build(csc_data->get_num_rows(), csc_data->get_nnz(), csc_data->get_row_ptr(), csc_data->get_col_ids(),
-                    csc_data->get_vals(), 0);
-        #ifdef __DEBUG_INFO__
-        cout << "Using CSR_SEG matrix format as optimized representation" << endl;
-        #endif
-    }
-    else if (_format == COO)
-    {
-        data = new MatrixCOO<T>;
-        transposed_data = new MatrixCOO<T>;
-        ((MatrixCOO<T>*)data)->build(csr_data->get_num_rows(), csr_data->get_nnz(), csr_data->get_row_ptr(), csr_data->get_col_ids(),
-                                     csr_data->get_vals(), 0);
-        ((MatrixCOO<T>*)transposed_data)->build(csc_data->get_num_rows(), csc_data->get_nnz(), csc_data->get_row_ptr(), csc_data->get_col_ids(),
-                                                csc_data->get_vals(), 0);
-        #ifdef __DEBUG_INFO__
-        cout << "Using COO matrix format as optimized representation" << endl;
-        #endif
-    }
-    else if (_format == SORTED_CSR)
-    {
-        data = new MatrixSortCSR<T>;
-        transposed_data = new MatrixSortCSR<T>;
-        ((MatrixSortCSR<T>*)data)->build(get_rowdegrees(), get_coldegrees(),
-                                         csr_data->get_num_rows(),
-                                         csr_data->get_num_cols(),
-                                         csr_data->get_nnz(),
-                                         csr_data->get_row_ptr(),
-                                         csr_data->get_col_ids(),
-                                         csr_data->get_vals(), 0);
-        ((MatrixSortCSR<T>*)transposed_data)->build(get_coldegrees(), get_rowdegrees(),
-                                                    csc_data->get_num_rows(),
-                                                    csc_data->get_num_cols(),
-                                                    csc_data->get_nnz(),
-                                                    csc_data->get_row_ptr(),
-                                                    csc_data->get_col_ids(),
-                                                    csc_data->get_vals(), 0);
-        #ifdef __DEBUG_INFO__
-        cout << "Using SORTED CSR matrix format as optimized representation" << endl;
-        #endif
-    }
-    else if (_format == SELL_C)
-    {
-        data = new MatrixSellC<T>;
-        transposed_data = new MatrixSellC<T>;
-        ((MatrixSellC<T>*)data)->build(csr_data->get_num_rows(),
-                                       csr_data->get_num_cols(),
-                                       csr_data->get_nnz(),
-                                       csr_data->get_row_ptr(),
-                                       csr_data->get_col_ids(),
-                                       csr_data->get_vals(), 0);
-        ((MatrixSellC<T>*)transposed_data)->build(csc_data->get_num_rows(), // since CSC is used no swap
-                                                  csc_data->get_num_cols(), // compared to prev build
-                                                  csc_data->get_nnz(),
-                                                  csc_data->get_row_ptr(),
-                                                  csc_data->get_col_ids(),
-                                                  csc_data->get_vals(), 0);
-        #ifdef __DEBUG_INFO__
-        cout << "Using SELL-C matrix format as optimized representation" << endl;
-        #endif
-    }
-    else if (_format == LAV)
-    {
-        data = new MatrixLAV<T>;
-        transposed_data = new MatrixLAV<T>;
-        ((MatrixLAV<T>*)data)->build(get_rowdegrees(), get_coldegrees(),
-                                     csr_data->get_num_rows(),
-                                       csr_data->get_num_cols(),
-                                       csr_data->get_nnz(),
-                                       csr_data->get_row_ptr(),
-                                       csr_data->get_col_ids(),
-                                       csr_data->get_vals(), 0);
-        ((MatrixLAV<T>*)transposed_data)->build(get_coldegrees(), get_rowdegrees(),
-                                                csc_data->get_num_rows(), // since CSC is used no swap
-                                                  csc_data->get_num_cols(), // compared to prev build
-                                                  csc_data->get_nnz(),
-                                                  csc_data->get_row_ptr(),
-                                                  csc_data->get_col_ids(),
-                                                  csc_data->get_vals(), 0);
-        #ifdef __DEBUG_INFO__
-        cout << "Using LAV matrix format as optimized representation" << endl;
-        #endif
-    }
-    else
-    {
-        throw "Error: unsupported format in Matrix<T>::build";
-    }
-    t2 = omp_get_wtime();
-    #ifdef __DEBUG_INFO__
-    cout << "creating optimized representation time: " << t2 - t1 << " sec" << endl;
-    #endif
-
-    workspace = new Workspace(get_nrows(), get_ncols());
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template<typename T>
-void Matrix<T>::build(const VNT *_row_indices,
-                      const VNT *_col_indices,
-                      const T *_values,
-                      const ENT _nnz)
-{
-    VNT max_rows = 0, max_cols = 0;
-    #pragma omp parallel for reduction(max: max_rows, max_cols)
-    for(ENT i = 0; i < _nnz; i++)
-    {
-        if(max_rows < _row_indices[i])
-        {
-            max_rows = _row_indices[i];
-        }
-
-        if(max_cols < _col_indices[i])
-        {
-            max_cols = _row_indices[i];
-        }
-    }
-
-    max_rows += 1;
-    max_cols += 1;
-    if(max_rows != max_cols)
-    {
-        cout << "Non-square matrix is not supported yet" << endl;
-        VNT max_dim = max(max_rows, max_cols);
-        max_rows = max_dim;
-        max_cols = max_dim;
-    }
+    // read mtx file and get tmp representations of csr and csc matrix
+    VNT tmp_nrows = csr_tmp_matrix.size(), tmp_ncols = csc_tmp_matrix.size();
 
     double t1 = omp_get_wtime();
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
-    csr_data->build(_row_indices, _col_indices, _values, max_rows, max_cols, _nnz);
-    csc_data->build(_col_indices, _row_indices, _values, max_cols, max_rows, _nnz);
+    csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols, 0);
+    csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows, 0);
     double t2 = omp_get_wtime();
-    #ifdef __DEBUG_INFO__
-    cout << "csr creation time: " << t2 - t1 << " sec" << endl;
-    #endif
+    cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;
 
-    // initializing additional data structures time
     init_optimized_structures();
 }
 
@@ -500,11 +361,19 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     vector<vector<pair<VNT, T>>> csc_tmp_matrix;
     if(ends_with(_mtx_file_name, "mtx"))
     {
+        #ifdef __DEBUG_FILE_IO__
         SAVE_TIME_SEC((read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "mtx_read");
+        #else
+        read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+        #endif
     }
     else if(ends_with(_mtx_file_name, "mtxbin"))
     {
+        #ifdef __DEBUG_FILE_IO__
         SAVE_TIME_SEC((binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "binary_read");
+        #else
+        binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+        #endif
     }
     else
     {
@@ -520,7 +389,10 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols);
     csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows);
     double t2 = omp_get_wtime();
+    save_time_in_sec("build_matrix_from_file", t2 - t1);
+    #ifdef __DEBUG_INFO__
     cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;
+    #endif
 
     init_optimized_structures();
 }
@@ -642,8 +514,8 @@ void Matrix<T>::sort_csc_rows(const string& mode)
     } else if (mode == "STL_SORT") {
         #pragma omp parallel for
         for (int i = 0; i < get_csc()->get_num_rows(); i++) {
-            Index* begin_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i];
-            Index* end_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i + 1];
+            VNT* begin_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i];
+            VNT* end_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i + 1];
             std::sort(begin_ptr, end_ptr);
         }
     } else {

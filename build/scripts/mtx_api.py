@@ -5,14 +5,6 @@ import time
 
 
 def gen_graph(in_filename, out_filename, undir_out_filename, options):
-    try:
-        os.remove(out_filename)
-        os.remove(undir_out_filename)
-        os.remove(out_filename + "bin")
-        os.remove(undir_out_filename + "bin")
-    except OSError:
-        pass
-
     edge_freqs = {}
     undir_edge_freqs = {}
 
@@ -73,41 +65,16 @@ def gen_graph(in_filename, out_filename, undir_out_filename, options):
         nrows += 1
         ncols += 1
 
-    cnt = 0
-    with tqdm.tqdm(total=nnz) as pbar:
-        with open(out_filename, 'w') as f:
-            f.write('%%MatrixMarket matrix coordinate pattern general\n')
-            f.write(str(nrows) + " " + str(ncols) + " " + str(nnz) + '\n')
-            for key, v in tqdm.tqdm(edge_freqs.items(), desc="Saving MTX file progress"):
-                pbar.update(cnt)
-                vals = [int(s) for s in key.split("_") if s.isdigit()]
-
-                row = vals[0]
-                col = vals[1]
-                if starts_from_zero:
-                    row += 1
-                    col += 1
-                f.write(str(row) + " " + str(col) + '\n')
-                cnt += 1
-
-    cnt = 0
-    with tqdm.tqdm(total=nnz) as pbar:
-        with open(undir_out_filename, 'w') as f:
-            f.write('%%MatrixMarket matrix coordinate pattern general\n')
-            f.write(str(nrows) + " " + str(ncols) + " " + str(nnz) + '\n')
-            for key, v in tqdm.tqdm(undir_edge_freqs.items(), desc="Saving UNDIRECTED MTX file progress"):
-                pbar.update(cnt)
-                vals = [int(s) for s in key.split("_") if s.isdigit()]
-
-                row = vals[0]
-                col = vals[1]
-                if starts_from_zero:
-                    row += 1
-                    col += 1
-                f.write(str(row) + " " + str(col) + '\n')
-                cnt += 1
-
     if options.use_binary_graphs:
+        # remove old graphs now
+        try:
+            os.remove(out_filename)
+            os.remove(undir_out_filename)
+            os.remove(out_filename + "bin")
+            os.remove(undir_out_filename + "bin")
+        except OSError:
+            pass
+
         cnt = 0
         with tqdm.tqdm(total=nnz) as pbar:
             with open(out_filename + "bin", 'wb') as f:
@@ -146,3 +113,43 @@ def gen_graph(in_filename, out_filename, undir_out_filename, options):
                     f.write(row.to_bytes(8, 'little'))
                     f.write(col.to_bytes(8, 'little'))
                     cnt += 1
+    else:
+        try:
+            os.remove(out_filename)
+            os.remove(undir_out_filename)
+        except OSError:
+            pass
+        cnt = 0
+        with tqdm.tqdm(total=nnz) as pbar:
+            with open(out_filename, 'w') as f:
+                f.write('%%MatrixMarket matrix coordinate pattern general\n')
+                f.write(str(nrows) + " " + str(ncols) + " " + str(nnz) + '\n')
+                for key, v in tqdm.tqdm(edge_freqs.items(), desc="Saving MTX file progress"):
+                    pbar.update(cnt)
+                    vals = [int(s) for s in key.split("_") if s.isdigit()]
+
+                    row = vals[0]
+                    col = vals[1]
+                    if starts_from_zero:
+                        row += 1
+                        col += 1
+                    f.write(str(row) + " " + str(col) + '\n')
+                    cnt += 1
+
+        cnt = 0
+        with tqdm.tqdm(total=nnz) as pbar:
+            with open(undir_out_filename, 'w') as f:
+                f.write('%%MatrixMarket matrix coordinate pattern general\n')
+                f.write(str(nrows) + " " + str(ncols) + " " + str(nnz) + '\n')
+                for key, v in tqdm.tqdm(undir_edge_freqs.items(), desc="Saving UNDIRECTED MTX file progress"):
+                    pbar.update(cnt)
+                    vals = [int(s) for s in key.split("_") if s.isdigit()]
+
+                    row = vals[0]
+                    col = vals[1]
+                    if starts_from_zero:
+                        row += 1
+                        col += 1
+                    f.write(str(row) + " " + str(col) + '\n')
+                    cnt += 1
+

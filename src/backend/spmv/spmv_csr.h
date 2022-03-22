@@ -5,11 +5,13 @@
 namespace lablas {
 namespace backend {
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
-void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size)
+void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size, int _max_threads_per_socket)
 {
-    int tid = omp_get_thread_num() % THREADS_PER_SOCKET;
-    VNT work_per_thread = (_size - 1) / THREADS_PER_SOCKET + 1;
+    int tid = omp_get_thread_num() % _max_threads_per_socket;
+    VNT work_per_thread = (_size - 1) / _max_threads_per_socket + 1;
 
     for(VNT i = min(_size, tid*work_per_thread); i < min(_size, (tid + 1)*work_per_thread); i++)
     {
@@ -42,23 +44,55 @@ void SpMV_numa_aware(const MatrixCSR<A> *_matrix,
     double t1 = omp_get_wtime();
     #endif
 
+    #ifdef __USE_KUNPENG__
+    const int max_threads_per_socket = sysconf(_SC_NPROCESSORS_ONLN)/2;
+    #else
+    const int max_threads_per_socket = omp_get_max_threads();
+    #endif
+
     #pragma omp parallel
     {
-        int total_threads = omp_get_num_threads();
-        int tid = omp_get_thread_num();
+        const int tid = omp_get_thread_num();
+        #ifdef __USE_KUNPENG__
+        const int cpu_id = sched_getcpu();
+        #else
+        const int cpu_id = tid;
+        #endif
 
-        int socket = tid / (THREADS_PER_SOCKET);
+        const int socket = cpu_id / (max_threads_per_socket);
 
         X *local_x_vals = 0;
-        if(socket == 0)
+        const int total_threads = omp_get_num_threads();
+        if(total_threads == max_threads_per_socket*2) // if 96 or 128 threads
         {
-            local_x_vals = x_vals_first_socket;
-            in_socket_copy(local_x_vals, x_vals, _matrix->nrows);
+            if(socket == 0) // we use in socket copy, which works only on max_threads_per_socket threads
+            {
+                local_x_vals = x_vals_first_socket;
+                in_socket_copy(local_x_vals, x_vals, _matrix->nrows, max_threads_per_socket);
+            }
+            else if(socket == 1)
+            {
+                local_x_vals = x_vals_second_socket;
+                in_socket_copy(local_x_vals, x_vals, _matrix->nrows, max_threads_per_socket);
+            }
         }
-        else if(socket == 1)
+        else
         {
-            local_x_vals = x_vals_second_socket;
-            in_socket_copy(local_x_vals, x_vals, _matrix->nrows);
+            #pragma omp for
+            for(VNT i = 0; i < _matrix->nrows; i++)
+            {
+                x_vals_first_socket[i] = x_vals[i];
+                x_vals_second_socket[i] = x_vals[i];
+            }
+
+            if(socket == 0)
+            {
+                local_x_vals = x_vals_first_socket;
+            }
+            else if(socket == 1)
+            {
+                local_x_vals = x_vals_second_socket;
+            }
         }
 
         VNT first_row = offsets[tid].first;
@@ -143,6 +177,10 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
 
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t1 = omp_get_wtime();
+    #endif
+
     const VNT mask_nvals = _mask->get_nvals();
     const VNT *mask_ids = _mask->get_ids();
     const M* mask_vals = _mask->get_vals();
@@ -204,6 +242,12 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
             }
         }
     }
+
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t2 = omp_get_wtime();
+    cout << "spmv sparse: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -223,6 +267,10 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);
     auto identity_val = op.identity();
+
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t1 = omp_get_wtime();
+    #endif
 
     /*if(x_vals == y_vals)
     {
@@ -268,6 +316,12 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
             }
         }
     }
+
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t2 = omp_get_wtime();
+    cout << "spmv dense: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -313,7 +367,7 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
     cout << "spmv slices (diff vector), unmasked time: " << (t2 - t1)*1000 << " ms" << endl;
-    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
+    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
     #endif
 }
 
@@ -371,7 +425,7 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
     cout << "spmv slices (same vector), unmasked time: " << (t2 - t1)*1000 << " ms" << endl;
-    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
+    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
     #endif
 }
 

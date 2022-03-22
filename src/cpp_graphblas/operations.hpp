@@ -313,6 +313,25 @@ LA_Info reduce(T *_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+/* w = op(w, u[i]) for each i; */
+template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
+LA_Info reduce(T *_val,
+               BinaryOpTAccum _accum,
+               MonoidT _op,
+               const Matrix<U>* _u,
+               Descriptor* _desc)
+{
+    if(not_initialized(_u))
+        return GrB_UNINITIALIZED_OBJECT;
+
+    backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
+
+    return backend::reduce(_val, _accum, _op, _u->get_matrix(), desc_t);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /*!
  * Extension method
  * Gather values in vector u from indices (vector index) and store in another

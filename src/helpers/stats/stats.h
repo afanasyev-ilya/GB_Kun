@@ -59,7 +59,7 @@ double my_t2 = omp_get_wtime();                                                 
 double my_time = (my_t2 - my_t1);                                                           \
 double my_perf = 0;                                        \
 double my_bw = 0;                                  \
-long long int my_nvals = 0;                               \
+size_t my_nvals = 0;                               \
 FILE *my_f = fopen("perf_stats.txt", "a");                                                 \
 fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
 fclose(my_f);
@@ -77,6 +77,43 @@ FILE *my_f;                                                                     
 my_f = fopen("perf_stats.txt", "a");                                                    \
 fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
 fclose(my_f);                                                                           \
+
+void save_teps(const char *_op_name, double _time, size_t _nvals, int _iterations = 1)
+{
+    double my_time = _time*1000;
+    double my_perf = _iterations*(_nvals / (_time*1e6));
+    double my_bw = 0;
+    FILE *my_f;
+    my_f = fopen("perf_stats.txt", "a");
+    fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %lld\n", _op_name, my_time, my_perf, my_bw, _nvals);
+    fclose(my_f);
+}
+
+void save_time_in_ms(const char *_op_name, double _time)
+{
+    double my_t2 = omp_get_wtime();
+    double my_time = (_time)*1000;
+    double my_perf = 0;
+    double my_bw = 0;
+    size_t my_nvals = 0;
+    FILE *my_f;
+    my_f = fopen("perf_stats.txt", "a");
+    fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", _op_name, my_time, my_perf, my_bw, my_nvals);
+    fclose(my_f);
+}
+
+void save_time_in_sec(const char *_op_name, double _time)
+{
+    double my_t2 = omp_get_wtime();
+    double my_time = (_time);
+    double my_perf = 0;
+    double my_bw = 0;
+    size_t my_nvals = 0;
+    FILE *my_f;
+    my_f = fopen("perf_stats.txt", "a");
+    fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", _op_name, my_time, my_perf, my_bw, my_nvals);
+    fclose(my_f);
+}
 
 void print_omp_stats()
 {

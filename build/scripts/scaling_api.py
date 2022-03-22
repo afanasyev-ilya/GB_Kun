@@ -37,11 +37,12 @@ def post_process_scaling_data(arr):
             cnt += 1
             fig, axs = plt.subplots(2, figsize=(8, 7))
             fig.suptitle("App: " + app + ", Graph: " + graph)
-            plt.xticks(p[app][graph]["threads"], p[app][graph]["threads"])
 
+            axs[0].set_xticks(p[app][graph]["threads"], p[app][graph]["threads"])
             axs[0].plot(p[app][graph]["threads"], p[app][graph]["performance"], 'r--')
             axs[0].set(xlabel='threads', ylabel='Performance')
 
+            axs[1].set_xticks(p[app][graph]["threads"], p[app][graph]["threads"])
             axs[1].plot(p[app][graph]["threads"], p[app][graph]["time"], 'b--')
             axs[1].set(xlabel='threads', ylabel='Time')
 
@@ -87,9 +88,15 @@ def scale_app(app_name, benchmarking_results, graph_format, run_speed_mode, time
 
     scaling_data = []
 
+    file_extension = "mtx"
+    if options.use_binary_graphs:
+        file_extension = "mtxbin"
     for current_args in arguments:
         first_graph = True
         for current_graph in list_of_graphs:
+            if requires_undir_graphs(app_name):
+                current_graph = UNDIRECTED_PREFIX + current_graph
+
             start = time.time()
             if app_name in apps_and_graphs_ingore and current_graph in apps_and_graphs_ingore[app_name]:
                 print("graph " + current_graph + " is set to be ignored for app " + app_name + "!")
@@ -100,7 +107,7 @@ def scale_app(app_name, benchmarking_results, graph_format, run_speed_mode, time
             except OSError:
                 pass
 
-            cmd = ["bash", "./scripts/scaling_benchmark.sh", str(threads_used), get_binary_path(app_name), "-graph mtx ", get_path_to_graph(current_graph, "mtx")] + current_args + common_args
+            cmd = ["bash", "./scripts/scaling_benchmark.sh", str(threads_used), get_binary_path(app_name), "-graph mtx ", get_path_to_graph(current_graph, file_extension)] + current_args + common_args
 
             proc = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             timer = Timer(int(timeout_length), proc.kill)

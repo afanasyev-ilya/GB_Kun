@@ -14,6 +14,12 @@ colors = ["#CCFFFF", "#CCFFCC", "#FFFF99", "#FF99FF", "#66CCFF", "#FF9966"]
 XLSX_DATA_SHIFT = 10
 
 
+def removeprefix(text, prefix):
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
+
+
 def remove_timed_out(perf_data):
     cleared_list = []
     for item in perf_data:
@@ -42,7 +48,7 @@ class BenchmarkingResults:
 
         # make columns wider
         iter = 0
-        while iter < 3:
+        while iter < 10:
             self.worksheet.set_column(0 + iter * XLSX_DATA_SHIFT, 0 + iter * XLSX_DATA_SHIFT, app_name_column_size)
             self.worksheet.set_column(1 + iter * XLSX_DATA_SHIFT, 1 + iter * XLSX_DATA_SHIFT, graph_name_column_size)
             self.worksheet.set_column(2 + iter * XLSX_DATA_SHIFT, 4 + iter * XLSX_DATA_SHIFT, data_column_size)
@@ -67,6 +73,8 @@ class BenchmarkingResults:
                                    num_part * XLSX_DATA_SHIFT, test_name, self.current_format)
 
     def add_performance_value_to_xls_table(self, perf_dict, graph_name):
+        if UNDIRECTED_PREFIX in graph_name:
+            graph_name = removeprefix(graph_name, UNDIRECTED_PREFIX)
         row = int(self.get_row_pos(graph_name))
         col = int(self.get_column_pos(graph_name))
 
@@ -119,6 +127,8 @@ class BenchmarkingResults:
 
         # add column names
         for graph_name in get_list_of_verification_graphs(self.run_speed_mode):
+            if UNDIRECTED_PREFIX in graph_name:
+                graph_name = removeprefix(graph_name, UNDIRECTED_PREFIX)
             self.worksheet.write(self.line_pos, get_list_of_verification_graphs(self.run_speed_mode).index(graph_name) + 1, graph_name)
 
         self.worksheet.set_column(self.line_pos, len(get_list_of_verification_graphs(self.run_speed_mode)) + 1, 30)
@@ -140,6 +150,8 @@ class BenchmarkingResults:
         self.line_pos += 1
 
     def add_correctness_value_to_xls_table(self, value, graph_name, app_name):
+        if UNDIRECTED_PREFIX in graph_name:
+            graph_name = removeprefix(graph_name, UNDIRECTED_PREFIX)
         self.worksheet.write(self.line_pos, get_list_of_verification_graphs(self.run_speed_mode).index(graph_name) + 1,
                              value, self.current_format)
 

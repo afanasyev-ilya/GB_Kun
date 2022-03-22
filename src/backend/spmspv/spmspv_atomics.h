@@ -20,7 +20,9 @@ void spmspv_unmasked_add(const MatrixCSR<A> *_matrix,
     VNT x_nvals = _x->get_nvals();
     VNT y_size = _y->get_size();
 
+    #ifdef __DEBUG_BANDWIDTHS__
     double t1 = omp_get_wtime();
+    #endif
     #pragma omp parallel
     {
         #pragma omp for
@@ -47,8 +49,10 @@ void spmspv_unmasked_add(const MatrixCSR<A> *_matrix,
             }
         }
     }
+    #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
     cout << "spmspv and BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,7 +74,9 @@ void spmspv_unmasked_or(const MatrixCSR<A> *_matrix,
     VNT x_nvals = _x->get_nvals();
     VNT y_size = _y->get_size();
 
+    #ifdef __DEBUG_BANDWIDTHS__
     double t1 = omp_get_wtime();
+    #endif
     #pragma omp parallel
     {
         #pragma omp for
@@ -96,8 +102,10 @@ void spmspv_unmasked_or(const MatrixCSR<A> *_matrix,
             }
         }
     }
+    #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
     cout << "spmspv or BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -150,8 +158,10 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
             }
         }
     }
+    #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
     cout << "spmspv critical BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    #endif
 }
 
 

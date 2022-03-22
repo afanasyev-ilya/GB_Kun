@@ -19,8 +19,8 @@ public:
     void deep_copy(MatrixCSR<T> *_copy, int _target_socket = -1);
 
     void build(vector<vector<pair<VNT, T>>> &_tmp_csr, VNT _nrows, VNT _ncols);
-    void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _nrows, VNT _ncols,
-               ENT _nnz);
+    void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _nrows, VNT _ncols, ENT _nnz);
+    void build_from_csr_arrays(const ENT *_row_ptrs, const VNT *_col_ids, const T *_vals, VNT _nrows, VNT _ncols, ENT _nnz);
 
     void print() const;
 
@@ -47,6 +47,8 @@ public:
     T get(VNT _row, VNT _col) const;
 
     const vector<pair<VNT, VNT>> &get_load_balancing_offsets() const;
+
+    void resize(VNT _nrows, VNT _ncols, ENT _nnz);
     void numa_aware_realloc();
     void numa_aware_realloc_row_imported(VNT* row_ptr);
 private:
@@ -70,7 +72,6 @@ private:
 
     void alloc(VNT _nrows, VNT _ncols, ENT _nnz);
     void free();
-    void resize(VNT _nrows, VNT _ncols, ENT _nnz);
 
     bool is_non_zero(VNT _row, VNT _col);
 

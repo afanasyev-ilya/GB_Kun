@@ -90,45 +90,24 @@ LA_Info assign(Vector<W>* _w,
                Descriptor *_desc)
 {
     LA_Info info = GrB_SUCCESS;
-    if(false && (_mask != NULL) && (_mask->is_sparse()) && (_indices == NULL)) // TODO fix correctness of this optimization
+    _w->force_to_dense();
+
+    Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
+    W* w_vals = _w->getDense()->get_vals();
+
+    auto lambda_op = [w_vals, _value] (Index idx1, Index idx2) {
+        w_vals[idx1] = _value;
+    };
+
+    if (_indices == NULL)
     {
-        const Index mask_nvals = _mask->getSparse()->get_nvals();
-
-        _w->clear(); // is sparse now
-        _w->getSparse()->set_size(mask_nvals);
-
-        W* w_vals = _w->getSparse()->get_vals();
-        Index* w_ids = _w->getSparse()->get_ids();
-        const Index* mask_ids = _mask->getSparse()->get_ids();
-
-        #pragma omp parallel for
-        for(Index i = 0; i < mask_nvals; i++)
-        {
-            w_ids[i] = mask_ids[i];
-            w_vals[i] = _value;
-        }
+        info = backend::generic_dense_vector_op_assign(_mask, vector_size, lambda_op, _desc);
     }
     else
     {
-        _w->force_to_dense();
-
-        Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
-        W* w_vals = _w->getDense()->get_vals();
-
-        auto lambda_op = [w_vals, _value] (Index idx1, Index idx2) {
-            w_vals[idx1] = _value;
-        };
-
-        if (_indices == NULL)
-        {
-            info = backend::generic_dense_vector_op_assign(_mask, vector_size, lambda_op, _desc);
-        }
-        else
-        {
-            info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
-        }
-        _w->convert_if_required();
+        info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
+    _w->convert_if_required();
     return info;
 }
 
@@ -213,12 +192,16 @@ LA_Info vxm (Vector<W>*       _w,
 {
     if(_u->is_dense())
     {
+        #ifdef __DEBUG_INFO__
         cout << "USING SpMV!!!!!" << endl;
+        #endif
         backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     else
     {
+        #ifdef __DEBUG_INFO__
         cout << "USING SpMSpV!!!!!" << endl;
+        #endif
         backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     _w->convert_if_required();
@@ -390,6 +373,26 @@ LA_Info reduce(T *_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/* w = op(w, u[i]) for each i; */
+template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
+LA_Info reduce(T *_val,
+               BinaryOpTAccum _accum,
+               MonoidT _op,
+               const Matrix<U> *_u,
+               Descriptor *_desc)
+{
+    T reduce_result = _op.identity();
+    Index nvals = _u->get_csr()->get_nnz();
+    const U* u_vals = _u->get_csr()->get_vals();
+
+    backend::generic_sparse_vals_reduce_op(&reduce_result, u_vals, nvals, _op, _desc);
+    *_val = _accum(*_val, reduce_result);
+
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /* Assume that we have allocated memory in w of size sizeof(indices) */
 template <typename W, typename M, typename U, typename I, typename BinaryOpT>
 LA_Info extract(Vector<W>*       w,
@@ -437,13 +440,25 @@ LA_Info mxm(Matrix<c>* C,
     // auto add_op = extractAdd(op);
     // auto mul_op = extractMul(op);
     if (mask) {
-        return GrB_PANIC;
-    } else {
-        backend::SpMSpM_unmasked_ijk(A,
+        backend::SpMSpM_unmasked_ikj(A,
                                      B,
-                                 C);
-        return GrB_SUCCESS;
+                                     C);
+    } else {
+        Desc_value multiplication_mode;
+        desc->get(GrB_MXMMODE, &multiplication_mode);
+        if (multiplication_mode == GrB_IJK) {
+            backend::SpMSpM_unmasked_ijk(A,
+                                         B,
+                                         C);
+        } else if (multiplication_mode == GrB_IKJ) {
+            backend::SpMSpM_unmasked_ikj(A,
+                                         B,
+                                         C);
+        } else {
+            return GrB_INVALID_VALUE;
+        }
     }
+    return GrB_SUCCESS;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
