@@ -136,7 +136,7 @@ void Matrix<T>::build(const VNT *_row_indices,
 
         if(max_cols < _col_indices[i])
         {
-            max_cols = _row_indices[i];
+            max_cols = _col_indices[i];
         }
     }
 
