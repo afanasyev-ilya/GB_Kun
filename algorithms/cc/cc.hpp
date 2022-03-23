@@ -47,12 +47,11 @@ float cc(Vector<int>*       v,
     grandparent_temp.dup(&parent);
 //    grandparent_temp.print();
 
-    int iter = 1;
     int succ = 0;
     float gpu_tight_time = 0.f;
     int niter = 100;
 
-    for (iter = 1; iter <= niter; ++iter) {
+    for (int iter = 1; iter <= niter; ++iter) {
         // Duplicate parent.
         parent_temp.dup(&parent);
 

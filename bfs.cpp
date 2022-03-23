@@ -12,7 +12,7 @@ Index select_non_trivial_vertex(lablas::Matrix<T> &_matrix)
     Index vertex = 0;
     srand(time(NULL));
     do {
-        vertex = rand() %  max_val;
+        vertex = rand() %  1000/*max_val*/;
     } while((_matrix.get_rowdegrees()[vertex] == 0) || (_matrix.get_coldegrees()[vertex] == 0));
     return vertex;
 }
@@ -36,14 +36,18 @@ int main(int argc, char **argv)
 
         Index nrows;
         matrix.get_nrows(&nrows);
-        Index source_vertex = select_non_trivial_vertex(matrix);
+        Index source_vertex = 0;
 
         lablas::Vector<int> *levels = NULL;
 
         LAGraph_Graph<int> graph(matrix);
 
-        SAVE_TEPS(GraphBlast_BFS(&levels, &graph, source_vertex),
-                   "BFS", 1,(graph.AT));
+        for(int run = 0; run < parser.get_iterations(); run++)
+        {
+            source_vertex = select_non_trivial_vertex(matrix);
+            SAVE_TEPS(GraphBlast_BFS(&levels, &graph, source_vertex),
+                      "BFS", 1,(graph.AT));
+        }
 
         if(parser.check())
         {
