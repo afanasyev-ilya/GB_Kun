@@ -107,7 +107,6 @@ void Matrix<T>::transpose_parallel(void) {
 
     CommonWorkspace ccp(csr_data->get_num_cols() + 1, csc_data->get_row_ptr());
 
-
     double final_a = omp_get_wtime();
     #pragma omp parallel shared(csr_nrows, csr_ncols, row_ptr, dloc)
     {
@@ -116,15 +115,9 @@ void Matrix<T>::transpose_parallel(void) {
     VNT last_row = offsets[tid].second;
     Index* this_csc;
 
-    if ( sched_getcpu() / THREADS_PER_SOCKET == 0) {
-        this_csc = ccp.get_first_socket_vector();
-    } else {
-        this_csc = ccp.get_second_socket_vector();
-    }
-
     for(VNT row = first_row; row < last_row; row++) {
-        for (Index j = this_csc[row]; j < this_csc[row + 1]; j++) {
-            auto loc = this_csc[csr_data->get_col_ids()[j]] + dloc[j];
+        for (int j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++) {
+            auto loc = row_ptr[csr_data->get_col_ids()[j]] + dloc[j];
             csc_data->get_col_ids()[loc] = row;
             csc_data->get_vals()[loc] = csr_data->get_vals()[j];
         }
@@ -133,10 +126,9 @@ void Matrix<T>::transpose_parallel(void) {
     #pragma omp barrier
     double final_b = omp_get_wtime();
 
-    if(num_sockets_used() > 1)
+    if(max_threads > THREADS_PER_SOCKET)
     {
-        csc_data->numa_aware_realloc_row_imported(ccp.get_first_socket_vector());
-        // TODO check if
+        csc_data->numa_aware_realloc();
     }
 
     #ifdef __DEBUG_BANDWIDTHS__

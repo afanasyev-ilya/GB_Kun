@@ -15,6 +15,8 @@ TEST (TransposeTest, SmallTest) {
     const std::vector<int> csr_val = {10, 10, 10, 10, 10, 10, 10, 10, 10};
     matrix.build(&row_ids,&col_ids,&csr_val, 9, nullptr, nullptr);
 
+    std::cout << THREADS_PER_SOCKET << " hardware sockets available" << std::endl;
+
 //    const std::vector<Index> row_ids = {0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3};
 //    const std::vector<Index> col_ids = {1, 3, 0, 1, 2, 3, 2, 3, 4, 5, 1, 2, 3, 4, 5};
 //    const std::vector<int> csr_val =   {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
@@ -22,6 +24,8 @@ TEST (TransposeTest, SmallTest) {
     std::cout << "failing " << std::endl;
 //    matrix.get_matrix()->transpose_parallel();
     matrix.get_matrix()->transpose_parallel();
+
+    std::cout << "failing " << std::endl;
 
     auto *row_result = matrix.get_matrix()->get_csc()->get_row_ptr();
     auto *col_result = matrix.get_matrix()->get_csc()->get_col_ids();

@@ -58,7 +58,7 @@ template <typename T>
 void MatrixCSR<T>::numa_aware_realloc_row_imported(VNT* old_row_ptr)
 {
     int cores_num = omp_get_max_threads();
-    if(cores_num <= THREADS_PER_SOCKET)
+    if(cores_num <= numCPU)
         return;
 
     VNT num_rows = this->nrows;

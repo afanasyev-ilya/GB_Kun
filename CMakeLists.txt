@@ -15,11 +15,11 @@ else ()
     if(N EQUAL 48 OR N EQUAL 64 OR N EQUAL 96 OR N EQUAL 128)
         message("COMPILING FOR KUNPENG 920")
         set(CMAKE_CXX_STANDARD 17)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_KUNPENG__ -O3 -std=c++17 -fno-trapping-math -fopenmp-simd -fopenmp  -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_KUNPENG__ -D THREADS_PER_SOCKET=${N} -O3 -std=c++17 -fno-trapping-math -fopenmp-simd -fopenmp  -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays")
     else ()
         message("CLION compilation") # this is for local testing
         set(CMAKE_CXX_STANDARD 17)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -fopenmp -fpermissive")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D THREADS_PER_SOCKET=${N} -std=c++17 -fopenmp -fpermissive")
     endif()
 endif()
 
@@ -74,8 +74,8 @@ STRING(REPLACE ";" " " headers_list "${headers_list}")
 STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" headers_list "${headers_list}")
 #message(STATUS "[INFO] header files list: ${headers_list}")
 #
-#find_package(GTest REQUIRED)
-#include_directories(${GTEST_INCLUDE_DIRS})
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
 
 file(MAKE_DIRECTORY scripts)
 

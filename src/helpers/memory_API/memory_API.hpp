@@ -83,14 +83,14 @@ void MemoryAPI::numa_aware_alloc_valued(T **_ptr, size_t _size, int _target_sock
     *_ptr = (T*)malloc(_size*sizeof(T));
 
     int max_threads = omp_get_max_threads();
-    if(max_threads == 2*THREADS_PER_SOCKET)
+    if(max_threads == 2*numCPU)
     {
-#pragma omp parallel num_threads(2*THREADS_PER_SOCKET)
+#pragma omp parallel num_threads(2*numCPU)
         {
-            size_t sock = omp_get_thread_num() / THREADS_PER_SOCKET;
-            size_t tid = omp_get_thread_num() % THREADS_PER_SOCKET;
+            size_t sock = omp_get_thread_num() / numCPU;
+            size_t tid = omp_get_thread_num() % numCPU;
 
-            size_t work_per_thread = (_size - 1)/THREADS_PER_SOCKET + 1;
+            size_t work_per_thread = (_size - 1)/numCPU + 1;
             if(sock == _target_socket)
             {
 
@@ -101,9 +101,9 @@ void MemoryAPI::numa_aware_alloc_valued(T **_ptr, size_t _size, int _target_sock
             }
         }
     }
-    else if(omp_get_max_threads() == THREADS_PER_SOCKET)
+    else if(omp_get_max_threads() == numCPU)
     {
-#pragma omp parallel for num_threads(THREADS_PER_SOCKET)
+#pragma omp parallel for num_threads(numCPU)
         for(size_t i = 0; i < _size; i++)
         {
             (*_ptr)[i] = vals[i];
