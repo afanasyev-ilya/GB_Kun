@@ -281,15 +281,24 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                 VNT k = matrix1_col_ptr[matrix1_col_id];
                 for (VNT matrix2_col_id = matrix2_row_ptr[k]; matrix2_col_id < matrix2_row_ptr[k + 1]; ++matrix2_col_id) {
                     VNT j = matrix2_col_ptr[matrix2_col_id];
-                    if (mask_ptr->get(i, j)) {
-                        matrix_result[i][j] =
-                                add_op(matrix_result[i][j],
-                                       mul_op(matrix1_val_ptr[matrix1_col_id], matrix2_val_ptr[matrix2_col_id]));
-                    }
+                    matrix_result[i][j] =
+                            add_op(matrix_result[i][j],
+                                   mul_op(matrix1_val_ptr[matrix1_col_id], matrix2_val_ptr[matrix2_col_id]));
+
                 }
             }
+        }
+    }
+
+    #pragma omp parallel
+    {
+        const auto thread_id = omp_get_thread_num();
+        for (VNT i = offsets[thread_id].first; i < offsets[thread_id].second; ++i) {
             row_nnz[i] = 0;
-            for (const auto& [col_id, val] : matrix_result[i]) {
+            for (auto& [col_id, val] : matrix_result[i]) {
+                if (!mask_ptr->get(i, col_id)) {
+                    val = 0;
+                }
                 if (val != 0) {
                     ++row_nnz[i];
                 }
@@ -329,7 +338,6 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
     }
 
     delete [] matrix_result;
-    // delete [] offsets;
 
     double t3 = omp_get_wtime();
 
