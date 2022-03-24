@@ -99,10 +99,10 @@ float cc(Vector<int>*       v,
         #ifdef __DEBUG_INFO__
         cout << "succ: " << succ << endl;
         #endif
-        /*if (succ == 0)
+        if (succ == 0)
         {
             break;
-        }*/
+        }
         grandparent_temp.dup(&grandparent);
 
         // 6) Similar to BFS and SSSP, we should filter out the unproductive

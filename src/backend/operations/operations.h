@@ -172,6 +172,14 @@ LA_Info mxv (Vector<W>*       _w,
         cout << "USING SpMSpV!!!!!" << endl;
         #endif
         backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+
+        _w->print();
+
+        backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+
+        _w->print();
+
+        cout << "compare it" << endl;
     }
     _w->convert_if_required();
 

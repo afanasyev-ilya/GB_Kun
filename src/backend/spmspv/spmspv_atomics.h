@@ -126,6 +126,8 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
     auto mul_op = extractMul(_op);
     auto identity_val = _op.identity();
 
+    Y *tmp_result = (Y*)_workspace->get_shared_one();
+
     VNT x_nvals = _x->get_nvals();
     VNT y_size = _y->get_size();
 
@@ -135,7 +137,7 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
         #pragma omp for
         for (VNT row = 0; row < y_size; row++)
         {
-            y_vals[row] = identity_val;
+            tmp_result[row] = identity_val;
         }
 
         #pragma omp for
@@ -153,9 +155,16 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
 
                 #pragma omp critical
                 {
-                    y_vals[dest_ind] = add_op(y_vals[dest_ind], mul_op(x_val, dest_val));
+                    tmp_result[dest_ind] = add_op(tmp_result[dest_ind], mul_op(x_val, dest_val));
                 }
             }
+        }
+
+        #pragma omp for
+        for (VNT row = 0; row < y_size; row++)
+        {
+            if(tmp_result[row] != identity_val) // TODO Dmitriy check this logic! replace in descriptor should influence?
+                y_vals[row] = tmp_result[row];
         }
     }
     #ifdef __DEBUG_BANDWIDTHS__
