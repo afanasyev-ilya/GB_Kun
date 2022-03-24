@@ -122,7 +122,8 @@ syn_tiny_small_medium = syn_tiny_only + syn_small_only + syn_medium_only
 #####################
 
 syn_scaling = ["syn_rmat_18_32", "syn_rmat_19_32", "syn_rmat_20_32", "syn_rmat_21_32", "syn_rmat_22_32",
-               "syn_rmat_23_32"]
+               "syn_rmat_23_32", "syn_ru_18_32", "syn_ru_19_32", "syn_ru_20_32", "syn_ru_21_32", "syn_ru_22_32",
+               "syn_ru_23_32"]
 konect_scaling = []
 
 #####################

@@ -5,6 +5,18 @@
 #include "algorithms/cc/cc_traditional.hpp"
 
 template <typename T>
+Index estimate_num_components(T *_components, Index _size)
+{
+    std::map<T, Index> cmp_data;
+    for(Index i = 0; i < _size; i++)
+    {
+        T component = _components[i];
+        cmp_data[component]++;
+    }
+    return cmp_data.size();
+}
+
+template <typename T>
 bool equal_components(lablas::Vector<T> &_first,
                       lablas::Vector<T> &_second)
 {
@@ -46,6 +58,9 @@ bool equal_components(lablas::Vector<T> &_first,
         cout << "Results are equal" << endl;
     else
         cout << "Results are NOT equal, error_count = " << error_count << endl;
+
+    std::cout << "num components in first vector: " << estimate_num_components(first_ptr, vertices_count) << std::endl;
+    std::cout << "num components in second vector: " << estimate_num_components(second_ptr, vertices_count) << std::endl;
 
     return result;
 }

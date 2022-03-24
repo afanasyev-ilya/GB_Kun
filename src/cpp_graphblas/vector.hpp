@@ -102,7 +102,6 @@ public:
     LA_Info dup (const Vector<T>* rhs) {
         return _vector.dup(rhs->get_vector());
     }
-
 private:
     backend::Vector<T> _vector;
 
