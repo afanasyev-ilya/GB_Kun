@@ -149,12 +149,12 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
         {
             VNT ind = x_ids[i];
             X x_val = x_vals[i];
-            ENT row_start = _matrix->row_ptr[ind];
+            ENT row_start = _matrix->row_ptr[ind]; // this is actaully col ptr for mxv operation
             ENT row_end   = _matrix->row_ptr[ind + 1];
 
             for (ENT j = row_start; j < row_end; j++)
             {
-                VNT dest_ind = _matrix->col_ids[j];
+                VNT dest_ind = _matrix->col_ids[j]; // this is row_ids
                 A dest_val = _matrix->vals[j];
 
                 #pragma omp critical
