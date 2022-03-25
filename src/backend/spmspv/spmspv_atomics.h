@@ -131,6 +131,10 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
     VNT x_nvals = _x->get_nvals();
     VNT y_size = _y->get_size();
 
+    std::set<Y> changed_results;
+
+    vector<bool> updated(y_size, false);
+
     double t1 = omp_get_wtime();
     #pragma omp parallel
     {
@@ -156,6 +160,7 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
                 #pragma omp critical
                 {
                     tmp_result[dest_ind] = add_op(tmp_result[dest_ind], mul_op(x_val, dest_val));
+                    updated[dest_ind] = true;
                 }
             }
         }
@@ -163,10 +168,13 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
         #pragma omp for
         for (VNT row = 0; row < y_size; row++)
         {
-            if(tmp_result[row] != identity_val) // TODO Dmitriy check this logic! replace in descriptor should influence?
+            if(updated[row])
                 y_vals[row] = tmp_result[row];
+            else
+                y_vals[row] = 0;
         }
     }
+
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
     cout << "spmspv critical BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;

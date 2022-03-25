@@ -17,6 +17,7 @@
 #include <cassert>
 #include <queue>
 #include <functional>
+#include <set>
 
 #include <omp.h>
 
