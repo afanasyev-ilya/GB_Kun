@@ -109,11 +109,11 @@ target_include_directories(sparse_test PRIVATE)
 add_executable(transpose transpose.cpp)
 target_include_directories(transpose PRIVATE)
 
-#add_executable(test_matrix test/GB_objects/test_matrix_ops.cpp)
-#target_link_libraries(test_matrix ${GTEST_LIBRARIES})
-add_executable(test_matrix test/GB_objects/test_matrix_ops.cpp)
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+add_executable(test_matrix benchmarking/GB_objects/test_matrix_ops.cpp)
 target_link_libraries(test_matrix ${GTEST_LIBRARIES})
 
-add_executable(test_primitives test/primitives/test_primitives.cpp)
+add_executable(test_primitives benchmarking/primitives/test_primitives.cpp)
 target_link_libraries(test_primitives ${GTEST_LIBRARIES})
+endif()
 
