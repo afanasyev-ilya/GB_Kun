@@ -133,15 +133,13 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
 
     std::set<Y> changed_results;
 
-    vector<bool> updated(y_size, false);
-
     double t1 = omp_get_wtime();
     #pragma omp parallel
     {
         #pragma omp for
         for (VNT row = 0; row < y_size; row++)
         {
-            tmp_result[row] = identity_val;
+            y_vals[row] = identity_val;
         }
 
         #pragma omp for
@@ -159,19 +157,9 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
 
                 #pragma omp critical
                 {
-                    tmp_result[dest_ind] = add_op(tmp_result[dest_ind], mul_op(x_val, dest_val));
-                    updated[dest_ind] = true;
+                    y_vals[dest_ind] = add_op(y_vals[dest_ind], mul_op(x_val, dest_val));
                 }
             }
-        }
-
-        #pragma omp for
-        for (VNT row = 0; row < y_size; row++)
-        {
-            if(updated[row])
-                y_vals[row] = tmp_result[row];
-            else
-                y_vals[row] = 0;
         }
     }
 
