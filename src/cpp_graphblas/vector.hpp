@@ -118,16 +118,16 @@ private:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename C>
-class vector_iterator_type
+template <typename Vector>
+class VectorIterator
 {
 public:
-    using ValueType = typename C::ValueType;
+    using ValueType = typename Vector::ValueType;
 public:
-    vector_iterator_type(C& collection, Index const index) :
+    VectorIterator(Vector& collection, Index const index) :
             index(index), collection(collection) {}
 
-    bool operator!= (vector_iterator_type const & other) const
+    bool operator!= (VectorIterator const & other) const
     {
         return index != other.index;
     }
@@ -137,23 +137,23 @@ public:
         return collection.get_at(index);
     }
 
-    vector_iterator_type const & operator++ ()
+    VectorIterator const & operator++ ()
     {
         ++index;
         return *this;
     }
 private:
     Index   index;
-    C&       collection;
+    Vector&       collection;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-using vector_iterator = vector_iterator_type<T, Vector<T>>;
+using vector_iterator = VectorIterator<Vector<T>>;
 
 template <typename T>
-using vector_const_iterator = vector_iterator_type<T,  Vector<T>>;
+using vector_const_iterator = VectorIterator<Vector<T>>;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
