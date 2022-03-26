@@ -142,6 +142,7 @@ void Matrix<T>::build(const VNT *_row_indices,
 
     max_rows += 1;
     max_cols += 1;
+    //std::cout << "MAX COLS " << max_cols << " and MAX_ROWS " << max_rows << std::endl;
     if(max_rows != max_cols)
     {
         cout << "Non-square matrix is not supported yet" << endl;

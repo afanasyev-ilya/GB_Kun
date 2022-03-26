@@ -516,7 +516,7 @@ void Matrix<T>::sort_csc_rows(const string& mode)
         for (int i = 0; i < get_csc()->get_num_rows(); i++) {
             VNT* begin_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i];
             VNT* end_ptr = csc_data->get_col_ids() + csc_data->get_row_ptr()[i + 1];
-            sort(begin_ptr, end_ptr);
+            std::sort(begin_ptr, end_ptr);
         }
     } else {
         throw mode;
