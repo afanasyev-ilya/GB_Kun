@@ -11,6 +11,8 @@ namespace lablas {
 template<typename T>
 class Vector {
 public:
+    using ValueType = T;
+public:
     Vector() : _vector() {}
     explicit Vector(Index nsize) : _vector(nsize) {}
 
@@ -120,6 +122,8 @@ template <typename T, typename C>
 class vector_iterator_type
 {
 public:
+    using ValueType = typename C::ValueType;
+public:
     vector_iterator_type(C& collection, Index const index) :
             index(index), collection(collection) {}
 
@@ -128,7 +132,7 @@ public:
         return index != other.index;
     }
 
-    T const & operator* () const
+    ValueType const & operator* () const
     {
         return collection.get_at(index);
     }
