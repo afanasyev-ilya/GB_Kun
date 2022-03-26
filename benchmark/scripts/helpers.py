@@ -31,11 +31,8 @@ def binary_exists(app_name):
 
 
 def make_binary(app_name):
-    bench_dir = os.getcwd()
-    os.chdir("../build/")
-    cmd = "make " + app_name
-    os.chdir("../benchmark/")
-    print(cmd)
+    short_app_name = app_name.rsplit("/", 1)[-1]
+    cmd = "bash ./compile.sh " + short_app_name
     subprocess.call(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     if binary_exists(app_name):
