@@ -110,10 +110,10 @@ add_executable(transpose transpose.cpp)
 target_include_directories(transpose PRIVATE)
 
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-add_executable(test_matrix benchmarking/GB_objects/test_matrix_ops.cpp)
+add_executable(test_matrix tests/GB_objects/test_matrix_ops.cpp)
 target_link_libraries(test_matrix ${GTEST_LIBRARIES})
 
-add_executable(test_primitives benchmarking/primitives/test_primitives.cpp)
+add_executable(test_primitives tests/primitives/test_primitives.cpp)
 target_link_libraries(test_primitives ${GTEST_LIBRARIES})
 endif()
 
