@@ -31,7 +31,10 @@ def binary_exists(app_name):
 
 
 def make_binary(app_name):
+    bench_dir = os.getcwd()
+    os.chdir("../build/")
     cmd = "make " + app_name
+    os.chdir("../benchmark/")
     print(cmd)
     subprocess.call(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
