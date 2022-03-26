@@ -46,6 +46,7 @@ void sssp_bf_gbkun(Vector<T> *_distances,
 
         T succ = 0;
         reduce<T, T>(&succ, second<T>(), PlusMonoid<T>(), &mask, &desc);
+        std::cout << "succ " << succ << endl;
 
         if((succ == 0) || (k >= (_matrix->nrows() - 1)))
         {

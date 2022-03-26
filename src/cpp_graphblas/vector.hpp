@@ -119,15 +119,15 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename Vector>
-class VectorIterator
+class VectorIteratorType
 {
 public:
     using ValueType = typename Vector::ValueType;
 public:
-    VectorIterator(Vector& collection, Index const index) :
+    VectorIteratorType(Vector& collection, Index const index) :
             index(index), collection(collection) {}
 
-    bool operator!= (VectorIterator const & other) const
+    bool operator!= (VectorIteratorType const & other) const
     {
         return index != other.index;
     }
@@ -137,9 +137,15 @@ public:
         return collection.get_at(index);
     }
 
-    VectorIterator const & operator++ ()
+    VectorIteratorType const & operator++ ()
     {
         ++index;
+        return *this;
+    }
+
+    VectorIteratorType const & operator-- ()
+    {
+        --index;
         return *this;
     }
 private:
@@ -150,35 +156,35 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-using vector_iterator = VectorIterator<Vector<T>>;
+using VectorIterator = VectorIteratorType<Vector<T>>;
 
 template <typename T>
-using vector_const_iterator = VectorIterator<Vector<T>>;
+using VectorConstIterator = VectorIteratorType<Vector<T>>;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-inline vector_iterator<T> begin(Vector<T> &collection)
+inline VectorIterator<T> begin(Vector<T> &collection)
 {
-    return vector_iterator<T>(collection, 0);
+    return VectorIterator<T>(collection, 0);
 }
 
 template <typename T>
-inline vector_iterator<T> end(Vector<T>& collection)
+inline VectorIterator<T> end(Vector<T>& collection)
 {
-    return vector_iterator<T>(collection, collection.size());
+    return VectorIterator<T>(collection, collection.size());
 }
 
 template <typename T>
-inline vector_const_iterator<T> begin(const Vector<T> &collection)
+inline VectorConstIterator<T> begin(const Vector<T> &collection)
 {
-    return vector_const_iterator<T>(collection, 0);
+    return VectorConstIterator<T>(collection, 0);
 }
 
 template <typename T>
-inline vector_const_iterator<T> end(const Vector<T>& collection)
+inline VectorConstIterator<T> end(const Vector<T>& collection)
 {
-    return vector_const_iterator<T>(collection, collection.size());
+    return VectorConstIterator<T>(collection, collection.size());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
