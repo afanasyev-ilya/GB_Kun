@@ -159,7 +159,11 @@ LA_Info mxv (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    if(_u->is_dense())
+    bool switch_cond = _u->is_dense();
+    #ifdef __DISABLE_SPMSPV__
+    switch_cond = true;
+    #endif
+    if(switch_cond)
     {
         #ifdef __DEBUG_INFO__
         cout << "USING SpMV!!!!!" << endl;
@@ -195,7 +199,11 @@ LA_Info vxm (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    if(_u->is_dense())
+    bool switch_cond = _u->is_dense();
+    #ifdef __DISABLE_SPMSPV__
+    switch_cond = true;
+    #endif
+    if(switch_cond)
     {
         #ifdef __DEBUG_INFO__
         cout << "USING SpMV!!!!!" << endl;
@@ -227,7 +235,6 @@ LA_Info eWiseAdd(Vector<W> *_w,
                  const Vector<V> *_v,
                  Descriptor *_desc)
 {
-
     Index vector_size = _w->getDense()->get_size();
     auto w_vals = _w->getDense()->get_vals();
     auto u_vals = _u->getDense()->get_vals();

@@ -18,8 +18,9 @@ available_formats = ["CSR", "COO", "CSR_SEG", "LAV", "SELL_C", "SORT"] # TODO
 
 
 def requires_undir_graphs(app_name):
-    if app_name in ["cc", "coloring"]:
-        return True
+    for undir_apps in ["cc", "coloring"]:
+        if undir_apps in app_name:
+            return True
     return False
 
 

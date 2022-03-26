@@ -1,4 +1,6 @@
 #define __REQUIRES_UNDIRECTED_GRAPHS__
+#define __DISABLE_SPMSPV__
+
 #include "src/gb_kun.h"
 
 #include "algorithms/cc/cc.hpp"

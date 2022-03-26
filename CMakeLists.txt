@@ -77,7 +77,7 @@ STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" headers_list "${headers_list}")
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
-file(MAKE_DIRECTORY scripts)
+file(MAKE_DIRECTORY benchmark/integration_scripts)
 
 add_executable(cc cc.cpp)
 target_include_directories(cc PRIVATE)
