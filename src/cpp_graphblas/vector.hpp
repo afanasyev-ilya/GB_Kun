@@ -102,12 +102,83 @@ public:
     LA_Info dup (const Vector<T>* rhs) {
         return _vector.dup(rhs->get_vector());
     }
+
+    T get_at(Index _index) const
+    {
+        return _vector.get_at(_index);
+    }
 private:
     backend::Vector<T> _vector;
 
     template<typename Y>
     friend bool operator==(Vector<Y>& lhs, Vector<Y>& rhs);
 };
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename C>
+class vector_iterator_type
+{
+public:
+    vector_iterator_type(C& collection, Index const index) :
+            index(index), collection(collection)
+    {
+
+    }
+
+    bool operator!= (vector_iterator_type const & other) const
+    {
+        return index != other.index;
+    }
+
+    T const & operator* () const
+    {
+        return collection.get_at(index);
+    }
+
+    vector_iterator_type const & operator++ ()
+    {
+        ++index;
+        return *this;
+    }
+private:
+    Index   index;
+    C&       collection;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+using vector_iterator = vector_iterator_type<T, Vector<T>>;
+
+template <typename T>
+using vector_const_iterator = vector_iterator_type<T,  Vector<T>>;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+inline vector_iterator<T> begin(Vector<T> &collection)
+{
+    return vector_iterator<T>(collection, 0);
+}
+
+template <typename T>
+inline vector_iterator<T> end(Vector<T>& collection)
+{
+    return vector_iterator<T>(collection, collection.size());
+}
+
+template <typename T>
+inline vector_const_iterator<T> begin(const Vector<T> &collection)
+{
+    return vector_const_iterator<T>(collection, 0);
+}
+
+template <typename T>
+inline vector_const_iterator<T> end(const Vector<T>& collection)
+{
+    return vector_const_iterator<T>(collection, collection.size());
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

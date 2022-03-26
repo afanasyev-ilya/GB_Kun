@@ -224,6 +224,16 @@ public:
         main_container->fill_with_zeros();
         return GrB_SUCCESS;
     }
+
+    T get_at(Index _index) const
+    {
+        DenseVector<T> *dense_data = (const_cast <Vector<T>*> (this))->getDense();
+        const T* vals = dense_data->get_vals();
+        if(_index >= 0 && _index < dense_data->get_size())
+            return vals[_index];
+        else
+            throw "Error: out of range in backend::vector";
+    }
 private:
     GenericVector<T> *main_container;
     GenericVector<T> *secondary_container;

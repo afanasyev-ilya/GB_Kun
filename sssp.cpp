@@ -3,6 +3,21 @@
 #include "algorithms/sssp/sssp.hpp"
 #include "algorithms/sssp/sssp_traditional.hpp"
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+Index number_of_unvisited_vertices(lablas::Vector<T> &_distances)
+{
+    for (auto && e : _distances)
+    {
+        std::cout << e << std::endl;
+    }
+
+    return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main(int argc, char **argv)
 {
     try
@@ -30,6 +45,7 @@ int main(int argc, char **argv)
             source_vertex = rand() % size;
             cout << "starting from source: " << source_vertex << endl;
             SAVE_TEPS((lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex)), "sssp", 1, &matrix);
+            std::cout << "number of visited vertices: " << number_of_unvisited_vertices(distances) << std::endl;
         }
 
         if(parser.check())
@@ -59,3 +75,6 @@ int main(int argc, char **argv)
     }
     return 0;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
