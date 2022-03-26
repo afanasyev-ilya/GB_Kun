@@ -103,7 +103,7 @@ public:
         return _vector.dup(rhs->get_vector());
     }
 
-    T get_at(Index _index) const
+    T const & get_at(Index _index) const
     {
         return _vector.get_at(_index);
     }
@@ -121,10 +121,7 @@ class vector_iterator_type
 {
 public:
     vector_iterator_type(C& collection, Index const index) :
-            index(index), collection(collection)
-    {
-
-    }
+            index(index), collection(collection) {}
 
     bool operator!= (vector_iterator_type const & other) const
     {

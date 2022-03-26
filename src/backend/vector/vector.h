@@ -225,7 +225,7 @@ public:
         return GrB_SUCCESS;
     }
 
-    T get_at(Index _index) const
+    T const & get_at(Index _index) const
     {
         DenseVector<T> *dense_data = (const_cast <Vector<T>*> (this))->getDense();
         const T* vals = dense_data->get_vals();
