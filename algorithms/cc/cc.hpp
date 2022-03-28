@@ -9,20 +9,15 @@ namespace algorithm {
 // Code is based on the algorithm described in the following paper.
 // Zhang, Azad, Hu. FastSV: FastSV: A Distributed-Memory Connected Component
 // Algorithm with Fast Convergence (SIAM PP20).
-float cc(Vector<int>*       v,
-         const Matrix<int>* A,
-         int                seed,
-         Descriptor*        desc) {
-
-    if(!A->is_symmetric()) {
-        std::cout << "Matrix is not symmetric, aborting CC..." << std::endl;
-        return 1;
-    };
+void cc(Vector<int>*       v,
+        const Matrix<int> *A,
+        int seed,
+        Descriptor *desc)
+{
     Index A_nrows;
     A->get_nrows(&A_nrows);
     // Difference vector.
     Vector<bool> diff(A_nrows);
-
 
     // Parent vector.
     // f in Zhang paper.
@@ -52,18 +47,20 @@ float cc(Vector<int>*       v,
     grandparent_temp.dup(&parent);
 //    grandparent_temp.print();
 
-    int succ = 0;
+    Index succ = 0;
     float gpu_tight_time = 0.f;
-    int niter = 100;
+    Index niter = 100;
+    Index iter = 0;
 
-    for (int iter = 1; iter <= niter; ++iter) {
+    for (iter = 1; iter <= niter; ++iter) {
         // Duplicate parent.
         parent_temp.dup(&parent);
 
         // 1) Stochastic hooking.
         // mngf[u] = A x gf
+        Timer tm("mxv");
         mxv(&min_neighbor_parent_temp, MASK_NULL, GrB_NULL,
-                                MinimumSelectSecondSemiring<int>(), A, &grandparent, desc);
+            MinimumSelectSecondSemiring<int>(), A, &grandparent, desc);
 
         //cout << "min_neighbor_parent_temp: ";
         //min_neighbor_parent_temp.print();
@@ -99,7 +96,7 @@ float cc(Vector<int>*       v,
         // 5) Check termination.
         eWiseMult(&diff, MASK_NULL, GrB_NULL,
                   MinimumNotEqualToSemiring<int, int, bool>(), &grandparent_temp, &grandparent, desc);
-        reduce<int, bool>(&succ, GrB_NULL, PlusMonoid<int>(), &diff, desc);
+        reduce<Index, bool>(&succ, GrB_NULL, PlusMonoid<Index>(), &diff, desc);
         #ifdef __DEBUG_INFO__
         cout << "succ: " << succ << endl;
         #endif
@@ -119,8 +116,7 @@ float cc(Vector<int>*       v,
         desc->get(GrB_MASK, &a);
     }
     v->dup(&parent);
-
-    return 0.f;
+    std::cout << "Did " << iter <<  " iterations" << std::endl;
 }
 
 }  // namespace algorithm
