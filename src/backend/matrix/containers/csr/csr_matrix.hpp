@@ -189,7 +189,7 @@ const vector<pair<VNT, VNT>> & MatrixCSR<T>::get_load_balancing_offsets() const
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool operator== (const MatrixCSR<T> &c1, const MatrixCSR<T> &c2) {
+bool operator == (const MatrixCSR<T> &c1, const MatrixCSR<T> &c2) {
     auto nrows1 = c1.get_num_rows();  auto nrows2 = c2.get_num_rows();
     if (nrows1 != nrows2) {
         return false;
@@ -209,9 +209,16 @@ bool operator== (const MatrixCSR<T> &c1, const MatrixCSR<T> &c2) {
     auto col1 = c1.get_col_ids(); auto col2 = c2.get_col_ids();
     auto val1 = c1.get_vals(); auto val2 = c2.get_vals();
 
+    VNT incorrect_rows = 0;
+    VNT incorrect_by_size = 0;
+    VNT incorrect_by_content = 0;
+    bool result = true;
     for (VNT i = 0; i < nrows1 + 1; i++) {
         if (row1[i] != row2[i]) {
-            return false;
+            result = false;
+            incorrect_rows++;
+            incorrect_by_size++;
+            //return false;
         }
 #ifdef USE_UNORDERED
         unordered_set<VNT> set_1;
@@ -229,11 +236,17 @@ bool operator== (const MatrixCSR<T> &c1, const MatrixCSR<T> &c2) {
                 set_2.insert(col2[j]);
             }
             if (set_1 != set_2) {
-                return false;
+                result = false;
+                incorrect_rows++;
+                incorrect_by_content++;
+                //return false;
             }
         }
     }
-    return true;
+    std::cout << "number of incorrect rows: " << incorrect_rows << "/" << nrows1 << std::endl;
+    std::cout << "incorrect by size: " << incorrect_by_size << "/" << incorrect_rows << std::endl;
+    std::cout << "incorrect by content: " << incorrect_by_content << "/" << incorrect_rows << std::endl;
+    return result;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
