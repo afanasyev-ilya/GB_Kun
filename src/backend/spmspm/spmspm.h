@@ -50,10 +50,12 @@ void balance_matrix_rows(const ENT *_row_ptrs, VNT num_rows, pair<VNT, VNT> *_of
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
+template <typename T, typename SemiringT>
 void SpMSpM_unmasked_ijk(const Matrix<T> *_matrix1,
                      const Matrix<T> *_matrix2,
-                     Matrix<T> *_matrix_result)
+                     Matrix<T> *_matrix_result,
+                     const Matrix<T> *_result_mask,
+                     SemiringT _op)
 {
     double t1 = omp_get_wtime();
     VNT matrix1_num_rows = _matrix1->get_csr()->get_num_rows();
@@ -110,10 +112,11 @@ void SpMSpM_unmasked_ijk(const Matrix<T> *_matrix1,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
+template <typename T, typename SemiringT>
 void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
                          const Matrix<T> *_matrix2,
-                         Matrix<T> *_matrix_result)
+                         Matrix<T> *_matrix_result,
+                         SemiringT _op)
 {
 
 #ifdef __DEBUG_BANDWIDTHS__
@@ -143,6 +146,10 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 #endif
     double t1 = omp_get_wtime();
 
+    auto add_op = extractAdd(_op);
+    auto mul_op = extractMul(_op);
+    auto identity_val = _op.identity();
+
     const auto n = _matrix1->get_csr()->get_num_rows();
 
     auto matrix_result = new unordered_map<VNT, T>[n];
@@ -168,7 +175,12 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
                 VNT k = matrix1_col_ptr[matrix1_col_id];
                 for (VNT matrix2_col_id = matrix2_row_ptr[k]; matrix2_col_id < matrix2_row_ptr[k + 1]; ++matrix2_col_id) {
                     VNT j = matrix2_col_ptr[matrix2_col_id];
-                    matrix_result[i][j] += matrix1_val_ptr[matrix1_col_id] * matrix2_val_ptr[matrix2_col_id];
+                    if (matrix_result[i].find(j) == matrix_result[i].end()) {
+                        matrix_result[i][j] = identity_val;
+                    }
+                    matrix_result[i][j] =
+                            add_op(matrix_result[i][j],
+                                   mul_op(matrix1_val_ptr[matrix1_col_id], matrix2_val_ptr[matrix2_col_id]));
                 }
             }
             row_nnz[i] = 0;
@@ -251,10 +263,12 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                        Matrix<T> *_matrix_result,
                        SemiringT _op)
 {
+    cout << "Starting masked ikj algorithm" << endl;
     double t1 = omp_get_wtime();
 
     auto add_op = extractAdd(_op);
     auto mul_op = extractMul(_op);
+    auto identity_val = _op.identity();
 
     const auto n = _matrix1->get_csr()->get_num_rows();
 
@@ -271,7 +285,6 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
     auto matrix2_row_ptr = _matrix2->get_csr()->get_row_ptr();
     auto matrix1_col_ptr = _matrix1->get_csr()->get_col_ids();
     auto matrix2_col_ptr = _matrix2->get_csr()->get_col_ids();
-    auto mask_ptr = _result_mask->get_csr();
 
     #pragma omp parallel
     {
@@ -281,6 +294,9 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                 VNT k = matrix1_col_ptr[matrix1_col_id];
                 for (VNT matrix2_col_id = matrix2_row_ptr[k]; matrix2_col_id < matrix2_row_ptr[k + 1]; ++matrix2_col_id) {
                     VNT j = matrix2_col_ptr[matrix2_col_id];
+                    if (matrix_result[i].find(j) == matrix_result[i].end()) {
+                        matrix_result[i][j] = identity_val;
+                    }
                     matrix_result[i][j] =
                             add_op(matrix_result[i][j],
                                    mul_op(matrix1_val_ptr[matrix1_col_id], matrix2_val_ptr[matrix2_col_id]));
@@ -290,6 +306,8 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
         }
     }
 
+    cout << "Applying the mask for ikj algorithm" << endl;
+    auto mask_ptr = _result_mask->get_csr();
     #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();

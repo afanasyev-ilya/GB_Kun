@@ -455,7 +455,8 @@ LA_Info mxm(Matrix<c>* C,
         } else if (multiplication_mode == GrB_IKJ) {
             backend::SpMSpM_unmasked_ikj(A,
                                          B,
-                                         C);
+                                         C,
+                                         op);
         } else {
             return GrB_INVALID_VALUE;
         }
