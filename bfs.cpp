@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 
         lablas::Descriptor desc;
 
-        lablas::Matrix<int> matrix;
+        lablas::Matrix<float> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
         init_matrix(matrix, parser);
 
@@ -38,24 +38,25 @@ int main(int argc, char **argv)
         matrix.get_nrows(&nrows);
         Index source_vertex = 0;
 
-        lablas::Vector<int> *levels = NULL;
-
-        LAGraph_Graph<int> graph(matrix);
+        lablas::Vector<float> levels(nrows);
 
         for(int run = 0; run < parser.get_iterations(); run++)
         {
             source_vertex = select_non_trivial_vertex(matrix);
-            SAVE_TEPS(GraphBlast_BFS(&levels, &graph, source_vertex),
-                      "BFS", 1,(graph.AT));
+            auto t1 = std::chrono::high_resolution_clock::now();
+            lablas::algorithm::bfs_blast(&levels, &matrix, source_vertex, &desc);
+            auto t2 = std::chrono::high_resolution_clock::now();
+            save_teps("BFS", std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count(),
+                      matrix.get_nnz(), 1);
         }
 
         if(parser.check())
         {
-            lablas::Vector<int> check_levels(nrows);
+            lablas::Vector<float> check_levels(nrows);
 
             lablas::algorithm::bfs_traditional(&check_levels, &matrix, source_vertex);
 
-            if((*levels) == check_levels)
+            if(levels == check_levels)
             {
                 cout << "BFS levels are equal" << endl;
             }
@@ -64,9 +65,6 @@ int main(int argc, char **argv)
                 cout << "BFS levels are NOT equal" << endl;
             }
         }
-
-        if(levels != NULL)
-            delete levels;
     }
     catch (const char * error)
     {

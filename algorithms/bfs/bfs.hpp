@@ -76,59 +76,66 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
     return (0);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int GraphBlast_BFS(GrB_Vector *levels, LAGraph_Graph<int> *G, GrB_Index src)
-{
-    lablas::Descriptor desc;
-    GrB_Matrix A = G->A;
-    GrB_Index n;
-    GrB_TRY( GrB_Matrix_nrows (&n, A) );
-
-    GrB_Vector f1 = NULL, *f2 = NULL, *v = NULL;
-    GrB_TRY(GrB_Vector_new(&f1, GrB_INT32, n, "f1"));
-    GrB_TRY(GrB_Vector_new(&f2, GrB_INT32, n, "f2"));
-    GrB_TRY(GrB_Vector_new(&v, GrB_INT32, n, "v"));
-
-    double t1 = omp_get_wtime();
-
-    GrB_TRY(GrB_assign(f1, MASK_NULL, NULL, 0, GrB_ALL, n, GrB_NULL));
-    GrB_TRY(GrB_assign(f2, MASK_NULL, NULL, 0, GrB_ALL, n, GrB_NULL));
-    GrB_TRY(GrB_assign(v, MASK_NULL, NULL, 0, GrB_ALL, n, GrB_NULL));
-    GrB_TRY (GrB_Vector_setElement(f1, 1, src)) ;
-
-    int iter = 1;
-    int succ = 0;
-    //cout << "------------------------------ alg started ------------------------------------ " << endl;
-    do
-    {
-        GrB_TRY(GrB_assign(v, f1, NULL, iter, GrB_ALL, n, GrB_NULL));
-        GrB_TRY( GrB_vxm(f2, v, NULL, lablas::LogicalOrAndSemiring<int>(), f1, A, GrB_DESC_SC));
-
-        std::swap(f1, f2);
-
-        GrB_TRY (GrB_reduce (&succ, NULL, GrB_PLUS_MONOID_INT32, f1, GrB_NULL)) ;
-
-        iter++;
-    }
-    while(succ > 0);
-    //cout << "------------------------------ alg done ------------------------------------ " << endl;
-    std::cout << "max level: " << iter << std::endl;
-
-    //v->force_to_dense();
-    *levels = v;
-
-    double t2 = omp_get_wtime();
-    cout << "BFS perf: " << A->get_nnz()/((t2 - t1)*1e6) << " MTEPS" << endl;
-
-    GrB_free(&f1);
-    GrB_free(&f2);
-    return 0;
-}
-
 #undef GrB_Matrix
 #undef GrB_Vector
 #undef MASK_NULL
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace lablas {
+namespace algorithm {
+
+void bfs_blast(Vector<float>*       v,
+               const Matrix<float> *A,
+               Index s,
+               Descriptor *desc)
+{
+    Index A_nrows = A->nrows();
+
+    // Visited vector (use float for now)
+    v->fill(0.f);
+
+    // Frontier vectors (use float for now)
+    Vector<float> f1(A_nrows);
+    Vector<float> f2(A_nrows);
+
+    Desc_value desc_value;
+    desc->get(GrB_MXVMODE, &desc_value);
+    if (true/*desc_value == GrB_PULLONLY*/)
+    {
+        f1.fill(0.f);
+        f1.set_element(1.f, s);
+    }
+    else
+    {
+        /*std::vector<Index> indices(1, s);
+        std::vector<float>  values(1, 1.f);
+        CHECK(f1.build(&indices, &values, 1, GrB_NULL));*/
+    }
+
+    Index iter = 0;
+    float succ = 0.f;
+    Index unvisited = A_nrows;
+    float gpu_tight_time = 0.f;
+    Index max_iters = A_nrows;
+
+    for (iter = 1; iter <= max_iters; ++iter) {
+        unvisited -= static_cast<int>(succ);
+        assign<float, float, float>(v, &f1, second<float>()/*GrB_NULL*/, iter, GrB_ALL, A_nrows, desc);
+        desc->toggle(GrB_MASK);
+        vxm<float, float, float, float>(&f2, v, second<float>()/*GrB_NULL*/,LogicalOrAndSemiring<float>(), &f1, A, desc);
+        desc->toggle(GrB_MASK);
+
+        f2.swap(&f1);
+        reduce<float, float>(&succ, second<float>()/*GrB_NULL*/, PlusMonoid<float>(), &f1, desc);
+
+        if (succ == 0)
+            break;
+    }
+}
+
+}
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

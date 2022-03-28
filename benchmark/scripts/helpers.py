@@ -35,7 +35,7 @@ def make_binary(app_name):
     cmd = "bash ./compile.sh " + short_app_name
     subprocess.call(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-    if binary_exists(app_name) and "clean" not in app_names:
+    if binary_exists(app_name) and "clean" not in app_name:
         print("Success! " + app_name + " has been compiled")
     else:
         print("Error! " + app_name + " can not be compiled")
