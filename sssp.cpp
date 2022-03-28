@@ -1,4 +1,3 @@
-#define __DISABLE_SPMSPV__
 #include "src/gb_kun.h"
 
 #include "algorithms/sssp/sssp.hpp"

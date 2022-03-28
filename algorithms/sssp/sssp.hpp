@@ -65,11 +65,6 @@ void sssp_bf_blast(Vector<float> *v,
                    Index s,
                    Descriptor *desc)
 {
-    auto sem_add_op = generic_extract_add(MinimumPlusSemiring<float>());
-    auto bin_add_op = generic_extract_add(less<float>());
-    std::cout << "sem result: " << sem_add_op(1.0, 2.0) << std::endl;
-    std::cout << "bin result: " << bin_add_op(1.0, 2.0) << std::endl;
-
     Index A_nrows = A->nrows();
 
     // Visited vector (use float for now)
@@ -88,7 +83,7 @@ void sssp_bf_blast(Vector<float> *v,
         f1.fill(std::numeric_limits<float>::max());
         f1.set_element(0.f, s);
     } else {
-        /*std::vector<Index> indices(1, s);
+        /*std::vector<Index> indices(1, s); // TODO
         std::vector<float>  values(1, 0.f);
         f1.build(&indices, &values, 1, GrB_NULL);*/
     }
@@ -96,25 +91,26 @@ void sssp_bf_blast(Vector<float> *v,
     // Mask vector
     Vector<float> m(A_nrows);
 
-    Index iter;
+    Index iter = 0;
     Index f1_nvals = 1;
     float succ = 1.f;
+    Index max_iters = A_nrows;
 
-    for (iter = 1; iter <= 1000; ++iter)
+    for (iter = 1; iter <= max_iters; ++iter)
     {
         vxm<float, float, float, float>(&f2, nullptr, second<float>(), MinimumPlusSemiring<float>(), &f1, A, desc);
 
-        // CustomLessPlusSemiring<float>()
-        eWiseAdd<float, float, float, float>(&m, nullptr, second<float>(), less<float>(), &f2, v, desc);
+        eWiseAdd<float, float, float, float>(&m, nullptr, second<float>(),
+                                             CustomLessPlusSemiring<float>(), &f2, v, desc);
 
-        //MinimumPlusSemiring<float>()
-        eWiseAdd<float, float, float, float>(v, nullptr, second<float>(), minimum<float>(), v, &f2, desc);
+        eWiseAdd<float, float, float, float>(v, nullptr, second<float>(),
+                                             MinimumPlusSemiring<float>(), v, &f2, desc);
 
         // Similar to BFS, except we need to filter out the unproductive vertices
         // here rather than as part of masked vxm
         desc->toggle(GrB_MASK);
-        assign<float, float, float>(&f2, &m, second<float>(),
-                                           std::numeric_limits<float>::max(), GrB_ALL, A_nrows, desc);
+        assign<float, float, float>(&f2, &m, second<float>(), std::numeric_limits<float>::max(),
+                                    GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK);
 
         f2.swap(&f1);
@@ -125,6 +121,7 @@ void sssp_bf_blast(Vector<float> *v,
         if (f1_nvals == 0 || succ == 0)
             break;
     }
+    std::cout << "sssp did " << iter << " iterations" << std::endl;
 
 }
 

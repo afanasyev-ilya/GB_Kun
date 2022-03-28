@@ -240,9 +240,11 @@ LA_Info eWiseAdd(Vector<W> *_w,
     auto u_vals = _u->getDense()->get_vals();
     auto v_vals = _v->getDense()->get_vals();
 
-    auto lambda_op = [w_vals, u_vals, v_vals, &_op](Index idx)
+    auto add_op = generic_extract_add(_op);
+
+    auto lambda_op = [w_vals, u_vals, v_vals, &add_op](Index idx)
     {
-        w_vals[idx] = _op(u_vals[idx], v_vals[idx]);
+        w_vals[idx] = add_op(u_vals[idx], v_vals[idx]);
     };
 
     return backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
@@ -266,9 +268,11 @@ LA_Info eWiseMult(Vector<W> *_w,
     auto u_vals = _u->getDense()->get_vals();
     auto v_vals = _v->getDense()->get_vals();
 
-    auto lambda_op = [w_vals, u_vals, v_vals, &_op](Index idx)
+    auto mull_op = generic_extract_mull(_op);
+
+    auto lambda_op = [w_vals, u_vals, v_vals, &mull_op](Index idx)
     {
-        w_vals[idx] = _op(u_vals[idx], v_vals[idx]);
+        w_vals[idx] = mull_op(u_vals[idx], v_vals[idx]);
     };
 
     return backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
@@ -449,8 +453,6 @@ LA_Info mxm(Matrix<c>* C,
             const Matrix<b> *B,
             Descriptor *desc)
 {
-    // auto add_op = extractAdd(op);
-    // auto mul_op = extractMul(op);
     if (mask) {
         backend::SpMSpM_unmasked_ikj(A,
                                      B,
