@@ -3,7 +3,6 @@
 #define GrB_Index Index
 
 #define GrB_ALL NULL
-#define NULL_TYPE long int
 
 template <typename T>
 struct LAGraph_Graph

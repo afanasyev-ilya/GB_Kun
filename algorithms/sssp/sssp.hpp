@@ -100,10 +100,10 @@ void sssp_bellman_ford_blast(Vector<float> *v,
     {
         vxm<float, float, float, float>(&f2, nullptr, second<float>(), MinimumPlusSemiring<float>(), &f1, A, desc);
 
-        eWiseAdd<float, float, float, float>(&m, nullptr, second<float>(),
+        eWiseAdd<float, float, float, float>(&m, nullptr, GrB_NULL,
                                              CustomLessPlusSemiring<float>(), &f2, v, desc);
 
-        eWiseAdd<float, float, float, float>(v, nullptr, second<float>(),
+        eWiseAdd<float, float, float, float>(v, nullptr, GrB_NULL,
                                              MinimumPlusSemiring<float>(), v, &f2, desc);
 
         // Similar to BFS, except we need to filter out the unproductive vertices
