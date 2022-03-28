@@ -50,8 +50,6 @@ int main(int argc, char **argv)
                 bfs_time_ms = tm.get_time_ms();
             }
             save_teps("BFS_chrono", bfs_time_ms, matrix.get_nnz(), 1);
-
-            SAVE_TEPS((lablas::algorithm::bfs_blast(&levels, &matrix, source_vertex, &desc)), "bfs_macro", 1, (&matrix));
         }
 
         if(parser.check())

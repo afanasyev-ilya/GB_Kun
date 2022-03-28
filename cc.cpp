@@ -84,6 +84,12 @@ int main(int argc, char** argv)
     matrix.set_preferred_matrix_format(parser.get_storage_format());
     init_matrix(matrix,parser);
 
+    if(!matrix.is_symmetric())
+    {
+        std::cout << "Input matrix for CC algorithm should be symmetric, but it is not..." << std::endl;
+        throw "Aborting";
+    }
+
     nrows = matrix.nrows();
     ncols = matrix.ncols();
     nvals = matrix.get_nvals(&nvals);
@@ -100,9 +106,6 @@ int main(int argc, char** argv)
             cc_time_ms = tm.get_time_ms();
         }
         save_teps("cc_chrono", cc_time_ms, matrix.get_nnz(), 1);
-
-        SAVE_TEPS((lablas::algorithm::cc(&components, &matrix, 0, &desc)),
-                  "cc_macro", 1, (&matrix));
     }
 
     if(parser.check())

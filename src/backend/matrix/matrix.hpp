@@ -393,7 +393,7 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     #ifdef __DEBUG_FILE_IO__
     save_time_in_sec("build_matrix_from_file", t2 - t1);
     #endif
-    
+
     #ifdef __DEBUG_INFO__
     cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;
     #endif
