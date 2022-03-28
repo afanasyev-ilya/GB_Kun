@@ -85,49 +85,51 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
 namespace lablas {
 namespace algorithm {
 
-void bfs_blast(Vector<float>*       v,
-               const Matrix<float> *A,
+template <typename T>
+void bfs_blast(Vector<T>*       v,
+               const Matrix<T> *A,
                Index s,
                Descriptor *desc)
 {
     Index A_nrows = A->nrows();
 
-    // Visited vector (use float for now)
+    // Visited vector (use T for now)
     v->fill(0.f);
 
-    // Frontier vectors (use float for now)
-    Vector<float> f1(A_nrows);
-    Vector<float> f2(A_nrows);
+    // Frontier vectors (use T for now)
+    Vector<T> f1(A_nrows);
+    Vector<T> f2(A_nrows);
 
     Desc_value desc_value;
     desc->get(GrB_MXVMODE, &desc_value);
     if (true/*desc_value == GrB_PULLONLY*/)
     {
-        f1.fill(0.f);
-        f1.set_element(1.f, s);
+        f1.fill((T)0);
+        f1.set_element((T)1, s);
     }
     else
     {
         /*std::vector<Index> indices(1, s);
-        std::vector<float>  values(1, 1.f);
+        std::vector<T>  values(1, 1.f);
         CHECK(f1.build(&indices, &values, 1, GrB_NULL));*/
     }
 
     Index iter = 0;
-    float succ = 0.f;
+    T succ = 0.f;
     Index unvisited = A_nrows;
-    float gpu_tight_time = 0.f;
+    T gpu_tight_time = 0.f;
     Index max_iters = A_nrows;
 
-    for (iter = 1; iter <= max_iters; ++iter) {
+    for (iter = 1; iter <= max_iters; ++iter)
+    {
         unvisited -= static_cast<int>(succ);
-        assign<float, float, float>(v, &f1, second<float>()/*GrB_NULL*/, iter, GrB_ALL, A_nrows, desc);
-        desc->toggle(GrB_MASK);
-        vxm<float, float, float, float>(&f2, v, second<float>()/*GrB_NULL*/,LogicalOrAndSemiring<float>(), &f1, A, desc);
+        assign<T, T, T>(v, &f1, second<T>()/*GrB_NULL*/, iter, GrB_ALL, A_nrows, desc);
+        desc->toggle(GrB_MASK); // TODO wtf why desc needed?
+        vxm<T, T, T, T>(&f2, v, second<T>()/*GrB_NULL*/,LogicalOrAndSemiring<T>(), &f1, A, GrB_DESC_SC);
         desc->toggle(GrB_MASK);
 
         f2.swap(&f1);
-        reduce<float, float>(&succ, second<float>()/*GrB_NULL*/, PlusMonoid<float>(), &f1, desc);
+        reduce<T, T>(&succ, second<T>()/*GrB_NULL*/, PlusMonoid<T>(), &f1, desc);
 
         if (succ == 0)
             break;
