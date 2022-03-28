@@ -60,19 +60,15 @@ void sssp_bf_gbkun(Vector<T> *_distances,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template<typename T>
-void type_printer(T val)
-{
-    std::cout << typeid(T).name() << std::endl;
-}
-
 void sssp_bf_blast(Vector<float> *v,
                    const Matrix <float> *A,
                    Index s,
                    Descriptor *desc)
 {
-    type_printer(CustomLessPlusSemiring<float>());
-    type_printer(less<float>());
+    auto sem_add_op = generic_extract_add(MinimumPlusSemiring<float>());
+    auto bin_add_op = generic_extract_add(less<float>());
+    std::cout << "sem result: " << sem_add_op(1.0, 2.0) << std::endl;
+    std::cout << "bin result: " << bin_add_op(1.0, 2.0) << std::endl;
 
     Index A_nrows = A->nrows();
 

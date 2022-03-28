@@ -240,8 +240,29 @@ inline  T_out add_op(T_out lhs, T_out rhs)           \
 \
 inline  T_out mul_op(T_in1 lhs, T_in2 rhs)           \
 { return MULT_BINARYOP<T_in1, T_in2, T_out>()(lhs, rhs); }                \
-};
+};\
+template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>\
+auto generic_extract_add(SR_NAME<T_in1, T_in2, T_out> op)\
+{\
+    return extractAdd(op);\
+}                                                                         \
+template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>\
+auto generic_extract_mull(SR_NAME<T_in1, T_in2, T_out> op)\
+{\
+    return extractMull(op);\
+}
 
+template <typename T>
+auto generic_extract_add(T op)
+{
+    return op;
+}
+
+template <typename T>
+auto generic_extract_mull(T op)
+{
+    return op;
+}
 
 REGISTER_SEMIRING(PlusMultipliesSemiring, PlusMonoid, multiplies)
 REGISTER_SEMIRING(LogicalOrAndSemiring, LogicalOrMonoid, logical_and)
