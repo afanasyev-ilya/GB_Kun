@@ -389,7 +389,11 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols);
     csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows);
     double t2 = omp_get_wtime();
+
+    #ifdef __DEBUG_FILE_IO__
     save_time_in_sec("build_matrix_from_file", t2 - t1);
+    #endif
+    
     #ifdef __DEBUG_INFO__
     cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;
     #endif

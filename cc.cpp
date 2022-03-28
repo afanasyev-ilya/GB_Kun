@@ -99,7 +99,10 @@ int main(int argc, char** argv)
             lablas::algorithm::cc(&components, &matrix, 0, &desc);
             cc_time_ms = tm.get_time_ms();
         }
-        save_teps("CC", cc_time_ms, matrix.get_nnz(), 1);
+        save_teps("cc_chrono", cc_time_ms, matrix.get_nnz(), 1);
+
+        SAVE_TEPS((lablas::algorithm::cc(&components, &matrix, 0, &desc)),
+                  "cc_macro", 1, (&matrix));
     }
 
     if(parser.check())
