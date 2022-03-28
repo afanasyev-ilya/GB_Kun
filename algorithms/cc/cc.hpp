@@ -69,29 +69,28 @@ float cc(Vector<int>*       v,
         //min_neighbor_parent_temp.print();
 
         eWiseAdd(&min_neighbor_parent, MASK_NULL, GrB_NULL,
-                                      minimum<int>(), &min_neighbor_parent,
-                                      &min_neighbor_parent_temp, desc);
+                 MinimumSelectSecondSemiring<int>(), &min_neighbor_parent, &min_neighbor_parent_temp, desc);
 
         //cout << "min_neighbor_paren: ";
         //min_neighbor_parent.print();
 
         // f[f[u]] = mngf[u]. Second does nothing (imitating comma operator)
         assignScatter(&parent, MASK_NULL, GrB_NULL,
-                                           &min_neighbor_parent, &parent_temp, parent_temp.nvals(), desc);
+                      &min_neighbor_parent, &parent_temp, parent_temp.nvals(), desc);
 
         //cout << "after assign: ";
         //parent.print();
 
         // 2) Aggressive hooking.
         // f = min(f, mngf)
-        eWiseAdd(&parent, MASK_NULL, GrB_NULL,minimum<int>(), &parent, &min_neighbor_parent, desc);
+        eWiseAdd(&parent, MASK_NULL, GrB_NULL,MinimumPlusSemiring<int>(), &parent, &min_neighbor_parent, desc);
 
         //cout << "after hooking: ";
         //parent.print();
 
         // 3) Shortcutting.
         // f = min(f, gf)
-        eWiseAdd(&parent, MASK_NULL, GrB_NULL, minimum<int>(), &parent, &parent_temp, desc);
+        eWiseAdd(&parent, MASK_NULL, GrB_NULL, MinimumPlusSemiring<int>(), &parent, &parent_temp, desc);
 
         // 4) Calculate grandparents.
         // gf[u] = f[f[u]]
@@ -99,7 +98,7 @@ float cc(Vector<int>*       v,
 
         // 5) Check termination.
         eWiseMult(&diff, MASK_NULL, GrB_NULL,
-                  lablas::not_equal_to<int>(), &grandparent_temp, &grandparent, desc);
+                  MinimumNotEqualToSemiring<int, int, bool>(), &grandparent_temp, &grandparent, desc);
         reduce<int, bool>(&succ, GrB_NULL, PlusMonoid<int>(), &diff, desc);
         #ifdef __DEBUG_INFO__
         cout << "succ: " << succ << endl;

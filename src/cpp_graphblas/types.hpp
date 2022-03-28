@@ -249,7 +249,7 @@ auto generic_extract_add(SR_NAME<T_in1, T_in2, T_out> op)\
 template <typename T_in1, typename T_in2 = T_in1, typename T_out = T_in1>\
 auto generic_extract_mull(SR_NAME<T_in1, T_in2, T_out> op)\
 {\
-    return extractMull(op);\
+    return extractMul(op);\
 }
 
 template <typename T>
