@@ -379,7 +379,7 @@ template <typename W, typename M, typename a, typename U,
         typename BinaryOpTAccum, typename SemiringT>
 LA_Info vxm (Vector<W>*       _w,
              const Vector<M>* _mask,
-             BinaryOpTAccum        _accum,
+             BinaryOpTAccum   _accum,
              SemiringT        _op,
              const Vector<U>* _u,
              const Matrix<a>* _matrix,

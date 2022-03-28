@@ -74,8 +74,11 @@ enum GrB_Type
 
 // descriptors
 
-#define GrB_NULL (&lablas::GrB_NULL)
+//#define GrB_NULL (&lablas::GrB_NULL)
 #define GrB_DESC_RSC (&lablas::GrB_DESC_RSC)
 #define GrB_DESC_C (&lablas::GrB_DESC_C)
 #define GrB_DESC_S (&lablas::GrB_DESC_S)
 #define GrB_DESC_SC (&lablas::GrB_DESC_SC)
+
+// null
+#define GrB_NULL ((long int)NULL)

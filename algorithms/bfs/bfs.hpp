@@ -123,13 +123,13 @@ void bfs_blast(Vector<T>*       v,
     for (iter = 1; iter <= max_iters; ++iter)
     {
         unvisited -= static_cast<int>(succ);
-        assign<T, T, T>(v, &f1, second<T>()/*GrB_NULL*/, iter, GrB_ALL, A_nrows, desc);
+        assign<T, T, T>(v, &f1, GrB_NULL, iter, GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK); // TODO wtf why desc needed?
-        vxm<T, T, T, T>(&f2, v, second<T>()/*GrB_NULL*/,LogicalOrAndSemiring<T>(), &f1, A, GrB_DESC_SC);
+        vxm<T, T, T, T>(&f2, v, GrB_NULL, LogicalOrAndSemiring<T>(), &f1, A, GrB_DESC_SC);
         desc->toggle(GrB_MASK);
 
         f2.swap(&f1);
-        reduce<T, T>(&succ, second<T>()/*GrB_NULL*/, PlusMonoid<T>(), &f1, desc);
+        reduce<T, T>(&succ, GrB_NULL, PlusMonoid<T>(), &f1, desc);
 
         if (succ == 0)
             break;

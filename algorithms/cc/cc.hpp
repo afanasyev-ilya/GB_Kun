@@ -62,7 +62,7 @@ float cc(Vector<int>*       v,
 
         // 1) Stochastic hooking.
         // mngf[u] = A x gf
-        mxv(&min_neighbor_parent_temp, MASK_NULL, second<int>(),
+        mxv(&min_neighbor_parent_temp, MASK_NULL, GrB_NULL,
                                 MinimumSelectSecondSemiring<int>(), A, &grandparent, desc);
 
         //cout << "min_neighbor_parent_temp: ";
@@ -76,7 +76,7 @@ float cc(Vector<int>*       v,
         //min_neighbor_parent.print();
 
         // f[f[u]] = mngf[u]. Second does nothing (imitating comma operator)
-        assignScatter(&parent, MASK_NULL, second<int>(),
+        assignScatter(&parent, MASK_NULL, GrB_NULL,
                                            &min_neighbor_parent, &parent_temp, parent_temp.nvals(), desc);
 
         //cout << "after assign: ";
@@ -95,12 +95,12 @@ float cc(Vector<int>*       v,
 
         // 4) Calculate grandparents.
         // gf[u] = f[f[u]]
-        extract(&grandparent, MASK_NULL, second<int>(), &parent, &parent, desc);
+        extract(&grandparent, MASK_NULL, GrB_NULL, &parent, &parent, desc);
 
         // 5) Check termination.
         eWiseMult(&diff, MASK_NULL, GrB_NULL,
                   lablas::not_equal_to<int>(), &grandparent_temp, &grandparent, desc);
-        reduce<int, bool>(&succ, second<int>(), PlusMonoid<int>(), &diff, desc);
+        reduce<int, bool>(&succ, GrB_NULL, PlusMonoid<int>(), &diff, desc);
         #ifdef __DEBUG_INFO__
         cout << "succ: " << succ << endl;
         #endif
