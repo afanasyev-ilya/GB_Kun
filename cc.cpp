@@ -92,8 +92,14 @@ int main(int argc, char** argv)
 
     lablas::Descriptor desc;
 
-    for (int i = 0; i < 1; i++) {
-        SAVE_TEPS((lablas::algorithm::cc(&components, &matrix, 0, &desc)), "cc", 1, &matrix);
+    for (int i = 0; i < 3; i++) {
+        double cc_time_ms = 0;
+        {
+            Timer tm("сс");
+            lablas::algorithm::cc(&components, &matrix, 0, &desc);
+            cc_time_ms = tm.get_time_ms();
+        }
+        save_teps("CC", cc_time_ms, matrix.get_nnz(), 1);
     }
 
     if(parser.check())

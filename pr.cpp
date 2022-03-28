@@ -29,8 +29,13 @@ int main(int argc, char **argv)
         lablas::Vector<float> ranks(size);
         if(parser.get_algo_name() == "lagraph")
         {
-            SAVE_TEPS(LAGraph_page_rank_sinks(&ranks, &graph, &iters_taken, max_iter),
-                      "Page_Rank", iters_taken, (graph.AT));
+            double pr_time_ms = 0;
+            {
+                Timer tm("pr");
+                LAGraph_page_rank_sinks(&ranks, &graph, &iters_taken, max_iter);
+                pr_time_ms = tm.get_time_ms();
+            }
+            save_teps("PR", pr_time_ms, matrix.get_nnz(), max_iter);
         }
         else
         {

@@ -44,13 +44,11 @@ int main(int argc, char **argv)
         {
             source_vertex = select_non_trivial_vertex(matrix);
             double bfs_time_ms = 0;
-
             {
-                Timer tm;
+                Timer tm("bfs");
                 lablas::algorithm::bfs_blast(&levels, &matrix, source_vertex, &desc);
                 bfs_time_ms = tm.get_time_ms();
             }
-            
             save_teps("BFS", bfs_time_ms, matrix.get_nnz(), 1);
         }
 

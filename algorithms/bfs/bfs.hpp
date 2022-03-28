@@ -94,7 +94,7 @@ void bfs_blast(Vector<T>*       v,
     Index A_nrows = A->nrows();
 
     // Visited vector (use T for now)
-    v->fill(0.f);
+    v->fill((T)0);
 
     // Frontier vectors (use T for now)
     Vector<T> f1(A_nrows);
