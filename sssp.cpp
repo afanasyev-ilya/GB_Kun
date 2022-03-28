@@ -51,12 +51,15 @@ int main(int argc, char **argv)
 
         Index source_vertex = 0;
 
+        lablas::Descriptor desc;
         int num_tests = 3;
         for(int i = 0; i < num_tests; i++)
         {
             source_vertex = rand() % size;
             cout << "starting from source: " << source_vertex << endl;
-            SAVE_TEPS((lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex)), "sssp", 1, &matrix);
+            using namespace lablas::algorithm;
+            //SAVE_TEPS((lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex)), "sssp", 1, &matrix);
+            sssp_bf_blast(&distances, graph.A, source_vertex, &desc);
             print_visited_stats(distances);
         }
 

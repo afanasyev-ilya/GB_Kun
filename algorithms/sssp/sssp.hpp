@@ -61,10 +61,74 @@ void sssp_bf_gbkun(Vector<T> *_distances,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void sssp_bf_blast(Vector<T> *_distances,
-                   const Matrix <T> *_matrix,
-                   Index _source)
+void type_printer(T val)
 {
+    std::cout << typeid(T).name() << std::endl;
+}
+
+void sssp_bf_blast(Vector<float> *v,
+                   const Matrix <float> *A,
+                   Index s,
+                   Descriptor *desc)
+{
+    type_printer(CustomLessPlusSemiring<float>());
+    type_printer(less<float>());
+
+    Index A_nrows = A->nrows();
+
+    // Visited vector (use float for now)
+    v->fill(std::numeric_limits<float>::max());
+    v->set_element(0.f, s);
+
+    // Frontier vectors (use float for now)
+    Vector<float> f1(A_nrows);
+    Vector<float> f2(A_nrows);
+
+    Desc_value desc_value;
+
+    // Visited vector (use float for now)
+    if (true)
+    {
+        f1.fill(std::numeric_limits<float>::max());
+        f1.set_element(0.f, s);
+    } else {
+        /*std::vector<Index> indices(1, s);
+        std::vector<float>  values(1, 0.f);
+        f1.build(&indices, &values, 1, GrB_NULL);*/
+    }
+
+    // Mask vector
+    Vector<float> m(A_nrows);
+
+    Index iter;
+    Index f1_nvals = 1;
+    float succ = 1.f;
+
+    for (iter = 1; iter <= 1000; ++iter)
+    {
+        vxm<float, float, float, float>(&f2, nullptr, second<float>(), MinimumPlusSemiring<float>(), &f1, A, desc);
+
+        // CustomLessPlusSemiring<float>()
+        eWiseAdd<float, float, float, float>(&m, nullptr, second<float>(), less<float>(), &f2, v, desc);
+
+        //MinimumPlusSemiring<float>()
+        eWiseAdd<float, float, float, float>(v, nullptr, second<float>(), minimum<float>(), v, &f2, desc);
+
+        // Similar to BFS, except we need to filter out the unproductive vertices
+        // here rather than as part of masked vxm
+        desc->toggle(GrB_MASK);
+        assign<float, float, float>(&f2, &m, second<float>(),
+                                           std::numeric_limits<float>::max(), GrB_ALL, A_nrows, desc);
+        desc->toggle(GrB_MASK);
+
+        f2.swap(&f1);
+
+        f1_nvals = f1.nvals();
+        reduce<float, float>(&succ, second<float>(), PlusMonoid<float>(), &m, desc);
+
+        if (f1_nvals == 0 || succ == 0)
+            break;
+    }
 
 }
 
