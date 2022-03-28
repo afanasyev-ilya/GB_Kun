@@ -43,11 +43,15 @@ int main(int argc, char **argv)
         for(int run = 0; run < parser.get_iterations(); run++)
         {
             source_vertex = select_non_trivial_vertex(matrix);
-            auto t1 = std::chrono::high_resolution_clock::now();
-            lablas::algorithm::bfs_blast(&levels, &matrix, source_vertex, &desc);
-            auto t2 = std::chrono::high_resolution_clock::now();
-            save_teps("BFS", std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count(),
-                      matrix.get_nnz(), 1);
+            double bfs_time_ms = 0;
+
+            {
+                Timer tm;
+                lablas::algorithm::bfs_blast(&levels, &matrix, source_vertex, &desc);
+                bfs_time_ms = tm.get_time_ms();
+            }
+            
+            save_teps("BFS", bfs_time_ms, matrix.get_nnz(), 1);
         }
 
         if(parser.check())

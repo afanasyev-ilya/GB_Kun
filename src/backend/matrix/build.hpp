@@ -203,7 +203,7 @@ void Matrix<T>::build_from_csr_arrays(const ENT* _row_ptrs,
     double t1 = omp_get_wtime();
     csr_to_csc();
     double t2 = omp_get_wtime();
-    save_teps("transpose", t2 - t1, _nnz);
+    save_teps("transpose", (t2 - t1)*1000, _nnz);
 
     // initializing additional data structures time
     init_optimized_structures();

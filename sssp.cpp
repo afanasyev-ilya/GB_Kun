@@ -56,9 +56,14 @@ int main(int argc, char **argv)
         {
             source_vertex = rand() % size;
             cout << "starting from source: " << source_vertex << endl;
-            using namespace lablas::algorithm;
-            //SAVE_TEPS((lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex)), "sssp", 1, &matrix);
-            sssp_bf_blast(&distances, graph.A, source_vertex, &desc);
+
+            double sssp_time_ms = 0;
+            {
+                Timer tm("sssp");
+                lablas::algorithm::sssp_bellman_ford_blast(&distances, graph.A, source_vertex, &desc);
+                sssp_time_ms = tm.get_time_ms();
+            }
+            save_teps("BFS", sssp_time_ms, matrix.get_nnz(), 1);
             print_visited_stats(distances);
         }
 

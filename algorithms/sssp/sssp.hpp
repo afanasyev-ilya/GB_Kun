@@ -6,9 +6,9 @@ namespace algorithm {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void sssp_bf_GBTL(Vector<T> *_distances,
-                  const Matrix <T> *_matrix,
-                  Index _source)
+void sssp_bellman_ford_GBTL(Vector<T> *_distances,
+                            const Matrix <T> *_matrix,
+                            Index _source)
 {
     lablas::Descriptor desc;
 
@@ -24,9 +24,9 @@ void sssp_bf_GBTL(Vector<T> *_distances,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void sssp_bf_gbkun(Vector<T> *_distances,
-                   Matrix <T> *_matrix,
-                   Index _source)
+void sssp_bellman_ford_gbkun(Vector<T> *_distances,
+                             Matrix <T> *_matrix,
+                             Index _source)
 {
     lablas::Descriptor desc;
 
@@ -60,10 +60,10 @@ void sssp_bf_gbkun(Vector<T> *_distances,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void sssp_bf_blast(Vector<float> *v,
-                   const Matrix <float> *A,
-                   Index s,
-                   Descriptor *desc)
+void sssp_bellman_ford_blast(Vector<float> *v,
+                             const Matrix<float> *A,
+                             Index s,
+                             Descriptor *desc)
 {
     Index A_nrows = A->nrows();
 

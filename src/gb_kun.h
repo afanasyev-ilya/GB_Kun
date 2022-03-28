@@ -37,6 +37,7 @@ using namespace std;
 #include "helpers/graph_generation/graph_generation.h"
 #include "helpers/parallel_primitives/primitives.h"
 #include "helpers/lib_kernels/format_conversions.h"
+#include "helpers/timer/timer.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
