@@ -451,7 +451,9 @@ LA_Info mxm(Matrix<c>* C,
         if (multiplication_mode == GrB_IJK) {
             backend::SpMSpM_unmasked_ijk(A,
                                          B,
-                                         C);
+                                         C,
+                                         mask,
+                                         op);
         } else if (multiplication_mode == GrB_IKJ) {
             backend::SpMSpM_unmasked_ikj(A,
                                          B,
