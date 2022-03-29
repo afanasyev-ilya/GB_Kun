@@ -292,7 +292,7 @@ bool MatrixCSR<T>::is_symmetric()
             cur_row_set.insert(col_ids[i]);
         }
 
-        if(cur_row_set != col_data[row])
+        if((cur_row_set.size() != col_data[row].size()) && (cur_row_set != col_data[row]))
         {
             incorrect_rows_num++;
             #ifdef __DEBUG_INFO__
