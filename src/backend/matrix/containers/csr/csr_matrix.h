@@ -169,6 +169,15 @@ private:
                                          Descriptor *_desc,
                                          Workspace *_workspace);
 
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void spmspv_unmasked_map(const MatrixCSR<A> *_matrix,
+                                    const SparseVector<X> *_x,
+                                    DenseVector<Y> *_y,
+                                    BinaryOpTAccum _accum,
+                                    SemiringT _op,
+                                    Descriptor *_desc,
+                                    Workspace *_workspace);
+
 
     void calculate_degrees();
 };

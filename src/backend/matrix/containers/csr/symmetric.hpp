@@ -127,7 +127,7 @@ void MatrixCSR<T>::to_symmetric()
 
     #ifdef __DEBUG_INFO__
     std::cout << "number of non zero elements increased from " << this->nnz << " to " << new_nnz <<
-        "(" << (double)new_nnz/this->nnz << " times)" << std::endl;
+        " (" << (double)new_nnz/this->nnz << " times)" << std::endl;
     #endif
 
     this->resize(nrows, ncols, new_nnz);

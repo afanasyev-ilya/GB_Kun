@@ -109,6 +109,8 @@ void SpMSpV(const Matrix<A> *_matrix,
             SemiringT _op,
             const Vector <M> *_mask)
 {
+    spmspv_unmasked_map(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+
     auto add_op = extractAdd(_op);
     Y *y_vals = _y->get_vals();
     Y *old_y_vals = (Y*)_matrix->get_workspace()->get_shared_one();
