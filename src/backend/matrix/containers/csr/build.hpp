@@ -75,7 +75,7 @@ void MatrixCSR<T>::numa_aware_realloc_row_imported(VNT* old_row_ptr)
 
     auto offsets = get_load_balancing_offsets();
 
-#pragma omp parallel
+    #pragma omp parallel
     {
         int tid = omp_get_thread_num();
         VNT first_row = offsets[tid].first;

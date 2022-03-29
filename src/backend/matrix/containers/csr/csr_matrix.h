@@ -53,7 +53,7 @@ public:
     void numa_aware_realloc_row_imported(VNT* row_ptr);
 
     bool is_symmetric();
-    bool to_symmetric();
+    void to_symmetric();
 private:
     VNT nrows, ncols;
     ENT nnz;

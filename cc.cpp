@@ -86,8 +86,8 @@ int main(int argc, char** argv)
 
     if(!matrix.is_symmetric())
     {
-        std::cout << "Input matrix for CC algorithm should be symmetric, but it is not..." << std::endl;
-        throw "Aborting";
+        matrix.to_symmetric();
+        std::cout << "new symmetric: " << matrix.is_symmetric() << std::endl;
     }
 
     nrows = matrix.nrows();

@@ -71,12 +71,11 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     vector<vector<pair<VNT, T>>> csc_tmp_matrix;
     if(ends_with(_mtx_file_name, "mtx"))
     {
-        /*#ifdef __DEBUG_FILE_IO__
+        #ifdef __DEBUG_FILE_IO__
         SAVE_TIME_SEC((read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "mtx_read");
         #else
         read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
-        #endif*/
-        read_mtx_file_sequential(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+        #endif
     }
     else if(ends_with(_mtx_file_name, "mtxbin"))
     {

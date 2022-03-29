@@ -8,6 +8,9 @@ bool MatrixCSR<T>::is_symmetric()
     std::vector<std::set<VNT>> col_data(ncols);
     std::vector<omp_lock_t> locks(ncols);
 
+    if(nrows != ncols)
+        return false;
+
     #pragma omp parallel
     {
         #pragma omp for
@@ -62,6 +65,61 @@ bool MatrixCSR<T>::is_symmetric()
     #endif
 
     return incorrect_rows_num == 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MatrixCSR<T>::to_symmetric()
+{
+    std::vector<std::map<VNT, T>> col_data(ncols);
+    std::vector<omp_lock_t> locks(ncols);
+
+    if(nrows != ncols)
+    {
+        std::cout << "can't made symmetric matrix with unequal number of cols and rows" << std::endl;
+        throw "Aborting...";
+    }
+
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for(VNT col = 0; col < ncols; col++)
+            omp_init_lock(&locks[col]);
+
+        #pragma omp for
+        for(VNT row = 0; row < nrows; row++)
+        {
+            for(ENT i = row_ptr[row]; i < row_ptr[row + 1]; i++)
+            {
+                VNT col_id = col_ids[i];
+                T val = vals[i];
+
+                omp_set_lock(&locks[col_id]);
+                col_data[col_id][row] = val;
+                omp_unset_lock(&locks[col_id]);
+            }
+        }
+
+        #pragma omp for
+        for(VNT col = 0; col < ncols; col++)
+            omp_destroy_lock(&locks[col]);
+    }
+
+    ENT new_nnz = 0;
+    #pragma omp parallel for reduction(+: new_nnz)
+    for(VNT row = 0; row < nrows; row++)
+    {
+        new_nnz += col_data[row].size();
+    }
+
+    std::cout << "number of edges increases from " << this->nnz << " to " << new_nnz << std::endl;
+
+    this->resize(nrows, ncols, new_nnz);
+    vector_of_maps_to_csr(col_data, row_ptr, col_ids, vals);
+    calculate_degrees();
+    get_load_balancing_offsets();
+    numa_aware_realloc();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -220,14 +220,14 @@ bool operator == (const MatrixCSR<T> &c1, const MatrixCSR<T> &c2) {
             incorrect_by_size++;
             //return false;
         }
-#ifdef USE_UNORDERED
+        #ifdef USE_UNORDERED
         unordered_set<VNT> set_1;
         unordered_set<VNT> set_2;
-#endif
-#ifdef USE_ORDERED
+        #endif
+        #ifdef USE_ORDERED
         set<VNT> set_1;
         set<VNT> set_2;
-#endif
+        #endif
         if (i != nrows1) {
             for (VNT j = row1[i]; j < row1[i + 1]; j++) {
                 set_1.insert(col1[j]);

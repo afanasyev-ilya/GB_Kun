@@ -166,10 +166,12 @@ public:
     void transpose_sequential(void);
     void transpose_parallel(void);
     void scantrans(void);
-    bool is_symmetric() const {
+    [[nodiscard]] bool is_symmetric() const {
         //return (*csr_data == *csc_data);
         return csr_data->is_symmetric();
     }
+
+    void to_symmetric() { csr_data->to_symmetric(); csc_data->deep_copy(csr_data); };
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
