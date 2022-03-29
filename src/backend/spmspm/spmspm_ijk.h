@@ -3,13 +3,21 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename SemiringT>
-void SpMSpM_unmasked_ijk(const Matrix<T> *_matrix1,
-                         const Matrix<T> *_matrix2,
-                         Matrix<T> *_matrix_result,
-                         const Matrix<T> *_result_mask,
-                         SemiringT _op)
+void SpMSpM_ijk(const Matrix<T> *_matrix1,
+                const Matrix<T> *_matrix2,
+                Matrix<T> *_matrix_result,
+                const Matrix<T> *_result_mask,
+                SemiringT _op)
 {
     double t1 = omp_get_wtime();
+
+    _matrix2->sort_csc_rows("STL_SORT");
+    _result_mask->sort_csr_columns("STL_SORT");
+
+    auto add_op = extractAdd(_op);
+    auto mul_op = extractMul(_op);
+    auto identity_val = _op.identity();
+
     VNT matrix1_num_rows = _matrix1->get_csr()->get_num_rows();
     VNT matrix2_num_cols = _matrix2->get_csc()->get_num_rows();
 
@@ -22,23 +30,32 @@ void SpMSpM_unmasked_ijk(const Matrix<T> *_matrix1,
     for (VNT matrix1_row_id = 0; matrix1_row_id < matrix1_num_rows; ++matrix1_row_id) {
         ENT matrix1_col_start_id = _matrix1->get_csr()->get_row_ptr()[matrix1_row_id];
         ENT matrix1_col_end_id = _matrix1->get_csr()->get_row_ptr()[matrix1_row_id + 1];
+        ENT mask_col_start_id = _result_mask->get_csr()->get_row_ptr()[matrix1_row_id];
+        ENT mask_col_end_id = _result_mask->get_csr()->get_row_ptr()[matrix1_row_id + 1];
         for (VNT matrix2_col_id = 0; matrix2_col_id < matrix2_num_cols; ++matrix2_col_id) {
+            VNT found_mask_col_id = spgemm_binary_search(_result_mask->get_csr()->get_col_ids(),
+                                                         mask_col_start_id,
+                                                         mask_col_end_id - 1,
+                                                         matrix2_col_id);
+            if (found_mask_col_id == -1 || !_result_mask->get_csr()->get_vals()[found_mask_col_id]) {
+                continue;
+            }
             VNT matrix2_col_start_id = _matrix2->get_csc()->get_row_ptr()[matrix2_col_id];
             VNT matrix2_col_end_id = _matrix2->get_csc()->get_row_ptr()[matrix2_col_id + 1];
 
-            T accumulator = 0;
+            T accumulator = identity_val;
             for (ENT matrix1_col_id = matrix1_col_start_id; matrix1_col_id < matrix1_col_end_id; ++matrix1_col_id) {
                 ENT matrix1_col_num = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
                 // i == matrix1_row_id, j == matrix2_col_id, k == matrix1_col_num
-                VNT found_matrix2_row_id = binary_search(_matrix2->get_csc()->get_col_ids(),
-                                                         matrix2_col_start_id,
-                                                         matrix2_col_end_id - 1,
-                                                         matrix1_col_num);
+                VNT found_matrix2_row_id = spgemm_binary_search(_matrix2->get_csc()->get_col_ids(),
+                                                                matrix2_col_start_id,
+                                                                matrix2_col_end_id - 1,
+                                                                matrix1_col_num);
 
                 if (found_matrix2_row_id != -1) {
                     T matrix1_val = _matrix1->get_csr()->get_vals()[matrix1_col_id];
                     T matrix2_val = _matrix2->get_csc()->get_vals()[found_matrix2_row_id];
-                    accumulator += matrix1_val * matrix2_val;
+                    accumulator = add_op(accumulator, mul_op(matrix1_val, matrix2_val));
                 }
             }
             #pragma omp critical(updateresults)

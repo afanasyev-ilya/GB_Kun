@@ -12,7 +12,7 @@ namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-VNT binary_search(const Index* data, VNT left, VNT right, ENT value)
+VNT spgemm_binary_search(const Index* data, VNT left, VNT right, ENT value)
 {
     while (true) {
         if (left > right) {
@@ -57,6 +57,7 @@ void balance_matrix_rows(const ENT *_row_ptrs, VNT num_rows, pair<VNT, VNT> *_of
 
 void SpMSpM()
 {
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

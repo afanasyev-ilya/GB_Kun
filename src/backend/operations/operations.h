@@ -439,21 +439,38 @@ LA_Info mxm(Matrix<c>* C,
 {
     // auto add_op = extractAdd(op);
     // auto mul_op = extractMul(op);
+    Desc_value multiplication_mode;
+    desc->get(GrB_MXMMODE, &multiplication_mode);
     if (mask) {
-        backend::SpMSpM_masked_ikj(mask,
-                                   A,
-                                   B,
-                                   C,
-                                   op);
-    } else {
-        Desc_value multiplication_mode;
-        desc->get(GrB_MXMMODE, &multiplication_mode);
+        backend::SpMSpM_ijk(A,
+                            B,
+                            C,
+                            mask,
+                            op);
+        /*
         if (multiplication_mode == GrB_IJK) {
-            backend::SpMSpM_unmasked_ijk(A,
-                                         B,
-                                         C,
-                                         mask,
-                                         op);
+            backend::SpMSpM_ijk(A,
+                                B,
+                                C,
+                                mask,
+                                op);
+        } else if (multiplication_mode == GrB_IKJ) {
+            backend::SpMSpM_masked_ikj(mask,
+                                       A,
+                                       B,
+                                       C,
+                                       op);
+        } else {
+            return GrB_INVALID_VALUE;
+        }
+         */
+    } else {
+        if (multiplication_mode == GrB_IJK) {
+            backend::SpMSpM_ijk(A,
+                                B,
+                                C,
+                                mask,
+                                op);
         } else if (multiplication_mode == GrB_IKJ) {
             backend::SpMSpM_unmasked_ikj(A,
                                          B,
