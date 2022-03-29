@@ -58,7 +58,6 @@ void cc(Vector<int>*       v,
 
         // 1) Stochastic hooking.
         // mngf[u] = A x gf
-        Timer tm("mxv");
         mxv(&min_neighbor_parent_temp, MASK_NULL, GrB_NULL,
             MinimumSelectSecondSemiring<int>(), A, &grandparent, desc);
 

@@ -51,7 +51,7 @@ void vector_of_vectors_to_csr(vector<vector<pair<VNT, T>>> &_tmp_mat,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void vector_of_maps_to_csr(std::vector<std::map<VNT, T>> &_tmp_mat,
+void vector_of_maps_to_csr(std::vector<std::unordered_map<VNT, T>> &_tmp_mat,
                            ENT *_row_ptr,
                            VNT *_col_ids,
                            T *_vals)
