@@ -225,7 +225,6 @@ void spmspv_unmasked_map(const MatrixCSR<A> *_matrix,
         }
     }
 
-    std::cout << "going to print generated map of size " << map_output.size() << endl;
     _y->clear();
     for(auto [id, val]: map_output)
     {

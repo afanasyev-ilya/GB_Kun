@@ -256,6 +256,9 @@ private:
 
     template<typename Y>
     friend bool operator==(Vector<Y>& lhs, Vector<Y>& rhs);
+
+    template<typename Y>
+    friend void print_diff(Vector<Y>& lhs, Vector<Y>& rhs);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -277,6 +280,19 @@ template <typename T>
 bool operator!=(Vector<T>& lhs, Vector<T>& rhs)
 {
     return !(lhs == rhs);
+}
+
+template <typename T>
+void print_diff(Vector<T>& lhs, Vector<T>& rhs)
+{
+    if(lhs.is_sparse())
+        lhs.force_to_dense();
+    if(rhs.is_sparse())
+        rhs.force_to_dense();
+
+    auto den_lhs = (DenseVector<T> *)lhs.main_container;
+    auto den_rhs = (DenseVector<T> *)rhs.main_container;
+    print_diff(*den_lhs, *den_rhs);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

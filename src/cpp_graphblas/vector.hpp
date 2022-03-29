@@ -114,6 +114,9 @@ private:
 
     template<typename Y>
     friend bool operator==(Vector<Y>& lhs, Vector<Y>& rhs);
+
+    template<typename Y>
+    friend bool operator!=(Vector<Y>& lhs, Vector<Y>& rhs);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,6 +196,18 @@ template <typename T>
 bool operator==(Vector<T>& lhs, Vector<T>& rhs)
 {
     return lhs._vector == rhs._vector;
+}
+
+template <typename T>
+bool operator!=(Vector<T>& lhs, Vector<T>& rhs)
+{
+    return !(lhs._vector == rhs._vector);
+}
+
+template <typename T>
+void print_diff(Vector<T>& lhs, Vector<T>& rhs)
+{
+    print_diff(lhs, rhs);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

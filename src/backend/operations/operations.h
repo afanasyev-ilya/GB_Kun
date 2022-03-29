@@ -176,14 +176,15 @@ LA_Info mxv (Vector<W>*       _w,
         cout << "USING SpMSpV!!!!!" << endl;
         #endif
 
-        backend::spmspv_unmasked_map(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _accum, _op, _desc, _matrix->get_workspace());
+        Vector<W> test_vector(_w->get_size());
+
+        backend::spmspv_unmasked_map(_matrix->get_csr(), _u->getSparse(), test_vector.getSparse(), _accum, _op, _desc, _matrix->get_workspace());
 
         //backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
-        /*
-        _w->print();
+
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
-        _w->print();
-        cout << "compare it" << endl;*/
+        if(*_w != test_vector)
+            print_diff(*_w, test_vector);
     }
     _w->convert_if_required();
 

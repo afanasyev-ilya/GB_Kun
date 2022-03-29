@@ -90,6 +90,10 @@ private:
 
     template<typename Y>
     friend bool operator==(DenseVector<Y>& lhs, DenseVector<Y>& rhs);
+    template<typename Y>
+    friend bool operator!=(DenseVector<Y>& lhs, DenseVector<Y>& rhs);
+    template<typename Y>
+    friend void print_diff(DenseVector<Y>& lhs, DenseVector<Y>& rhs);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,6 +104,30 @@ bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
     if(lhs.size != rhs.size)
         return false;
 
+    for(VNT i = 0; i < lhs.size; i++)
+    {
+        if(fabs(lhs.vals[i] - rhs.vals[i]) > 0.001)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+bool operator!=(DenseVector<T>& lhs, DenseVector<T>& rhs)
+{
+    return !(lhs == rhs);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void print_diff(DenseVector<T>& lhs, DenseVector<T>& rhs)
+{
     VNT error_count = 0;
     for(VNT i = 0; i < lhs.size; i++)
     {
@@ -117,17 +145,8 @@ bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
     }
 
     cout << "error_count: " << error_count << "/" << max(lhs.size, rhs.size)  << endl;
-    if(error_count == 0)
-        return true;
-    else
-        return false;
 }
 
-template <typename T>
-bool operator!=(DenseVector<T>& lhs, DenseVector<T>& rhs)
-{
-    return !(lhs == rhs);
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
