@@ -213,23 +213,24 @@ void spmspv_unmasked_map(const MatrixCSR<A> *_matrix,
 
                 #pragma omp critical
                 {
-                    Y old_val = identity_val;
-                    auto find_res = map_output.find(dest_ind);
-                    if(find_res != map_output.end())
+                    if(map_output.find(dest_ind) != map_output.end())
                     {
-                        old_val = (*find_res).second;
+                        map_output[dest_ind] = add_op(identity_val, mul_op(x_val, dest_val));
                     }
-                    map_output[dest_ind] = add_op(old_val, mul_op(x_val, dest_val));
+                    else
+                    {
+                        map_output[dest_ind] = add_op(map_output[dest_ind], mul_op(x_val, dest_val));
+                    }
                 }
             }
         }
     }
 
     _y->clear();
-    for(auto [id, val]: map_output)
+    for(auto it: map_output)
     {
-        //std::cout << id << " - " << val << std::endl;
-        _y->push_back(id, val);
+        std::cout << it.first << " - " << it.second << std::endl;
+        _y->push_back(it.first, it.second);
     }
 
     #ifdef __DEBUG_BANDWIDTHS__

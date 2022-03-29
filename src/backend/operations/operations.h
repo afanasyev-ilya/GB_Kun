@@ -177,6 +177,7 @@ LA_Info mxv (Vector<W>*       _w,
         #endif
 
         Vector<W> test_vector(_w->get_size());
+        test_vector.set_constant(0);
 
         backend::spmspv_unmasked_map(_matrix->get_csr(), _u->getSparse(), test_vector.getSparse(), _accum, _op, _desc, _matrix->get_workspace());
 
@@ -184,7 +185,8 @@ LA_Info mxv (Vector<W>*       _w,
 
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
         if(*_w != test_vector)
-            print_diff(*_w, test_vector);
+            cout << "spmspv vectors are different!" << endl;
+        std::cout << " ----------------------------------------- " << std::endl;
     }
     _w->convert_if_required();
 
