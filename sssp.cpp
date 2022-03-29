@@ -74,10 +74,12 @@ int main(int argc, char **argv)
 
             if(distances == check_distances)
             {
+                print_diff(distances, check_distances);
                 cout << "SSSP distances are equal" << endl;
             }
             else
             {
+                print_diff(distances, check_distances);
                 cout << "SSSP distances are NOT equal" << endl;
             }
         }

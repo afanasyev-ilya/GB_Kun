@@ -111,10 +111,12 @@ void test_spmv(int argc, char **argv)
 
         if(w == w_check)
         {
+            print_diff(w, w_check);
             cout << "Vectors are equal" << endl;
         }
         else
         {
+            print_diff(w, w_check);
             cout << "Vectors are NOT equal" << endl;
         }
     }

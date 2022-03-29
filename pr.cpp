@@ -49,10 +49,12 @@ int main(int argc, char **argv)
 
             if(ranks == check_ranks)
             {
+                print_diff(ranks, check_ranks);
                 cout << "page ranks are equal" << endl;
             }
             else
             {
+                print_diff(ranks, check_ranks);
                 cout << "page ranks are NOT equal" << endl;
             }
         }

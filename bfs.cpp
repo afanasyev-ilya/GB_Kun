@@ -60,10 +60,12 @@ int main(int argc, char **argv)
 
             if(levels == check_levels)
             {
+                print_diff(levels, check_levels);
                 cout << "BFS levels are equal" << endl;
             }
             else
             {
+                print_diff(levels, check_levels);
                 cout << "BFS levels are NOT equal" << endl;
             }
         }
