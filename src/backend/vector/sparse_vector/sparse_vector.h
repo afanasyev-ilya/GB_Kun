@@ -111,6 +111,9 @@ public:
     VNT get_size() const {return size;};
 
     void set_size(VNT _nvals) { nvals = _nvals; };
+
+    void clear() { nvals = 0;};
+    void push_back(VNT _id, T _val) { ids[nvals] = _id; vals[nvals] = _val; nvals++; };
 private:
     VNT size;
     ENT nvals;

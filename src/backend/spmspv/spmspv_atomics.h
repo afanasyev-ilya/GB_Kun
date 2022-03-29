@@ -175,7 +175,7 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
 template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
 void spmspv_unmasked_map(const MatrixCSR<A> *_matrix,
                          const SparseVector <X> *_x,
-                         DenseVector<Y> *_y,
+                         SparseVector<Y> *_y,
                          BinaryOpTAccum _accum,
                          SemiringT _op,
                          Descriptor *_desc,
@@ -213,17 +213,25 @@ void spmspv_unmasked_map(const MatrixCSR<A> *_matrix,
 
                 #pragma omp critical
                 {
-                    map_output[dest_ind] = add_op(map_output[dest_ind], mul_op(x_val, dest_val));
+                    Y old_val = identity_val;
+                    auto find_res = map_output.find(dest_ind);
+                    if(find_res != map_output.end())
+                    {
+                        old_val = (*find_res).second;
+                    }
+                    map_output[dest_ind] = add_op(old_val, mul_op(x_val, dest_val));
                 }
             }
         }
     }
 
-    if(map_output.size() < 100)
-        for(auto [key, val]: map_output)
-        {
-            std::cout << key << " - " << val << std::endl;
-        }
+    std::cout << "going to print generated map of size " << map_output.size() << endl;
+    _y->clear();
+    for(auto [id, val]: map_output)
+    {
+        //std::cout << id << " - " << val << std::endl;
+        _y->push_back(id, val);
+    }
 
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();

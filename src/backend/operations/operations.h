@@ -163,7 +163,7 @@ LA_Info mxv (Vector<W>*       _w,
     #ifdef __DISABLE_SPMSPV__
     switch_cond = true;
     #endif
-    if(switch_cond)
+    if(false /*switch_cond*/)
     {
         #ifdef __DEBUG_INFO__
         cout << "USING SpMV!!!!!" << endl;
@@ -175,7 +175,10 @@ LA_Info mxv (Vector<W>*       _w,
         #ifdef __DEBUG_INFO__
         cout << "USING SpMSpV!!!!!" << endl;
         #endif
-        backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+
+        backend::spmspv_unmasked_map(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _accum, _op, _desc, _matrix->get_workspace());
+
+        //backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
         /*
         _w->print();
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
