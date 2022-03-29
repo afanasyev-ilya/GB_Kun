@@ -53,6 +53,7 @@ public:
     void numa_aware_realloc_row_imported(VNT* row_ptr);
 
     bool is_symmetric();
+    bool to_symmetric();
 private:
     VNT nrows, ncols;
     ENT nnz;
@@ -171,8 +172,10 @@ private:
 
     void calculate_degrees();
 };
+
 #include "csr_matrix.hpp"
 #include "build.hpp"
+#include "symmetric.hpp"
 
 }
 }

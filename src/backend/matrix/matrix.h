@@ -189,6 +189,10 @@ private:
                                         vector<vector<pair<VNT, T>>> &_csr_matrix,
                                         vector<vector<pair<VNT, T>>> &_csc_matrix);
 
+    void read_mtx_file_sequential(const string &_mtx_file_name,
+                                  vector<vector<pair<VNT, T>>> &_csr_matrix,
+                                  vector<vector<pair<VNT, T>>> &_csc_matrix);
+
     void init_optimized_structures();
 };
 
@@ -197,6 +201,7 @@ private:
 #include "matrix.hpp"
 #include "transpose.hpp"
 #include "build.hpp"
+#include "read_file.hpp"
 
 }
 }
