@@ -87,7 +87,6 @@ int main(int argc, char** argv)
     if(!matrix.is_symmetric())
     {
         matrix.to_symmetric();
-        std::cout << "new symmetric: " << matrix.is_symmetric() << std::endl;
     }
 
     nrows = matrix.nrows();
