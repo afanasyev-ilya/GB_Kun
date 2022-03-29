@@ -167,7 +167,8 @@ public:
     void transpose_parallel(void);
     void scantrans(void);
     bool is_symmetric() const {
-        return (*csr_data == *csc_data);
+        //return (*csr_data == *csc_data);
+        return csr_data->is_symmetric();
     }
 private:
     MatrixContainer<T> *data;
