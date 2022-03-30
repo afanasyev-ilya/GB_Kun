@@ -106,6 +106,43 @@ void spmspv_unmasked_or(const MatrixCSR<A> *_matrix,
     double t2 = omp_get_wtime();
     cout << "spmspv or BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
     #endif
+
+    // balanced
+
+    vector<ENT> degrees(x_nvals, 0);
+    vector<ENT> work_ptrs(x_nvals + 1, 0);
+
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for (VNT i = 0; i < x_nvals; i++)
+        {
+            VNT ind = x_ids[i];
+            degrees[i] = _matrix->row_ptr[ind + 1] - _matrix->row_ptr[ind];
+        }
+    };
+
+    ParallelPrimitives::exclusive_scan(&degrees[0], &work_ptrs[0], x_nvals);
+
+    int threads_count = omp_get_max_threads();
+    ENT approx_nnz_per_thread = (work_ptrs[x_nvals] - 1) / threads_count + 1;
+    #pragma omp parallel
+    {
+        int tid = omp_get_thread_num();
+        ENT expected_tid_left_border = approx_nnz_per_thread * tid;
+        ENT expected_tid_right_border = approx_nnz_per_thread * (tid + 1);
+
+        auto low_pos = std::lower_bound(work_ptrs.begin(), work_ptrs.end(), expected_tid_left_border);
+        auto up_pos = std::lower_bound(work_ptrs.begin(), work_ptrs.end(), expected_tid_right_border);
+
+        VNT low_val = low_pos - work_ptrs.begin();
+        VNT up_val = min(x_nvals, (VNT)(up_pos - work_ptrs.begin()));
+
+        #pragma omp critical
+        {
+            std::cout << low_val << " - " << up_val << " / " << x_nvals << std::endl;
+        };
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

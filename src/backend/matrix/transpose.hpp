@@ -102,7 +102,7 @@ void Matrix<T>::transpose_parallel(void) {
 
     double scan_a = omp_get_wtime();
 
-    ParallelPrimitives::exclusive_scan(csc_data->get_row_ptr(),csc_data->get_row_ptr(),csr_ncols, csc_data->get_row_ptr(), 0);
+    ParallelPrimitives::exclusive_scan(csc_data->get_row_ptr(),csc_data->get_row_ptr(),csr_ncols);
     double scan_b = omp_get_wtime();
 
     CommonWorkspace ccp(csr_data->get_num_cols() + 1, csc_data->get_row_ptr());
@@ -233,8 +233,7 @@ void Matrix<T>::scantrans(void) {
 
     std::cout << "Exited copying " << std::endl;
 
-    ParallelPrimitives::exclusive_scan(csc_data->get_row_ptr(), csc_data->get_row_ptr(), ncols,
-                                       csc_data->get_row_ptr(), 0);
+    ParallelPrimitives::exclusive_scan(csc_data->get_row_ptr(), csc_data->get_row_ptr(), ncols);
 
     std::cout << "Exited exclusive scan " << std::endl;
 

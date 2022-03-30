@@ -4,9 +4,7 @@
 template <typename _T>
 inline void ParallelPrimitives::exclusive_scan(_T *_in_data,
                                                _T *_out_data,
-                                               size_t _size,
-                                               _T *_buffer,
-                                               const int _buffer_size) {
+                                               size_t _size) {
     int omp_work_group_size = omp_get_max_threads();
     const int max_threads = 400;
     _T sum_array[max_threads];

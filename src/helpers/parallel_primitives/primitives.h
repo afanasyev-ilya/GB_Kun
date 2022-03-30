@@ -48,9 +48,7 @@ public:
     template <typename _T>
     static inline void exclusive_scan(_T *_in_data,
                                      _T *_out_data,
-                                     size_t _size,
-                                     _T *_buffer,
-                                     const int _buffer_size);
+                                     size_t _size);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
