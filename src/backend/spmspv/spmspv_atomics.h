@@ -42,10 +42,10 @@ void spmspv_unmasked_add(const MatrixCSR<A> *_matrix,
             for (ENT j = row_start; j < row_end; j++)
             {
                 VNT dest_ind = _matrix->col_ids[j];
-                A dest_val = _matrix->vals[j];
+                A mat_val = _matrix->vals[j];
 
                 #pragma omp atomic
-                y_vals[dest_ind] += mul_op(x_val, dest_val);
+                y_vals[dest_ind] += mul_op(mat_val, x_val);
             }
         }
     }
@@ -153,11 +153,11 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
             for (ENT j = row_start; j < row_end; j++)
             {
                 VNT dest_ind = _matrix->col_ids[j]; // this is row_ids
-                A dest_val = _matrix->vals[j];
+                A mat_val = _matrix->vals[j];
 
                 #pragma omp critical
                 {
-                    y_vals[dest_ind] = add_op(y_vals[dest_ind], mul_op(x_val, dest_val));
+                    y_vals[dest_ind] = add_op(y_vals[dest_ind], mul_op(mat_val, x_val));
                 }
             }
         }
@@ -188,8 +188,6 @@ void spmspv_unmasked_map(const MatrixCSR<A> *_matrix,
     auto mul_op = extractMul(_op);
     auto identity_val = _op.identity();
 
-    Y *tmp_result = (Y*)_workspace->get_shared_one();
-
     VNT x_nvals = _x->get_nvals();
     VNT y_size = _y->get_size();
 
@@ -209,17 +207,17 @@ void spmspv_unmasked_map(const MatrixCSR<A> *_matrix,
             for (ENT j = row_start; j < row_end; j++)
             {
                 VNT dest_ind = _matrix->col_ids[j]; // this is row_ids
-                A dest_val = _matrix->vals[j];
+                A mat_val = _matrix->vals[j];
 
                 #pragma omp critical
                 {
-                    if(map_output.find(dest_ind) != map_output.end())
+                    if(map_output.find(dest_ind) == map_output.end())
                     {
-                        map_output[dest_ind] = add_op(identity_val, mul_op(x_val, dest_val));
+                        map_output[dest_ind] = add_op(identity_val, mul_op(mat_val, x_val));
                     }
                     else
                     {
-                        map_output[dest_ind] = add_op(map_output[dest_ind], mul_op(x_val, dest_val));
+                        map_output[dest_ind] = add_op(map_output[dest_ind], mul_op(mat_val, x_val));
                     }
                 }
             }
@@ -229,7 +227,6 @@ void spmspv_unmasked_map(const MatrixCSR<A> *_matrix,
     _y->clear();
     for(auto it: map_output)
     {
-        std::cout << it.first << " - " << it.second << std::endl;
         _y->push_back(it.first, it.second);
     }
 

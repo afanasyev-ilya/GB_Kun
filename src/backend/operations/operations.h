@@ -163,7 +163,7 @@ LA_Info mxv (Vector<W>*       _w,
     #ifdef __DISABLE_SPMSPV__
     switch_cond = true;
     #endif
-    if(false /*switch_cond*/)
+    if(switch_cond)//(false /*switch_cond*/)
     {
         #ifdef __DEBUG_INFO__
         cout << "USING SpMV!!!!!" << endl;
@@ -175,18 +175,16 @@ LA_Info mxv (Vector<W>*       _w,
         #ifdef __DEBUG_INFO__
         cout << "USING SpMSpV!!!!!" << endl;
         #endif
+        backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
 
-        Vector<W> test_vector(_w->get_size());
+        /*Vector<W> test_vector(_w->get_size());
         test_vector.set_constant(0);
 
-        backend::spmspv_unmasked_map(_matrix->get_csr(), _u->getSparse(), test_vector.getSparse(), _accum, _op, _desc, _matrix->get_workspace());
-
-        //backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        backend::spmspv_unmasked_map(_matrix->get_csc(), _u->getSparse(), test_vector.getSparse(), _accum, _op, _desc, _matrix->get_workspace());
 
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
         if(*_w != test_vector)
-            cout << "spmspv vectors are different!" << endl;
-        std::cout << " ----------------------------------------- " << std::endl;
+            print_diff(*_w, test_vector);*/
     }
     _w->convert_if_required();
 
