@@ -107,11 +107,11 @@ void spmspv_unmasked_or(const MatrixCSR<A> *_matrix,
     cout << "spmspv or BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
     #endif
 
-    // balanced
-
+    /*
     vector<ENT> degrees(x_nvals, 0);
     vector<ENT> work_ptrs(x_nvals + 1, 0);
 
+    t1 = omp_get_wtime();
     #pragma omp parallel
     {
         #pragma omp for
@@ -135,14 +135,28 @@ void spmspv_unmasked_or(const MatrixCSR<A> *_matrix,
         auto low_pos = std::lower_bound(work_ptrs.begin(), work_ptrs.end(), expected_tid_left_border);
         auto up_pos = std::lower_bound(work_ptrs.begin(), work_ptrs.end(), expected_tid_right_border);
 
-        VNT low_val = low_pos - work_ptrs.begin();
+        VNT low_val = min(x_nvals, (VNT)(low_pos - work_ptrs.begin()));
         VNT up_val = min(x_nvals, (VNT)(up_pos - work_ptrs.begin()));
 
-        #pragma omp critical
+        for (VNT i = low_val; i < up_val; i++)
         {
-            std::cout << low_val << " - " << up_val << " / " << x_nvals << std::endl;
-        };
+            VNT ind = x_ids[i];
+            X x_val = x_vals[i];
+            ENT row_start   = _matrix->row_ptr[ind];
+            ENT row_end     = _matrix->row_ptr[ind + 1];
+
+            for (ENT j = row_start; j < row_end; j++)
+            {
+                VNT dest_ind = _matrix->col_ids[j];
+                A dest_val = _matrix->vals[j];
+
+                y_vals[dest_ind] = 1;
+            }
+        }
     }
+    t2 = omp_get_wtime();
+    cout << "LOAD BALANCED SPMSPV BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
+     */
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

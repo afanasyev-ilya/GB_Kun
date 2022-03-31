@@ -4,8 +4,8 @@
 
 Parser::Parser()
 {
-    scale = 5;
-    avg_degree = 3;
+    scale = 10;
+    avg_degree = 8;
     synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
     storage_format = CSR;
     no_check = false;
