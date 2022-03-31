@@ -31,7 +31,7 @@ public:
         {
             for(VNT i = 0; i < nvals; i++)
             {
-                cout << "( "<< ids[i]<< " , "  << vals[i] << ") ";
+                cout << "["<< ids[i]<< "]:"  << vals[i] << " ";
             }
             cout << endl;
         }
