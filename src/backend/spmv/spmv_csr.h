@@ -369,15 +369,32 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
     cout << "spmv slices (diff vector), unmasked time: " << (t2 - t1)*1000 << " ms" << endl;
     cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
     #endif
+}
 
-    /*
-    tbb::global_control cntr( tbb::global_control::max_allowed_parallelism, 48);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    t1 = omp_get_wtime();
-    tbb::parallel_for( tbb::blocked_range<int>(0, _matrix->nrows),
-                       [&](tbb::blocked_range<int> r)
+template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+void SpMV_all_active_diff_vectors_tbb(const MatrixCSR<A> *_matrix,
+                                      const DenseVector<X> *_x,
+                                      DenseVector<Y> *_y,
+                                      BinaryOpTAccum _accum,
+                                      SemiringT op,
+                                      Descriptor *_desc,
+                                      Workspace *_workspace)
+{
+    const X *x_vals = _x->get_vals();
+    Y *y_vals = _y->get_vals();
+    auto add_op = extractAdd(op);
+    auto mul_op = extractMul(op);
+    auto identity_val = op.identity();
+
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t1 = omp_get_wtime();
+    #endif
+    tbb::parallel_for( tbb::blocked_range<VNT>(0, _matrix->nrows),
+                       [&](tbb::blocked_range<VNT> r)
                        {
-                           for (int row=r.begin(); row<r.end(); ++row)
+                           for (VNT row=r.begin(); row<r.end(); ++row)
                            {
                                Y res = identity_val;
                                for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
@@ -389,27 +406,11 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
                                y_vals[row] = _accum(y_vals[row], res);
                            }
                        }, tbb::static_partitioner());
-    t2 = omp_get_wtime();
-    cout << "tbb spmv 1 bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
-
-    t1 = omp_get_wtime();
-    tbb::parallel_for( tbb::blocked_range<int>(0, _matrix->nrows),
-                       [&](tbb::blocked_range<int> r)
-                       {
-                           for (int row=r.begin(); row<r.end(); ++row)
-                           {
-                               Y res = identity_val;
-                               for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
-                               {
-                                   VNT col = _matrix->col_ids[j];
-                                   A val = _matrix->vals[j];
-                                   res = add_op(res, mul_op(val, x_vals[col]));
-                               }
-                               y_vals[row] = _accum(y_vals[row], res);
-                           }
-                       }, tbb::static_partitioner());
-    t2 = omp_get_wtime();
-    cout << "tbb spmv 2 bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;*/
+    #ifdef __DEBUG_BANDWIDTHS__
+    double t2 = omp_get_wtime();
+    cout << "TBB spmv (diff vector), unmasked time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
