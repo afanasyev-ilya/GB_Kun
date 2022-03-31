@@ -32,14 +32,8 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
         ENT matrix1_col_end_id = _matrix1->get_csr()->get_row_ptr()[matrix1_row_id + 1];
         ENT mask_col_start_id = _result_mask->get_csr()->get_row_ptr()[matrix1_row_id];
         ENT mask_col_end_id = _result_mask->get_csr()->get_row_ptr()[matrix1_row_id + 1];
-        for (VNT matrix2_col_id = 0; matrix2_col_id < matrix2_num_cols; ++matrix2_col_id) {
-            VNT found_mask_col_id = spgemm_binary_search(_result_mask->get_csr()->get_col_ids(),
-                                                         mask_col_start_id,
-                                                         mask_col_end_id - 1,
-                                                         matrix2_col_id);
-            if (found_mask_col_id == -1 || !_result_mask->get_csr()->get_vals()[found_mask_col_id]) {
-                continue;
-            }
+        for (ENT mask_col_id = mask_col_start_id; mask_col_id < mask_col_end_id; ++mask_col_id) {
+            VNT matrix2_col_id = _result_mask->get_csr()->get_col_ids()[mask_col_id];
             VNT matrix2_col_start_id = _matrix2->get_csc()->get_row_ptr()[matrix2_col_id];
             VNT matrix2_col_end_id = _matrix2->get_csc()->get_row_ptr()[matrix2_col_id + 1];
 
