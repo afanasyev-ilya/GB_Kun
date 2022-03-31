@@ -1,9 +1,12 @@
 #pragma once
 
 #ifdef __USE_TBB__
+#include <tbb/info.h>
 #include <tbb/parallel_for.h>
+#include <tbb/task_arena.h>
 #include <tbb/partitioner.h>
 #include <tbb/concurrent_unordered_map.h>
+#include <tbb/global_control.h>
 #endif
 #include <vector>
 #include <algorithm>

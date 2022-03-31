@@ -256,7 +256,7 @@ void spmspv_unmasked_map(const MatrixCSR<A> *_matrix,
         {
             VNT ind = x_ids[i];
             X x_val = x_vals[i];
-            ENT row_start = _matrix->row_ptr[ind]; // this is actaully col ptr for mxv operation
+            ENT row_start = _matrix->row_ptr[ind]; // this is actually col ptr for mxv operation
             ENT row_end   = _matrix->row_ptr[ind + 1];
 
             for (ENT j = row_start; j < row_end; j++)
@@ -266,14 +266,19 @@ void spmspv_unmasked_map(const MatrixCSR<A> *_matrix,
 
                 #pragma omp critical
                 {
-                    if(map_output.find(dest_ind) == map_output.end())
+                    /*if(map_output.find(dest_ind) == map_output.end())
                     {
                         map_output[dest_ind] = add_op(identity_val, mul_op(mat_val, x_val));
                     }
                     else
                     {
                         map_output[dest_ind] = add_op(map_output[dest_ind], mul_op(mat_val, x_val));
-                    }
+                    }*/
+                    Y & search_res = map_output[dest_ind];
+                    if(search_res == 0)
+                        search_res = add_op(identity_val, mul_op(mat_val, x_val));
+                    else
+                        search_res = add_op(search_res, mul_op(mat_val, x_val));
                 }
             }
         }

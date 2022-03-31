@@ -370,24 +370,46 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
     cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
     #endif
 
-    /*t1 = omp_get_wtime();
+    /*
+    tbb::global_control cntr( tbb::global_control::max_allowed_parallelism, 48);
+
+    t1 = omp_get_wtime();
     tbb::parallel_for( tbb::blocked_range<int>(0, _matrix->nrows),
                        [&](tbb::blocked_range<int> r)
-    {
-       for (int row=r.begin(); row<r.end(); ++row)
-       {
-           Y res = identity_val;
-           for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
-           {
-               VNT col = _matrix->col_ids[j];
-               A val = _matrix->vals[j];
-               res = add_op(res, mul_op(val, x_vals[col]));
-           }
-           y_vals[row] = _accum(y_vals[row], res);
-       }
-    }, tbb::static_partitioner());
+                       {
+                           for (int row=r.begin(); row<r.end(); ++row)
+                           {
+                               Y res = identity_val;
+                               for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                               {
+                                   VNT col = _matrix->col_ids[j];
+                                   A val = _matrix->vals[j];
+                                   res = add_op(res, mul_op(val, x_vals[col]));
+                               }
+                               y_vals[row] = _accum(y_vals[row], res);
+                           }
+                       }, tbb::static_partitioner());
     t2 = omp_get_wtime();
-    cout << "tbb spmv bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;*/
+    cout << "tbb spmv 1 bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+
+    t1 = omp_get_wtime();
+    tbb::parallel_for( tbb::blocked_range<int>(0, _matrix->nrows),
+                       [&](tbb::blocked_range<int> r)
+                       {
+                           for (int row=r.begin(); row<r.end(); ++row)
+                           {
+                               Y res = identity_val;
+                               for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+                               {
+                                   VNT col = _matrix->col_ids[j];
+                                   A val = _matrix->vals[j];
+                                   res = add_op(res, mul_op(val, x_vals[col]));
+                               }
+                               y_vals[row] = _accum(y_vals[row], res);
+                           }
+                       }, tbb::static_partitioner());
+    t2 = omp_get_wtime();
+    cout << "tbb spmv 2 bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
