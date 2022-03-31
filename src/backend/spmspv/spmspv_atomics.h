@@ -242,7 +242,11 @@ void spmspv_unmasked_map(const MatrixCSR<A> *_matrix,
     VNT x_nvals = _x->get_nvals();
     VNT y_size = _y->get_size();
 
+    //#ifdef __USE_TBB__
+    //tbb::concurrent_unordered_map<VNT, Y> map_output;
+    //#else
     std::unordered_map<VNT, Y> map_output;
+    //#endif
 
     double t1 = omp_get_wtime();
     #pragma omp parallel

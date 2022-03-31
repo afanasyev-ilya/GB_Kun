@@ -165,7 +165,7 @@ public:
 
     void transpose_sequential(void);
     void transpose_parallel(void);
-    void scantrans(void);
+
     [[nodiscard]] bool is_symmetric() const {
         //return (*csr_data == *csc_data);
         return csr_data->is_symmetric();

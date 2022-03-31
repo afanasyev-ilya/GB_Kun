@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef __USE_TBB__
 #include <tbb/parallel_for.h>
+#include <tbb/partitioner.h>
+#include <tbb/concurrent_unordered_map.h>
+#endif
 #include <vector>
 #include <algorithm>
 #include <string>

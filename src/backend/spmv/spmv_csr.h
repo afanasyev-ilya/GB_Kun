@@ -385,7 +385,7 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
            }
            y_vals[row] = _accum(y_vals[row], res);
        }
-    });
+    }, tbb::static_partitioner());
     t2 = omp_get_wtime();
     cout << "tbb spmv bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;*/
 }
