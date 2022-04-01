@@ -437,8 +437,6 @@ LA_Info mxm(Matrix<c>* C,
             const Matrix<b> *B,
             Descriptor *desc)
 {
-    // auto add_op = extractAdd(op);
-    // auto mul_op = extractMul(op);
     Desc_value multiplication_mode;
     desc->get(GrB_MXMMODE, &multiplication_mode);
     if (mask) {
@@ -465,20 +463,10 @@ LA_Info mxm(Matrix<c>* C,
         }
          */
     } else {
-        if (multiplication_mode == GrB_IJK) {
-            backend::SpMSpM_ijk(A,
-                                B,
-                                C,
-                                mask,
-                                op);
-        } else if (multiplication_mode == GrB_IKJ) {
-            backend::SpMSpM_unmasked_ikj(A,
-                                         B,
-                                         C,
-                                         op);
-        } else {
-            return GrB_INVALID_VALUE;
-        }
+        backend::SpMSpM_unmasked_ikj(A,
+                                     B,
+                                     C,
+                                     op);
     }
     return GrB_SUCCESS;
 }
