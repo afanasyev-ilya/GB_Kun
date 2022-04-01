@@ -2,6 +2,25 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+VNT spgemm_binary_search(const Index* data, VNT left, VNT right, ENT value)
+{
+    while (true) {
+        if (left > right) {
+            return -1;
+        }
+        VNT mid = left + (right - left) / 2; // div 2 or div rand
+        if (data[mid] < value) {
+            left = mid + 1;
+        } else if (data[mid] > value) {
+            right = mid - 1;
+        } else {
+            return mid;
+        }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace lablas {
 namespace backend {
 
@@ -15,10 +34,6 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
                 SemiringT _op)
 {
     double t1 = omp_get_wtime();
-
-    _matrix2->sort_csc_rows("STL_SORT");
-
-    double t2 = omp_get_wtime();
 
     auto add_op = extractAdd(_op);
     auto mul_op = extractMul(_op);
@@ -49,7 +64,7 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
 
     auto offsets = _result_mask->get_csr()->get_load_balancing_offsets();
 
-    double t3 = omp_get_wtime();
+    double t2 = omp_get_wtime();
 
     #pragma omp parallel
     {
@@ -85,25 +100,23 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
         }
     }
 
-    double t4 = omp_get_wtime();
+    double t3 = omp_get_wtime();
 
     SpMSpM_alloc(_matrix_result);
     _matrix_result->build_from_csr_arrays(row_ptr, col_ids, vals, n, nnz);
-    double t5 = omp_get_wtime();
+    double t4 = omp_get_wtime();
 
-    double overall_time = t5 - t1;
+    double overall_time = t4 - t1;
 
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
     fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "ijk_masked_mxm", overall_time * 1000, 0.0, 0.0, 0ll);
     fclose(my_f);
 
-    printf("Unmasked IJK SpMSpM time: %lf seconds.\n", t5-t1);
-    printf("\t- Presorting second matrix: %.1lf %%\n", (t2 - t1) / overall_time * 100.0);
-    printf("\t- Preparing data before evaluations: %.1lf %%\n", (t3 - t2) / overall_time * 100.0);
-    printf("\t- Main IJK loop: %.1lf %%\n", (t4 - t3) / overall_time * 100.0);
-    printf("\t- Printing results to a file: %.1lf %%\n", (t5 - t4) / overall_time * 100.0);
-    printf("\t- Converting CSR result to Matrix object: %.1lf %%\n", (t5 - t4) / overall_time * 100.0);
+    printf("Unmasked IJK SpMSpM time: %lf seconds.\n", overall_time);
+    printf("\t- Preparing data before evaluations: %.1lf %%\n", (t2 - t1) / overall_time * 100.0);
+    printf("\t- Main IJK loop: %.1lf %%\n", (t3 - t2) / overall_time * 100.0);
+    printf("\t- Converting CSR result to Matrix object: %.1lf %%\n", (t4 - t3) / overall_time * 100.0);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

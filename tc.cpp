@@ -44,9 +44,5 @@ int main(int argc, char **argv) {
     {
         cout << error << endl;
     }
-    catch (char const* error)
-    {
-        cout << error << endl;
-    }
     return 0;
 }

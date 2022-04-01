@@ -12,25 +12,6 @@ namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-VNT spgemm_binary_search(const Index* data, VNT left, VNT right, ENT value)
-{
-    while (true) {
-        if (left > right) {
-            return -1;
-        }
-        VNT mid = left + (right - left) / 2; // div 2 or div rand
-        if (data[mid] < value) {
-            left = mid + 1;
-        } else if (data[mid] > value) {
-            right = mid - 1;
-        } else {
-            return mid;
-        }
-    }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void balance_matrix_rows(const ENT *_row_ptrs, VNT num_rows, pair<VNT, VNT> *_offsets, int threads_count)
 {
     ENT nnz = _row_ptrs[num_rows];
