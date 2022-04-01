@@ -12,7 +12,6 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
     double t1 = omp_get_wtime();
 
     _matrix2->sort_csc_rows("STL_SORT");
-    _result_mask->sort_csr_columns("STL_SORT");
 
     auto add_op = extractAdd(_op);
     auto mul_op = extractMul(_op);
