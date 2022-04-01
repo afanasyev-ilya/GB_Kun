@@ -22,42 +22,49 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
     auto mul_op = extractMul(_op);
     auto identity_val = _op.identity();
 
-    VNT matrix1_num_rows = _matrix1->get_csr()->get_num_rows();
-    VNT matrix2_num_cols = _matrix2->get_csc()->get_num_rows();
-
     vector<VNT> row_ids;
     vector<VNT> col_ids;
     vector<T> values;
     ENT nnz = 0;
+
+    auto matrix1_row_ptr = _matrix1->get_csr()->get_row_ptr();
+    auto matrix1_col_ids_ptr = _matrix1->get_csr()->get_col_ids();
+    auto matrix1_vals_ptr = _matrix1->get_csr()->get_vals();
+    auto mask_row_ptr = _result_mask->get_csr()->get_row_ptr();
+    auto mask_col_ids_ptr = _result_mask->get_csr()->get_col_ids();
+    auto matrix2_row_ptr = _matrix2->get_csc()->get_row_ptr();
+    auto matrix2_col_ids_ptr = _matrix2->get_csc()->get_col_ids();
+    auto matrix2_vals_ptr = _matrix2->get_csc()->get_vals();
 
     auto offsets = _result_mask->get_csr()->get_load_balancing_offsets();
 
     #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();
-        for (VNT matrix1_row_id = offsets[thread_id].first; matrix1_row_id < offsets[thread_id].second; ++matrix1_row_id) {
-            ENT matrix1_col_start_id = _matrix1->get_csr()->get_row_ptr()[matrix1_row_id];
-            ENT matrix1_col_end_id = _matrix1->get_csr()->get_row_ptr()[matrix1_row_id + 1];
-            ENT mask_col_start_id = _result_mask->get_csr()->get_row_ptr()[matrix1_row_id];
-            ENT mask_col_end_id = _result_mask->get_csr()->get_row_ptr()[matrix1_row_id + 1];
+        for (VNT matrix1_row_id = offsets[thread_id].first; matrix1_row_id < offsets[thread_id].second;
+                ++matrix1_row_id) {
+            ENT matrix1_col_start_id = matrix1_row_ptr[matrix1_row_id];
+            ENT matrix1_col_end_id = matrix1_row_ptr[matrix1_row_id + 1];
+            ENT mask_col_start_id = mask_row_ptr[matrix1_row_id];
+            ENT mask_col_end_id = mask_row_ptr[matrix1_row_id + 1];
             for (ENT mask_col_id = mask_col_start_id; mask_col_id < mask_col_end_id; ++mask_col_id) {
-                VNT matrix2_col_id = _result_mask->get_csr()->get_col_ids()[mask_col_id];
-                VNT matrix2_col_start_id = _matrix2->get_csc()->get_row_ptr()[matrix2_col_id];
-                VNT matrix2_col_end_id = _matrix2->get_csc()->get_row_ptr()[matrix2_col_id + 1];
+                VNT matrix2_col_id = mask_col_ids_ptr[mask_col_id];
+                VNT matrix2_col_start_id = matrix2_row_ptr[matrix2_col_id];
+                VNT matrix2_col_end_id = matrix2_row_ptr[matrix2_col_id + 1];
 
                 T accumulator = identity_val;
                 for (ENT matrix1_col_id = matrix1_col_start_id; matrix1_col_id < matrix1_col_end_id; ++matrix1_col_id) {
-                    ENT matrix1_col_num = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
+                    ENT matrix1_col_num = matrix1_col_ids_ptr[matrix1_col_id];
                     // i == matrix1_row_id, j == matrix2_col_id, k == matrix1_col_num
-                    VNT found_matrix2_row_id = spgemm_binary_search(_matrix2->get_csc()->get_col_ids(),
+                    VNT found_matrix2_row_id = spgemm_binary_search(matrix2_col_ids_ptr,
                                                                     matrix2_col_start_id,
                                                                     matrix2_col_end_id - 1,
                                                                     matrix1_col_num);
 
                     if (found_matrix2_row_id != -1) {
-                        T matrix1_val = _matrix1->get_csr()->get_vals()[matrix1_col_id];
-                        T matrix2_val = _matrix2->get_csc()->get_vals()[found_matrix2_row_id];
-                        accumulator = add_op(accumulator, mul_op(matrix1_val, matrix2_val));
+                        accumulator = add_op(accumulator,
+                                             mul_op(matrix1_vals_ptr[matrix1_col_id],
+                                                    matrix2_vals_ptr[found_matrix2_row_id]));
                     }
                 }
                 #pragma omp critical(updateresults)
