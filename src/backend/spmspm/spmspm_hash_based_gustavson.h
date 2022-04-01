@@ -2,6 +2,11 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+namespace lablas {
+namespace backend {
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T, typename SemiringT>
 void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
                          const Matrix<T> *_matrix2,
@@ -57,7 +62,7 @@ for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
     auto matrix1_col_ptr = _matrix1->get_csr()->get_col_ids();
     auto matrix2_col_ptr = _matrix2->get_csr()->get_col_ids();
 
-#pragma omp parallel
+    #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();
         for (VNT i = offsets[thread_id].first; i < offsets[thread_id].second; ++i) {
@@ -85,7 +90,7 @@ for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
     double t2 = omp_get_wtime();
 
     ENT nnz = 0;
-#pragma omp parallel for reduction(+:nnz)
+    #pragma omp parallel for reduction(+:nnz)
     for (VNT i = 0; i < n; ++i) {
         nnz += row_nnz[i];
     }
@@ -97,7 +102,7 @@ for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
     auto col_ids = new VNT[nnz];
     auto vals = new T[nnz];
 
-#pragma omp parallel
+    #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();
         for (VNT i = offsets[thread_id].first; i < offsets[thread_id].second; ++i) {
@@ -283,6 +288,11 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
     printf("Masked IKJ SpMSpM exporting results to a file time: %lf seconds.\n", t4-t3);
     printf("Masked IKJ SpMSpM converting CSR to Matrix object time: %lf seconds.\n", t5-t4);
     printf("Masked IKJ SpMSpM total time: %lf seconds.\n", t5-t1);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
