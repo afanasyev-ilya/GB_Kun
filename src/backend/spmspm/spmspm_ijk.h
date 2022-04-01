@@ -84,15 +84,25 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
             }
         }
     }
+
     double t4 = omp_get_wtime();
+
     SpMSpM_alloc(_matrix_result);
     _matrix_result->build_from_csr_arrays(row_ptr, col_ids, vals, n, nnz);
     double t5 = omp_get_wtime();
+
     double overall_time = t5 - t1;
+
+    FILE *my_f;
+    my_f = fopen("perf_stats.txt", "a");
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "ijk_masked_mxm", overall_time * 1000, 0.0, 0.0, 0ll);
+    fclose(my_f);
+
     printf("Unmasked IJK SpMSpM time: %lf seconds.\n", t5-t1);
     printf("\t- Presorting second matrix: %.1lf %%\n", (t2 - t1) / overall_time * 100.0);
     printf("\t- Preparing data before evaluations: %.1lf %%\n", (t3 - t2) / overall_time * 100.0);
     printf("\t- Main IJK loop: %.1lf %%\n", (t4 - t3) / overall_time * 100.0);
+    printf("\t- Printing results to a file: %.1lf %%\n", (t5 - t4) / overall_time * 100.0);
     printf("\t- Converting CSR result to Matrix object: %.1lf %%\n", (t5 - t4) / overall_time * 100.0);
 }
 
