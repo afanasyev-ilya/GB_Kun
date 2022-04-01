@@ -2,6 +2,10 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "../../helpers/hashmap/tsl/robin_map.h"
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace lablas {
 namespace backend {
 
@@ -47,7 +51,7 @@ for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
 
     const auto n = _matrix1->get_csr()->get_num_rows();
 
-    auto matrix_result = new unordered_map<VNT, T>[n];
+    auto matrix_result = new tsl::robin_map<VNT, T>[n];
 
     auto row_nnz = new ENT[n];
 
@@ -167,7 +171,7 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
 
     const auto n = _matrix1->get_csr()->get_num_rows();
 
-    auto matrix_result = new unordered_map<VNT, T>[n];
+    auto matrix_result = new tsl::robin_map<VNT, T>[n];
 
     auto row_nnz = new ENT[n];
 
@@ -181,7 +185,7 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
     auto matrix1_col_ptr = _matrix1->get_csr()->get_col_ids();
     auto matrix2_col_ptr = _matrix2->get_csr()->get_col_ids();
 
-#pragma omp parallel
+    #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();
         for (VNT i = offsets[thread_id].first; i < offsets[thread_id].second; ++i) {
@@ -203,8 +207,8 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
 
     cout << "Applying the mask for ikj algorithm" << endl;
     auto mask_ptr = _result_mask->get_csr();
-    auto matrix_result_applied_mask = new unordered_map<VNT, T>[n];
-#pragma omp parallel
+    auto matrix_result_applied_mask = new tsl::robin_map<VNT, T>[n];
+    #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();
         for (VNT i = offsets[thread_id].first; i < offsets[thread_id].second; ++i) {
@@ -223,7 +227,7 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
     matrix_result = matrix_result_applied_mask;
 
     cout << "Counting nnz for ikj algorithm" << endl;
-#pragma omp parallel
+    #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();
         for (VNT i = offsets[thread_id].first; i < offsets[thread_id].second; ++i) {
@@ -239,7 +243,7 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
     double t2 = omp_get_wtime();
 
     ENT nnz = 0;
-#pragma omp parallel for reduction(+:nnz)
+    #pragma omp parallel for reduction(+:nnz)
     for (VNT i = 0; i < n; ++i) {
         nnz += row_nnz[i];
     }
@@ -251,7 +255,7 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
     auto col_ids = new VNT[nnz];
     auto vals = new T[nnz];
 
-#pragma omp parallel
+    #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();
         for (VNT i = offsets[thread_id].first; i < offsets[thread_id].second; ++i) {
