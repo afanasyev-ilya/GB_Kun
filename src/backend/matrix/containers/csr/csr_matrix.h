@@ -170,13 +170,13 @@ private:
                                          Workspace *_workspace);
 
     template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
-    friend void spmspv_unmasked_map(const MatrixCSR<A> *_matrix,
-                                    const SparseVector<X> *_x,
-                                    SparseVector<Y> *_y,
-                                    BinaryOpTAccum _accum,
-                                    SemiringT _op,
-                                    Descriptor *_desc,
-                                    Workspace *_workspace);
+    friend void spmspv_unmasked_critical_map(const MatrixCSR<A> *_matrix,
+                                             const SparseVector<X> *_x,
+                                             SparseVector<Y> *_y,
+                                             BinaryOpTAccum _accum,
+                                             SemiringT _op,
+                                             Descriptor *_desc,
+                                             Workspace *_workspace);
 
     template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_all_active_diff_vectors_tbb(const MatrixCSR<A> *_matrix,
@@ -187,6 +187,14 @@ private:
                                                  Descriptor *_desc,
                                                  Workspace *_workspace);
 
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void spmspv_unmasked_or_map(const MatrixCSR<A> *_matrix,
+                                       const SparseVector<X> *_x,
+                                       SparseVector<Y> *_y,
+                                       BinaryOpTAccum _accum,
+                                       SemiringT _op,
+                                       Descriptor *_desc,
+                                       Workspace *_workspace);
 
     void calculate_degrees();
 };

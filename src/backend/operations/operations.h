@@ -175,9 +175,17 @@ LA_Info mxv (Vector<W>*       _w,
         #ifdef __DEBUG_INFO__
         cout << "USING SpMSpV!!!!!" << endl;
         #endif
-        //backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
 
-        backend::spmspv_unmasked_map(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _accum, _op, _desc, _matrix->get_workspace());
+        {
+            Timer tm("dense output");
+            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        }
+
+        {
+            Timer tm("sparse output");
+            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+        }
+
     }
     _w->convert_if_required();
 
@@ -212,7 +220,15 @@ LA_Info vxm (Vector<W>*       _w,
         #ifdef __DEBUG_INFO__
         cout << "USING SpMSpV!!!!!" << endl;
         #endif
-        backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        {
+            Timer tm("dense output");
+            backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        }
+
+        {
+            Timer tm("sparse output");
+            backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+        }
     }
     _w->convert_if_required();
 
