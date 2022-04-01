@@ -1,6 +1,7 @@
 #include "src/gb_kun.h"
 
 #include "algorithms/sssp/sssp.hpp"
+#include "algorithms/sssp/sssp_blast.hpp"
 #include "algorithms/sssp/sssp_traditional.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
