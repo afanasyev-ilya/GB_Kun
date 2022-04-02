@@ -177,14 +177,14 @@ LA_Info mxv (Vector<W>*       _w,
         #endif
 
         {
-            Timer tm("dense output");
+            //Timer tm("dense output");
             backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
         }
 
-        {
+        /*{
             Timer tm("sparse output");
             backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
-        }
+        }*/
 
     }
     _w->convert_if_required();
@@ -221,14 +221,14 @@ LA_Info vxm (Vector<W>*       _w,
         cout << "USING SpMSpV!!!!!" << endl;
         #endif
         {
-            Timer tm("dense output");
+            //Timer tm("dense output");
             backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
         }
 
-        {
+        /*{
             Timer tm("sparse output");
             backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
-        }
+        }*/
     }
     _w->convert_if_required();
 
