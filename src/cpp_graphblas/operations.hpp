@@ -376,10 +376,10 @@ LA_Info select(Vector<W> *w,
 {
     if(not_initialized(w, u))
         return GrB_UNINITIALIZED_OBJECT;
-    if(dims_mismatched(w, mask, u))
-        return GrB_DIMENSION_MISMATCH;
+    // if(dims_mismatched(w, mask, u))
+    //     return GrB_DIMENSION_MISMATCH;
 
-    return backend::select(w->get_vector(), mask->get_vector(), accum, op, u->get_vector(), val, desc);
+    return backend::select(w->get_vector(), mask->get_vector(), accum, op, u->get_vector(), val, desc->get_descriptor());
 }
 
 }

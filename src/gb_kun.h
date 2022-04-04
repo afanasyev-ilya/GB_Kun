@@ -51,6 +51,7 @@ class DenseVector;
 #include "backend/spmspm/spmspm.h"
 
 #include "backend/operations/operations.h"
+#include "backend/operations/select.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // cpp interfaces

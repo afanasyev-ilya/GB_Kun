@@ -463,49 +463,5 @@ LA_Info mxm(Matrix<c>* C,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
-LA_Info select(Vector<W> *w,
-               const Vector<M> *mask,
-               BinaryOpT accum,
-               SelectOpT op,
-               const Vector<U> *u,
-               const T val,
-               Descriptor *desc)
-{
-    W* w_vals = w->getDense()->get_vals();
-    U* u_vals = u->getDense()->get_vals();
-
-    if (mask != NULL)
-    {
-        Desc_value mask_field, mask_output;
-        desc->get(GrB_MASK, &mask_field);
-        desc->get(GrB_OUTPUT, &mask_output);
-        bool inverse = (mask_field == GrB_COMP);
-        T mask_vals = mask->getDense()->get_vals();
-
-        #pragma omp parallel for
-        for (Index i = 0; i < w->get_size(); i++)
-        {   
-            if (mask_vals[i] ^ inverse)
-                w_vals[i] = accum(w_vals[i], op(u_vals[i], i, 0, val));
-            else
-            if (mask_output == GrB_REPLACE)
-                w_vals[i] = 0;
-        }
-    }
-    else
-    {
-        #pragma omp parallel for
-        for (Index i = 0; i < w->get_size(); i++)
-        {
-            w_vals[i] = accum(w_vals[i], op(u_vals[i], val));
-        }
-    }
-
-    return GrB_SUCCESS;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 }
 }
