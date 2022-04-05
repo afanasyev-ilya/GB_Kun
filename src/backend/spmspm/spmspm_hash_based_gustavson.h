@@ -171,7 +171,7 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
 
     const auto n = _matrix1->get_csr()->get_num_rows();
 
-    auto matrix_result = new tsl::robin_map<VNT, T>[n];
+    auto matrix_result = new tsl::hopscotch_map<VNT, T>[n];
 
     auto row_nnz = new ENT[n];
 
@@ -207,7 +207,7 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
 
     cout << "Applying the mask for ikj algorithm" << endl;
     auto mask_ptr = _result_mask->get_csr();
-    auto matrix_result_applied_mask = new tsl::robin_map<VNT, T>[n];
+    auto matrix_result_applied_mask = new tsl::hopscotch_map<VNT, T>[n];
     #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();
