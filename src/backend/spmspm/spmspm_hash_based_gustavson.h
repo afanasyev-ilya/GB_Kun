@@ -2,7 +2,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "../../helpers/hashmap/tsl/robin_map.h"
+#include "../../helpers/hashmap/tsl/hopscotch_map.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -51,7 +51,7 @@ for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
 
     const auto n = _matrix1->get_csr()->get_num_rows();
 
-    auto matrix_result = new tsl::robin_map<VNT, T>[n];
+    auto matrix_result = new tsl::hopscotch_map<VNT, T>[n];
 
     auto row_nnz = new ENT[n];
 
