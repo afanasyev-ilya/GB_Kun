@@ -35,6 +35,26 @@ int main(int argc, char **argv) {
                                      NULL),
                   "TriangleCount", 1,(graph.AT));
         cout << "Found triangles: " << ntriangles << endl;
+        if (parser.check()) {
+            uint64_t slow_ntriangles = 0;
+            lablas::Matrix<int> C;
+            lablas::Matrix<int> D;
+            lablas::Matrix<int>* A = graph.A;
+            #define MASK_NULL static_cast<const lablas::Matrix<int>*>(NULL)
+            lablas::mxm(&C, MASK_NULL, lablas::second<int>(),
+                        lablas::PlusMultipliesSemiring<int>(), A, A, &lablas::GrB_DESC_IKJ);
+            lablas::mxm(&D, MASK_NULL, lablas::second<int>(),
+                        lablas::PlusMultipliesSemiring<int>(), &C, A, &lablas::GrB_DESC_IKJ);
+            #undef MASK_NULL
+            for (int i = 0; i < D.get_matrix()->get_nrows(); ++i) {
+                slow_ntriangles += D.get_matrix()->get_csr()->get(i, i);
+            }
+            slow_ntriangles /= 6;
+            std::cout << "Found triangles with slow algorithm: " << slow_ntriangles << std::endl;
+            std::cout << "Error count: "
+                      << (slow_ntriangles > ntriangles ? slow_ntriangles - ntriangles : ntriangles - slow_ntriangles)
+                      << std::endl;
+        }
     }
     catch (string& error)
     {
