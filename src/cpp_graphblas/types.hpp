@@ -20,13 +20,13 @@
                     GrB_NDESCFIELD,
                     GrB_MXMMODE};
 
-    enum Desc_value {GrB_SCMP = 0,
-                    GrB_REPLACE = 1, // for GrB_OUTP
-                    GrB_COMP = 2, // for GrB_MASK
-                    GrB_TRAN = 3, // for GrB_INP0, GrB_INP1
+    enum Desc_value {GrB_SCMP,               // for GrB_MASK
+                    GrB_REPLACE,            // for GrB_OUTP
+                    GrB_TRAN,               // for GrB_INP0, GrB_INP1
+                    GrB_DEFAULT,
                     GrB_STRUCTURE = 4, // for GrB_MASK
-                    GrB_STR_COMP = 5, // for GrB_MASK, combination
-                    GrB_DEFAULT = 6,
+                    GrB_STR_COMP = 5,
+                    GrB_COMP,// for GrB_MASK, combination
                     GrB_FIXEDROW,
                     GrB_PUSHPULL   =   10,  // for GrB_MXVMODE
                     GrB_PUSHONLY   =   11,  // for GrB_MXVMODE
