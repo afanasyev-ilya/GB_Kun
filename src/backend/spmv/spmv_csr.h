@@ -11,12 +11,23 @@ template <typename T>
 void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size, int _max_threads_per_socket)
 {
     int tid = omp_get_thread_num() % _max_threads_per_socket; // should it be thread id?
-    VNT work_per_thread = (_size - 1) / _max_threads_per_socket + 1;
 
-    for(VNT i = min(_size, tid*work_per_thread); i < min(_size, (tid + 1)*work_per_thread); i++)
+    #ifdef __NUMA_SPMV_LARGE_SEGMENTS__
+    VNT work_per_thread = (_size - 1) / _max_threads_per_socket + 1;
+    for(VNT i = tid*work_per_thread; i < min(_size, (tid + 1)*work_per_thread); i++)
     {
         _local_data[i] = _shared_data[i];
     }
+    #else
+    for(VNT st = tid * 256; st < _size; st += 256)
+    {
+        for(int i = 0; i < 256; i++)
+            if((st + i) < _size)
+                _local_data[st + i] = _shared_data[st + i];
+    }
+    #endif
+
+    #pragma omp barrier
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,8 +74,7 @@ void SpMV_numa_aware(const MatrixCSR<A> *_matrix,
 
         X *local_x_vals = 0;
         const int total_threads = omp_get_num_threads();
-        //if(total_threads == max_threads_per_socket*2) // if 96 or 128 threads
-        if(true)
+        if(total_threads == max_threads_per_socket*2) // if 96 or 128 threads
         {
             if(socket == 0) // we use in socket copy, which works only on max_threads_per_socket threads
             {
