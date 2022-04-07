@@ -10,13 +10,24 @@ namespace backend {
 template <typename T>
 void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size, int _max_threads_per_socket)
 {
-    int tid = omp_get_thread_num() % _max_threads_per_socket;
-    VNT work_per_thread = (_size - 1) / _max_threads_per_socket + 1;
+    int tid = omp_get_thread_num() % _max_threads_per_socket; 
 
-    for(VNT i = min(_size, tid*work_per_thread); i < min(_size, (tid + 1)*work_per_thread); i++)
+    #ifdef __NUMA_SPMV_LARGE_SEGMENTS__
+    VNT work_per_thread = (_size - 1) / _max_threads_per_socket + 1;
+    for(VNT i = tid*work_per_thread; i < min(_size, (tid + 1)*work_per_thread); i++)
     {
         _local_data[i] = _shared_data[i];
     }
+    #else
+    for(VNT st = tid * 256; st < _size; st += 256)
+    {
+        for(int i = 0; i < 256; i++)
+            if((st + i) < _size)
+                _local_data[st + i] = _shared_data[st + i];
+    }
+    #endif
+
+    #pragma omp barrier
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,13 +79,13 @@ void SpMV_numa_aware(const MatrixCSR<A> *_matrix,
             if(socket == 0) // we use in socket copy, which works only on max_threads_per_socket threads
             {
                 local_x_vals = x_vals_first_socket;
-                in_socket_copy(local_x_vals, x_vals, _matrix->nrows, max_threads_per_socket);
             }
             else if(socket == 1)
             {
                 local_x_vals = x_vals_second_socket;
-                in_socket_copy(local_x_vals, x_vals, _matrix->nrows, max_threads_per_socket);
             }
+
+            in_socket_copy(local_x_vals, x_vals, _matrix->nrows, max_threads_per_socket);
         }
         else
         {

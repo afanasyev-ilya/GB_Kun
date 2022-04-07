@@ -55,7 +55,7 @@ int main(int argc, char **argv)
         int num_tests = 3;
         for(int i = 0; i < num_tests; i++)
         {
-            source_vertex = rand() % size;
+            source_vertex = select_non_trivial_vertex(matrix);
             double sssp_time_ms = 0;
             {
                 Timer tm("sssp");

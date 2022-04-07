@@ -5,20 +5,6 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-Index select_non_trivial_vertex(lablas::Matrix<T> &_matrix)
-{
-    Index max_val = min(_matrix.ncols(), _matrix.nrows());
-    Index vertex = 0;
-    srand(time(NULL));
-    do {
-        vertex = rand() %  1000/*max_val*/;
-    } while((_matrix.get_rowdegrees()[vertex] == 0) || (_matrix.get_coldegrees()[vertex] == 0));
-    return vertex;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 int main(int argc, char **argv)
 {
     try
