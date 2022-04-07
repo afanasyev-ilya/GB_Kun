@@ -50,7 +50,6 @@ public:
 
     void resize(VNT _nrows, VNT _ncols, ENT _nnz);
     void numa_aware_realloc();
-    void numa_aware_realloc_row_imported(VNT* row_ptr);
 
     bool is_symmetric();
     void to_symmetric();

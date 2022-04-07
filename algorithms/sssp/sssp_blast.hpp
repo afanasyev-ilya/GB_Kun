@@ -27,7 +27,9 @@ void sssp_bellman_ford_blast(Vector<float> *v,
     {
         f1.fill(std::numeric_limits<float>::max());
         f1.set_element(0.f, s);
-    } else {
+    }
+    else
+    {
         /*std::vector<Index> indices(1, s); // TODO
         std::vector<float>  values(1, 0.f);
         f1.build(&indices, &values, 1, GrB_NULL);*/
