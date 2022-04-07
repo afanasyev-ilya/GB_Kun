@@ -10,7 +10,7 @@ namespace backend {
 template <typename T>
 void in_socket_copy(T* _local_data, const T *_shared_data, VNT _size, int _max_threads_per_socket)
 {
-    int tid = omp_get_thread_num() % _max_threads_per_socket; // should it be thread id?
+    int tid = omp_get_thread_num() % _max_threads_per_socket; 
 
     #ifdef __NUMA_SPMV_LARGE_SEGMENTS__
     VNT work_per_thread = (_size - 1) / _max_threads_per_socket + 1;
