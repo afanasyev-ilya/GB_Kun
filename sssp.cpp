@@ -1,7 +1,34 @@
 #include "src/gb_kun.h"
 
 #include "algorithms/sssp/sssp.hpp"
+#include "algorithms/sssp/sssp_blast.hpp"
 #include "algorithms/sssp/sssp_traditional.hpp"
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+Index number_of_unvisited_vertices(lablas::Vector<T> &_distances)
+{
+    Index result = 0;
+    for (auto & e : _distances)
+    {
+        if(e < std::numeric_limits<T>::max())
+           result++;
+    }
+    return result;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void print_visited_stats(lablas::Vector<T> &_distances)
+{
+    Index visited = number_of_unvisited_vertices(_distances);
+    Index total = _distances.size();
+    std::cout << "number of visited vertices: " << visited << " / " << total << std::endl << std::endl;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char **argv)
 {
@@ -24,12 +51,19 @@ int main(int argc, char **argv)
 
         Index source_vertex = 0;
 
+        lablas::Descriptor desc;
         int num_tests = 3;
         for(int i = 0; i < num_tests; i++)
         {
-            source_vertex = rand() % size;
-            cout << "starting from source: " << source_vertex << endl;
-            SAVE_TEPS((lablas::algorithm::sssp_bf_gbkun(&distances, graph.A, source_vertex)), "sssp", 1, &matrix);
+            source_vertex = select_non_trivial_vertex(matrix);
+            double sssp_time_ms = 0;
+            {
+                Timer tm("sssp");
+                lablas::algorithm::sssp_bellman_ford_blast(&distances, graph.A, source_vertex, &desc);
+                sssp_time_ms = tm.get_time_ms();
+            }
+            save_teps("sssp", sssp_time_ms, matrix.get_nnz(), 1);
+            print_visited_stats(distances);
         }
 
         if(parser.check())
@@ -41,10 +75,12 @@ int main(int argc, char **argv)
 
             if(distances == check_distances)
             {
+                print_diff(distances, check_distances);
                 cout << "SSSP distances are equal" << endl;
             }
             else
             {
+                print_diff(distances, check_distances);
                 cout << "SSSP distances are NOT equal" << endl;
             }
         }
@@ -59,3 +95,6 @@ int main(int argc, char **argv)
     }
     return 0;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+

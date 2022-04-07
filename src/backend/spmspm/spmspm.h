@@ -195,7 +195,7 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 
     auto row_ptr = new ENT[n + 1];
 
-    ParallelPrimitives::exclusive_scan(row_nnz, row_ptr, n, row_ptr, 0);
+    ParallelPrimitives::exclusive_scan(row_nnz, row_ptr, n);
 
     auto col_ids = new VNT[nnz];
     auto vals = new T[nnz];

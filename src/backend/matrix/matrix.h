@@ -165,6 +165,13 @@ public:
 
     void transpose_sequential(void);
     void transpose_parallel(void);
+
+    [[nodiscard]] bool is_symmetric() const {
+        //return (*csr_data == *csc_data);
+        return csr_data->is_symmetric();
+    }
+
+    void to_symmetric() { csr_data->to_symmetric(); csc_data->deep_copy(csr_data); };
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
@@ -184,6 +191,10 @@ private:
                                         vector<vector<pair<VNT, T>>> &_csr_matrix,
                                         vector<vector<pair<VNT, T>>> &_csc_matrix);
 
+    void read_mtx_file_sequential(const string &_mtx_file_name,
+                                  vector<vector<pair<VNT, T>>> &_csr_matrix,
+                                  vector<vector<pair<VNT, T>>> &_csc_matrix);
+
     void init_optimized_structures();
 };
 
@@ -192,6 +203,7 @@ private:
 #include "matrix.hpp"
 #include "transpose.hpp"
 #include "build.hpp"
+#include "read_file.hpp"
 
 }
 }

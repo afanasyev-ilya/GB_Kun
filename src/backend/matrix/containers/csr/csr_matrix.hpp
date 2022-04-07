@@ -1,3 +1,5 @@
+//#define USE_UNORDERED
+#define USE_ORDERED
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -142,10 +144,10 @@ void MatrixCSR<T>::print() const
     cout << "col_ids: [ ";
     for (int i = 0; i < nrows; ++i) {
         for (int j = row_ptr[i]; j < row_ptr[i + 1]; ++j) {
-            std::cout << col_ids[j] << " ";
+            cout << col_ids[j] << " ";
         }
         if (i + 1 != nrows) {
-            std::cout << "| ";
+            cout << "| ";
         }
     }
     cout << "]\n";
@@ -153,10 +155,10 @@ void MatrixCSR<T>::print() const
     cout << "vals: [ ";
     for (int i = 0; i < nrows; ++i) {
         for (int j = row_ptr[i]; j < row_ptr[i + 1]; ++j) {
-            std::cout << vals[j] << " ";
+            cout << vals[j] << " ";
         }
         if (i + 1 != nrows) {
-            std::cout << "| ";
+            cout << "| ";
         }
     }
     cout << "]\n";
@@ -182,6 +184,69 @@ const vector<pair<VNT, VNT>> & MatrixCSR<T>::get_load_balancing_offsets() const
 
     }
     return load_balancing_offsets;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+bool operator == (const MatrixCSR<T> &c1, const MatrixCSR<T> &c2) {
+    auto nrows1 = c1.get_num_rows();  auto nrows2 = c2.get_num_rows();
+    if (nrows1 != nrows2) {
+        return false;
+    }
+
+    auto ncols1 = c1.get_num_cols();  auto ncols2 = c2.get_num_cols();
+    if (ncols1 != ncols2) {
+        return false;
+    }
+
+    auto nvals1 = c1.get_nnz();  auto nvals2 = c2.get_nnz();
+    if (nvals1 != nvals2) {
+        return false;
+    }
+
+    auto row1 = c1.get_row_ptr(); auto row2 = c2.get_row_ptr();
+    auto col1 = c1.get_col_ids(); auto col2 = c2.get_col_ids();
+    auto val1 = c1.get_vals(); auto val2 = c2.get_vals();
+
+    VNT incorrect_rows = 0;
+    VNT incorrect_by_size = 0;
+    VNT incorrect_by_content = 0;
+    bool result = true;
+    for (VNT i = 0; i < nrows1 + 1; i++) {
+        if (row1[i] != row2[i]) {
+            result = false;
+            incorrect_rows++;
+            incorrect_by_size++;
+            //return false;
+        }
+        #ifdef USE_UNORDERED
+        unordered_set<VNT> set_1;
+        unordered_set<VNT> set_2;
+        #endif
+        #ifdef USE_ORDERED
+        set<VNT> set_1;
+        set<VNT> set_2;
+        #endif
+        if (i != nrows1) {
+            for (VNT j = row1[i]; j < row1[i + 1]; j++) {
+                set_1.insert(col1[j]);
+            }
+            for (VNT j = row2[i]; j < row2[i + 1]; j++) {
+                set_2.insert(col2[j]);
+            }
+            if (set_1 != set_2) {
+                result = false;
+                incorrect_rows++;
+                incorrect_by_content++;
+                //return false;
+            }
+        }
+    }
+    std::cout << "number of incorrect rows: " << incorrect_rows << "/" << nrows1 << std::endl;
+    std::cout << "incorrect by size: " << incorrect_by_size << "/" << incorrect_rows << std::endl;
+    std::cout << "incorrect by content: " << incorrect_by_content << "/" << incorrect_rows << std::endl;
+    return result;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

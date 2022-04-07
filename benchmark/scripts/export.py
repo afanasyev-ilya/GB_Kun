@@ -48,7 +48,7 @@ class BenchmarkingResults:
 
         # make columns wider
         iter = 0
-        while iter < 3:
+        while iter < 10:
             self.worksheet.set_column(0 + iter * XLSX_DATA_SHIFT, 0 + iter * XLSX_DATA_SHIFT, app_name_column_size)
             self.worksheet.set_column(1 + iter * XLSX_DATA_SHIFT, 1 + iter * XLSX_DATA_SHIFT, graph_name_column_size)
             self.worksheet.set_column(2 + iter * XLSX_DATA_SHIFT, 4 + iter * XLSX_DATA_SHIFT, data_column_size)

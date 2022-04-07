@@ -49,6 +49,10 @@ public:
     const vector<pair<VNT, VNT>> &get_load_balancing_offsets() const;
 
     void resize(VNT _nrows, VNT _ncols, ENT _nnz);
+    void numa_aware_realloc();
+
+    bool is_symmetric();
+    void to_symmetric();
 private:
     VNT nrows, ncols;
     ENT nnz;
@@ -58,7 +62,12 @@ private:
     VNT *col_ids;
     VNT *row_degrees;
 
+    /* Vector of number_of_running_threads size
+     * for i-th thread [i].first element means the beginning row to process
+     * [i]. second means the first row not to be processed by i-th thread (right-non-inclusive intervals) */
     mutable vector<pair<VNT, VNT>> load_balancing_offsets;
+
+    /* If load_balancing_offsets vector contains balanced offsets */
     mutable bool load_balancing_offsets_set;
 
     int target_socket;
@@ -159,12 +168,39 @@ private:
                                          Descriptor *_desc,
                                          Workspace *_workspace);
 
-    void numa_aware_realloc();
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void spmspv_unmasked_critical_map(const MatrixCSR<A> *_matrix,
+                                             const SparseVector<X> *_x,
+                                             SparseVector<Y> *_y,
+                                             BinaryOpTAccum _accum,
+                                             SemiringT _op,
+                                             Descriptor *_desc,
+                                             Workspace *_workspace);
+
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void SpMV_all_active_diff_vectors_tbb(const MatrixCSR<A> *_matrix,
+                                                 const DenseVector<X> *_x,
+                                                 DenseVector<Y> *_y,
+                                                 BinaryOpTAccum _accum,
+                                                 SemiringT op,
+                                                 Descriptor *_desc,
+                                                 Workspace *_workspace);
+
+    template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
+    friend void spmspv_unmasked_or_map(const MatrixCSR<A> *_matrix,
+                                       const SparseVector<X> *_x,
+                                       SparseVector<Y> *_y,
+                                       BinaryOpTAccum _accum,
+                                       SemiringT _op,
+                                       Descriptor *_desc,
+                                       Workspace *_workspace);
+
     void calculate_degrees();
 };
 
 #include "csr_matrix.hpp"
 #include "build.hpp"
+#include "symmetric.hpp"
 
 }
 }

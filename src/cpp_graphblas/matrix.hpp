@@ -125,6 +125,12 @@ public:
     {
         _matrix.sort_csc_rows(mode);
     }
+
+    bool is_symmetric() const {
+        return _matrix.is_symmetric();
+    }
+
+    void to_symmetric() { _matrix.to_symmetric(); };
 private:
     backend::Matrix<T> _matrix;
 };

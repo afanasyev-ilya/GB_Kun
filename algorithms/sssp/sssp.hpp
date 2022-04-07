@@ -11,9 +11,9 @@ namespace algorithm {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void sssp_bf_GBTL(Vector<T> *_distances,
-                  const Matrix <T> *_matrix,
-                  Index _source)
+void sssp_bellman_ford_GBTL(Vector<T> *_distances,
+                            const Matrix <T> *_matrix,
+                            Index _source)
 {
     lablas::Descriptor desc;
 
@@ -29,9 +29,9 @@ void sssp_bf_GBTL(Vector<T> *_distances,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void sssp_bf_gbkun(Vector<T> *_distances,
-                   Matrix <T> *_matrix,
-                   Index _source)
+void sssp_bellman_ford_gbkun(Vector<T> *_distances,
+                             Matrix <T> *_matrix,
+                             Index _source)
 {
     lablas::Descriptor desc;
 
@@ -51,6 +51,7 @@ void sssp_bf_gbkun(Vector<T> *_distances,
 
         T succ = 0;
         reduce<T, T>(&succ, second<T>(), PlusMonoid<T>(), &mask, &desc);
+        std::cout << "succ " << succ << endl;
 
         if((succ == 0) || (k >= (_matrix->nrows() - 1)))
         {
@@ -61,6 +62,7 @@ void sssp_bf_gbkun(Vector<T> *_distances,
         _distances->swap(&new_distances);
     }
 }
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

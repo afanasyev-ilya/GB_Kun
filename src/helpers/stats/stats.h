@@ -7,6 +7,14 @@
 #include <omp.h>
 #include <unistd.h>
 
+
+#ifdef __USE_KUNPENG__
+const int numCPU = sysconf(_SC_NPROCESSORS_ONLN);
+#else
+const int numCPU = 1;
+#endif
+
+
 #ifdef __DEBUG_INFO__
 #define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, matrix)       \
 GrB_Index my_nvals = 0;                                                                 \
@@ -78,14 +86,14 @@ my_f = fopen("perf_stats.txt", "a");                                            
 fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
 fclose(my_f);                                                                           \
 
-void save_teps(const char *_op_name, double _time, size_t _nvals, int _iterations = 1)
+void save_teps(const char *_op_name, double _time /*in ms*/, size_t _nvals, int _iterations = 1)
 {
-    double my_time = _time*1000;
-    double my_perf = _iterations*(_nvals / (_time*1e6));
+    double my_time = _time;
+    double my_perf = _iterations*(_nvals / (_time*1e3)); // 1e3 instead of 1e6 since time in ms
     double my_bw = 0;
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
-    fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %lld\n", _op_name, my_time, my_perf, my_bw, _nvals);
+    fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %ld\n", _op_name, my_time, my_perf, my_bw, _nvals);
     fclose(my_f);
 }
 
@@ -98,7 +106,7 @@ void save_time_in_ms(const char *_op_name, double _time)
     size_t my_nvals = 0;
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
-    fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", _op_name, my_time, my_perf, my_bw, my_nvals);
+    fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", _op_name, my_time, my_perf, my_bw, my_nvals);
     fclose(my_f);
 }
 
@@ -111,7 +119,7 @@ void save_time_in_sec(const char *_op_name, double _time)
     size_t my_nvals = 0;
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
-    fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", _op_name, my_time, my_perf, my_bw, my_nvals);
+    fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", _op_name, my_time, my_perf, my_bw, my_nvals);
     fclose(my_f);
 }
 

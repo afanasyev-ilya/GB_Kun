@@ -9,15 +9,15 @@ namespace algorithm {
 // Code is based on the algorithm described in the following paper.
 // Zhang, Azad, Hu. FastSV: FastSV: A Distributed-Memory Connected Component
 // Algorithm with Fast Convergence (SIAM PP20).
-float cc(Vector<int>*       v,
-         const Matrix<int>* A,
-         int                seed,
-         Descriptor*        desc) {
+void cc(Vector<int>*       v,
+        const Matrix<int> *A,
+        int seed,
+        Descriptor *desc)
+{
     Index A_nrows;
     A->get_nrows(&A_nrows);
     // Difference vector.
     Vector<bool> diff(A_nrows);
-
 
     // Parent vector.
     // f in Zhang paper.
@@ -47,10 +47,10 @@ float cc(Vector<int>*       v,
     grandparent_temp.dup(&parent);
 //    grandparent_temp.print();
 
-    int iter = 1;
-    int succ = 0;
+    Index succ = 0;
     float gpu_tight_time = 0.f;
-    int niter = 30;
+    Index niter = 100;
+    Index iter = 0;
 
     for (iter = 1; iter <= niter; ++iter) {
         // Duplicate parent.
@@ -58,52 +58,51 @@ float cc(Vector<int>*       v,
 
         // 1) Stochastic hooking.
         // mngf[u] = A x gf
-        mxv(&min_neighbor_parent_temp, MASK_NULL, second<int>(),
-                                MinimumSelectSecondSemiring<int>(), A, &grandparent, desc);
+        mxv(&min_neighbor_parent_temp, MASK_NULL, GrB_NULL,
+            MinimumSelectSecondSemiring<int>(), A, &grandparent, desc);
 
         //cout << "min_neighbor_parent_temp: ";
         //min_neighbor_parent_temp.print();
 
         eWiseAdd(&min_neighbor_parent, MASK_NULL, GrB_NULL,
-                                      minimum<int>(), &min_neighbor_parent,
-                                      &min_neighbor_parent_temp, desc);
+                 MinimumSelectSecondSemiring<int>(), &min_neighbor_parent, &min_neighbor_parent_temp, desc);
 
         //cout << "min_neighbor_paren: ";
         //min_neighbor_parent.print();
 
         // f[f[u]] = mngf[u]. Second does nothing (imitating comma operator)
-        assignScatter(&parent, MASK_NULL, second<int>(),
-                                           &min_neighbor_parent, &parent_temp, parent_temp.nvals(), desc);
+        assignScatter(&parent, MASK_NULL, GrB_NULL,
+                      &min_neighbor_parent, &parent_temp, parent_temp.nvals(), desc);
 
         //cout << "after assign: ";
         //parent.print();
 
         // 2) Aggressive hooking.
         // f = min(f, mngf)
-        eWiseAdd(&parent, MASK_NULL, GrB_NULL,minimum<int>(), &parent, &min_neighbor_parent, desc);
+        eWiseAdd(&parent, MASK_NULL, GrB_NULL,MinimumPlusSemiring<int>(), &parent, &min_neighbor_parent, desc);
 
         //cout << "after hooking: ";
         //parent.print();
 
         // 3) Shortcutting.
         // f = min(f, gf)
-        eWiseAdd(&parent, MASK_NULL, GrB_NULL, minimum<int>(), &parent, &parent_temp, desc);
+        eWiseAdd(&parent, MASK_NULL, GrB_NULL, MinimumPlusSemiring<int>(), &parent, &parent_temp, desc);
 
         // 4) Calculate grandparents.
         // gf[u] = f[f[u]]
-        extract(&grandparent, MASK_NULL, second<int>(), &parent, &parent, desc);
+        extract(&grandparent, MASK_NULL, GrB_NULL, &parent, &parent, desc);
 
         // 5) Check termination.
         eWiseMult(&diff, MASK_NULL, GrB_NULL,
-                  lablas::not_equal_to<int>(), &grandparent_temp, &grandparent, desc);
-        reduce<int, bool>(&succ, second<int>(), PlusMonoid<int>(), &diff, desc);
+                  MinimumNotEqualToSemiring<int, int, bool>(), &grandparent_temp, &grandparent, desc);
+        reduce<Index, bool>(&succ, GrB_NULL, PlusMonoid<Index>(), &diff, desc);
         #ifdef __DEBUG_INFO__
         cout << "succ: " << succ << endl;
         #endif
-        /*if (succ == 0)
+        if (succ == 0)
         {
             break;
-        }*/
+        }
         grandparent_temp.dup(&grandparent);
 
         // 6) Similar to BFS and SSSP, we should filter out the unproductive
@@ -116,8 +115,7 @@ float cc(Vector<int>*       v,
         desc->get(GrB_MASK, &a);
     }
     v->dup(&parent);
-
-    return 0.f;
+    std::cout << "Did " << iter <<  " iterations" << std::endl;
 }
 
 }  // namespace algorithm
