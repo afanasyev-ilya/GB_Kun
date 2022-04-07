@@ -16,33 +16,29 @@ namespace backend{
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
-static LA_Info select(Vector<W> *w,
-               const DenseVector<M> *mask,
-               BinaryOpT accum,
-               SelectOpT op,
-               const DenseVector<U> *u,
-               const T val,
-               Descriptor *desc)
+static LA_Info select(DenseVector<W> *w,
+                      const DenseVector<M> *mask,
+                      BinaryOpT accum,
+                      SelectOpT op,
+                      const DenseVector<U> *u,
+                      const T val,
+                      const bool inverse,
+                      const bool replace)
 {
-    W* w_vals = w->getDense()->get_vals();
-    const U* u_vals = u->get_vals();
-
-    Desc_value mask_field, mask_output;
-    desc->get(GrB_MASK, &mask_field);
-    desc->get(GrB_OUTPUT, &mask_output);
-    bool inverse = (mask_field == GrB_COMP);
+          W* w_vals    = w->get_vals();
+    const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
 
     #pragma omp parallel for
     for (Index i = 0; i < w->get_size(); ++i)
     {   
-        if (mask_vals[i] ^ inverse)
+        if (mask_vals[i] ^ inverse) 
         {
             w_vals[i] = accum(w_vals[i], op(u_vals[i], i, 0, val));
         }
         else
         {
-            if (mask_output == GrB_REPLACE)
+            if (replace)
             {
                 w_vals[i] = 0;
             }
@@ -55,35 +51,33 @@ static LA_Info select(Vector<W> *w,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
-static LA_Info select(Vector<W> *w,
-               const DenseVector<M> *mask,
-               BinaryOpT accum,
-               SelectOpT op,
-               const SparseVector<U> *u,
-               const T val,
-               Descriptor *desc)
+static LA_Info select(DenseVector<W> *w,
+                      const DenseVector<M> *mask,
+                      BinaryOpT accum,
+                      SelectOpT op,
+                      const SparseVector<U> *u,
+                      const T val,
+                      const bool inverse,
+                      const bool replace)
 {
-    W* w_vals = w->getDense()->get_vals();
-    const U* u_vals = u->get_vals();
-    const Index* u_indicies = u->get_ids();
+          W* w_vals    = w->get_vals();
+    const U* u_vals    = u->get_vals();
+    const M* mask_vals = mask->get_vals();
 
+    // Building sparse U vector mapping <index | value> for O(log(n)) indexation instead of O(n)
+    const Index* u_indicies = u->get_ids();
     std::map<Index, U> u_sparse_tree;
     for (Index i = 0; i < u->get_nvals(); ++i)
     {
         u_sparse_tree[u_indicies[i]] = u_vals[i];
-    } 
-
-    Desc_value mask_field, mask_output;
-    desc->get(GrB_MASK, &mask_field);
-    desc->get(GrB_OUTPUT, &mask_output);
-    bool inverse = (mask_field == GrB_COMP);
-    const M* mask_vals = mask->get_vals();
+    }
 
     #pragma omp parallel for
     for (Index i = 0; i < w->get_size(); ++i)
     {
         if (mask_vals[i] ^ inverse)
         {
+            // Searching for index in U vector
             auto match = u_sparse_tree.find(i);
             if (match != u_sparse_tree.end())
             {
@@ -96,7 +90,7 @@ static LA_Info select(Vector<W> *w,
         }
         else
         {
-            if (mask_output == GrB_REPLACE)
+            if (replace)
             {
                 w_vals[i] = 0;
             }
@@ -109,33 +103,31 @@ static LA_Info select(Vector<W> *w,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
-static LA_Info select(Vector<W> *w,
-               const SparseVector<M> *mask,
-               BinaryOpT accum,
-               SelectOpT op,
-               const DenseVector<U> *u,
-               const T val,
-               Descriptor *desc)
+static LA_Info select(DenseVector<W> *w,
+                      const SparseVector<M> *mask,
+                      BinaryOpT accum,
+                      SelectOpT op,
+                      const DenseVector<U> *u,
+                      const T val,
+                      const bool inverse,
+                      const bool replace)
 {
-    W* w_vals = w->getDense()->get_vals();
-    const U* u_vals = u->get_vals();
-
-    Desc_value mask_field, mask_output;
-    desc->get(GrB_MASK, &mask_field);
-    desc->get(GrB_OUTPUT, &mask_output);
-    bool inverse = (mask_field == GrB_COMP);
-
+          W* w_vals    = w->get_vals();
+    const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
+
+    // Building sparse mask vector mapping <index | value> for O(log(n)) indexation instead of O(n)
     const Index* mask_indicies = mask->get_ids();
-    
     std::map<Index, M> mask_sparse_tree;
-    for (Index i = 0; i < mask->get_nvals(); ++i) {
+    for (Index i = 0; i < mask->get_nvals(); ++i)
+    {
         mask_sparse_tree[mask_indicies[i]] = mask_vals[i];
     }
 
     #pragma omp parallel for
     for (Index i = 0; i < w->get_size(); ++i)
     {
+        // Searching for index in mask vector
         auto match = mask_sparse_tree.find(i);
         if (match != mask_sparse_tree.end())
         {
@@ -145,7 +137,7 @@ static LA_Info select(Vector<W> *w,
             }
             else
             {
-                if (mask_output == GrB_REPLACE)
+                if (replace)
                 {
                     w_vals[i] = 0;
                 }
@@ -159,7 +151,7 @@ static LA_Info select(Vector<W> *w,
             }
             else
             {
-                if (mask_output == GrB_REPLACE)
+                if (replace)
                 {
                     w_vals[i] = 0;
                 }
@@ -173,44 +165,45 @@ static LA_Info select(Vector<W> *w,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
-static LA_Info select(Vector<W> *w,
-               const SparseVector<M> *mask,
-               BinaryOpT accum,
-               SelectOpT op,
-               const SparseVector<U> *u,
-               const T val,
-               Descriptor *desc)
+static LA_Info select(DenseVector<W> *w,
+                      const SparseVector<M> *mask,
+                      BinaryOpT accum,
+                      SelectOpT op,
+                      const SparseVector<U> *u,
+                      const T val,
+                      const bool inverse,
+                      const bool replace)
 {
-    W* w_vals = w->getDense()->get_vals();
-    const U* u_vals = u->get_vals();
-    const Index* u_indicies = u->get_ids();
+          W* w_vals    = w->get_vals();
+    const U* u_vals    = u->get_vals();
+    const M* mask_vals = mask->get_vals();
 
+    // Building sparse U vector mapping <index | value> for O(log(n)) indexation instead of O(n)
+    const Index* u_indicies = u->get_ids();
     std::map<Index, U> u_sparse_tree;
-    for (Index i = 0; i < u->get_nvals(); ++i) {
+    for (Index i = 0; i < u->get_nvals(); ++i)
+    {
         u_sparse_tree[u_indicies[i]] = u_vals[i];
     }
 
-    Desc_value mask_field, mask_output;
-    desc->get(GrB_MASK, &mask_field);
-    desc->get(GrB_OUTPUT, &mask_output);
-    bool inverse = (mask_field == GrB_COMP);
-
-    const M* mask_vals = mask->get_vals();
+    // Building sparse mask vector mapping <index | value> for O(log(n)) indexation instead of O(n)
     const Index* mask_indicies = mask->get_ids();
-    
     std::map<Index, M> mask_sparse_tree;
-    for (Index i = 0; i < mask->get_nvals(); ++i) {
+    for (Index i = 0; i < mask->get_nvals(); ++i)
+    {
         mask_sparse_tree[mask_indicies[i]] = mask_vals[i];
     }
 
     #pragma omp parallel for
     for (Index i = 0; i < w->get_size(); ++i)
     {
+        // Seaching for index in mask
         auto mask_match = mask_sparse_tree.find(i);
         if (mask_match != mask_sparse_tree.end())
         {
             if (mask_sparse_tree[i] ^ inverse)
             {
+                // Searching for index in U
                 auto u_match = u_sparse_tree.find(i);
                 if (u_match != u_sparse_tree.end())
                 {
@@ -223,7 +216,7 @@ static LA_Info select(Vector<W> *w,
             }
             else
             {
-                if (mask_output == GrB_REPLACE)
+                if (replace)
                 {
                     w_vals[i] = 0;
                 }
@@ -233,6 +226,7 @@ static LA_Info select(Vector<W> *w,
         {
             if (0 ^ inverse)
             {
+                // Searching for index in U
                 auto u_match = u_sparse_tree.find(i);
                 if (u_match != u_sparse_tree.end())
                 {
@@ -244,8 +238,12 @@ static LA_Info select(Vector<W> *w,
                 }
             }
             else
-                if (mask_output == GrB_REPLACE)
+            {
+                if (replace)
+                {
                     w_vals[i] = 0;
+                }
+            }
         }
     }
 
@@ -255,13 +253,13 @@ static LA_Info select(Vector<W> *w,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename U, typename T, typename BinaryOpT, typename SelectOpT>
-static LA_Info select(Vector<W> *w,
-               BinaryOpT accum,
-               SelectOpT op,
-               const DenseVector<U> *u,
-               const T val)
+static LA_Info select(DenseVector<W> *w,
+                      BinaryOpT accum,
+                      SelectOpT op,
+                      const DenseVector<U> *u,
+                      const T val)
 {
-    W* w_vals = w->getDense()->get_vals();
+          W* w_vals = w->get_vals();
     const U* u_vals = u->get_vals();
 
     #pragma omp parallel for
@@ -276,24 +274,27 @@ static LA_Info select(Vector<W> *w,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename U, typename T, typename BinaryOpT, typename SelectOpT>
-static LA_Info select(Vector<W> *w,
-               BinaryOpT accum,
-               SelectOpT op,
-               const SparseVector<U> *u,
-               const T val)
+static LA_Info select(DenseVector<W> *w,
+                      BinaryOpT accum,
+                      SelectOpT op,
+                      const SparseVector<U> *u,
+                      const T val)
 {
-    W* w_vals = w->getDense()->get_vals();
+          W* w_vals = w->get_vals();
     const U* u_vals = u->get_vals();
-    const Index* u_indicies = u->get_ids();
 
+    // Building sparse U vector mapping <index | value> for O(log(n)) indexation instead of O(n)
+    const Index* u_indicies = u->get_ids();
     std::map<Index, U> u_sparse_tree;
-    for (Index i = 0; i < u->get_nvals(); ++i) {
+    for (Index i = 0; i < u->get_nvals(); ++i) 
+    {
         u_sparse_tree[u_indicies[i]] = u_vals[i];
     }
 
     #pragma omp parallel for
     for (Index i = 0; i < w->get_size(); ++i)
     {
+        // Searching for index in U
         auto match = u_sparse_tree.find(i);
         if (match != u_sparse_tree.end())
         {
@@ -310,6 +311,12 @@ static LA_Info select(Vector<W> *w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*!
+ * Backend select operation wrapper
+ * Chooses the necessary variant of the select function depending on the types of input vectors
+ * Inout vector W is always converted to Dense due to the unpredictability of the result of the operator 'op' on zero values
+ * Mask and u vectors types can vary
+ */
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
 LA_Info select(Vector<W> *w,
                const Vector<M> *mask,
@@ -321,24 +328,37 @@ LA_Info select(Vector<W> *w,
 {
     if (mask != NULL)
     {
+        // Getting mask properties
+        Desc_value mask_field, mask_output;
+
+        desc->get(GrB_MASK, &mask_field);
+        desc->get(GrB_OUTPUT, &mask_output);
+
+        bool inverse = (mask_field == GrB_COMP);
+        bool replace = (mask_output == GrB_REPLACE);
+
         if (mask->is_dense())
         {
             if (u->is_dense())
-                return select(w, mask->getDense(), accum, op, u->getDense(), val, desc);
-
-            return select(w, mask->getDense(), accum, op, u->getSparse(), val, desc);
+                return select(w->getDense(), mask->getDense(), accum, op, u->getDense(), val, inverse, replace);
+            else
+                return select(w->getDense(), mask->getDense(), accum, op, u->getSparse(), val, inverse, replace);
         }
-            
-        if (u->is_dense())
-            return select(w, mask->getSparse(), accum, op, u->getDense(), val, desc);
-        
-        return select(w, mask->getSparse(), accum, op, u->getSparse(), val, desc);
+        else
+        {   
+            if (u->is_dense())
+                return select(w->getDense(), mask->getSparse(), accum, op, u->getDense(), val, inverse, replace);
+            else
+                return select(w->getDense(), mask->getSparse(), accum, op, u->getSparse(), val, inverse, replace);
+        }
     }
-
-    if (u->is_dense())
-        return select(w, accum, op, u->getDense(), val);
-
-    return select(w, accum, op, u->getSparse(), val);
+    else
+    {
+        if (u->is_dense())
+            return select(w->getDense(), accum, op, u->getDense(), val);
+        else
+            return select(w->getDense(), accum, op, u->getSparse(), val);
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

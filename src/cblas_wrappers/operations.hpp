@@ -322,14 +322,26 @@ LA_Info GrB_Vector_clear(lablas::Vector<T>* _vec)
 
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
 LA_Info GrB_select(lablas::Vector<W> *w,
-               const lablas::Vector<M> *mask,
-               BinaryOpT accum,
-               SelectOpT op,
-               const lablas::Vector<U> *u,
-               const T val,
-               lablas::Descriptor *desc)
+                   const lablas::Vector<M> *mask,
+                   BinaryOpT accum,
+                   SelectOpT op,
+                   const lablas::Vector<U> *u,
+                   const T val,
+                   lablas::Descriptor *desc)
 {
-    return lablas::select(w->get_vector(), mask->get_vector(), accum, op, u->get_vector(), val, desc);
+    return lablas::select(w, mask, accum, op, u, val, desc);
+}
+
+template <typename W, typename M, typename U, typename T, typename SelectOpT>
+LA_Info GrB_select(lablas::Vector<W> *w,
+                   const lablas::Vector<M> *mask,
+                   NULL_TYPE accum,
+                   SelectOpT op,
+                   const lablas::Vector<U> *u,
+                   const T val,
+                   lablas::Descriptor *desc)
+{
+    return lablas::select(w, mask, lablas::second<W, T>(), op, u, val, desc);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
