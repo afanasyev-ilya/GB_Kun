@@ -9,7 +9,7 @@ void MatrixLAV<T>::construct_unsorted_csr(vector<vector<VNT>> &_tmp_col_ids,
     ENT local_size = _tmp_col_ids.size();
     VNT zero_rows = 0;
     ENT local_nnz = 0;
-    //#pragma omp parallel for reduction(+: local_nnz)
+    #pragma omp parallel for reduction(+: local_nnz)
     for(VNT i = 0; i < local_size; i++)
     {
         local_nnz += _tmp_col_ids[i].size();

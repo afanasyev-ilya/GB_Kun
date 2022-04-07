@@ -3,7 +3,10 @@
 #include "algorithms/bfs/bfs.hpp"
 #include "algorithms/bfs/bfs_traditional.hpp"
 
-int main(int argc, char **argv) {
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int main(int argc, char **argv)
+{
     try
     {
         Parser parser;
@@ -11,52 +14,56 @@ int main(int argc, char **argv) {
         VNT scale = parser.get_scale();
         VNT avg_deg = parser.get_avg_degree();
 
-
         lablas::Descriptor desc;
 
-        lablas::Matrix<int> matrix;
+        lablas::Matrix<float> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
         init_matrix(matrix, parser);
 
         Index nrows;
         matrix.get_nrows(&nrows);
-        Index source_vertex = rand() % nrows;
+        Index source_vertex = 0;
 
-        lablas::Vector<int> *parents = NULL, *levels = NULL;
+        lablas::Vector<float> levels(nrows);
 
-        LAGraph_Graph<int> graph(matrix);
-
-        SAVE_TEPS(GraphBlast_BFS(&levels, &graph, source_vertex),
-                   "BFS", 1,(graph.AT));
+        for(int run = 0; run < parser.get_iterations(); run++)
+        {
+            source_vertex = select_non_trivial_vertex(matrix);
+            double bfs_time_ms = 0;
+            {
+                Timer tm("bfs");
+                lablas::algorithm::bfs_blast(&levels, &matrix, source_vertex, &desc);
+                bfs_time_ms = tm.get_time_ms();
+            }
+            save_teps("BFS_chrono", bfs_time_ms, matrix.get_nnz(), 1);
+        }
 
         if(parser.check())
         {
-            lablas::Vector<int> check_levels(nrows);
+            lablas::Vector<float> check_levels(nrows);
 
             lablas::algorithm::bfs_traditional(&check_levels, &matrix, source_vertex);
 
-            if((*levels) == check_levels)
+            if(levels == check_levels)
             {
+                print_diff(levels, check_levels);
                 cout << "BFS levels are equal" << endl;
             }
             else
             {
+                print_diff(levels, check_levels);
                 cout << "BFS levels are NOT equal" << endl;
             }
         }
-
-        if(levels != NULL)
-            delete levels;
-        if(parents != NULL)
-            delete parents;
-    }
-    catch (string error)
-    {
-        cout << error << endl;
     }
     catch (const char * error)
     {
         cout << error << endl;
+        return 0;
     }
     return 0;
 }
+
+// test
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

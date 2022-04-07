@@ -24,7 +24,6 @@ class Vector {
 public:
     Vector(VNT _size)
     {
-        storage = GrB_SPARSE;
         main_container = new SparseVector<T>(_size);
         secondary_container = new DenseVector<T>(_size);
     }
@@ -39,7 +38,6 @@ public:
     {
         if(_val == 0) // if val is zero, it is sparse vector with 0 elements
         {
-            storage = GrB_SPARSE;
             main_container->fill_with_zeros();
         }
         else
@@ -105,7 +103,8 @@ public:
     void convert_if_required()
     {
         VNT nvals = main_container->get_nvals();
-        if(nvals > main_container->get_size() * SPARSE_VECTOR_THRESHOLD) // TODO more complex
+        //cout << nvals << " vs " << (VNT)(get_size() * SPARSE_VECTOR_THRESHOLD) << " at vector " << get_name() << endl;
+        if(nvals > (VNT)(get_size() * SPARSE_VECTOR_THRESHOLD)) // TODO more complex
         {
             force_to_dense();
         }
@@ -117,12 +116,12 @@ public:
 
     void getStorage(Storage* _storage) const
     {
-        *_storage = storage;
+        *_storage = main_container->get_storage();
     }
 
-    void setStorage(Storage _storage)
+    Storage get_storage() const
     {
-        storage = _storage;
+        return main_container->get_storage();
     }
 
     void set_element(T _val, VNT _pos)
@@ -130,8 +129,25 @@ public:
         main_container->set_element(_val, _pos);
     }
 
-    bool is_sparse() const { return storage == GrB_SPARSE;};
-    bool is_dense() const { return storage == GrB_DENSE;};
+    void set_name(const string &_name) { main_container->set_name(_name); secondary_container->set_name(_name); };
+    const string &get_name() const { return main_container->get_name(); };
+
+    bool is_sparse() const { return get_storage() == GrB_SPARSE;};
+    bool is_dense() const { return get_storage() == GrB_DENSE;};
+
+    void print_threshold_info() const
+    {
+        VNT nvals = main_container->get_nvals();
+
+        if(nvals > (VNT)(get_size() * SPARSE_VECTOR_THRESHOLD))
+        {
+            cout << "vector " << get_name() << " is DENSE since it contains > " << (100.0*nvals)/get_size() << " > " << 100.0*SPARSE_VECTOR_THRESHOLD << " % elems" << endl;
+        }
+        else
+        {
+            cout << "vector " << get_name() << " is SPARSE since it contains " << (100.0*nvals)/get_size() << " <= " << 100.0*SPARSE_VECTOR_THRESHOLD << " % elems" << endl;
+        }
+    }
 
     LA_Info build (const Index* _indices,
                    const T*     _values,
@@ -157,11 +173,13 @@ public:
 
     void print() const
     {
+        #ifndef __SHORT_VECTOR_PRINT__
         if(is_dense())
             cout << "vector is dense" << endl;
         else
             cout << "vector is sparse" << endl;
         cout << "nvals: " << main_container->get_nvals() << " / " << main_container->get_size() << endl;
+        #endif
         main_container->print();
     }
 
@@ -180,17 +198,43 @@ public:
         return main_container->get_size();
     }
 
+    LA_Info fillAscending(Index nvals) {
+        force_to_dense();
+        return main_container->fillAscending(nvals);
+    }
+
+    LA_Info dup(const Vector<T>* rhs) {
+        if(rhs->is_dense())
+            this->swap_to_dense();
+        else
+            this->swap_to_sparse();
+        main_container->dup(rhs->main_container);
+        return GrB_SUCCESS;
+    }
+
     void swap(Vector *_another)
     {
         ptr_swap(this->main_container, _another->main_container);
         ptr_swap(this->secondary_container, _another->secondary_container);
-        std::swap(this->nnz, _another->nnz);
-        std::swap(this->storage, _another->storage);
+    }
+
+    LA_Info clear()
+    {
+        swap_to_sparse();
+        main_container->fill_with_zeros();
+        return GrB_SUCCESS;
+    }
+
+    T const & get_at(Index _index) const
+    {
+        DenseVector<T> *dense_data = (const_cast <Vector<T>*> (this))->getDense();
+        const T* vals = dense_data->get_vals();
+        if(_index >= 0 && _index < dense_data->get_size())
+            return vals[_index];
+        else
+            throw "Error: out of range in backend::vector";
     }
 private:
-    VNT nnz;
-    Storage storage;
-
     GenericVector<T> *main_container;
     GenericVector<T> *secondary_container;
 
@@ -199,7 +243,6 @@ private:
         if(is_dense())
         {
             ptr_swap(main_container, secondary_container);
-            storage = GrB_SPARSE;
         }
     }
 
@@ -208,12 +251,14 @@ private:
         if(is_sparse())
         {
             ptr_swap(main_container, secondary_container);
-            storage = GrB_DENSE;
         }
     }
 
     template<typename Y>
     friend bool operator==(Vector<Y>& lhs, Vector<Y>& rhs);
+
+    template<typename Y>
+    friend void print_diff(Vector<Y>& lhs, Vector<Y>& rhs);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -221,30 +266,33 @@ private:
 template <typename T>
 bool operator==(Vector<T>& lhs, Vector<T>& rhs)
 {
-    if(lhs.storage != rhs.storage) // storages mismatch, not equal
-    {
-        cout << "Different storage!\n";
-        return 0;
-    }
-    else
-    {
-        if(lhs.is_dense())
-        {
-            auto den_lhs = (DenseVector<T> *)lhs.main_container;
-            auto den_rhs = (DenseVector<T> *)rhs.main_container;
-            return (*den_lhs) == (*den_rhs);
-        }
-        else
-        {
-            throw " == for sparse vectors not implemented yet";
-        }
-    }
+    if(lhs.is_sparse())
+        lhs.force_to_dense();
+    if(rhs.is_sparse())
+        rhs.force_to_dense();
+
+    auto den_lhs = (DenseVector<T> *)lhs.main_container;
+    auto den_rhs = (DenseVector<T> *)rhs.main_container;
+    return (*den_lhs) == (*den_rhs);
 }
 
 template <typename T>
 bool operator!=(Vector<T>& lhs, Vector<T>& rhs)
 {
     return !(lhs == rhs);
+}
+
+template <typename T>
+void print_diff(Vector<T>& lhs, Vector<T>& rhs)
+{
+    if(lhs.is_sparse())
+        lhs.force_to_dense();
+    if(rhs.is_sparse())
+        rhs.force_to_dense();
+
+    auto den_lhs = (DenseVector<T> *)lhs.main_container;
+    auto den_rhs = (DenseVector<T> *)rhs.main_container;
+    print_diff(*den_lhs, *den_rhs);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

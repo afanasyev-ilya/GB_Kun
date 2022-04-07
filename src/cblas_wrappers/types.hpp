@@ -3,7 +3,6 @@
 #define GrB_Index Index
 
 #define GrB_ALL NULL
-#define NULL_TYPE long int
 
 template <typename T>
 struct LAGraph_Graph
@@ -47,7 +46,8 @@ enum GrB_Type
 {
     GrB_FP32 = 0,
     GrB_BOOL = 1,
-    GrB_INT32 = 2
+    GrB_INT32 = 2,
+    GrB_INT64 = 3
 };
 
 // binary operations
@@ -58,20 +58,27 @@ enum GrB_Type
 #define GrB_ABS_FP32 lablas::abs<float>()
 #define GrB_SECOND_INT64 lablas::second<long long int>()
 #define GrB_SECOND_INT32 lablas::second<int>()
+#define GrB_SECOND_FLT32 lablas::second<float>()
+
 
 // semirings
 #define LAGraph_plus_second_fp32 lablas::PlusSecondSemiring<float>()
 #define LAGraph_structural_bool lablas::StructuralBool<bool>()
+#define LAGraph_plus_one_int64 lablas::PlusOneSemiring<long long>()
 
 // monoids
 #define GrB_PLUS_MONOID_FP32 lablas::PlusMonoid<float>()
 #define GrB_PLUS_MONOID_INT32 lablas::PlusMonoid<int>()
+#define GrB_PLUS_MONOID_INT64 lablas::PlusMonoid<long long>()
 
 
 // descriptors
 
-#define GrB_NULL (&lablas::GrB_NULL)
+//#define GrB_NULL (&lablas::GrB_NULL)
 #define GrB_DESC_RSC (&lablas::GrB_DESC_RSC)
 #define GrB_DESC_C (&lablas::GrB_DESC_C)
 #define GrB_DESC_S (&lablas::GrB_DESC_S)
 #define GrB_DESC_SC (&lablas::GrB_DESC_SC)
+
+// null
+#define GrB_NULL ((long int)NULL)

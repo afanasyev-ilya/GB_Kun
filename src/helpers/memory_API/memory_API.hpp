@@ -14,45 +14,107 @@ void MemoryAPI::allocate_array(T **_ptr, size_t _size)
     #endif
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MemoryAPI::allocate_array_new(T **_ptr, size_t _size)
+{
+#if defined(__USE_NEC_SX_AURORA__)
+    *_ptr = (T*)aligned_alloc(sizeof(T), _size*sizeof(T));
+#elif defined(__USE_GPU__)
+    SAFE_CALL(cudaMallocManaged((void**)_ptr, _size * sizeof(T)));
+#elif defined(__USE_KNL__)
+    *_ptr = (T*)_mm_malloc(sizeof(T)*(_size),2097152);
+#else
+    *_ptr = new T[_size]();
+#endif
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 void MemoryAPI::numa_aware_alloc(T **_ptr, size_t _size, int _target_socket)
 {
+    *_ptr = (T*)malloc(_size*sizeof(T)); // malloc uses first-touch policy for memory allocations
+
+    #ifdef __USE_KUNPENG__ // currently only Kunpeng platform has 2 sockets, where numa-aware malloc makes sense
+    const int threads_per_socket = sysconf(_SC_NPROCESSORS_ONLN)/2;
+    int threads_active_on_target_socket = 0;
+    #pragma omp parallel
+    {
+        int cur_cpu = sched_getcpu();
+        int cur_socket = cur_cpu / threads_per_socket;
+
+        if(cur_socket == _target_socket)
+        {
+            #pragma omp atomic
+            threads_active_on_target_socket += 1;
+            // we need to consider situations, when for example 10 threads run
+            // on first socket, while 2 -- on second
+        }
+
+        #pragma omp barrier // wait for all atomics to finish
+
+        size_t work_per_thread = (_size - 1)/threads_active_on_target_socket + 1;
+        if(cur_socket == _target_socket) // init target array using threads only from target socket
+        {
+            int tid = omp_get_thread_num();
+            for(size_t i = tid*work_per_thread; i < min((tid+1)*work_per_thread, _size); i++)
+            {
+                (*_ptr)[i] = 0;
+            }
+        }
+    }
+    #else
+    #pragma omp parallel for
+    for(size_t i = 0; i < _size; i++)
+    {
+        (*_ptr)[i] = 0;
+    }
+    #endif
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MemoryAPI::numa_aware_alloc_valued(T **_ptr, size_t _size, int _target_socket, T* vals)
+{
     *_ptr = (T*)malloc(_size*sizeof(T));
 
     int max_threads = omp_get_max_threads();
-    if(max_threads == 2*THREADS_PER_SOCKET)
+    if(max_threads == 2*numCPU)
     {
-        #pragma omp parallel num_threads(2*THREADS_PER_SOCKET)
+#pragma omp parallel num_threads(2*numCPU)
         {
-            size_t sock = omp_get_thread_num() / THREADS_PER_SOCKET;
-            size_t tid = omp_get_thread_num() % THREADS_PER_SOCKET;
+            size_t sock = omp_get_thread_num() / numCPU;
+            size_t tid = omp_get_thread_num() % numCPU;
 
-            size_t work_per_thread = (_size - 1)/THREADS_PER_SOCKET + 1;
+            size_t work_per_thread = (_size - 1)/numCPU + 1;
             if(sock == _target_socket)
             {
+
                 for(size_t i = tid*work_per_thread; i < min((tid+1)*work_per_thread, _size); i++)
                 {
-                    (*_ptr)[i] = 0;
+                    (*_ptr)[i] = vals[i];
                 }
             }
         }
     }
-    else if(omp_get_max_threads() == THREADS_PER_SOCKET)
+    else if(omp_get_max_threads() == numCPU)
     {
-        #pragma omp parallel for num_threads(THREADS_PER_SOCKET)
+#pragma omp parallel for num_threads(numCPU)
         for(size_t i = 0; i < _size; i++)
         {
-            (*_ptr)[i] = 0;
+            (*_ptr)[i] = vals[i];
         }
     }
     else
     {
-        #pragma omp parallel for
+#pragma omp parallel for
         for(size_t i = 0; i < _size; i++)
         {
-            (*_ptr)[i] = 0;
+            (*_ptr)[i] = vals[i];
         }
     }
 
@@ -83,6 +145,25 @@ void MemoryAPI::free_array(T *_ptr)
         #else
         free(_ptr);
         #endif
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MemoryAPI::free_array_new(T *_ptr)
+{
+    if(_ptr != NULL)
+    {
+#if defined(__USE_NEC_SX_AURORA__)
+        free(_ptr);
+#elif defined(__USE_GPU__)
+        SAFE_CALL(cudaFree((void*)_ptr));
+#elif defined(__USE_KNL__)
+        free(_ptr);
+#else
+        delete[] _ptr;
+#endif
     }
 }
 

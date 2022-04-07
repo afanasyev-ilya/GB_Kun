@@ -9,6 +9,18 @@
 
 #define MAX_SX_AURORA_THREADS 8
 
+template <typename T>
+void scan(T* input_data, T* output_data, T init_num, size_t input_size) {
+    T sum = init_num;
+    for (int i = 0; i < input_size + 1; i++) {
+        T old_sum = sum;
+        if (i != input_size) {
+            sum += input_data[i];
+        }
+        output_data[i] = old_sum;
+    }
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename CopyCondition>
@@ -260,6 +272,9 @@ inline int ParallelPrimitives::omp_copy_if_data(CopyCondition &&_cond,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 #ifdef __USE_GPU__
 template <typename _T>

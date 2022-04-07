@@ -1,4 +1,5 @@
 #pragma once
+#include <cstring>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -13,7 +14,7 @@ class DenseVector : public GenericVector<T>
 {
 public:
     DenseVector(VNT _size);
-    ~DenseVector();
+    virtual ~DenseVector();
 
     void print() const;
 
@@ -23,6 +24,14 @@ public:
 
     const T* get_vals () const {
         return vals;
+    }
+
+    VNT* get_ids () {
+        return nullptr;
+    }
+
+    const VNT* get_ids () const {
+        return nullptr;
     }
 
     LA_Info build(const T* values,
@@ -51,6 +60,29 @@ public:
 
     void convert(SparseVector<T> *_sparse_vector);
 
+    LA_Info fillAscending(Index nvals) {
+        #pragma omp parallel for
+        for (Index i = 0; i < nvals; i++)
+            vals[i] = i;
+
+        return GrB_SUCCESS;
+    }
+
+    bool isDense() const {
+        return true;
+    }
+    bool isSparse() const {
+        return false;
+    }
+
+    void dup(GenericVector<T>* rhs) {
+        size = rhs->get_size();
+        MemoryAPI::resize(&vals, size);
+        std::memcpy(vals, rhs->get_vals(), sizeof(T) * rhs->get_size());
+    };
+
+    Storage get_storage() {return GrB_DENSE; };
+
     VNT get_size() const {return size;};
 private:
     VNT size;
@@ -58,6 +90,10 @@ private:
 
     template<typename Y>
     friend bool operator==(DenseVector<Y>& lhs, DenseVector<Y>& rhs);
+    template<typename Y>
+    friend bool operator!=(DenseVector<Y>& lhs, DenseVector<Y>& rhs);
+    template<typename Y>
+    friend void print_diff(DenseVector<Y>& lhs, DenseVector<Y>& rhs);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,6 +104,30 @@ bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
     if(lhs.size != rhs.size)
         return false;
 
+    for(VNT i = 0; i < lhs.size; i++)
+    {
+        if(fabs(lhs.vals[i] - rhs.vals[i]) > 0.001)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+bool operator!=(DenseVector<T>& lhs, DenseVector<T>& rhs)
+{
+    return !(lhs == rhs);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void print_diff(DenseVector<T>& lhs, DenseVector<T>& rhs)
+{
     VNT error_count = 0;
     for(VNT i = 0; i < lhs.size; i++)
     {
@@ -85,17 +145,8 @@ bool operator==(DenseVector<T>& lhs, DenseVector<T>& rhs)
     }
 
     cout << "error_count: " << error_count << "/" << max(lhs.size, rhs.size)  << endl;
-    if(error_count == 0)
-        return true;
-    else
-        return false;
 }
 
-template <typename T>
-bool operator!=(DenseVector<T>& lhs, DenseVector<T>& rhs)
-{
-    return !(lhs == rhs);
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -44,6 +44,11 @@ public:
                                    size_t _size,
                                    _T *_buffer,
                                    const int _buffer_size);
+
+    template <typename _T>
+    static inline void exclusive_scan(_T *_in_data,
+                                     _T *_out_data,
+                                     size_t _size);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,6 +57,7 @@ public:
 #include "copy_if/copy_if.hpp"
 #include "reorder/openmp_reorder.h"
 #include "omp_parallel_call.h"
+#include "scan/exclusive_scan.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

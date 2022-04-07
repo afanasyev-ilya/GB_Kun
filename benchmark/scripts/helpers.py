@@ -11,7 +11,7 @@ def create_dir(dir_path):
 
 
 def get_binary_path(app_name):
-    return "./" + app_name
+    return app_name
 
 
 def file_exists(path):
@@ -24,18 +24,18 @@ def file_exists(path):
 def binary_exists(app_name):
     if app_name == "clean":
         return True
-    if file_exists(get_binary_path(app_name)):
+    if file_exists(get_binary_path(app_name)) or file_exists(get_binary_path("../build/" + app_name)):
         return True
     print("Warning! path " + get_binary_path(app_name) + " does not exist")
     return False
 
 
 def make_binary(app_name):
-    cmd = "make " + app_name
-    print(cmd)
+    short_app_name = app_name #app_name.rsplit("/", 1)[-1]
+    cmd = "bash ./compile.sh " + short_app_name
     subprocess.call(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-    if binary_exists(app_name):
+    if binary_exists(app_name) and "clean" not in app_name:
         print("Success! " + app_name + " has been compiled")
     else:
         print("Error! " + app_name + " can not be compiled")
@@ -47,39 +47,6 @@ def is_valid(app_name, options):
         if not binary_exists(app_name):
             return False
     return True
-
-
-def get_cores_count():  # returns number of sockets of target architecture
-    try:
-        output = subprocess.check_output(["lscpu"])
-        cores = -1
-        for item in output.decode().split("\n"):
-            if "Core(s) per socket:" in item:
-                cores_line = item.strip()
-                cores = int(cores_line.split(":")[1])
-        if cores == -1:
-            raise NameError('Can not detect number of cores of target architecture')
-        return cores
-    except:
-        cores = 8 # SX-Aurora
-        return cores
-
-
-def get_sockets_count():  # returns number of sockets of target architecture
-    try:
-        output = subprocess.check_output(["lscpu"])
-        cores = -1
-        sockets = -1
-        for item in output.decode().split("\n"):
-            if "Socket(s)" in item:
-                sockets_line = item.strip()
-                sockets = int(sockets_line.split(":")[1])
-        if sockets == -1:
-            raise NameError('Can not detect number of cores of target architecture')
-        return sockets
-    except:
-        sockets = 1 # SX-Aurora
-        return sockets
 
 
 def get_target_proc_model():  # returns number of sockets of target architecture
@@ -95,17 +62,20 @@ def get_target_proc_model():  # returns number of sockets of target architecture
         return "Unknown"
 
 
-def get_threads_count():
-    return get_sockets_count()*get_cores_count()
-
-
-def set_omp_environments(options):
-    threads = get_cores_count()
-    if int(options.sockets) > 1:
-        threads = int(options.sockets) * threads
-    os.environ['OMP_NUM_THREADS'] = str(threads)
-    os.environ['OMP_PROC_BIND'] = 'true'
-    os.environ['OMP_PROC_BIND'] = 'close'
+def get_cores_count():  # returns number of sockets of target architecture
+    try:
+        output = subprocess.check_output(["lscpu"])
+        cores = -1
+        for item in output.decode().split("\n"):
+            if "Core(s) per socket:" in item:
+                cores_line = item.strip()
+                cores = int(cores_line.split(":")[1])
+        if cores == -1:
+            raise NameError('Can not detect number of cores of target architecture')
+        return cores*2 # since 2 sockets
+    except:
+        cores = 8 # SX-Aurora, M1 or other testing architecture
+        return cores
 
 
 def prepare_list_of_apps(apps_string):

@@ -1,7 +1,5 @@
 from enum import Enum
 
-
-GENERATE_UNDIRECTED_GRAPHS = False
 UNDIRECTED_PREFIX = "undir_"
 
 # "fast" - very fast mode (only small graphs),
@@ -20,10 +18,9 @@ available_formats = ["CSR", "COO", "CSR_SEG", "LAV", "SELL_C", "SORT"] # TODO
 
 
 def requires_undir_graphs(app_name):
-    if not GENERATE_UNDIRECTED_GRAPHS:
-        return False
-    if app_name in ["cc", "coloring"]:
-        return True
+    for undir_apps in ["cc", "coloring"]:
+        if undir_apps in app_name:
+            return True
     return False
 
 
@@ -38,6 +35,13 @@ SOURCE_GRAPH_DIR = DATASETS_DIR + "/source_graphs/"
 MTX_GENERATOR_BIN_NAME = "gen"
 
 PERF_DATA_FILE = "./perf_stats.txt"
+SCALING_FILE = "./scaling.txt"
+SCALING_STEP = 8
+SCALING_FOLDER_NAME = "./scaling"
+SCALING_ROW_DATA_NAME = "row_data.txt"
+
+GENERATE_UNDIRECTED = False
+
 
 
 # how to add new graph with new category
@@ -119,7 +123,8 @@ syn_tiny_small_medium = syn_tiny_only + syn_small_only + syn_medium_only
 #####################
 
 syn_scaling = ["syn_rmat_18_32", "syn_rmat_19_32", "syn_rmat_20_32", "syn_rmat_21_32", "syn_rmat_22_32",
-               "syn_rmat_23_32"]
+               "syn_rmat_23_32", "syn_ru_18_32", "syn_ru_19_32", "syn_ru_20_32", "syn_ru_21_32", "syn_ru_22_32",
+               "syn_ru_23_32"]
 konect_scaling = []
 
 #####################

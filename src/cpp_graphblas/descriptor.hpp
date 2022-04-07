@@ -33,9 +33,9 @@ public:
         return _descriptor.get(field, value);
     }
 
-    void toggle(Desc_field field)
+    LA_Info toggle(Desc_field field)
     {
-         // TODO
+         return _descriptor.toggle(field);
     }
 
     Desc_value get(Desc_field field)
@@ -59,5 +59,7 @@ lablas::Descriptor GrB_DESC_RSC({{GrB_OUTPUT, GrB_REPLACE}, {GrB_MASK, GrB_STR_C
 lablas::Descriptor GrB_DESC_C({{GrB_MASK, GrB_COMP}});
 lablas::Descriptor GrB_DESC_S({{GrB_MASK, GrB_STRUCTURE}});
 lablas::Descriptor GrB_DESC_SC({{GrB_MASK, GrB_STR_COMP}});
+lablas::Descriptor GrB_DESC_IJK({{GrB_MXMMODE, GrB_IJK}});
+lablas::Descriptor GrB_DESC_IKJ({{GrB_MXMMODE, GrB_IKJ}});
 
 }

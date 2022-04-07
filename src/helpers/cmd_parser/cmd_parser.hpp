@@ -4,13 +4,16 @@
 
 Parser::Parser()
 {
-    scale = 5;
-    avg_degree = 3;
-    synthetic_graph_type = RANDOM_UNIFORM_GRAPH;
-    storage_format = CSR_SEG;
+    scale = 12;
+    avg_degree = 8;
+    synthetic_graph_type = RMAT_GRAPH;
+    storage_format = CSR;
     no_check = false;
     out_file_name = "kun_out.mtx";
-    file_name = "lj.mtx";
+    file_name = "karate.mtx";
+    iterations = 10;
+
+    algo_name = "lagraph";
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,9 +30,19 @@ void Parser::parse_args(int _argc, char **_argv)
             scale = atoi(_argv[++i]);
         }
 
+        if ((option == "-it") || (option == "-iter"))
+        {
+            iterations = atoi(_argv[++i]);
+        }
+
         if ((option == "-out") || (option == "-outfile"))
         {
             out_file_name = string(_argv[++i]);
+        }
+
+        if ((option == "-algo") || (option == "-alg"))
+        {
+            algo_name = _argv[++i];
         }
 
         if((option == "-graph") || (option == "-type"))

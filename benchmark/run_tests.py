@@ -3,6 +3,7 @@ import optparse
 import scripts.settings
 from scripts.benchmarking_api import *
 from scripts.verification_api import *
+from scripts.scaling_api import *
 from scripts.export import BenchmarkingResults
 from scripts.helpers import get_list_of_formats
 
@@ -17,29 +18,49 @@ def run_compile(options):
 
 
 def run_prepare(options):
-    create_graphs_if_required(get_list_of_all_graphs(options.mode), options.mode)
+    create_graphs_if_required(get_list_of_all_graphs(options.mode), options.mode, options)
 
 
 def run_benchmarks(options, benchmarking_results):
     list_of_apps = prepare_list_of_apps(options.apps)
 
-    set_omp_environments(options)
     benchmarking_results.add_performance_header_to_xls_table(options.format)
 
     algorithms_tested = 0
     for app_name in list_of_apps:
         if is_valid(app_name, options):
             algorithms_tested += benchmark_app(app_name, benchmarking_results, options.format, options.mode,
-                                               options.timeout)
+                                               options.timeout, options)
         else:
             print("Error! Can not benchmark " + app_name + ", several errors occurred.")
     return algorithms_tested
 
 
+def run_scaling(options, benchmarking_results):
+    list_of_apps = prepare_list_of_apps(options.apps)
+
+    output_file = open(SCALING_FILE, 'w', encoding='utf-8')  # clear file
+    output_file.close()
+
+    scaling_data = []
+
+    for app_name in list_of_apps:
+        max_cores = get_cores_count()
+        for threads_num in range(0, max_cores + 1, SCALING_STEP):
+            threads_used = max(1, threads_num)
+            print("using " + str(threads_used) + " threads")
+            if is_valid(app_name, options):
+                scaling_data += scale_app(app_name, benchmarking_results, options.format, options.mode,
+                                          options.timeout, threads_used, options)
+            else:
+                print("Error! Can not benchmark " + app_name + ", several errors occurred.")
+    print(scaling_data)
+    post_process_scaling_data(scaling_data)
+
+
 def run_verify(options, benchmarking_results):
     list_of_apps = prepare_list_of_apps(options.apps)
 
-    set_omp_environments(options)
     benchmarking_results.add_correctness_header_to_xls_table(options.format)
     algorithms_verified = 0
 
@@ -48,7 +69,7 @@ def run_verify(options, benchmarking_results):
             continue
         if is_valid(app_name, options):
             algorithms_verified += verify_app(app_name, benchmarking_results, options.format, options.mode,
-                                              options.timeout)
+                                              options.timeout, options)
         else:
             print("Error! Can not compile " + app_name + ", several errors occurred.")
     return algorithms_verified
@@ -57,6 +78,10 @@ def run_verify(options, benchmarking_results):
 def benchmark_and_verify(options, benchmarking_results):
     benchmarked_num = 0
     verified_num = 0
+
+    if options.scaling: # must be first among benchmarking and verify
+        run_scaling(options, benchmarking_results)
+
     if options.benchmark:
         benchmarked_num = run_benchmarks(options, benchmarking_results)
 
@@ -99,21 +124,9 @@ def run(options, run_info):
         options.format = format_name
         benchmark_and_verify(options, benchmarking_results)
 
-    if run_info != {} and len(list_of_formats) == 1:
-        run_info["format"] = options.format
-        if benchmarking_results.submit(run_info):
-            print("Results sent to server!")
-            benchmarking_results.offline_submit(run_info, options.name)
-        else:
-            print("Can not send results, saving to file...")
-            benchmarking_results.offline_submit(run_info, options.name)
-
     end = time.time()
     if print_timings:
         print("benchmarking WALL TIME: " + str(end-start) + " seconds")
-
-    if options.plot:
-        benchmarking_results.plot(list_of_formats)
 
     benchmarking_results.finalize()
 
@@ -128,9 +141,9 @@ def main():
                       action="store", dest="format",
                       help="specify graph storage format used: " +
                            str(available_formats) + " are currently available (default is CSR)", default="CSR")
-    parser.add_option('-s', '--sockets',
-                      action="store", dest="sockets",
-                      help="set number of sockets used (default 1)", default=1)
+    parser.add_option('-s', '--scaling',
+                      action="store_true", dest="scaling",
+                      help="specify to set", default=False)
     parser.add_option('-v', '--verify',
                       action="store_true", dest="verify",
                       help="run verification tests after benchmarking process (default false)", default=False)
@@ -153,13 +166,13 @@ def main():
     parser.add_option('-d', '--download',
                       action="store_true", dest="download",
                       help="download all real-world graphs from internet collections (default false)", default=False)
+    parser.add_option('--binary',
+                      action="store_true", dest="use_binary_graphs",
+                      help="use optimized binary representation instead of mtx", default=False)
     parser.add_option('-t', '--timeout',
                       action="store", dest="timeout",
                       help="execution time (in seconds), after which tested app is automatically aborted. "
                            "(default is 1 hour)", default=3600)
-    parser.add_option('-i', '--plot',
-                      action="store_true", dest="plot",
-                      help="plot performance data (default false)", default=False)
 
     options, args = parser.parse_args()
 
