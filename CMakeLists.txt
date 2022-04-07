@@ -109,8 +109,8 @@ target_include_directories(sparse_test PRIVATE)
 add_executable(transpose transpose.cpp)
 target_include_directories(transpose PRIVATE)
 
-add_executable(saxpy saxpy.cpp)
-target_include_directories(saxpy PRIVATE)
+#add_executable(saxpy saxpy.cpp)
+#target_include_directories(saxpy PRIVATE)
 
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_executable(test_matrix tests/GB_objects/test_matrix_ops.cpp)
