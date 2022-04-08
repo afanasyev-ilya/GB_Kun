@@ -22,23 +22,27 @@ static LA_Info select(DenseVector<W> *w,
                       SelectOpT op,
                       const DenseVector<U> *u,
                       const T val,
-                      const bool inverse,
-                      const bool replace)
+                      Descriptor *desc)
 {
           W* w_vals    = w->get_vals();
     const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
 
+    // Getting mask properties
+    Desc_value mask_field, mask_output;
+    desc->get(GrB_MASK, &mask_field);
+    desc->get(GrB_OUTPUT, &mask_output);
+
     #pragma omp parallel for
     for (Index i = 0; i < w->get_size(); ++i)
     {   
-        if (mask_vals[i] ^ inverse) 
+        if (mask_vals[i] ^ (mask_field == GrB_COMP)) 
         {
             w_vals[i] = accum(w_vals[i], op(u_vals[i], i, 0, val));
         }
         else
         {
-            if (replace)
+            if (mask_output == GrB_REPLACE)
             {
                 w_vals[i] = 0;
             }
@@ -57,12 +61,16 @@ static LA_Info select(DenseVector<W> *w,
                       SelectOpT op,
                       const SparseVector<U> *u,
                       const T val,
-                      const bool inverse,
-                      const bool replace)
+                      Descriptor *desc)
 {
           W* w_vals    = w->get_vals();
     const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
+
+    // Getting mask properties
+    Desc_value mask_field, mask_output;
+    desc->get(GrB_MASK, &mask_field);
+    desc->get(GrB_OUTPUT, &mask_output);
 
     // Building sparse U vector mapping <index | value> for O(log(n)) indexation instead of O(n)
     const Index* u_indicies = u->get_ids();
@@ -75,7 +83,7 @@ static LA_Info select(DenseVector<W> *w,
     #pragma omp parallel for
     for (Index i = 0; i < w->get_size(); ++i)
     {
-        if (mask_vals[i] ^ inverse)
+        if (mask_vals[i] ^ (mask_field == GrB_COMP))
         {
             // Searching for index in U vector
             auto match = u_sparse_tree.find(i);
@@ -90,7 +98,7 @@ static LA_Info select(DenseVector<W> *w,
         }
         else
         {
-            if (replace)
+            if (mask_output == GrB_REPLACE)
             {
                 w_vals[i] = 0;
             }
@@ -109,12 +117,16 @@ static LA_Info select(DenseVector<W> *w,
                       SelectOpT op,
                       const DenseVector<U> *u,
                       const T val,
-                      const bool inverse,
-                      const bool replace)
+                      Descriptor *desc)
 {
           W* w_vals    = w->get_vals();
     const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
+
+    // Getting mask properties
+    Desc_value mask_field, mask_output;
+    desc->get(GrB_MASK, &mask_field);
+    desc->get(GrB_OUTPUT, &mask_output);
 
     // Building sparse mask vector mapping <index | value> for O(log(n)) indexation instead of O(n)
     const Index* mask_indicies = mask->get_ids();
@@ -131,13 +143,13 @@ static LA_Info select(DenseVector<W> *w,
         auto match = mask_sparse_tree.find(i);
         if (match != mask_sparse_tree.end())
         {
-            if (match->second ^ inverse)
+            if (match->second ^ (mask_field == GrB_COMP))
             {
                 w_vals[i] = accum(w_vals[i], op(u_vals[i], i, 0, val));
             }
             else
             {
-                if (replace)
+                if (mask_output == GrB_REPLACE)
                 {
                     w_vals[i] = 0;
                 }
@@ -145,13 +157,13 @@ static LA_Info select(DenseVector<W> *w,
         }
         else
         {
-            if (0 ^ inverse)
+            if (mask_field == GrB_COMP)
             {
                 w_vals[i] = accum(w_vals[i], op(u_vals[i], i, 0, val));
             }
             else
             {
-                if (replace)
+                if (mask_output == GrB_REPLACE)
                 {
                     w_vals[i] = 0;
                 }
@@ -171,12 +183,16 @@ static LA_Info select(DenseVector<W> *w,
                       SelectOpT op,
                       const SparseVector<U> *u,
                       const T val,
-                      const bool inverse,
-                      const bool replace)
+                      Descriptor *desc)
 {
           W* w_vals    = w->get_vals();
     const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
+
+    // Getting mask properties
+    Desc_value mask_field, mask_output;
+    desc->get(GrB_MASK, &mask_field);
+    desc->get(GrB_OUTPUT, &mask_output);
 
     // Building sparse U vector mapping <index | value> for O(log(n)) indexation instead of O(n)
     const Index* u_indicies = u->get_ids();
@@ -201,7 +217,7 @@ static LA_Info select(DenseVector<W> *w,
         auto mask_match = mask_sparse_tree.find(i);
         if (mask_match != mask_sparse_tree.end())
         {
-            if (mask_sparse_tree[i] ^ inverse)
+            if (mask_sparse_tree[i] ^ (mask_field == GrB_COMP))
             {
                 // Searching for index in U
                 auto u_match = u_sparse_tree.find(i);
@@ -216,7 +232,7 @@ static LA_Info select(DenseVector<W> *w,
             }
             else
             {
-                if (replace)
+                if (mask_output == GrB_REPLACE)
                 {
                     w_vals[i] = 0;
                 }
@@ -224,7 +240,7 @@ static LA_Info select(DenseVector<W> *w,
         }
         else
         {
-            if (0 ^ inverse)
+            if (mask_field == GrB_COMP)
             {
                 // Searching for index in U
                 auto u_match = u_sparse_tree.find(i);
@@ -239,7 +255,7 @@ static LA_Info select(DenseVector<W> *w,
             }
             else
             {
-                if (replace)
+                if (mask_output == GrB_REPLACE)
                 {
                     w_vals[i] = 0;
                 }
@@ -328,28 +344,19 @@ LA_Info select(Vector<W> *w,
 {
     if (mask != NULL)
     {
-        // Getting mask properties
-        Desc_value mask_field, mask_output;
-
-        desc->get(GrB_MASK, &mask_field);
-        desc->get(GrB_OUTPUT, &mask_output);
-
-        bool inverse = (mask_field == GrB_COMP);
-        bool replace = (mask_output == GrB_REPLACE);
-
         if (mask->is_dense())
         {
             if (u->is_dense())
-                return select(w->getDense(), mask->getDense(), accum, op, u->getDense(), val, inverse, replace);
+                return select(w->getDense(), mask->getDense(), accum, op, u->getDense(), val, desc);
             else
-                return select(w->getDense(), mask->getDense(), accum, op, u->getSparse(), val, inverse, replace);
+                return select(w->getDense(), mask->getDense(), accum, op, u->getSparse(), val, desc);
         }
         else
         {   
             if (u->is_dense())
-                return select(w->getDense(), mask->getSparse(), accum, op, u->getDense(), val, inverse, replace);
+                return select(w->getDense(), mask->getSparse(), accum, op, u->getDense(), val, desc);
             else
-                return select(w->getDense(), mask->getSparse(), accum, op, u->getSparse(), val, inverse, replace);
+                return select(w->getDense(), mask->getSparse(), accum, op, u->getSparse(), val, desc);
         }
     }
     else
