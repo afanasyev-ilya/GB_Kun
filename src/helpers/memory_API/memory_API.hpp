@@ -93,7 +93,6 @@ void MemoryAPI::numa_aware_alloc_valued(T **_ptr, size_t _size, int _target_sock
             size_t work_per_thread = (_size - 1)/numCPU() + 1;
             if(sock == _target_socket)
             {
-
                 for(size_t i = tid*work_per_thread; i < min((tid+1)*work_per_thread, _size); i++)
                 {
                     (*_ptr)[i] = vals[i];

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unistd.h>
+
 #ifdef __USE_KUNPENG__
 int numCPU() { return sysconf(_SC_NPROCESSORS_ONLN); };
 #else
@@ -21,9 +23,9 @@ int cores_per_socket()
 int num_sockets_used()
 {
     #ifdef __USE_KUNPENG__
-    const int numCPU = sysconf(_SC_NPROCESSORS_ONLN);
+    const int num_cpu = sysconf(_SC_NPROCESSORS_ONLN);
     int threads_amount;
-    int cpu[numCPU()];
+    int cpu[num_cpu];
         #pragma omp parallel
     {
         threads_amount = omp_get_num_threads();
@@ -35,7 +37,7 @@ int num_sockets_used()
     socket[1] = false;
     for (int i = 0; i < threads_amount && !(socket[0] && socket[1]); i++)
     {
-        if (cpu[i] < numCPU() / 2)
+        if (cpu[i] < num_cpu / 2)
         {
             socket[0] = true;
         }
