@@ -142,7 +142,7 @@ def main():
                       help="specify graph storage format used: " +
                            str(available_formats) + " are currently available (default is CSR)", default="CSR")
     parser.add_option('-s', '--scaling',
-                      action="store", dest="scaling",
+                      action="store_true", dest="scaling",
                       help="specify to set", default=False)
     parser.add_option('-v', '--verify',
                       action="store_true", dest="verify",

@@ -2,6 +2,10 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define NULL_TYPE long int
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace lablas {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,6 +72,19 @@ LA_Info eWiseAdd(lablas::Vector<W>* _w,
     return backend::eWiseAdd(_w->get_vector(), mask_t, _accum, _op, _u->get_vector(), _v->get_vector(), desc_t);
 }
 
+/* w[i] = mask[i] ^ op(u[i], v[i]) */
+template <typename W, typename M, typename U, typename V, typename BinaryOpT>
+LA_Info eWiseAdd(lablas::Vector<W>* _w,
+                 const lablas::Vector<M>* _mask,
+                 NULL_TYPE _accum,
+                 BinaryOpT _op,
+                 const lablas::Vector<U>* _u,
+                 const lablas::Vector<V>* _v,
+                 lablas::Descriptor* _desc)
+{
+    return eWiseAdd(_w, _mask, lablas::second<U, W, U>(), _op,  _u, _v, _desc);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* w[i] = mask[i] ^ op(u[i], v[i]); w is INTERSECTION of u an v */
@@ -90,6 +107,19 @@ LA_Info eWiseMult(Vector<W>* _w,
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
     return backend::eWiseMult(_w->get_vector(), mask_t, _accum, _op, _u->get_vector(), _v->get_vector(), desc_t);
+}
+
+/* w[i] = mask[i] ^ op(u[i], v[i]); w is INTERSECTION of u an v */
+template <typename W, typename M, typename U, typename V, typename BinaryOpT>
+LA_Info eWiseMult(Vector<W>* _w,
+                  const Vector<M>* _mask,
+                  NULL_TYPE _accum,
+                  BinaryOpT _op,
+                  const Vector<U>* _u,
+                  const Vector<V>* _v,
+                  Descriptor* _desc)
+{
+    return eWiseMult(_w,  _mask, lablas::second<U, W, U>(), _op, _u, _v, _desc);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,6 +146,19 @@ LA_Info apply(Vector<W>* _w,
     return backend::apply(_w->get_vector(), mask_t, _accum, _op, _val, _u->get_vector(), desc_t);
 }
 
+/* w[i] = mask[i] ^ op(val, u[i]) */
+template <typename W, typename M, typename U, typename T, typename BinaryOpT>
+LA_Info apply(Vector<W>* _w,
+              const Vector<M>* _mask,
+              NULL_TYPE _accum,
+              BinaryOpT _op,
+              const T _val,
+              const Vector<U>* _u,
+              Descriptor* _desc)
+{
+    return apply(_w, _mask, lablas::second<U, W, U>(), _op, _val, _u, _desc);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* w[i] = mask[i] ^ unary_op(u[i]) */
@@ -137,6 +180,18 @@ LA_Info apply(Vector<W>* _w,
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
 
     return backend::apply(_w->get_vector(), mask_t, _accum, _op, _u->get_vector(), desc_t);
+}
+
+/* w[i] = mask[i] ^ unary_op(u[i]) */
+template <typename W, typename M, typename U, typename UnaryOpT>
+LA_Info apply(Vector<W>* _w,
+              const Vector<M>* _mask,
+              NULL_TYPE _accum,
+              UnaryOpT _op,
+              const Vector<U>* _u,
+              Descriptor* _desc)
+{
+    return apply(_w, _mask, lablas::second<U, W, U>(), _op, _u, _desc);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,6 +218,19 @@ LA_Info apply(Vector<W>* _w,
     return backend::apply(_w->get_vector(), mask_t, _accum, _op,  _u->get_vector(), _val, desc_t);
 }
 
+/* w[i] = mask[i] ^ op(val, u[i]) */
+template <typename W, typename M, typename U, typename T, typename BinaryOpT>
+LA_Info apply(Vector<W>* _w,
+              const Vector<M>* _mask,
+              NULL_TYPE _accum,
+              BinaryOpT _op,
+              const Vector<U>* _u,
+              const T _val,
+              Descriptor* _desc)
+{
+    return apply(_w, _mask, lablas::second<U, W, U>(), _op, _u, _val, _desc);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* w[indexes[i]] = mask[indexes[i]] ^ value */
@@ -183,6 +251,19 @@ LA_Info assign(Vector<W>*       _w,
     backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
     LA_Info info = backend::assign(_w->get_vector(), mask_t, _accum, _value, _indices, _nindices, desc_t);
     return info;
+}
+
+/* w[indexes[i]] = mask[indexes[i]] ^ value */
+template <typename W, typename M, typename U>
+LA_Info assign(Vector<W>*       _w,
+               const Vector<M>* _mask,
+               NULL_TYPE _accum,
+               U _value,
+               const Index *_indices,
+               const Index _nindices,
+               Descriptor*  _desc)
+{
+    return assign(_w, _mask, lablas::second<U, W, U>(), _value, _indices, _nindices, _desc);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -210,6 +291,19 @@ LA_Info assign(Vector<W>*       _w,
     return info;
 }
 
+/* w[indexes[i]] = mask[indexes[i]] ^ _u[indexes[i]] */
+template <typename W, typename M, typename U>
+LA_Info assign(Vector<W>*       _w,
+               const Vector<M>* _mask,
+               NULL_TYPE _accum,
+               Vector<U>* _u,
+               const Index *_indices,
+               const Index _nindices,
+               Descriptor*  _desc)
+{
+    return assign(_w, _mask, lablas::second<U, W, U>(), _u, _indices, _nindices, _desc);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* w[indexes[i]] = mask[indexes[i]] ^ _u[indexes[i]] */
@@ -235,6 +329,19 @@ LA_Info assignScatter(Vector<W>*       _w,
     return info;
 }
 
+/* w[indexes[i]] = mask[indexes[i]] ^ _u[indexes[i]] */
+template <typename W, typename M, typename U, typename I>
+LA_Info assignScatter(Vector<W>*       _w,
+                      const Vector<M>* _mask,
+                      NULL_TYPE _accum,
+                      Vector<U>* _u,
+                      const Vector<I> *_indices,
+                      const Index _nindices,
+                      Descriptor*  _desc)
+{
+    return assignScatter(_w, _mask, lablas::second<U, W, U>(), _u, _indices, _nindices, _desc);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename M, typename a, typename U,
@@ -254,13 +361,25 @@ LA_Info mxv (Vector<W>*       _w,
     return backend::mxv(_w->get_vector(), mask_t, _accum, _op, _matrix->get_matrix(), _u->get_vector(), _desc->get_descriptor());
 }
 
+template <typename W, typename M, typename a, typename U, typename SemiringT>
+LA_Info mxv (Vector<W>*       _w,
+             const Vector<M>* _mask,
+             NULL_TYPE _accum,
+             SemiringT        _op,
+             const Matrix<a>* _matrix,
+             const Vector<U>* _u,
+             Descriptor*      _desc)
+{
+    return mxv(_w, _mask, second<U, W, U>(), _op, _matrix, _u, _desc);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename W, typename M, typename a, typename U,
         typename BinaryOpTAccum, typename SemiringT>
 LA_Info vxm (Vector<W>*       _w,
              const Vector<M>* _mask,
-             BinaryOpTAccum        _accum,
+             BinaryOpTAccum   _accum,
              SemiringT        _op,
              const Vector<U>* _u,
              const Matrix<a>* _matrix,
@@ -271,6 +390,18 @@ LA_Info vxm (Vector<W>*       _w,
 
     auto mask_t = (_mask == NULL) ? NULL : _mask->get_vector();
     return backend::vxm(_w->get_vector(), mask_t, _accum, _op, _matrix->get_matrix(), _u->get_vector(), _desc->get_descriptor());
+}
+
+template <typename W, typename M, typename a, typename U, typename SemiringT>
+LA_Info vxm (Vector<W>*       _w,
+             const Vector<M>* _mask,
+             NULL_TYPE _accum,
+             SemiringT _op,
+             const Vector<U>* _u,
+             const Matrix<a>* _matrix,
+             Descriptor*      _desc)
+{
+    return vxm(_w, _mask, second<U, W, U>(), _op, _u, _matrix, _desc);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -311,8 +442,18 @@ LA_Info reduce(T *_val,
     return backend::reduce(_val, _accum, _op, _u->get_vector(), desc_t);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* w = op(w, u[i]) for each i; */
+template <typename T, typename U, typename MonoidT>
+LA_Info reduce(T *_val,
+               NULL_TYPE _accum,
+               MonoidT _op,
+               const Vector<U>* _u,
+               Descriptor* _desc)
+{
+    return reduce(_val, second<T, T, T>(), _op, _u, _desc);
+}
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* w = op(w, u[i]) for each i; */
 template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
@@ -330,6 +471,17 @@ LA_Info reduce(T *_val,
     return backend::reduce(_val, _accum, _op, _u->get_matrix(), desc_t);
 }
 
+/* w = op(w, u[i]) for each i; */
+template <typename T, typename U, typename MonoidT>
+LA_Info reduce(T *_val,
+               NULL_TYPE _accum,
+               MonoidT _op,
+               const Matrix<U>* _u,
+               Descriptor* _desc)
+{
+    return reduce(_val, second<T, T, T>(), _op, _u, _desc);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*!
@@ -338,7 +490,6 @@ LA_Info reduce(T *_val,
  * vector w.
  *   w[i] = u[index[i]]
  */
-
 template <typename W, typename M, typename U, typename I, typename BinaryOpT>
 LA_Info extract(Vector<W>*       w,
                const Vector<M>* mask,
@@ -354,6 +505,16 @@ LA_Info extract(Vector<W>*       w,
 
     return backend::extract(w->get_vector(), mask_t, accum, u->get_vector(),
                                   indices->get_vector(), desc_t);
+}
+
+template <typename W, typename M, typename U, typename I>
+LA_Info extract(Vector<W>*       w,
+                const Vector<M>* mask,
+                NULL_TYPE _accum,
+                const Vector<U>* u,
+                const Vector<I>* indices,
+                Descriptor*      desc) {
+    return extract(w, mask, second<U, W, U>(), u, indices, desc);
 }
 
 }

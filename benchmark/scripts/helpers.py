@@ -11,7 +11,7 @@ def create_dir(dir_path):
 
 
 def get_binary_path(app_name):
-    return "./" + app_name
+    return app_name
 
 
 def file_exists(path):
@@ -24,18 +24,18 @@ def file_exists(path):
 def binary_exists(app_name):
     if app_name == "clean":
         return True
-    if file_exists(get_binary_path(app_name)):
+    if file_exists(get_binary_path(app_name)) or file_exists(get_binary_path("../build/" + app_name)):
         return True
     print("Warning! path " + get_binary_path(app_name) + " does not exist")
     return False
 
 
 def make_binary(app_name):
-    cmd = "make " + app_name
-    print(cmd)
+    short_app_name = app_name #app_name.rsplit("/", 1)[-1]
+    cmd = "bash ./compile.sh " + short_app_name
     subprocess.call(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-    if binary_exists(app_name):
+    if binary_exists(app_name) and "clean" not in app_name:
         print("Success! " + app_name + " has been compiled")
     else:
         print("Error! " + app_name + " can not be compiled")

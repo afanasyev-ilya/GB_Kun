@@ -14,6 +14,23 @@ void MemoryAPI::allocate_array(T **_ptr, size_t _size)
     #endif
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MemoryAPI::allocate_array_new(T **_ptr, size_t _size)
+{
+#if defined(__USE_NEC_SX_AURORA__)
+    *_ptr = (T*)aligned_alloc(sizeof(T), _size*sizeof(T));
+#elif defined(__USE_GPU__)
+    SAFE_CALL(cudaMallocManaged((void**)_ptr, _size * sizeof(T)));
+#elif defined(__USE_KNL__)
+    *_ptr = (T*)_mm_malloc(sizeof(T)*(_size),2097152);
+#else
+    *_ptr = new T[_size]();
+#endif
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -61,6 +78,52 @@ void MemoryAPI::numa_aware_alloc(T **_ptr, size_t _size, int _target_socket)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
+void MemoryAPI::numa_aware_alloc_valued(T **_ptr, size_t _size, int _target_socket, T* vals)
+{
+    *_ptr = (T*)malloc(_size*sizeof(T));
+
+    int max_threads = omp_get_max_threads();
+    if(max_threads == 2*numCPU)
+    {
+#pragma omp parallel num_threads(2*numCPU)
+        {
+            size_t sock = omp_get_thread_num() / numCPU;
+            size_t tid = omp_get_thread_num() % numCPU;
+
+            size_t work_per_thread = (_size - 1)/numCPU + 1;
+            if(sock == _target_socket)
+            {
+
+                for(size_t i = tid*work_per_thread; i < min((tid+1)*work_per_thread, _size); i++)
+                {
+                    (*_ptr)[i] = vals[i];
+                }
+            }
+        }
+    }
+    else if(omp_get_max_threads() == numCPU)
+    {
+#pragma omp parallel for num_threads(numCPU)
+        for(size_t i = 0; i < _size; i++)
+        {
+            (*_ptr)[i] = vals[i];
+        }
+    }
+    else
+    {
+#pragma omp parallel for
+        for(size_t i = 0; i < _size; i++)
+        {
+            (*_ptr)[i] = vals[i];
+        }
+    }
+
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
 void MemoryAPI::allocate_host_array(T **_ptr, size_t _size)
 {
     *_ptr = (T*)malloc(_size*sizeof(T));
@@ -82,6 +145,25 @@ void MemoryAPI::free_array(T *_ptr)
         #else
         free(_ptr);
         #endif
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MemoryAPI::free_array_new(T *_ptr)
+{
+    if(_ptr != NULL)
+    {
+#if defined(__USE_NEC_SX_AURORA__)
+        free(_ptr);
+#elif defined(__USE_GPU__)
+        SAFE_CALL(cudaFree((void*)_ptr));
+#elif defined(__USE_KNL__)
+        free(_ptr);
+#else
+        delete[] _ptr;
+#endif
     }
 }
 

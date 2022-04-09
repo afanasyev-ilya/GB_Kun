@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 
         lablas::Matrix<float> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
-        SAVE_TIME_SEC((init_matrix(matrix, parser)), "whole_preprocess");
+        init_matrix(matrix, parser);
 
         GrB_Index size;
         matrix.get_nrows(&size);
@@ -29,8 +29,13 @@ int main(int argc, char **argv)
         lablas::Vector<float> ranks(size);
         if(parser.get_algo_name() == "lagraph")
         {
-            SAVE_TEPS(LAGraph_page_rank_sinks(&ranks, &graph, &iters_taken, max_iter),
-                      "Page_Rank", iters_taken, (graph.AT));
+            double pr_time_ms = 0;
+            {
+                Timer tm("pr");
+                LAGraph_page_rank_sinks(&ranks, &graph, &iters_taken, max_iter);
+                pr_time_ms = tm.get_time_ms();
+            }
+            save_teps("PR", pr_time_ms, matrix.get_nnz(), max_iter);
         }
         else
         {
@@ -44,10 +49,12 @@ int main(int argc, char **argv)
 
             if(ranks == check_ranks)
             {
+                print_diff(ranks, check_ranks);
                 cout << "page ranks are equal" << endl;
             }
             else
             {
+                print_diff(ranks, check_ranks);
                 cout << "page ranks are NOT equal" << endl;
             }
         }

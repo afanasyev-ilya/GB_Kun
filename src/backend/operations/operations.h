@@ -159,7 +159,11 @@ LA_Info mxv (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    if(_u->is_dense())
+    bool switch_cond = _u->is_dense();
+    #ifdef __DISABLE_SPMSPV__
+    switch_cond = true;
+    #endif
+    if(switch_cond)//(false /*switch_cond*/)
     {
         #ifdef __DEBUG_INFO__
         cout << "USING SpMV!!!!!" << endl;
@@ -171,7 +175,17 @@ LA_Info mxv (Vector<W>*       _w,
         #ifdef __DEBUG_INFO__
         cout << "USING SpMSpV!!!!!" << endl;
         #endif
-        backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+
+        {
+            //Timer tm("dense output");
+            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        }
+
+        /*{
+            Timer tm("sparse output");
+            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+        }*/
+
     }
     _w->convert_if_required();
 
@@ -190,7 +204,11 @@ LA_Info vxm (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    if(_u->is_dense())
+    bool switch_cond = _u->is_dense();
+    #ifdef __DISABLE_SPMSPV__
+    switch_cond = true;
+    #endif
+    if(switch_cond)
     {
         #ifdef __DEBUG_INFO__
         cout << "USING SpMV!!!!!" << endl;
@@ -202,7 +220,15 @@ LA_Info vxm (Vector<W>*       _w,
         #ifdef __DEBUG_INFO__
         cout << "USING SpMSpV!!!!!" << endl;
         #endif
-        backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        {
+            //Timer tm("dense output");
+            backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        }
+
+        /*{
+            Timer tm("sparse output");
+            backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+        }*/
     }
     _w->convert_if_required();
 
@@ -222,15 +248,16 @@ LA_Info eWiseAdd(Vector<W> *_w,
                  const Vector<V> *_v,
                  Descriptor *_desc)
 {
-
     Index vector_size = _w->getDense()->get_size();
     auto w_vals = _w->getDense()->get_vals();
     auto u_vals = _u->getDense()->get_vals();
     auto v_vals = _v->getDense()->get_vals();
 
-    auto lambda_op = [w_vals, u_vals, v_vals, &_op](Index idx)
+    auto add_op = generic_extract_add(_op);
+
+    auto lambda_op = [w_vals, u_vals, v_vals, &add_op](Index idx)
     {
-        w_vals[idx] = _op(u_vals[idx], v_vals[idx]);
+        w_vals[idx] = add_op(u_vals[idx], v_vals[idx]);
     };
 
     return backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);
@@ -254,9 +281,11 @@ LA_Info eWiseMult(Vector<W> *_w,
     auto u_vals = _u->getDense()->get_vals();
     auto v_vals = _v->getDense()->get_vals();
 
-    auto lambda_op = [w_vals, u_vals, v_vals, &_op](Index idx)
+    auto mull_op = generic_extract_mull(_op);
+
+    auto lambda_op = [w_vals, u_vals, v_vals, &mull_op](Index idx)
     {
-        w_vals[idx] = _op(u_vals[idx], v_vals[idx]);
+        w_vals[idx] = mull_op(u_vals[idx], v_vals[idx]);
     };
 
     return backend::generic_dense_vector_op(_mask, vector_size, lambda_op, _desc);

@@ -10,7 +10,7 @@ do
 done
 
 export OMP_NUM_THREADS=${threads_count}
-export OMP_PROC_BIND=close
+export OMP_PROC_BIND=spread
 export OMP_PLACES=cores
 
 ${program_name} ${program_args[@]}

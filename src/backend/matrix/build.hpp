@@ -136,12 +136,13 @@ void Matrix<T>::build(const VNT *_row_indices,
 
         if(max_cols < _col_indices[i])
         {
-            max_cols = _row_indices[i];
+            max_cols = _col_indices[i];
         }
     }
 
     max_rows += 1;
     max_cols += 1;
+    //std::cout << "MAX COLS " << max_cols << " and MAX_ROWS " << max_rows << std::endl;
     if(max_rows != max_cols)
     {
         cout << "Non-square matrix is not supported yet" << endl;
@@ -202,7 +203,7 @@ void Matrix<T>::build_from_csr_arrays(const ENT* _row_ptrs,
     double t1 = omp_get_wtime();
     csr_to_csc();
     double t2 = omp_get_wtime();
-    save_teps("transpose", t2 - t1, _nnz);
+    save_teps("transpose", (t2 - t1)*1000, _nnz);
 
     // initializing additional data structures time
     init_optimized_structures();

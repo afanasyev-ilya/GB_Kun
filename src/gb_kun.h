@@ -1,5 +1,13 @@
 #pragma once
 
+#ifdef __USE_TBB__
+#include <tbb/info.h>
+#include <tbb/parallel_for.h>
+#include <tbb/task_arena.h>
+#include <tbb/partitioner.h>
+#include <tbb/concurrent_unordered_map.h>
+#include <tbb/global_control.h>
+#endif
 #include <vector>
 #include <algorithm>
 #include <string>
@@ -17,6 +25,10 @@
 #include <cassert>
 #include <queue>
 #include <functional>
+#include <set>
+#include <unordered_set>
+#include <set>
+#include <chrono>
 
 #include <omp.h>
 
@@ -33,6 +45,7 @@ using namespace std;
 #include "helpers/graph_generation/graph_generation.h"
 #include "helpers/parallel_primitives/primitives.h"
 #include "helpers/lib_kernels/format_conversions.h"
+#include "helpers/timer/timer.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -65,6 +78,7 @@ class DenseVector;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "helpers/lib_kernels/init_matrix.h"
+#include "helpers/lib_kernels/select_non_vertex.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -14,7 +14,7 @@ TEST (ScanTest, SomeTest) {
     initialize_input(input, size);
 
     int *output  = new int [size + 1];
-    ParallelPrimitives::exclusive_scan(input,output, size, output, 0);
+    ParallelPrimitives::exclusive_scan(input,output, size);
 
     int local_sum = 0;
     for (int i = 0; i < size + 1; i++) {

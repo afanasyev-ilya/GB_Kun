@@ -15,7 +15,17 @@ TEST (TransposeTest, SmallTest) {
     const std::vector<int> csr_val = {10, 10, 10, 10, 10, 10, 10, 10, 10};
     matrix.build(&row_ids,&col_ids,&csr_val, 9, nullptr, nullptr);
 
+    std::cout << THREADS_PER_SOCKET << " hardware sockets available" << std::endl;
+
+//    const std::vector<Index> row_ids = {0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3};
+//    const std::vector<Index> col_ids = {1, 3, 0, 1, 2, 3, 2, 3, 4, 5, 1, 2, 3, 4, 5};
+//    const std::vector<int> csr_val =   {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+//    matrix.build(&row_ids,&col_ids,&csr_val, 15, nullptr, nullptr);
+    std::cout << "failing " << std::endl;
+//    matrix.get_matrix()->transpose_parallel();
     matrix.get_matrix()->transpose_parallel();
+
+    std::cout << "failing " << std::endl;
 
     auto *row_result = matrix.get_matrix()->get_csc()->get_row_ptr();
     auto *col_result = matrix.get_matrix()->get_csc()->get_col_ids();
@@ -80,9 +90,10 @@ TEST (TransposeTest, RealTest) {
     nvals = A.get_nvals(&nvals);
 
     double seq_a = omp_get_wtime();
-    A.get_matrix()->transpose();
+    A.get_matrix()->transpose_sequential();
     double seq_b = omp_get_wtime();
     double par_a = omp_get_wtime();
+    //B.get_matrix()->scantrans();
     B.get_matrix()->transpose_parallel();
     double par_b = omp_get_wtime();
 
@@ -113,6 +124,41 @@ TEST (TransposeTest, RealTest) {
         std::set<Index> cols_b (res_b.data(), res_b.data() + res_b.size());
         ASSERT_EQ(cols_a, cols_b);
     }
+}
+
+TEST (TransposeTest, SymmetricTest) {
+    lablas::Matrix<int> matrix;
+    const std::vector<Index> row_ids = {0, 0, 1, 2, 2, 3, 4, 4, 5};
+    const std::vector<Index> col_ids = {1, 3, 0, 2, 4, 0, 2, 5, 4};
+    const std::vector<int> csr_val = {10, 10, 10, 10, 10, 10, 10, 10, 10};
+    matrix.build(&row_ids,&col_ids,&csr_val, 9, nullptr, nullptr);
+
+    ASSERT_TRUE(matrix.is_symmetric());
+}
+
+
+TEST (TransposeTest, SymmetricBigTest) {
+
+    std::vector<Index> row_indices;
+    std::vector<Index> col_indices;
+    std::vector<int> values;
+    Index nrows, ncols, nvals;
+
+    Parser parser;
+    parser.parse_args(my_argc, my_argv);
+    VNT scale = parser.get_scale();
+    VNT avg_deg = parser.get_avg_degree();
+
+    // Matrix A
+    lablas::Matrix<int> A;
+    A.set_preferred_matrix_format(parser.get_storage_format());
+    init_matrix(A,parser);
+
+    double a_time = omp_get_wtime();
+    ASSERT_TRUE(A.is_symmetric());
+    double b_time = omp_get_wtime();
+
+    std::cout << "Symm check time is " << b_time - a_time << " seconds" << std::endl;
 }
 
 int main(int argc, char** argv) {

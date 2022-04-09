@@ -7,6 +7,7 @@ namespace backend{
 
 #include "spmspv_buckets.h"
 #include "spmspv_atomics.h"
+#include "spmspv_maps.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -153,6 +154,54 @@ void SpMSpV(const Matrix<A> *_matrix,
     if (_mask != 0)
     {
         apply_mask(_y, old_y_vals, _desc, _accum, _mask, _matrix->get_workspace());
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
+void SpMSpV(const Matrix<A> *_matrix,
+            bool _transposed_matrix,
+            const SparseVector <X> *_x,
+            SparseVector <Y> *_y,
+            Descriptor *_desc,
+            BinaryOpTAccum _accum,
+            SemiringT _op,
+            const Vector <M> *_mask)
+{
+    auto add_op = extractAdd(_op);
+    Y *y_vals = _y->get_vals();
+    Y *old_y_vals = (Y*)_matrix->get_workspace()->get_shared_one();
+    memcpy(old_y_vals, y_vals, sizeof(Y)*_y->get_size());
+    /*!
+      * /brief atomicAdd() 3+5  = 8
+      *        atomicSub() 3-5  =-2
+      *        atomicMin() 3,5  = 3
+      *        atomicMax() 3,5  = 5
+      *        atomicOr()  3||5 = 1
+      *        atomicXor() 3^^5 = 0
+    */
+    int functor = add_op(3, 5);
+    if (functor == 1)
+    {
+        if(!_transposed_matrix)
+            spmspv_unmasked_or_map(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+        else
+            spmspv_unmasked_or_map(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+    }
+    else
+    {
+        if(!_transposed_matrix)
+            spmspv_unmasked_critical_map(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+        else
+            spmspv_unmasked_critical_map(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+    }
+
+    if (_mask != 0)
+    {
+        std::cout << "masked map-based spmspv is not implemented yet" << std::endl;
+        throw "Aborting...";
+        //apply_mask(_y, old_y_vals, _desc, _accum, _mask, _matrix->get_workspace());
     }
 }
 

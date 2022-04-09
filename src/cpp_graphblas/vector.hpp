@@ -11,6 +11,8 @@ namespace lablas {
 template<typename T>
 class Vector {
 public:
+    using ValueType = T;
+public:
     Vector() : _vector() {}
     explicit Vector(Index nsize) : _vector(nsize) {}
 
@@ -103,12 +105,93 @@ public:
         return _vector.dup(rhs->get_vector());
     }
 
+    T const & get_at(Index _index) const
+    {
+        return _vector.get_at(_index);
+    }
 private:
     backend::Vector<T> _vector;
 
     template<typename Y>
     friend bool operator==(Vector<Y>& lhs, Vector<Y>& rhs);
+
+    template<typename Y>
+    friend bool operator!=(Vector<Y>& lhs, Vector<Y>& rhs);
+
+    template<typename Y>
+    friend void print_diff(Vector<Y>& lhs, Vector<Y>& rhs);
 };
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename Vector>
+class VectorIteratorType
+{
+public:
+    using ValueType = typename Vector::ValueType;
+public:
+    VectorIteratorType(Vector& collection, Index const index) :
+            index(index), collection(collection) {}
+
+    bool operator!= (VectorIteratorType const & other) const
+    {
+        return index != other.index;
+    }
+
+    ValueType const & operator* () const
+    {
+        return collection.get_at(index);
+    }
+
+    VectorIteratorType const & operator++ ()
+    {
+        ++index;
+        return *this;
+    }
+
+    VectorIteratorType const & operator-- ()
+    {
+        --index;
+        return *this;
+    }
+private:
+    Index   index;
+    Vector&       collection;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+using VectorIterator = VectorIteratorType<Vector<T>>;
+
+template <typename T>
+using VectorConstIterator = VectorIteratorType<Vector<T>>;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+inline VectorIterator<T> begin(Vector<T> &collection)
+{
+    return VectorIterator<T>(collection, 0);
+}
+
+template <typename T>
+inline VectorIterator<T> end(Vector<T>& collection)
+{
+    return VectorIterator<T>(collection, collection.size());
+}
+
+template <typename T>
+inline VectorConstIterator<T> begin(const Vector<T> &collection)
+{
+    return VectorConstIterator<T>(collection, 0);
+}
+
+template <typename T>
+inline VectorConstIterator<T> end(const Vector<T>& collection)
+{
+    return VectorConstIterator<T>(collection, collection.size());
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -116,6 +199,18 @@ template <typename T>
 bool operator==(Vector<T>& lhs, Vector<T>& rhs)
 {
     return lhs._vector == rhs._vector;
+}
+
+template <typename T>
+bool operator!=(Vector<T>& lhs, Vector<T>& rhs)
+{
+    return !(lhs._vector == rhs._vector);
+}
+
+template <typename T>
+void print_diff(Vector<T>& lhs, Vector<T>& rhs)
+{
+    print_diff(lhs._vector, rhs._vector);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
