@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
         matrix.get_nrows(&nrows);
 
         LAGraph_Graph<int> graph(matrix);
+        graph.A->get_matrix()->sort_csr_columns("STL_SORT");
         graph.A->get_matrix()->sort_csc_rows("STL_SORT");
         //graph.A->get_matrix()->print();
 

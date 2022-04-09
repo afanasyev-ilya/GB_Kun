@@ -2,21 +2,17 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-VNT spgemm_binary_search(const Index* data, VNT left, VNT right, ENT value)
+VNT spgemm_lower_bound(const Index* data, VNT left, VNT right, ENT value)
 {
-    while (true) {
-        if (left > right) {
-            return -1;
-        }
-        VNT mid = left + (right - left) / 2; // div 2 or div rand
-        if (data[mid] < value) {
-            left = mid + 1;
-        } else if (data[mid] > value) {
-            right = mid - 1;
+    while (left < right) {
+        VNT mid =  left + (right - left) / 2;
+        if (value <= data[mid]) {
+            right = mid;
         } else {
-            return mid;
+            left = mid + 1;
         }
     }
+    return left;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,16 +120,25 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
                     VNT matrix2_col_end_id = matrix2_row_ptr[matrix2_col_id + 1];
 
                     T accumulator = identity_val;
+
+                    VNT matrix2_row_id = matrix2_col_start_id;
+
                     for (ENT matrix1_col_id = matrix1_col_start_id;
                          matrix1_col_id < matrix1_col_end_id; ++matrix1_col_id) {
                         ENT matrix1_col_num = matrix1_col_ids_ptr[matrix1_col_id];
                         // i == matrix1_row_id, j == matrix2_col_id, k == matrix1_col_num
-                        VNT found_matrix2_row_id = spgemm_binary_search(matrix2_col_ids_ptr,
-                                                                        matrix2_col_start_id,
-                                                                        matrix2_col_end_id - 1,
-                                                                        matrix1_col_num);
+                        VNT found_matrix2_row_id = spgemm_lower_bound(matrix2_col_ids_ptr,
+                                                                      matrix2_row_id,
+                                                                      matrix2_col_end_id,
+                                                                      matrix1_col_num);
 
-                        if (found_matrix2_row_id != -1) {
+                        if (found_matrix2_row_id == matrix2_col_end_id) {
+                            break;
+                        }
+
+                        matrix2_row_id = found_matrix2_row_id;
+
+                        if (matrix2_col_ids_ptr[found_matrix2_row_id] == matrix1_col_num) {
                             accumulator = add_op(accumulator,
                                                  mul_op(matrix1_vals_ptr[matrix1_col_id],
                                                         matrix2_vals_ptr[found_matrix2_row_id]));
@@ -169,16 +174,25 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
                     VNT matrix2_col_end_id = matrix2_row_ptr[matrix2_col_id + 1];
 
                     T accumulator = identity_val;
+
+                    VNT matrix2_row_id = matrix2_col_start_id;
+
                     for (ENT matrix1_col_id = matrix1_col_start_id;
                          matrix1_col_id < matrix1_col_end_id; ++matrix1_col_id) {
                         ENT matrix1_col_num = matrix1_col_ids_ptr[matrix1_col_id];
                         // i == matrix1_row_id, j == matrix2_col_id, k == matrix1_col_num
-                        VNT found_matrix2_row_id = spgemm_binary_search(matrix2_col_ids_ptr,
-                                                                        matrix2_col_start_id,
-                                                                        matrix2_col_end_id - 1,
-                                                                        matrix1_col_num);
+                        VNT found_matrix2_row_id = spgemm_lower_bound(matrix2_col_ids_ptr,
+                                                                      matrix2_row_id,
+                                                                      matrix2_col_end_id,
+                                                                      matrix1_col_num);
 
-                        if (found_matrix2_row_id != -1) {
+                        if (found_matrix2_row_id == matrix2_col_end_id) {
+                            break;
+                        } else {
+                            matrix2_row_id = found_matrix2_row_id;
+                        }
+
+                        if (matrix2_col_ids_ptr[found_matrix2_row_id] == matrix1_col_num) {
                             accumulator = add_op(accumulator,
                                                  mul_op(matrix1_vals_ptr[matrix1_col_id],
                                                         matrix2_vals_ptr[found_matrix2_row_id]));
