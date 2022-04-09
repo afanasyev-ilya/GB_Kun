@@ -217,7 +217,7 @@ static LA_Info select(DenseVector<W> *w,
         auto mask_match = mask_sparse_tree.find(i);
         if (mask_match != mask_sparse_tree.end())
         {
-            if (mask_sparse_tree[i] ^ (mask_field == GrB_COMP))
+            if (mask_match->second ^ (mask_field == GrB_COMP))
             {
                 // Searching for index in U
                 auto u_match = u_sparse_tree.find(i);
