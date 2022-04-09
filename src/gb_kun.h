@@ -36,6 +36,7 @@ typedef long long Index;
 
 using namespace std;
 
+#include "helpers/numa_stats/numa_stats.h"
 #include "backend/la_backend.h"
 #include "helpers/balancing/balancing.h"
 #include "helpers/stats/stats.h"

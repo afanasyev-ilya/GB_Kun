@@ -48,18 +48,18 @@ public:
     explicit ReducedWorkspace(Index size)
     {
         auto max_threads = omp_get_max_threads();
-        if (max_threads == numCPU * 2) {
+        if (max_threads == numCPU() * 2) {
             one_socket = false;
             threshold = (size / 2) + (size % 2);
             MemoryAPI::numa_aware_alloc(&first_socket_vector, threshold, 0);
             MemoryAPI::numa_aware_alloc(&second_socket_vector, size - threshold, 1);
         }
-        if (max_threads == numCPU) {
+        if (max_threads == numCPU()) {
             one_socket = true;
             MemoryAPI::numa_aware_alloc(&first_socket_vector, size, 0);
         }
         /* for local debug */
-        if (max_threads < numCPU) {
+        if (max_threads < numCPU()) {
             one_socket = true;
             MemoryAPI::allocate_array_new(&first_socket_vector, size);
         }
@@ -104,18 +104,18 @@ public:
     explicit CommonWorkspace(Index size, T* vals)
     {
         auto max_threads = omp_get_max_threads();
-        if (max_threads > numCPU) {
+        if (max_threads > numCPU()) {
             MemoryAPI::numa_aware_alloc_valued(&first_socket_vector, size, 0, vals);
             MemoryAPI::numa_aware_alloc_valued(&second_socket_vector, size, 1, vals);
             one_socket = false;
         }
-        if (max_threads == numCPU) {
-            std::cout << "HERE_2: " <<  numCPU << std::endl;
+        if (max_threads == numCPU()) {
+            std::cout << "HERE_2: " <<  numCPU() << std::endl;
             one_socket = true;
             MemoryAPI::numa_aware_alloc_valued(&first_socket_vector, size, 0, vals);
         }
         /* for local debug */
-        if (max_threads < numCPU) {
+        if (max_threads < numCPU()) {
             std::cout << "HERE_1" << std::endl;
             one_socket = true;
             MemoryAPI::numa_aware_alloc_valued(&first_socket_vector, size, 0, vals);

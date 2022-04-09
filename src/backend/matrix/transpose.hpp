@@ -125,7 +125,7 @@ void Matrix<T>::transpose_parallel(void) {
     #pragma omp barrier
     double final_b = omp_get_wtime();
 
-    if(max_threads > THREADS_PER_SOCKET)
+    if(num_sockets_used() > 1)
     {
         csc_data->numa_aware_realloc();
     }
