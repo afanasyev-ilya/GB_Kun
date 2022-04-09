@@ -101,7 +101,7 @@ for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
 
     auto row_ptr = new ENT[n + 1];
 
-    ParallelPrimitives::exclusive_scan(row_nnz, row_ptr, n, row_ptr, 0);
+    ParallelPrimitives::exclusive_scan(row_nnz, row_ptr, n);
 
     auto col_ids = new VNT[nnz];
     auto vals = new T[nnz];
@@ -250,7 +250,7 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
 
     auto row_ptr = new ENT[n + 1];
 
-    ParallelPrimitives::exclusive_scan(row_nnz, row_ptr, n, row_ptr, 0);
+    ParallelPrimitives::exclusive_scan(row_nnz, row_ptr, n);
 
     auto col_ids = new VNT[nnz];
     auto vals = new T[nnz];
