@@ -128,47 +128,36 @@ static LA_Info select(DenseVector<W> *w,
     desc->get(GrB_MASK, &mask_field);
     desc->get(GrB_OUTPUT, &mask_output);
 
-    // Building sparse mask vector mapping <index | value> for O(log(n)) indexation instead of O(n)
     const Index* mask_indicies = mask->get_ids();
-    std::map<Index, M> mask_sparse_tree;
-    for (Index i = 0; i < mask->get_nvals(); ++i)
+
+    W* temp;
+    if (mask_output == GrB_REPLACE)
     {
-        mask_sparse_tree[mask_indicies[i]] = mask_vals[i];
+        temp = new W[w->get_size()];
+        std::memset(temp, 0, w->get_size() * sizeof(W));
     }
 
     #pragma omp parallel for
-    for (Index i = 0; i < w->get_size(); ++i)
+    for (Index i = 0; i < mask->get_nvals(); ++i)
     {
-        // Searching for index in mask vector
-        auto match = mask_sparse_tree.find(i);
-        if (match != mask_sparse_tree.end())
+        Index idx = mask_indicies[i];
+        if (mask_vals[i] ^ (mask_field == GrB_COMP))
         {
-            if (match->second ^ (mask_field == GrB_COMP))
+            if (mask_output == GrB_REPLACE)
             {
-                w_vals[i] = accum(w_vals[i], op(u_vals[i], i, 0, val));
+                temp[idx] = accum(w_vals[idx], op(u_vals[idx], idx, 0, val));
             }
             else
             {
-                if (mask_output == GrB_REPLACE)
-                {
-                    w_vals[i] = 0;
-                }
+                w_vals[idx] = accum(w_vals[idx], op(u_vals[idx], idx, 0, val));
             }
         }
-        else
-        {
-            if (mask_field == GrB_COMP)
-            {
-                w_vals[i] = accum(w_vals[i], op(u_vals[i], i, 0, val));
-            }
-            else
-            {
-                if (mask_output == GrB_REPLACE)
-                {
-                    w_vals[i] = 0;
-                }
-            }
-        }
+    }
+
+    if (mask_output == GrB_REPLACE)
+    {
+        std::memcpy(w_vals, temp, w->get_size() * sizeof(W));
+        delete[] temp;
     }
 
     return GrB_SUCCESS;
