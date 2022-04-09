@@ -59,7 +59,7 @@ void MemoryAPI::numa_aware_alloc(T **_ptr, size_t _size, int _target_socket)
         size_t work_per_thread = (_size - 1)/threads_active_on_target_socket + 1;
         if(cur_socket == _target_socket) // init target array using threads only from target socket
         {
-            int tid = omp_get_thread_num();
+            int tid = omp_get_thread_num() % threads_active_on_target_socket;
             for(size_t i = tid*work_per_thread; i < min((tid+1)*work_per_thread, _size); i++)
             {
                 (*_ptr)[i] = 0;
