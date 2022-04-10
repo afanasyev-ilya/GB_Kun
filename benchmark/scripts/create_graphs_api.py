@@ -29,6 +29,8 @@ def get_list_of_synthetic_graphs(run_speed_mode):
         return syn_fastest
     elif run_speed_mode == "scaling":
         return syn_scaling
+    elif run_speed_mode == "best":
+        return []
     elif run_speed_mode in konect_tiny_small_medium:
         return []
     elif run_speed_mode in syn_tiny_small_medium:
@@ -52,6 +54,8 @@ def get_list_of_real_world_graphs(run_speed_mode):
         return konect_tiny_small_medium
     elif run_speed_mode == "fastest":
         return konect_fastest
+    elif run_speed_mode == "best":
+        return konect_best
     elif run_speed_mode == "scaling":
         return []
     elif run_speed_mode in konect_tiny_small_medium:
@@ -216,26 +220,21 @@ def check_if_no_loops_and_multiple_edges(graph_name):
         return False
 
 
-def graph_missing(output_graph_file_name, undir_output_graph_file_name, options):
+def graph_missing(output_graph_file_name, options):
     if options.use_binary_graphs:
         if not file_exists(output_graph_file_name + "bin"):
             return True
-        #if not file_exists(undir_output_graph_file_name + "bin"):
-        #    return True
         return False
     else:
         if not file_exists(output_graph_file_name):
             return True
-        #if not file_exists(undir_output_graph_file_name):
-        #    return True
         return False
 
 
 def create_real_world_graph(graph_name, options):
     graph_format = "mtx"
     output_graph_file_name = get_path_to_graph(graph_name, graph_format)
-    undir_output_graph_file_name = get_path_to_graph(UNDIRECTED_PREFIX + graph_name, graph_format)
-    if graph_missing(output_graph_file_name, undir_output_graph_file_name, options):
+    if graph_missing(output_graph_file_name, options):
         print("Creating new graph!! " + output_graph_file_name)
         if 'GAP' in graph_name:
             clear_dir(SOURCE_GRAPH_DIR)
@@ -265,7 +264,7 @@ def create_real_world_graph(graph_name, options):
             #if check_if_no_loops_and_multiple_edges(graph_name):
             #    convert_to_mtx_if_no_loops_and_multiple_edges(source_name, output_graph_file_name, graph_name)
             #else:
-            gen_graph(source_name, output_graph_file_name, undir_output_graph_file_name, options)
+            gen_graph(source_name, output_graph_file_name, options)
 
             if verify_graph_existence(output_graph_file_name):
                 print("Graph " + output_graph_file_name + " has been created\n")
@@ -287,8 +286,7 @@ def create_synthetic_graph(graph_name, options):
     edge_factor = dat[3]
 
     output_graph_file_name = get_path_to_graph(graph_name, graph_format)
-    undir_output_graph_file_name = get_path_to_graph(UNDIRECTED_PREFIX + graph_name, graph_format)
-    if graph_missing(output_graph_file_name, undir_output_graph_file_name, options):
+    if graph_missing(output_graph_file_name, options):
         print("Creating new graph!! " + output_graph_file_name)
         cmd = [get_binary_path(MTX_GENERATOR_BIN_NAME), "-s", scale, "-e", edge_factor, "-type", type,
                "-outfile", output_graph_file_name]
@@ -296,7 +294,7 @@ def create_synthetic_graph(graph_name, options):
 
         subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE).wait()
 
-        gen_graph(output_graph_file_name, output_graph_file_name, undir_output_graph_file_name, options)
+        gen_graph(output_graph_file_name, output_graph_file_name, options)
 
         if verify_graph_existence(output_graph_file_name):
             print("Graph " + output_graph_file_name + " has been created\n")
