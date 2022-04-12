@@ -57,7 +57,7 @@ void MatrixCSR<T>::resize(VNT _nrows, VNT _ncols, ENT _nnz)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void MatrixCSR<T>::deep_copy(MatrixCSR<T> *_copy, int _target_socket)
+void MatrixCSR<T>::deep_copy(const MatrixCSR<T> *_copy, int _target_socket)
 {
     this->free();
     this->nrows = _copy->nrows;
