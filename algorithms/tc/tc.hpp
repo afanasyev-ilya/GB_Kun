@@ -212,7 +212,12 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
     }
     */
     int64_t ntri ;
+    //A->print();
+    cout << "Starting mxm for TC..." << endl;
+    A->get_matrix()->sort_csc_rows("STL_SORT");
     GrB_TRY (GrB_mxm (C, A, NULL, semiring, A, A, GrB_DESC_S)) ;
+    //C->print();
+    cout << C->get_nnz() << endl;
     GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
     ntri /= 6 ;
     /*

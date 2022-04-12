@@ -466,24 +466,38 @@ LA_Info mxm(Matrix<c>* C,
             const Matrix<b> *B,
             Descriptor *desc)
 {
+    Desc_value multiplication_mode;
+    desc->get(GrB_MXMMODE, &multiplication_mode);
     if (mask) {
-        backend::SpMSpM_unmasked_ikj(A,
-                                     B,
-                                     C);
-    } else {
-        Desc_value multiplication_mode;
-        desc->get(GrB_MXMMODE, &multiplication_mode);
+        bool a_is_sorted = (multiplication_mode == GrB_IJK_DOUBLE_SORT);
+        backend::SpMSpM_ijk(A,
+                            B,
+                            C,
+                            mask,
+                            op,
+                            a_is_sorted);
+        /*
         if (multiplication_mode == GrB_IJK) {
-            backend::SpMSpM_unmasked_ijk(A,
-                                         B,
-                                         C);
+            backend::SpMSpM_ijk(A,
+                                B,
+                                C,
+                                mask,
+                                op);
         } else if (multiplication_mode == GrB_IKJ) {
-            backend::SpMSpM_unmasked_ikj(A,
-                                         B,
-                                         C);
+            backend::SpMSpM_masked_ikj(mask,
+                                       A,
+                                       B,
+                                       C,
+                                       op);
         } else {
             return GrB_INVALID_VALUE;
         }
+         */
+    } else {
+        backend::SpMSpM_unmasked_ikj(A,
+                                     B,
+                                     C,
+                                     op);
     }
     return GrB_SUCCESS;
 }

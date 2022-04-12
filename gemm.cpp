@@ -19,14 +19,13 @@ int main(int argc, char **argv) {
         lablas::Matrix<float> B;
         B.set_preferred_matrix_format(CSR);
         init_matrix(B, parser);
-        // B.sort_csc_rows("STL_SORT");
         // B.print();
 
         lablas::Matrix<float> C;
 
         #define MASK_NULL static_cast<const lablas::Matrix<float>*>(NULL)
         lablas::mxm(&C, MASK_NULL, lablas::second<float>(),
-                    lablas::PlusMultipliesSemiring<float>(), &A, &B, &lablas::GrB_DESC_IKJ);
+                    lablas::PlusMultipliesSemiring<float>(), &A, &A, &lablas::GrB_DESC_IKJ);
         #undef MASK_NULL
 
         // C.print();
@@ -34,13 +33,15 @@ int main(int argc, char **argv) {
         if (parser.check()) {
             int error_cnt = 0;
             for (int i = 0; i < A.get_matrix()->get_csr()->get_num_rows(); ++i) {
-                for (int j = 0; j < A.get_matrix()->get_csr()->get_num_rows(); ++j) {
+                for (int j = 0; j < B.get_matrix()->get_csr()->get_num_rows(); ++j) {
                     float accumulator = 0;
                     for (int k = 0; k < A.get_matrix()->get_csr()->get_num_rows(); ++k) {
-                        accumulator += A.get_matrix()->get_csr()->get(i, k) * B.get_matrix()->get_csr()->get(k, j);
+                        accumulator += A.get_matrix()->get_csr()->get(i, k) *
+                                B.get_matrix()->get_csr()->get(k, j);
                     }
                     if (C.get_matrix()->get_csr()->get(i, j) != accumulator) {
-                        std::cout << i << ' ' << j << " " << accumulator << " " << C.get_matrix()->get_csr()->get(i, j)
+                        std::cout << i << ' ' << j << " " << accumulator << " "
+                                  << C.get_matrix()->get_csr()->get(i, j)
                                   << std::endl;
                         ++error_cnt;
                     }
@@ -48,7 +49,7 @@ int main(int argc, char **argv) {
             }
             std::cout << "Matrix multiplication errors cnt: " << error_cnt << std::endl;
         }
-         */
+        */
     }
     catch (string& error)
     {
