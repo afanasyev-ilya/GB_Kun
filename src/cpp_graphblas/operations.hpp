@@ -424,6 +424,18 @@ LA_Info mxm(Matrix<c>*       C,
                         A->get_matrix(), B->get_matrix(), desc->get_descriptor());
 }
 
+template <typename c, typename m, typename a, typename b, typename SemiringT>
+LA_Info mxm(Matrix<c>*       C,
+            const Matrix<m>* mask,
+            NULL_TYPE        accum,
+            SemiringT        op,
+            const Matrix<a>* A,
+            const Matrix<b>* B,
+            Descriptor*      desc)
+{
+    return mxm(C, mask, second<c, a, b>(), op, A, B, desc);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* w = op(w, u[i]) for each i; */
