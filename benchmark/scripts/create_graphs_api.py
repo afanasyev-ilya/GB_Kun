@@ -29,7 +29,7 @@ def get_list_of_synthetic_graphs(run_speed_mode):
         return syn_fastest
     elif run_speed_mode == "scaling":
         return syn_scaling
-    elif run_speed_mode == "best":
+    elif run_speed_mode == "best" or run_speed_mode == "bestf":
         return []
     elif run_speed_mode in konect_tiny_small_medium:
         return []
@@ -56,6 +56,8 @@ def get_list_of_real_world_graphs(run_speed_mode):
         return konect_fastest
     elif run_speed_mode == "best":
         return konect_best
+    elif run_speed_mode == "bestf":
+        return konect_best_fast
     elif run_speed_mode == "scaling":
         return []
     elif run_speed_mode in konect_tiny_small_medium:
