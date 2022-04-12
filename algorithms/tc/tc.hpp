@@ -215,7 +215,7 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
     //A->print();
     cout << "Starting mxm for TC..." << endl;
     A->get_matrix()->sort_csc_rows("STL_SORT");
-    GrB_TRY (GrB_mxm (C, A, NULL, semiring, A, A, GrB_DESC_S)) ;
+    GrB_TRY (GrB_mxm (C, A, NULL, semiring, A, A, &GrB_DESC_IJK_DOUBLE_SORT)) ;
     //C->print();
     cout << C->get_nnz() << endl;
     GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
