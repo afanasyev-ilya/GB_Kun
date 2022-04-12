@@ -27,7 +27,8 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
                 const Matrix<T> *_matrix2,
                 Matrix<T> *_matrix_result,
                 const Matrix<T> *_result_mask,
-                SemiringT _op)
+                SemiringT _op,
+                bool a_is_sorted)
 {
     double t1 = omp_get_wtime();
 
@@ -135,8 +136,9 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
                         if (found_matrix2_row_id == matrix2_col_end_id) {
                             break;
                         }
-
-                        matrix2_row_id = found_matrix2_row_id;
+                        if (a_is_sorted) {
+                            matrix2_row_id = found_matrix2_row_id;
+                        }
 
                         if (matrix2_col_ids_ptr[found_matrix2_row_id] == matrix1_col_num) {
                             accumulator = add_op(accumulator,
@@ -188,7 +190,8 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
 
                         if (found_matrix2_row_id == matrix2_col_end_id) {
                             break;
-                        } else {
+                        }
+                        if (a_is_sorted) {
                             matrix2_row_id = found_matrix2_row_id;
                         }
 

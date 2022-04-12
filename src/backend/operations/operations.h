@@ -469,11 +469,13 @@ LA_Info mxm(Matrix<c>* C,
     Desc_value multiplication_mode;
     desc->get(GrB_MXMMODE, &multiplication_mode);
     if (mask) {
+        bool a_is_sorted = (multiplication_mode == GrB_IJK_DOUBLE_SORT);
         backend::SpMSpM_ijk(A,
                             B,
                             C,
                             mask,
-                            op);
+                            op,
+                            a_is_sorted);
         /*
         if (multiplication_mode == GrB_IJK) {
             backend::SpMSpM_ijk(A,

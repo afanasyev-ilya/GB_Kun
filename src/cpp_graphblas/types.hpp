@@ -17,8 +17,8 @@
                     GrB_MXVMODE,
                     GrB_TOL,
                     GrB_BACKEND,
-                    GrB_NDESCFIELD,
-                    GrB_MXMMODE};
+                    GrB_MXMMODE,
+                    GrB_NDESCFIELD};
 
     enum Desc_value {GrB_SCMP = 0,
                     GrB_REPLACE = 1, // for GrB_OUTP
@@ -43,7 +43,8 @@
                     GrB_1024       = 1024,
                     GrB_IJK        = 20,    // for GrB_MXMMODE
                     GrB_IKJ        = 21,    // for GrB_MXMMODE
-                    GrB_IKJ_MASKED = 22     // for GrB_MXMMODE
+                    GrB_IKJ_MASKED = 22,    // for GrB_MXMMODE
+                    GrB_IJK_DOUBLE_SORT = 22// for GrB_MXMMODE
     };
 
 
