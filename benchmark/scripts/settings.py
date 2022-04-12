@@ -18,9 +18,9 @@ available_formats = ["CSR", "COO", "CSR_SEG", "LAV", "SELL_C", "SORT"] # TODO
 
 
 def requires_undir_graphs(app_name):
-    for undir_apps in ["cc", "coloring"]:
-        if undir_apps in app_name:
-            return True
+    #for undir_apps in ["cc", "coloring"]:
+    #    if undir_apps in app_name:
+    #        return True
     return False
 
 
@@ -61,6 +61,9 @@ all_konect_graphs_data = {
     'soc_twitter_www': {'link': 'twitter'},
     'soc_friendster': {'link': 'friendster'},
     'soc_flick': {'link': 'flickr-growth'},
+    'soc_livemocha': {'link': 'livemocha'},
+
+
 
     'web_stanford': {'link': 'web-Stanford'},
     'web_baidu_internal': {'link': 'zhishi-baidu-internallink'},
@@ -73,6 +76,10 @@ all_konect_graphs_data = {
     'web_web_trackers': {'link': 'trackers-trackers', 'unarch_graph_name': 'trackers'},
     'web_wikipedia_links_it': {'link': 'wikipedia_link_it'},
     'web_wikipedia_links_sv': {'link': 'wikipedia_link_sv'},
+    'web_dimacs10-cnr-2000': {'link': 'dimacs10-cnr-2000'},
+    'web_eu_2005': {'link': 'dimacs10-eu-2005'},
+    'web_hudong': {'link': 'zhishi-hudong-relatedpages'},
+
 
     'road_colorado': {'link': 'dimacs9-COL'},
     'road_texas': {'link': 'roadNet-TX'},
@@ -135,4 +142,11 @@ apps_and_graphs_ingore = {"sssp": [],
 konect_fastest = ['soc_catster_dogster', 'road_texas']
 syn_fastest = ["syn_rmat_18_32", "syn_ru_18_32"]
 
+konect_best = ['soc_libimseti', 'soc_pokec', 'web_dimacs10-cnr-2000', 'web_eu_2005', 'soc_livemocha',
+               'soc_livejournal', 'web_zhishi', 'web_wikipedia_links_ru', 'web_wikipedia_links_it', 'web_hudong',
+               'web_wikipedia_links_sv', 'soc_orkut', 'web_web_trackers', 'web_dbpedia_links', 'web_uk_domain_2002',
+               'soc_twitter_www', 'soc_friendster']
 
+konect_bestf = ['soc_libimseti', 'soc_pokec', 'web_dimacs10-cnr-2000', 'web_eu_2005', 'soc_livemocha',
+               'soc_livejournal', 'web_zhishi', 'web_wikipedia_links_ru', 'web_wikipedia_links_it', 'web_hudong',
+               'web_wikipedia_links_sv', 'soc_orkut', 'web_web_trackers']

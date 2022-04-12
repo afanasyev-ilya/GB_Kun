@@ -3,7 +3,6 @@
 template <typename T>
 void MatrixCSR<T>::numa_aware_realloc()
 {
-    int cores_num = omp_get_max_threads();
     if(num_sockets_used() == 1)
         return;
     VNT num_rows = this->nrows;
