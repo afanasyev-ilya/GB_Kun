@@ -351,3 +351,53 @@ void Matrix<T>::read_mtx_file_sequential(const string &_mtx_file_name,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
+{
+    // read mtx file and get tmp representations of csr and csc matrix
+    vector<vector<pair<VNT, T>>> csr_tmp_matrix;
+    vector<vector<pair<VNT, T>>> csc_tmp_matrix;
+    if(ends_with(_mtx_file_name, "mtx"))
+    {
+        #ifdef __DEBUG_FILE_IO__
+        SAVE_TIME_SEC((read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "mtx_read");
+        #else
+        read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+        #endif
+    }
+    else if(ends_with(_mtx_file_name, "mtxbin"))
+    {
+        #ifdef __DEBUG_FILE_IO__
+        SAVE_TIME_SEC((binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "binary_read");
+        #else
+        binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+        #endif
+    }
+    else
+    {
+        cout << "Unsupported matrix file format. can be either .mtx or .mtx.bin";
+        throw "Aborting...";
+    }
+
+    VNT tmp_nrows = csr_tmp_matrix.size(), tmp_ncols = csc_tmp_matrix.size();
+
+    double t1 = omp_get_wtime();
+    csr_data = new MatrixCSR<T>;
+    csc_data = new MatrixCSR<T>;
+    csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols);
+    csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows);
+    double t2 = omp_get_wtime();
+
+    #ifdef __DEBUG_FILE_IO__
+    save_time_in_sec("build_matrix_from_file", t2 - t1);
+    #endif
+
+    #ifdef __DEBUG_INFO__
+    cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;
+    #endif
+
+    init_optimized_structures();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
