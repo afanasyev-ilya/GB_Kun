@@ -392,47 +392,16 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
             throw "Error! Unexpected end of binary file";
     }
 
-    _csr_matrix.resize(nrows);
-    _csc_matrix.resize(ncols);
-
     {
-        Timer tm("seq graph creation time");
-        //#pragma omp parallel for num_threads(creation_threads)
-        for(ENT i = 0; i < 2*nnz; i += 2)
-        {
-            VNT src_id = all_data_vec[i] - 1;
-            VNT dst_id = all_data_vec[i + 1] - 1;
-
-            T val = EDGE_VAL;
-            _csr_matrix[src_id].push_back(std::make_pair(dst_id, val));
-            _csc_matrix[dst_id].push_back(std::make_pair(src_id, val));
-        }
-    }
-
-    /*{
-        Timer tm("par map-based graph creation time");
-        #pragma omp parallel
-        {
-            std::unordered_map<VNT, std::vector<VNT>> loc_map;
-            #pragma omp for
-            for(ENT i = 0; i < 2*nnz; i += 2)
-            {
-                VNT src_id = all_data_vec[i] - 1;
-                VNT dst_id = all_data_vec[i + 1] - 1;
-
-                loc_map[src_id].push_back(dst_id);
-            }
-        }
-    }*/
-
-    {
-        int max_threads = 32;
-        auto loc_maps = new std::unordered_map<VNT, std::vector<VNT>>[max_threads];
-        Timer tm("par map-based graph creation time");
+        Timer tm("COO->CSR time");
+        _csr_matrix.resize(nrows);
+        _csc_matrix.resize(ncols);
+        int max_threads = omp_get_max_threads() / 8;
+        auto thread_maps = new std::unordered_map<VNT, std::vector<VNT>>[max_threads];
         #pragma omp parallel num_threads(max_threads)
         {
             int tid = omp_get_thread_num();
-            std::unordered_map<VNT, std::vector<VNT>> &loc_map = loc_maps[tid];
+            std::unordered_map<VNT, std::vector<VNT>> &loc_map = thread_maps[tid];
 
             #pragma omp for
             for(ENT i = 0; i < 2*nnz; i += 2)
@@ -442,93 +411,28 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
 
                 loc_map[src_id].push_back(dst_id);
             }
-
-            for(int s = max_threads; s >= 1; s /= 2)
-            {
-                #pragma omp barrier
-                if((tid + s) < max_threads)
-                    merge_maps(loc_maps[tid], loc_maps[tid + s]);
-                #pragma omp barrier
-            }
         }
 
-        _csr_matrix.resize(0);
-        _csr_matrix.resize(nrows);
-
-        auto fin_map = loc_maps[0];
-
-        //#pragma omp parallel for
-        for(size_t b = 0; b < fin_map.bucket_count(); b++)
+        for(int thread = 0; thread < max_threads; thread++)
         {
-            for(auto bi = fin_map.begin(b); bi != fin_map.end(b);bi++)
+            std::unordered_map<VNT, std::vector<VNT>> &cur_map = thread_maps[thread];
+
+            #pragma omp parallel for
+            for(size_t b = 0; b < cur_map.bucket_count(); b++)
             {
-                VNT key = bi->first;
-                for(int i = 0; i < bi->second.size(); i++)
+                for(auto bi = cur_map.begin(b); bi != cur_map.end(b);bi++)
                 {
-                    VNT ind_val = bi->second[i];
-                    T edge_val = EDGE_VAL;
-                    _csr_matrix[key].push_back(make_pair(ind_val, edge_val));
+                    VNT key = bi->first;
+                    for(int i = 0; i < bi->second.size(); i++)
+                    {
+                        VNT ind_val = bi->second[i];
+                        T edge_val = EDGE_VAL;
+                        _csr_matrix[key].push_back(make_pair(ind_val, edge_val));
+                    }
                 }
             }
         }
     }
-
-    /*tbb::concurrent_unordered_map<VNT, vector<VNT>> map_csr(nrows);
-
-    {
-        Timer tm("map time");
-
-        #pragma omp parallel for
-        for(ENT i = 0; i < 2*nnz; i += 2)
-        {
-            VNT src_id = all_data_vec[i] - 1;
-            VNT dst_id = all_data_vec[i + 1] - 1;
-
-            T val = EDGE_VAL;
-            map_csr[src_id].push_back(dst_id);
-        }
-    }*/
-
-
-    /*{
-        Timer tm("par graph creation time");
-        std::vector<omp_lock_t> csr_locks(nrows);
-        std::vector<omp_lock_t> csc_locks(ncols);
-
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for(VNT col = 0; col < nrows; col++)
-                omp_init_lock(&csr_locks[col]);
-
-            for(VNT col = 0; col < ncols; col++)
-                omp_init_lock(&csc_locks[col]);
-
-            #pragma omp for
-            for(ENT i = 0; i < 2*nnz; i += 2)
-            {
-                VNT src_id = all_data_vec[i] - 1;
-                VNT dst_id = all_data_vec[i + 1] - 1;
-                T val = EDGE_VAL;
-
-                omp_set_lock(&csr_locks[src_id]);
-                _csr_matrix[src_id].push_back(std::make_pair(dst_id, val));
-                omp_set_lock(&csr_locks[src_id]);
-
-                omp_set_lock(&csc_locks[dst_id]);
-                _csc_matrix[dst_id].push_back(std::make_pair(src_id, val));
-                omp_set_lock(&csc_locks[dst_id]);
-            }
-
-            #pragma omp for
-            for(VNT col = 0; col < nrows; col++)
-                omp_destroy_lock(&csr_locks[col]);
-
-            #pragma omp for
-            for(VNT col = 0; col < ncols; col++)
-                omp_destroy_lock(&csc_locks[col]);
-        }
-    }*/
 
     fclose(fp);
 }
@@ -538,9 +442,10 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
 template<typename T>
 void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
 {
+    bool csc_is_empty = false;
     // read mtx file and get tmp representations of csr and csc matrix
-    vector<vector<pair<VNT, T>>> csr_tmp_matrix;
-    vector<vector<pair<VNT, T>>> csc_tmp_matrix;
+    vector<vector<pair<VNT, T>>> csr_tmp_matrix(0);
+    vector<vector<pair<VNT, T>>> csc_tmp_matrix(0);
     if(ends_with(_mtx_file_name, "mtx"))
     {
         #ifdef __DEBUG_FILE_IO__
@@ -552,15 +457,7 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     else if(ends_with(_mtx_file_name, "mtxbin"))
     {
         binary_read_mtx_file(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
-
-        /*{
-            Timer tm("old binary read");
-            #ifdef __DEBUG_FILE_IO__
-            SAVE_TIME_SEC((binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "binary_read");
-            #else
-            binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
-            #endif
-        }*/
+        csc_is_empty = true;
     }
     else
     {
@@ -574,7 +471,16 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     csr_data = new MatrixCSR<T>;
     csc_data = new MatrixCSR<T>;
     csr_data->build(csr_tmp_matrix, tmp_nrows, tmp_ncols);
-    csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows);
+    if(csc_is_empty)
+    {
+        {
+            Timer tm("transpose time");
+            csc_data->resize(tmp_ncols, tmp_nrows, csr_data->get_nnz());
+            csr_to_csc();
+        }
+    }
+    else
+        csc_data->build(csc_tmp_matrix, tmp_ncols, tmp_nrows);
     double t2 = omp_get_wtime();
 
     #ifdef __DEBUG_FILE_IO__
