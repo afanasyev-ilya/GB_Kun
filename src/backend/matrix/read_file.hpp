@@ -355,9 +355,21 @@ void Matrix<T>::read_mtx_file_sequential(const string &_mtx_file_name,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void merge_maps(std::unordered_map<VNT, vector<VNT>> &_first, std::unordered_map<VNT, vector<VNT>> &_second)
+template <typename T>
+void merge_maps(T &cur_map, T &other_map)
 {
-    _first.insert(_second.begin(), _second.end());
+    //cur_map.insert(other_map.begin(), other_map.end());
+    for (auto &[key, value] : other_map)
+    {
+        if (cur_map.find(key) != cur_map.end()) // if found
+        {
+            cur_map[key].insert(cur_map[key].end(), other_map[key].begin(), other_map[key].end());
+        }
+        else
+        {
+            cur_map[key] = value;
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -393,15 +405,17 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
     }
 
     {
+        using type_map = tsl::hopscotch_map<VNT, std::vector<VNT>>;
+
         Timer tm("COO->CSR time");
         _csr_matrix.resize(nrows);
         _csc_matrix.resize(ncols);
-        int max_threads = omp_get_max_threads() / 8;
-        auto thread_maps = new std::unordered_map<VNT, std::vector<VNT>>[max_threads];
+        int max_threads = 64;
+        auto thread_maps = new type_map[max_threads];
         #pragma omp parallel num_threads(max_threads)
         {
             int tid = omp_get_thread_num();
-            std::unordered_map<VNT, std::vector<VNT>> &loc_map = thread_maps[tid];
+            type_map &loc_map = thread_maps[tid];
 
             #pragma omp for
             for(ENT i = 0; i < 2*nnz; i += 2)
@@ -411,9 +425,51 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
 
                 loc_map[src_id].push_back(dst_id);
             }
+
+            for(unsigned int s = 1; s < max_threads; s *= 2)
+            {
+                if (tid % (2*s) == 0)
+                {
+                    type_map &cur_map = thread_maps[tid];
+                    type_map &other_map = thread_maps[tid + s];
+                    merge_maps(cur_map, other_map);
+                }
+                #pragma omp barrier
+            }
         }
 
-        for(int thread = 0; thread < max_threads; thread++)
+        type_map &final_map = thread_maps[0];
+
+        /*#pragma omp parallel for
+        for(size_t b = 0; b < final_map.bucket_count(); b++)
+        {
+            for(auto bi = final_map.begin(b); bi != final_map.end(b);bi++)
+            {
+                VNT key = bi->first;
+                for(int i = 0; i < bi->second.size(); i++)
+                {
+                    VNT ind_val = bi->second[i];
+                    T edge_val = EDGE_VAL;
+                    _csr_matrix[key].push_back(make_pair(ind_val, edge_val));
+                }
+            }
+        }*/
+
+        #pragma omp parallel for
+        for (VNT i = 0; i < nrows; ++i)
+        {
+            if (final_map.find(i) != final_map.end()) {
+                const auto &cur_vector = final_map[i];
+                for(size_t j = 0; j < cur_vector.size(); j++)
+                {
+                    VNT ind_val = cur_vector[j];
+                    T edge_val = EDGE_VAL;
+                    _csr_matrix[i].push_back(make_pair(ind_val, edge_val));
+                }
+            }
+        }
+
+        /*for(int thread = 0; thread < max_threads; thread++)
         {
             std::unordered_map<VNT, std::vector<VNT>> &cur_map = thread_maps[thread];
 
@@ -431,7 +487,7 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
                     }
                 }
             }
-        }
+        }*/
     }
 
     fclose(fp);
