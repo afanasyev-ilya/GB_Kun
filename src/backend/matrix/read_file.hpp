@@ -367,7 +367,8 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
         throw "Error: Can not open .mtx file";
     }
 
-    long long int nrows = 0, ncols = 0, nnz = 0;
+    VNT nrows = 0, ncols = 0;
+    ENT nnz = 0;
     if (fread(&nrows, sizeof(VNT), 1, fp) == 0)
         throw "Error! Unexpected end of binary file";
     if (fread(&ncols, sizeof(VNT), 1, fp) == 0)
@@ -380,7 +381,8 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
     {
         Timer tm("new binary read");
 
-        fread(&all_data_vec[0], sizeof(VNT), nnz*2, fp);
+        if(fread(&(all_data_vec[0]), sizeof(VNT), nnz*2, fp) == 0)
+            throw "Error! Unexpected end of binary file";
     }
 
     _csr_matrix.resize(nrows);
@@ -390,8 +392,9 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
         //#pragma omp parallel for num_threads(creation_threads)
         for(ENT i = 0; i < 2*nnz; i += 2)
         {
-            VNT src_id = all_data_vec[i];
-            VNT dst_id = all_data_vec[i + 1];
+            VNT src_id = all_data_vec[i] - 1;
+            VNT dst_id = all_data_vec[i + 1] - 1;
+
             T val = EDGE_VAL;
             _csr_matrix[src_id].push_back(std::make_pair(dst_id, val));
             _csc_matrix[dst_id].push_back(std::make_pair(src_id, val));
