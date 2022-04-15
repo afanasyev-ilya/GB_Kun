@@ -154,6 +154,51 @@ void Matrix<T>::transpose_parallel(void) {
 
     std::cout << "Overall bandwidth " << total_bw / 1000000000 << "GByte/sec" << std::endl;
     #endif
+
+    /*auto offsets = this->get_csr()->get_load_balancing_offsets();
+
+    int max_threads = omp_get_max_threads() / 8;
+    auto thread_maps = new std::unordered_map<VNT, std::vector<std::pair<VNT, T>>>[max_threads];
+    #pragma omp parallel num_threads(max_threads)
+    {
+        int tid = omp_get_thread_num();
+        std::unordered_map<VNT, std::vector<std::pair<VNT, T>>> &loc_map = thread_maps[tid];
+
+        VNT first_row = offsets[tid].first;
+        VNT last_row = offsets[tid + 8].second;
+
+        for(VNT row = first_row; row < last_row; row++)
+        {
+            for (int j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++)
+            {
+                VNT src_id = row;
+                VNT dst_id = csr_data->get_col_ids()[j];
+                T val = csr_data->get_vals()[j];
+                loc_map[src_id].push_back(make_pair(dst_id, val));
+            }
+        }
+    }
+
+    for(int thread = 0; thread < max_threads; thread++)
+    {
+        std::unordered_map<VNT, std::vector<VNT>> &cur_map = thread_maps[thread];
+
+        #pragma omp parallel for
+        for(size_t b = 0; b < cur_map.bucket_count(); b++)
+        {
+            for(auto bi = cur_map.begin(b); bi != cur_map.end(b);bi++)
+            {
+                VNT key = bi->first;
+                for(int i = 0; i < bi->second.size(); i++)
+                {
+                    VNT ind_val = bi->second[i];
+                    T edge_val = EDGE_VAL;
+                    ENT ptr = ;
+                    _csr_matrix[key].push_back(make_pair(ind_val, edge_val));
+                }
+            }
+        }
+    }*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
