@@ -380,14 +380,6 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
         fread(&all_data_vec[0], sizeof(VNT), nnz*2, fp);
     }
 
-    #ifdef __USE_TBB__
-    int creation_threads = omp_get_max_threads();
-    tbb::concurrent_unordered_map<VNT, VNT> map_graph;
-    #else
-    int creation_threads = 1;
-    std::unordered_map<VNT, vector<VNT>> map_graph;
-    #endif
-
     _csr_matrix.resize(nrows);
     _csc_matrix.resize(ncols);
     {
