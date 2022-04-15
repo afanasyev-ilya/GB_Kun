@@ -104,8 +104,6 @@ void Matrix<T>::transpose_parallel(void) {
     ParallelPrimitives::exclusive_scan(csc_data->get_row_ptr(),csc_data->get_row_ptr(),csr_ncols);
     double scan_b = omp_get_wtime();
 
-    CommonWorkspace ccp(csr_data->get_num_cols() + 1, csc_data->get_row_ptr());
-
     double final_a = omp_get_wtime();
     #pragma omp parallel shared(csr_nrows, csr_ncols, row_ptr, dloc)
     {
