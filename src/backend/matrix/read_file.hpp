@@ -353,6 +353,62 @@ void Matrix<T>::read_mtx_file_sequential(const string &_mtx_file_name,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
+void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
+                                     vector<vector<pair<VNT, T>>> &_csr_matrix,
+                                     vector<vector<pair<VNT, T>>> &_csc_matrix)
+{
+    FILE *fp = fopen(_mtx_file_name.c_str(), "rb");
+    if (fp == 0)
+    {
+        cout << "Error: Can not open .mtx " << _mtx_file_name.c_str() << " file!" << endl;
+        throw "Error: Can not open .mtx file";
+    }
+
+    long long int nrows = 0, ncols = 0, nnz = 0;
+    if (fread(&nrows, sizeof(long long), 1, fp) == 0)
+        throw "Error! Unexpected end of binary file";
+    if (fread(&ncols, sizeof(long long), 1, fp) == 0)
+        throw "Error! Unexpected end of binary file";
+    if (fread(&nnz, sizeof(long long), 1, fp) == 0)
+        throw "Error! Unexpected end of binary file";
+
+    std::vector<VNT> all_data_vec(nnz*2, 0);
+
+    {
+        Timer tm("new binary read");
+
+        fread(&all_data_vec[0], sizeof(VNT), nnz*2, fp);
+    }
+
+    #ifdef __USE_TBB__
+    int creation_threads = omp_get_max_threads();
+    tbb::concurrent_unordered_map<VNT, VNT> map_graph;
+    #else
+    int creation_threads = 1;
+    std::unordered_map<VNT, vector<VNT>> map_graph;
+    #endif
+
+    _csr_matrix.resize(nrows);
+    _csc_matrix.resize(ncols);
+    {
+        Timer tm("graph creation time");
+        //#pragma omp parallel for num_threads(creation_threads)
+        for(ENT i = 0; i < nnz; i++)
+        {
+            VNT src_id = all_data_vec[2*i];
+            VNT dst_id = all_data_vec[2*i + 1];
+            T val = EDGE_VAL;
+            _csr_matrix[src_id].push_back(std::make_pair(dst_id, val));
+            _csc_matrix[dst_id].push_back(std::make_pair(src_id, val));
+        }
+    }
+
+    fclose(fp);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
 void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
 {
     // read mtx file and get tmp representations of csr and csc matrix
@@ -368,11 +424,16 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     }
     else if(ends_with(_mtx_file_name, "mtxbin"))
     {
-        #ifdef __DEBUG_FILE_IO__
-        SAVE_TIME_SEC((binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "binary_read");
-        #else
-        binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
-        #endif
+        binary_read_mtx_file(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+
+        {
+            Timer tm("old binary read");
+            #ifdef __DEBUG_FILE_IO__
+            SAVE_TIME_SEC((binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "binary_read");
+            #else
+            binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+            #endif
+        }
     }
     else
     {

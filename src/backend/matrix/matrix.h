@@ -191,6 +191,10 @@ private:
                                         vector<vector<pair<VNT, T>>> &_csr_matrix,
                                         vector<vector<pair<VNT, T>>> &_csc_matrix);
 
+    void binary_read_mtx_file(const string &_mtx_file_name,
+                              vector<vector<pair<VNT, T>>> &_csr_matrix,
+                              vector<vector<pair<VNT, T>>> &_csc_matrix);
+
     void read_mtx_file_sequential(const string &_mtx_file_name,
                                   vector<vector<pair<VNT, T>>> &_csr_matrix,
                                   vector<vector<pair<VNT, T>>> &_csc_matrix);
