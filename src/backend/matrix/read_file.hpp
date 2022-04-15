@@ -388,7 +388,7 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
     _csr_matrix.resize(nrows);
     _csc_matrix.resize(ncols);
 
-    /*{
+    {
         Timer tm("seq graph creation time");
         //#pragma omp parallel for num_threads(creation_threads)
         for(ENT i = 0; i < 2*nnz; i += 2)
@@ -400,7 +400,24 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
             _csr_matrix[src_id].push_back(std::make_pair(dst_id, val));
             _csc_matrix[dst_id].push_back(std::make_pair(src_id, val));
         }
+    }
+
+    /*tbb::concurrent_unordered_map<VNT, vector<VNT>> map_csr(nrows);
+
+    {
+        Timer tm("map time");
+
+        #pragma omp parallel for
+        for(ENT i = 0; i < 2*nnz; i += 2)
+        {
+            VNT src_id = all_data_vec[i] - 1;
+            VNT dst_id = all_data_vec[i + 1] - 1;
+
+            T val = EDGE_VAL;
+            map_csr[src_id].push_back(dst_id);
+        }
     }*/
+
 
     /*{
         Timer tm("par graph creation time");
