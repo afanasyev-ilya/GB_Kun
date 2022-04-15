@@ -86,15 +86,15 @@ void Matrix<T>::transpose_parallel(void) {
 
     #pragma omp parallel shared(csr_nrows, csr_ncols, row_ptr, dloc)
     {
-    int tid = omp_get_thread_num();
-    VNT first_row = offsets[tid].first;
-    VNT last_row = offsets[tid].second;
+        int tid = omp_get_thread_num();
+        VNT first_row = offsets[tid].first;
+        VNT last_row = offsets[tid].second;
 
-    for(VNT row = first_row; row < last_row; row++) {
-        for (int j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++) {
-            dloc[j] = my_fetch_add(&row_ptr[csr_data->get_col_ids()[j]], static_cast<Index>(1));
+        for(VNT row = first_row; row < last_row; row++) {
+            for (int j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++) {
+                dloc[j] = my_fetch_add(&row_ptr[csr_data->get_col_ids()[j]], static_cast<Index>(1));
+            }
         }
-    }
     }
 
     double fetch_b = omp_get_wtime();
@@ -109,18 +109,18 @@ void Matrix<T>::transpose_parallel(void) {
     double final_a = omp_get_wtime();
     #pragma omp parallel shared(csr_nrows, csr_ncols, row_ptr, dloc)
     {
-    int tid = omp_get_thread_num();
-    VNT first_row = offsets[tid].first;
-    VNT last_row = offsets[tid].second;
-    Index* this_csc;
+        int tid = omp_get_thread_num();
+        VNT first_row = offsets[tid].first;
+        VNT last_row = offsets[tid].second;
+        Index* this_csc;
 
-    for(VNT row = first_row; row < last_row; row++) {
-        for (int j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++) {
-            auto loc = row_ptr[csr_data->get_col_ids()[j]] + dloc[j];
-            csc_data->get_col_ids()[loc] = row;
-            csc_data->get_vals()[loc] = csr_data->get_vals()[j];
+        for(VNT row = first_row; row < last_row; row++) {
+            for (int j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++) {
+                auto loc = row_ptr[csr_data->get_col_ids()[j]] + dloc[j];
+                csc_data->get_col_ids()[loc] = row;
+                csc_data->get_vals()[loc] = csr_data->get_vals()[j];
+            }
         }
-    }
     }
     #pragma omp barrier
     double final_b = omp_get_wtime();

@@ -402,7 +402,7 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
         }
     }*/
 
-    {
+    /*{
         Timer tm("par graph creation time");
         std::vector<omp_lock_t> csr_locks(nrows);
         std::vector<omp_lock_t> csc_locks(ncols);
@@ -440,7 +440,7 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
             for(VNT col = 0; col < ncols; col++)
                 omp_destroy_lock(&csc_locks[col]);
         }
-    }
+    }*/
 
     fclose(fp);
 }
