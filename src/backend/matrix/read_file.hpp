@@ -416,7 +416,7 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     }
     else if(ends_with(_mtx_file_name, "mtxbin"))
     {
-        binary_read_mtx_file(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+        //binary_read_mtx_file(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
 
         {
             Timer tm("old binary read");

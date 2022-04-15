@@ -23,7 +23,7 @@ int main(int argc, char **argv)
         lablas::Matrix<float> bin_matrix;
         bin_matrix.init_from_mtx(file_name + ".mtxbin");
 
-        if(bin_matrix != txt_matrix)
+        if(bin_matrix == txt_matrix)
             std::cout << "txt and binary graphs ARE equal!" << std::endl;
         else
             std::cout << "txt and binary graphs ARE NOT equal!" << std::endl;

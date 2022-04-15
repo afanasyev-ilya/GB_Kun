@@ -192,16 +192,19 @@ template <typename T>
 bool operator == (const MatrixCSR<T> &c1, const MatrixCSR<T> &c2) {
     auto nrows1 = c1.get_num_rows();  auto nrows2 = c2.get_num_rows();
     if (nrows1 != nrows2) {
+        std::cout << "nrows are not equal " << nrows1 << " vs " << nrows2 << std::endl;
         return false;
     }
 
     auto ncols1 = c1.get_num_cols();  auto ncols2 = c2.get_num_cols();
     if (ncols1 != ncols2) {
+        std::cout << "ncols are not equal " << ncols1 << " vs " << ncols2 << std::endl;
         return false;
     }
 
     auto nvals1 = c1.get_nnz();  auto nvals2 = c2.get_nnz();
     if (nvals1 != nvals2) {
+        std::cout << "nvals are not equal " << nvals1 << " vs " << nvals2 << std::endl;
         return false;
     }
 
@@ -243,9 +246,12 @@ bool operator == (const MatrixCSR<T> &c1, const MatrixCSR<T> &c2) {
             }
         }
     }
-    std::cout << "number of incorrect rows: " << incorrect_rows << "/" << nrows1 << std::endl;
-    std::cout << "incorrect by size: " << incorrect_by_size << "/" << incorrect_rows << std::endl;
-    std::cout << "incorrect by content: " << incorrect_by_content << "/" << incorrect_rows << std::endl;
+    //if(result == false)
+    //{
+        std::cout << "number of incorrect rows: " << incorrect_rows << "/" << nrows1 << std::endl;
+        std::cout << "incorrect by size: " << incorrect_by_size << "/" << incorrect_rows << std::endl;
+        std::cout << "incorrect by content: " << incorrect_by_content << "/" << incorrect_rows << std::endl;
+    //}
     return result;
 }
 
