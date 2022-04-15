@@ -9,7 +9,7 @@ void read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, ENT _nnz
     char buffer[buffer_size];
     for (size_t ln = _ln_pos; ln < min(_nnz, end_pos); ln++)
     {
-        long long int src_id = -2, dst_id = -2;
+        VNT src_id = -2, dst_id = -2;
         if (fgets(buffer, buffer_size, _fp) == NULL)
             throw "Error: unexpected end of graph file! Aborting...";
 
@@ -72,7 +72,8 @@ void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
             break;
     }
 
-    long long int tmp_rows = 0, tmp_cols = 0, tmp_nnz = 0;
+    VNT tmp_rows = 0, tmp_cols = 0;
+    ENT tmp_nnz = 0;
     sscanf(header_line, "%lld %lld %lld", &tmp_rows, &tmp_cols, &tmp_nnz);
     string hd_str(header_line);
     cout << "started reading, header is : " << hd_str << endl;
@@ -203,12 +204,13 @@ void Matrix<T>::binary_read_mtx_file_pipelined(const string &_mtx_file_name,
         throw "Error: Can not open .mtx file";
     }
 
-    long long int tmp_rows = 0, tmp_cols = 0, tmp_nnz = 0;
-    if (fread(&tmp_rows, sizeof(long long), 1, fp) == 0)
+    VNT tmp_rows = 0, tmp_cols = 0;
+    ENT tmp_nnz = 0;
+    if (fread(&tmp_rows, sizeof(VNT), 1, fp) == 0)
         throw "Error! Unexpected end of binary file";
-    if (fread(&tmp_cols, sizeof(long long), 1, fp) == 0)
+    if (fread(&tmp_cols, sizeof(VNT), 1, fp) == 0)
         throw "Error! Unexpected end of binary file";
-    if (fread(&tmp_nnz, sizeof(long long), 1, fp) == 0)
+    if (fread(&tmp_nnz, sizeof(ENT), 1, fp) == 0)
         throw "Error! Unexpected end of binary file";
 
     VNT * proc_src_ids, *proc_dst_ids;
@@ -321,7 +323,8 @@ void Matrix<T>::read_mtx_file_sequential(const string &_mtx_file_name,
             break;
     }
 
-    long long int tmp_rows = 0, tmp_cols = 0, tmp_nnz = 0;
+    VNT tmp_rows = 0, tmp_cols = 0;
+    ENT tmp_nnz = 0;
     sscanf(header_line, "%lld %lld %lld", &tmp_rows, &tmp_cols, &tmp_nnz);
     string hd_str(header_line);
 
@@ -331,9 +334,9 @@ void Matrix<T>::read_mtx_file_sequential(const string &_mtx_file_name,
     _csr_matrix.resize(tmp_rows);
     _csc_matrix.resize(tmp_cols);
 
-    for(long long int i = 0; i < tmp_nnz; i++)
+    for(ENT i = 0; i < tmp_nnz; i++)
     {
-        long long int src_id = -2, dst_id = -2;
+        VNT src_id = -2, dst_id = -2;
         if (fgets(buffer, buffer_size, fp) == NULL)
             throw "Error: unexpected end of graph file! Aborting...";
 
@@ -365,11 +368,11 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
     }
 
     long long int nrows = 0, ncols = 0, nnz = 0;
-    if (fread(&nrows, sizeof(long long), 1, fp) == 0)
+    if (fread(&nrows, sizeof(VNT), 1, fp) == 0)
         throw "Error! Unexpected end of binary file";
-    if (fread(&ncols, sizeof(long long), 1, fp) == 0)
+    if (fread(&ncols, sizeof(VNT), 1, fp) == 0)
         throw "Error! Unexpected end of binary file";
-    if (fread(&nnz, sizeof(long long), 1, fp) == 0)
+    if (fread(&nnz, sizeof(ENT), 1, fp) == 0)
         throw "Error! Unexpected end of binary file";
 
     std::vector<VNT> all_data_vec(nnz*2, 0);
@@ -385,10 +388,10 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
     {
         Timer tm("graph creation time");
         //#pragma omp parallel for num_threads(creation_threads)
-        for(ENT i = 0; i < nnz; i++)
+        for(ENT i = 0; i < 2*nnz; i += 2)
         {
-            VNT src_id = all_data_vec[2*i];
-            VNT dst_id = all_data_vec[2*i + 1];
+            VNT src_id = all_data_vec[i];
+            VNT dst_id = all_data_vec[i + 1];
             T val = EDGE_VAL;
             _csr_matrix[src_id].push_back(std::make_pair(dst_id, val));
             _csc_matrix[dst_id].push_back(std::make_pair(src_id, val));
@@ -416,16 +419,16 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     }
     else if(ends_with(_mtx_file_name, "mtxbin"))
     {
-        //binary_read_mtx_file(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
+        binary_read_mtx_file(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
 
-        {
+        /*{
             Timer tm("old binary read");
             #ifdef __DEBUG_FILE_IO__
             SAVE_TIME_SEC((binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "binary_read");
             #else
             binary_read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
             #endif
-        }
+        }*/
     }
     else
     {
