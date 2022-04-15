@@ -172,6 +172,10 @@ public:
     }
 
     void to_symmetric() { csr_data->to_symmetric(); csc_data->deep_copy(csr_data); };
+
+    friend bool operator==(const Matrix<T>& _lhs, const Matrix<T>& _rhs) {
+        return (_lhs.csr_data == _rhs.csr_data) && (_lhs.csc_data == _rhs.csc_data);
+    }
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
