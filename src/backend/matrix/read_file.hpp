@@ -355,6 +355,13 @@ void Matrix<T>::read_mtx_file_sequential(const string &_mtx_file_name,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void merge_maps(std::unordered_map<VNT, vector<VNT>> &_first, std::unordered_map<VNT, vector<VNT>> &_second)
+{
+    _first.insert(_second.begin(), _second.end());
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template<typename T>
 void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
                                      vector<vector<pair<VNT, T>>> &_csr_matrix,
@@ -399,6 +406,70 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
             T val = EDGE_VAL;
             _csr_matrix[src_id].push_back(std::make_pair(dst_id, val));
             _csc_matrix[dst_id].push_back(std::make_pair(src_id, val));
+        }
+    }
+
+    /*{
+        Timer tm("par map-based graph creation time");
+        #pragma omp parallel
+        {
+            std::unordered_map<VNT, std::vector<VNT>> loc_map;
+            #pragma omp for
+            for(ENT i = 0; i < 2*nnz; i += 2)
+            {
+                VNT src_id = all_data_vec[i] - 1;
+                VNT dst_id = all_data_vec[i + 1] - 1;
+
+                loc_map[src_id].push_back(dst_id);
+            }
+        }
+    }*/
+
+    {
+        int max_threads = 32;
+        auto loc_maps = new std::unordered_map<VNT, std::vector<VNT>>[max_threads];
+        Timer tm("par map-based graph creation time");
+        #pragma omp parallel num_threads(max_threads)
+        {
+            int tid = omp_get_thread_num();
+            std::unordered_map<VNT, std::vector<VNT>> &loc_map = loc_maps[tid];
+
+            #pragma omp for
+            for(ENT i = 0; i < 2*nnz; i += 2)
+            {
+                VNT src_id = all_data_vec[i] - 1;
+                VNT dst_id = all_data_vec[i + 1] - 1;
+
+                loc_map[src_id].push_back(dst_id);
+            }
+
+            for(int s = max_threads; s >= 1; s /= 2)
+            {
+                #pragma omp barrier
+                if((tid + s) < max_threads)
+                    merge_maps(loc_maps[tid], loc_maps[tid + s]);
+                #pragma omp barrier
+            }
+        }
+
+        _csr_matrix.resize(0);
+        _csr_matrix.resize(nrows);
+
+        auto fin_map = loc_maps[0];
+
+        //#pragma omp parallel for
+        for(size_t b = 0; b < fin_map.bucket_count(); b++)
+        {
+            for(auto bi = fin_map.begin(b); bi != fin_map.end(b);bi++)
+            {
+                VNT key = bi->first;
+                for(int i = 0; i < bi->second.size(); i++)
+                {
+                    VNT ind_val = bi->second[i];
+                    T edge_val = EDGE_VAL;
+                    _csr_matrix[key].push_back(make_pair(ind_val, edge_val));
+                }
+            }
         }
     }
 
