@@ -387,8 +387,9 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
 
     _csr_matrix.resize(nrows);
     _csc_matrix.resize(ncols);
-    {
-        Timer tm("graph creation time");
+
+    /*{
+        Timer tm("seq graph creation time");
         //#pragma omp parallel for num_threads(creation_threads)
         for(ENT i = 0; i < 2*nnz; i += 2)
         {
@@ -398,6 +399,46 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
             T val = EDGE_VAL;
             _csr_matrix[src_id].push_back(std::make_pair(dst_id, val));
             _csc_matrix[dst_id].push_back(std::make_pair(src_id, val));
+        }
+    }*/
+
+    {
+        Timer tm("par graph creation time");
+        std::vector<omp_lock_t> csr_locks(nrows);
+        std::vector<omp_lock_t> csc_locks(ncols);
+
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for(VNT col = 0; col < nrows; col++)
+                omp_init_lock(&csr_locks[col]);
+
+            for(VNT col = 0; col < ncols; col++)
+                omp_init_lock(&csc_locks[col]);
+
+            #pragma omp for
+            for(ENT i = 0; i < 2*nnz; i += 2)
+            {
+                VNT src_id = all_data_vec[i] - 1;
+                VNT dst_id = all_data_vec[i + 1] - 1;
+                T val = EDGE_VAL;
+
+                omp_set_lock(&csr_locks[src_id]);
+                _csr_matrix[src_id].push_back(std::make_pair(dst_id, val));
+                omp_set_lock(&csr_locks[src_id]);
+
+                omp_set_lock(&csc_locks[dst_id]);
+                _csc_matrix[dst_id].push_back(std::make_pair(src_id, val));
+                omp_set_lock(&csc_locks[dst_id]);
+            }
+
+            #pragma omp for
+            for(VNT col = 0; col < nrows; col++)
+                omp_destroy_lock(&csr_locks[col]);
+
+            #pragma omp for
+            for(VNT col = 0; col < ncols; col++)
+                omp_destroy_lock(&csc_locks[col]);
         }
     }
 
