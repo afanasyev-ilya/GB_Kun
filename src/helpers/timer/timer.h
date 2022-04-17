@@ -1,5 +1,12 @@
 #pragma once
 
+#define __DEBUG_PERF_STATS_ENABLED__ true
+
+double GLOBAL_CONVERSION_TIME = 0;
+double GLOBAL_SPMV_TIME = 0;
+double GLOBAL_SPMSPV_TIME = 0;
+double GLOBAL_LINEAR_OPERATIONS_TIME = 0;
+
 class Timer
 {
 private:
