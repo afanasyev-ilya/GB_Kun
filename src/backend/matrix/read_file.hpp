@@ -406,8 +406,9 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
 
     {
         using type_map = std::unordered_map<VNT, std::vector<VNT>>;
+        //using type_map = tsl::robin_map<VNT, std::vector<VNT>>;
 
-        Timer tm("COO->CSR time");
+        Timer tm("COO->CSR time using advance");
         _csr_matrix.resize(nrows);
         _csc_matrix.resize(ncols);
         int max_threads = omp_get_max_threads()/4;
@@ -431,10 +432,10 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
         {
             type_map &cur_map = thread_maps[thread];
 
-            #pragma omp parallel for
+            #pragma omp parallel for // using buckets
             for(size_t b = 0; b < cur_map.bucket_count(); b++)
             {
-                for(auto bi = cur_map.begin(b); bi != cur_map.end(b);bi++)
+                for(auto bi = cur_map.begin(b); bi != cur_map.end(b); bi++)
                 {
                     VNT key = bi->first;
                     for(int i = 0; i < bi->second.size(); i++)
@@ -445,11 +446,38 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
                     }
                 }
             }
+
+            /*#pragma omp parallel // using advance, but it was shown to be slower
+            {
+                int thread_count = omp_get_num_threads();
+                int thread_num   = omp_get_thread_num();
+                size_t chunk_size= cur_map.size() / thread_count;
+
+                auto begin = cur_map.begin();
+                std::advance(begin, thread_num * chunk_size);
+                auto end = begin;
+                if(thread_num == (thread_count - 1)) // last thread iterates the remaining sequence
+                    end = cur_map.end();
+                else
+                    std::advance(end, chunk_size);
+
+                #pragma omp barrier
+
+                for(auto bi = begin; bi != end; ++bi)
+                {
+                    VNT key = bi->first;
+                    for(int i = 0; i < bi->second.size(); i++)
+                    {
+                        VNT ind_val = bi->second[i];
+                        T edge_val = EDGE_VAL;
+                        _csr_matrix[key].push_back(make_pair(ind_val, edge_val));
+                    }
+                }
+            }*/
         }
     }
 
-
-    {
+    /*{
         using type_map = tsl::hopscotch_map<VNT, std::vector<VNT>>;
 
         Timer tm("COO->CSR time with tsl");
@@ -499,7 +527,7 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
                 }
             }
         }
-    }
+    }*/
 
     fclose(fp);
 }
