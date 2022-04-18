@@ -163,43 +163,16 @@ LA_Info mxv (Vector<W>*       _w,
     #ifdef __DISABLE_SPMSPV__
     switch_cond = true;
     #endif
-    if(switch_cond)//(false /*switch_cond*/)
+    if(switch_cond)
     {
-        #ifdef __DEBUG_INFO__
-        cout << "USING SpMV!!!!!" << endl;
-        #endif
-        #if(__DEBUG_PERF_STATS_ENABLED__)
-        double t1 = omp_get_wtime();
-        #endif
-        backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
-        #if(__DEBUG_PERF_STATS_ENABLED__)
-        double t2 = omp_get_wtime();
-        GLOBAL_SPMV_TIME += t2 - t1;
-        #endif
+        GLOBAL_PERF_STATS(backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc,
+                                        _accum, _op, _mask), GLOBAL_SPMV_TIME);
+
     }
     else
     {
-        #ifdef __DEBUG_INFO__
-        cout << "USING SpMSpV!!!!!" << endl;
-        #endif
-
-        {
-            //Timer tm("dense output");
-            #if(__DEBUG_PERF_STATS_ENABLED__)
-            double t1 = omp_get_wtime();
-            #endif
-            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
-            #if(__DEBUG_PERF_STATS_ENABLED__)
-            double t2 = omp_get_wtime();
-            GLOBAL_SPMSPV_TIME += t2 - t1;
-            #endif
-        }
-
-        /*{
-            Timer tm("sparse output");
-            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
-        }*/
-
+        GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(),
+                                          _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
     }
     _w->convert_if_required();
 
@@ -224,39 +197,13 @@ LA_Info vxm (Vector<W>*       _w,
     #endif
     if(switch_cond)
     {
-        #ifdef __DEBUG_INFO__
-        cout << "USING SpMV!!!!!" << endl;
-        #endif
-        #if(__DEBUG_PERF_STATS_ENABLED__)
-        double t1 = omp_get_wtime();
-        #endif
-        backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
-        #if(__DEBUG_PERF_STATS_ENABLED__)
-        double t2 = omp_get_wtime();
-        GLOBAL_SPMV_TIME += t2 - t1;
-        #endif
+        GLOBAL_PERF_STATS(backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc,
+                                        _accum, _op, _mask), GLOBAL_SPMV_TIME);
     }
     else
     {
-        #ifdef __DEBUG_INFO__
-        cout << "USING SpMSpV!!!!!" << endl;
-        #endif
-        {
-            //Timer tm("dense output");
-            #if(__DEBUG_PERF_STATS_ENABLED__)
-            double t1 = omp_get_wtime();
-            #endif
-            backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
-            #if(__DEBUG_PERF_STATS_ENABLED__)
-            double t2 = omp_get_wtime();
-            GLOBAL_SPMSPV_TIME += t2 - t1;
-            #endif
-        }
-
-        /*{
-            Timer tm("sparse output");
-            backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
-        }*/
+        GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(),
+                                          _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
     }
     _w->convert_if_required();
 
