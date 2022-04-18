@@ -6,6 +6,9 @@ double GLOBAL_CONVERSION_TIME = 0;
 double GLOBAL_SPMV_TIME = 0;
 double GLOBAL_SPMSPV_TIME = 0;
 double GLOBAL_LINEAR_OPERATIONS_TIME = 0;
+double GLOBAL_INNER_MXM_TIME = 0;
+double GLOBAL_SORT_TIME = 0;
+
 
 #if(__DEBUG_PERF_STATS_ENABLED__)
 #define GLOBAL_PERF_STATS(call_instruction, var) \
