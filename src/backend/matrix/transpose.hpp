@@ -123,6 +123,7 @@ void Matrix<T>::transpose_parallel(void) {
     #pragma omp barrier
     double final_b = omp_get_wtime();
 
+    csc_data->calculate_degrees();
     if(num_sockets_used() > 1)
     {
         csc_data->numa_aware_realloc();
