@@ -159,14 +159,10 @@ LA_Info mxv (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    bool switch_cond = _u->is_dense();
-    #ifdef __DISABLE_SPMSPV__
-    switch_cond = true;
-    #endif
-    if(switch_cond)
-    {
+    mxv_algorithm algo = _matrix->get_mxv_algo();
+    if (algo < mxv_algorithm::SPMSPV_bucket or (algo == mxv_default and _u->is_dense())) {
         #ifdef __DEBUG_INFO__
-        cout << "USING SpMV!!!!!" << endl;
+            cout << "USING SpMV!!!!!" << endl;
         #endif
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     }
@@ -175,7 +171,13 @@ LA_Info mxv (Vector<W>*       _w,
         #ifdef __DEBUG_INFO__
         cout << "USING SpMSpV!!!!!" << endl;
         #endif
-        backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        if (algo == mxv_algorithm::SPMSPV_for or (algo == mxv_default and _u->is_sparse())) {
+            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        }
+        if (algo == mxv_algorithm::SPMSPV_bucket) {
+            backend::spmspv_buckets(_matrix,_w->getSparse(),_u->getDense(),1, _matrix->get_workspace(), _accum, _op);
+        }
+
         /*
         _w->print();
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);

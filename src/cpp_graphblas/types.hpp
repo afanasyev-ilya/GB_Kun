@@ -80,6 +80,14 @@
     }
     LA_Info;
 
+    enum mxv_algorithm {
+        SPMV_general = 0,
+        SPMSPV_bucket,
+        SPMSPV_map,
+        SPMSPV_for, // atomic, critical, or
+        mxv_default
+    };
+
 
 namespace lablas{
 

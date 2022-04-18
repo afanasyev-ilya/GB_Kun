@@ -11,7 +11,7 @@ Matrix<T>::Matrix(): _format(CSR)
     csc_data = NULL;
     data = NULL;
     transposed_data = NULL;
-
+    current_algo = mxv_default;
     workspace = NULL;
 }
 
