@@ -159,20 +159,23 @@ LA_Info mxv (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    bool switch_cond = _u->is_dense();
-    #ifdef __DISABLE_SPMSPV__
-    switch_cond = true;
-    #endif
-    if(switch_cond)
+    Desc_value algo;
+    _desc->get(GrB_MXVMODE, &algo);
+    if (algo == SPMV_GENERAL or (algo == GrB_DEFAULT and _u->is_dense())) // PLS CHECK IT!!!!!
     {
-        GLOBAL_PERF_STATS(backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc,
-                                        _accum, _op, _mask), GLOBAL_SPMV_TIME);
-
+        backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     else
     {
-        GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(),
-                                          _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+        if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT)) {
+            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        }
+        if (algo == SPMSPV_BUCKET) {
+            throw "Error: SPMSPV_BUCKET algo not implemented yet";
+        }
+        if (algo == SPMSPV_MAP) {
+            throw "Error: SPMSPV_MAP algo not implemented yet";
+        }
     }
     _w->convert_if_required();
 
@@ -191,19 +194,23 @@ LA_Info vxm (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    bool switch_cond = _u->is_dense();
-    #ifdef __DISABLE_SPMSPV__
-    switch_cond = true;
-    #endif
-    if(switch_cond)
+    Desc_value algo;
+    _desc->get(GrB_MXVMODE, &algo);
+    if (algo == SPMV_GENERAL or (algo == GrB_DEFAULT and _u->is_dense()))
     {
-        GLOBAL_PERF_STATS(backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc,
-                                        _accum, _op, _mask), GLOBAL_SPMV_TIME);
+        backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     else
     {
-        GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(),
-                                          _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+        if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT)) {
+            backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        }
+        if (algo == SPMSPV_BUCKET) {
+            throw "Error: SPMSPV_BUCKET algo not implemented yet";
+        }
+        if (algo == SPMSPV_MAP) {
+            throw "Error: SPMSPV_MAP algo not implemented yet";
+        }
     }
     _w->convert_if_required();
 

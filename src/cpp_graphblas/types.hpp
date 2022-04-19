@@ -25,13 +25,13 @@
                     GrB_MXMMODE,
                     GrB_NDESCFIELD};
 
-    enum Desc_value {GrB_SCMP = 0,
-                    GrB_REPLACE = 1, // for GrB_OUTP
-                    GrB_COMP = 2, // for GrB_MASK
-                    GrB_TRAN = 3, // for GrB_INP0, GrB_INP1
+    enum Desc_value {GrB_SCMP,               // for GrB_MASK
+                    GrB_REPLACE,            // for GrB_OUTP
+                    GrB_TRAN,               // for GrB_INP0, GrB_INP1
+                    GrB_DEFAULT,
                     GrB_STRUCTURE = 4, // for GrB_MASK
-                    GrB_STR_COMP = 5, // for GrB_MASK, combination
-                    GrB_DEFAULT = 6,
+                    GrB_STR_COMP = 5,
+                    GrB_COMP,// for GrB_MASK, combination
                     GrB_FIXEDROW,
                     GrB_PUSHPULL   =   10,  // for GrB_MXVMODE
                     GrB_PUSHONLY   =   11,  // for GrB_MXVMODE
@@ -46,10 +46,15 @@
                     GrB_256        =  256,
                     GrB_512        =  512,
                     GrB_1024       = 1024,
-                    GrB_IJK        = 20,    // for GrB_MXMMODE
-                    GrB_IKJ        = 21,    // for GrB_MXMMODE
-                    GrB_IKJ_MASKED = 22,    // for GrB_MXMMODE
-                    GrB_IJK_DOUBLE_SORT = 23// for GrB_MXMMODE
+                    GrB_IJK        = 32,    // for GrB_MXMMODE
+                    GrB_IKJ        = 33,
+                    GrB_IJK_DOUBLE_SORT = 34,
+                    GrB_IKJ_MASKED = 35,
+                    SPMV_GENERAL   = 64,
+                    SPMSPV_BUCKET = 65,
+                    SPMSPV_MAP = 66,
+                    SPMSPV_FOR = 67, // atomic, critical, or
+                    MXV_DEFAULT = 68 // for GrB_MXMMODE
     };
 
 
@@ -86,6 +91,7 @@
         GrB_PANIC = 13                  // unknown error, or GrB_init not called.
     }
     LA_Info;
+
 
 
 namespace lablas{

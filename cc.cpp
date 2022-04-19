@@ -1,5 +1,4 @@
 #define __REQUIRES_UNDIRECTED_GRAPHS__
-#define __DISABLE_SPMSPV__
 
 #include "src/gb_kun.h"
 
@@ -96,6 +95,7 @@ int main(int argc, char** argv)
     lablas::Vector<int> components(nrows);
 
     lablas::Descriptor desc;
+    desc.set(GrB_MXVMODE, SPMV_GENERAL);
 
     for (int i = 0; i < 3; i++) {
         double cc_time_ms = 0;

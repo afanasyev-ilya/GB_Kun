@@ -109,17 +109,15 @@ target_include_directories(sparse_test PRIVATE)
 add_executable(transpose transpose.cpp)
 target_include_directories(transpose PRIVATE)
 
-add_executable(saxpy saxpy.cpp)
-target_include_directories(saxpy PRIVATE)
+add_executable(switch_test switch_test.cpp)
+target_include_directories(switch_test PRIVATE)
 
-add_executable(test_file_formats test_file_formats.cpp)
-target_include_directories(test_file_formats PRIVATE)
-
-if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+#if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 #add_executable(test_matrix tests/GB_objects/test_matrix_ops.cpp)
 #target_link_libraries(test_matrix ${GTEST_LIBRARIES})
 
 #add_executable(test_primitives tests/primitives/test_primitives.cpp)
 #target_link_libraries(test_primitives ${GTEST_LIBRARIES})
-endif()
+#endif()
 
+#comment
