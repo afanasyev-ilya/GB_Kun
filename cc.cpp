@@ -84,7 +84,6 @@ int main(int argc, char** argv)
     matrix.set_preferred_matrix_format(parser.get_storage_format());
     init_matrix(matrix,parser);
 
-    matrix.get_matrix()->set_mxv_algo(mxv_algorithm::SPMSPV_bucket);
 
     nrows = matrix.nrows();
     ncols = matrix.ncols();

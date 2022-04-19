@@ -17,8 +17,8 @@
                     GrB_MXVMODE,
                     GrB_TOL,
                     GrB_BACKEND,
-                    GrB_NDESCFIELD,
-                    GrB_MXMMODE};
+                    GrB_MXMMODE,
+                    GrB_NDESCFIELD};
 
     enum Desc_value {GrB_SCMP,               // for GrB_MASK
                     GrB_REPLACE,            // for GrB_OUTP
@@ -42,7 +42,12 @@
                     GrB_512        =  512,
                     GrB_1024       = 1024,
                     GrB_IJK        = 20,    // for GrB_MXMMODE
-                    GrB_IKJ        = 21,    // for GrB_MXMMODE
+                    GrB_IKJ        = 21,
+                    SPMV_GENERAL   = 22,
+                    SPMSPV_BUCKET,
+                    SPMSPV_MAP,
+                    SPMSPV_FOR, // atomic, critical, or
+                    MXV_DEFAULT // for GrB_MXMMODE
     };
 
 
@@ -80,13 +85,6 @@
     }
     LA_Info;
 
-    enum mxv_algorithm {
-        SPMV_general = 0,
-        SPMSPV_bucket,
-        SPMSPV_map,
-        SPMSPV_for, // atomic, critical, or
-        mxv_default
-    };
 
 
 namespace lablas{

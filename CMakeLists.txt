@@ -109,6 +109,9 @@ target_include_directories(sparse_test PRIVATE)
 add_executable(transpose transpose.cpp)
 target_include_directories(transpose PRIVATE)
 
+add_executable(switch_test switch_test.cpp)
+target_include_directories(switch_test PRIVATE)
+
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_executable(test_matrix tests/GB_objects/test_matrix_ops.cpp)
 target_link_libraries(test_matrix ${GTEST_LIBRARIES})
