@@ -202,8 +202,12 @@ LA_Info vxm (Vector<W>*       _w,
     }
     else
     {
-        GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(),
-                                          _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+        {
+            std::cout << "nvals: " << _u->get_nvals() << std::endl;
+            Timer tm("or/add/critical");
+            GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(),
+                                              _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+        }
     }
     _w->convert_if_required();
 

@@ -404,8 +404,8 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
             throw "Error! Unexpected end of binary file";
     }
 
-    /*{
-        Timer tm("COO->CSR time using tbb map final");
+    {
+        Timer tm("COO->CSR time using tbb::concurrent_hash_map");
         _csr_matrix.resize(nrows);
         _csc_matrix.resize(ncols);
 
@@ -429,7 +429,30 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
                 }
             }
         }
-    }*/
+    }
+
+    {
+        Timer tm("COO->CSR time using tbb::concurrent_unordered_map");
+        _csr_matrix.resize(nrows);
+        _csc_matrix.resize(ncols);
+
+        using type_map = tbb::concurrent_unordered_map<VNT, std::vector<VNT>>;
+        int max_threads = omp_get_max_threads();
+        type_map tbb_table(nrows);
+        #pragma omp parallel num_threads(max_threads)
+        {
+            int tid = omp_get_thread_num();
+
+            #pragma omp for
+            for(ENT i = 0; i < 2*nnz; i += 2)
+            {
+                VNT src_id = all_data_vec[i] - 1;
+                VNT dst_id = all_data_vec[i + 1] - 1;
+
+                tbb_table[src_id].push_back(dst_id);
+            }
+        }
+    }
 
     {
         using type_map = std::unordered_map<VNT, std::vector<VNT>>;
