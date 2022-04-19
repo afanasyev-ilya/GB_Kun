@@ -32,26 +32,39 @@ void SpMV(const Matrix<A> *_matrix,
         _matrix->get_format(&format);
         if(format == CSR)
         {
-            if(num_sockets_used() > 1)
+            Desc_value mask_field;
+            _desc->get(GrB_PARALLEL_MODE, &mask_field);
+            if (mask_field == GrB_PREFER_TBB)
             {
-                #ifdef __DEBUG_INFO__
-                cout << "Using NUMA-aware SPMV" << endl;
-                #endif
-                SpMV_numa_aware(_matrix->get_csr(), _x, _y, _accum, _op, _matrix->get_workspace());
+                SpMV_all_active_diff_vectors_tbb(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
             }
-            else
+            else if (mask_field == GrB_PREFER_OMP)
             {
-                #ifdef __DEBUG_INFO__
-                cout << "Using single socket SPMV" << endl;
-                #endif
-                if(_x == _y)
+                if(num_sockets_used() > 1)
                 {
-                    SpMV_all_active_same_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                    #ifdef __DEBUG_INFO__
+                    cout << "Using NUMA-aware SPMV" << endl;
+                    #endif
+                    SpMV_numa_aware(_matrix->get_csr(), _x, _y, _accum, _op, _matrix->get_workspace());
                 }
                 else
                 {
-                    SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                    #ifdef __DEBUG_INFO__
+                    cout << "Using single socket SPMV" << endl;
+                    #endif
+                    if(_x == _y)
+                    {
+                        SpMV_all_active_same_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                    }
+                    else
+                    {
+                        SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                    }
                 }
+            }
+            else
+            {
+                assert("Error! unsupported GrB_PARALLEL_MODE");
             }
         }
         else if(format == LAV)

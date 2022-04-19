@@ -79,10 +79,21 @@ my_f = fopen("perf_stats.txt", "a");                                            
 fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
 fclose(my_f);                                                                           \
 
+void save_stats(const char *_op_name, double _time /*in ms*/, size_t _nvals, size_t _bytes_per_flop, int _iterations = 1)
+{
+    double my_time = _time;
+    double my_perf = _iterations*(_nvals / (_time*1e3)); // 1e3 instead of 1e6 (MTEPS) since time in ms
+    double my_bw = _nvals * _bytes_per_flop/((_time)*1e6); // 1e6 instead of 1e9 (GB) since time in ms
+    FILE *my_f;
+    my_f = fopen("perf_stats.txt", "a");
+    fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %ld\n", _op_name, my_time, my_perf, my_bw, _nvals);
+    fclose(my_f);
+}
+
 void save_teps(const char *_op_name, double _time /*in ms*/, size_t _nvals, int _iterations = 1)
 {
     double my_time = _time;
-    double my_perf = _iterations*(_nvals / (_time*1e3)); // 1e3 instead of 1e6 since time in ms
+    double my_perf = _iterations*(_nvals / (_time*1e3)); // 1e3 instead of 1e6 (MTEPS) since time in ms
     double my_bw = 0;
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");

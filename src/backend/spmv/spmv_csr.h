@@ -422,7 +422,7 @@ void SpMV_all_active_diff_vectors_tbb(const MatrixCSR<A> *_matrix,
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
     cout << "TBB spmv (diff vector), unmasked time: " << (t2 - t1)*1000 << " ms" << endl;
-    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl << endl;
     #endif
 }
 #endif
