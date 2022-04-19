@@ -66,6 +66,7 @@ void Matrix<T>::build(vector<vector<pair<VNT, T>>>& csr_tmp_matrix, vector<vecto
 template <typename T>
 void Matrix<T>::sort_csr_columns(const string& mode)
 {
+    double t1 = omp_get_wtime();
     if (mode == "COUNTING_SORT") {
         const VNT *col_ids = get_csc()->get_col_ids();
         VNT *row_ids = new VNT[get_csc()->get_nnz()];
@@ -121,6 +122,8 @@ void Matrix<T>::sort_csr_columns(const string& mode)
     } else {
         throw mode;
     }
+    double t2 = omp_get_wtime();
+    GLOBAL_SORT_TIME += t2 - t1;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -128,6 +131,7 @@ void Matrix<T>::sort_csr_columns(const string& mode)
 template <typename T>
 void Matrix<T>::sort_csc_rows(const string& mode)
 {
+    double t1 = omp_get_wtime();
     if (mode == "COUNTING_SORT") {
         /*
         const VNT *col_ids = get_csc()->get_col_ids();
@@ -185,6 +189,8 @@ void Matrix<T>::sort_csc_rows(const string& mode)
     } else {
         throw mode;
     }
+    double t2 = omp_get_wtime();
+    GLOBAL_SORT_TIME += t2 - t1;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

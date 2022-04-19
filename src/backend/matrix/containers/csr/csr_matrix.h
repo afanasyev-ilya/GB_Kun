@@ -53,6 +53,9 @@ public:
 
     bool is_symmetric();
     void to_symmetric();
+
+
+    void calculate_degrees();
 private:
     VNT nrows, ncols;
     ENT nnz;
@@ -194,8 +197,6 @@ private:
                                        SemiringT _op,
                                        Descriptor *_desc,
                                        Workspace *_workspace);
-
-    void calculate_degrees();
 };
 
 #include "csr_matrix.hpp"

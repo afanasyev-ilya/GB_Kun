@@ -21,21 +21,18 @@ int main(int argc, char **argv) {
         matrix.get_nrows(&nrows);
 
         LAGraph_Graph<int> graph(matrix);
-        graph.A->get_matrix()->sort_csr_columns("STL_SORT");
-        graph.A->get_matrix()->sort_csc_rows("STL_SORT");
-        //graph.A->get_matrix()->print();
-
-        //lablas::backend::Vector<int>* label_vector = new lablas::backend::Vector<int>(graph.A->get_matrix()->get_nrows());
-
-        //graph.A->get_matrix()->print_graphviz("./result.dot", lablas::backend::VISUALISE_AS_UNDIRECTED, label_vector);
 
         uint64_t ntriangles;
-
+        double t1 = omp_get_wtime();
         SAVE_TEPS(lablas::algorithm::LAGr_TriangleCount(&ntriangles, &graph,
                                      lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Burkhardt,
                                      lablas::algorithm::LAGraph_TriangleCount_Presort::LAGraph_TriangleCount_NoSort,
-                                     NULL),
-                  "TriangleCount", 1,(graph.AT));
+                                     NULL), "TriangleCount", 1,(graph.AT));
+        double t2 = omp_get_wtime();
+        std::cout << "TC time : " << t2 - t1 << std::endl;
+        std::cout << "sort time: " << GLOBAL_SORT_TIME << std::endl;
+        std::cout << "inner mxm time: " << GLOBAL_INNER_MXM_TIME << std::endl;
+
         cout << "Found triangles: " << ntriangles << endl;
         if (parser.check()) {
             uint64_t slow_ntriangles = 0;

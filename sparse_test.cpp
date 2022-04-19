@@ -39,7 +39,8 @@ void test_sparse(int argc, char **argv)
     #undef MASK_NULL
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     try
     {
         test_sparse<float>(argc, argv);

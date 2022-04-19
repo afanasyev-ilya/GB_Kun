@@ -118,6 +118,7 @@ void save_time_in_sec(const char *_op_name, double _time)
 
 void print_omp_stats()
 {
+    #ifdef __DEBUG_INFO__
     #ifdef __USE_KUNPENG__
     #pragma omp parallel
     {
@@ -142,6 +143,7 @@ void print_omp_stats()
 
     cout << "Threads used: " << max_thread + 1 << endl;
     cout << "Largest core used: " << max_core + 1 << " cores" << endl;
+    #endif
     #endif
 
     /*size_t size = 1024*1024*128*8;

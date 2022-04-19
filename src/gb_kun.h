@@ -7,6 +7,7 @@
 #include <tbb/partitioner.h>
 #include <tbb/concurrent_unordered_map.h>
 #include <tbb/global_control.h>
+#include <tbb/concurrent_hash_map.h>
 #endif
 #include <vector>
 #include <algorithm>
@@ -36,6 +37,8 @@ typedef long long Index;
 
 using namespace std;
 
+#include "helpers/hashmap/tsl/hopscotch_map.h"
+#include "helpers/hashmap/tsl/robin_map.h"
 #include "helpers/numa_stats/numa_stats.h"
 #include "backend/la_backend.h"
 #include "helpers/balancing/balancing.h"

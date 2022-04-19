@@ -15,7 +15,7 @@ else ()
     if(N EQUAL 48 OR N EQUAL 64 OR N EQUAL 96 OR N EQUAL 128)
         message("COMPILING FOR KUNPENG 920")
         set(CMAKE_CXX_STANDARD 17)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_KUNPENG__ -D MAX_CORES=${N} -D __USE_TBB__ -O3 -std=c++17 -fno-trapping-math -fopenmp-simd -fopenmp -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_KUNPENG__ -D MAX_CORES=${N} -D __USE_TBB__ -O3 -std=c++17 -fno-trapping-math -fopenmp-simd -fopenmp -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays -ltbb")
     else ()
         message("CLION compilation") # this is for local testing
         set(CMAKE_CXX_STANDARD 17)
@@ -111,6 +111,9 @@ target_include_directories(transpose PRIVATE)
 
 add_executable(saxpy saxpy.cpp)
 target_include_directories(saxpy PRIVATE)
+
+add_executable(test_file_formats test_file_formats.cpp)
+target_include_directories(test_file_formats PRIVATE)
 
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_executable(test_matrix tests/GB_objects/test_matrix_ops.cpp)
