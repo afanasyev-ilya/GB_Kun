@@ -7,6 +7,7 @@
 #include <tbb/partitioner.h>
 #include <tbb/concurrent_unordered_map.h>
 #include <tbb/global_control.h>
+#include <tbb/concurrent_hash_map.h>
 #endif
 #include <vector>
 #include <algorithm>
