@@ -45,7 +45,6 @@ public:
     {
         return &_descriptor;
     }
-
 private:
     backend::Descriptor _descriptor;
 };
