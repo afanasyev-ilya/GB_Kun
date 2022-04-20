@@ -102,22 +102,12 @@ void bfs_blast(Vector<T>*       v,
 
     Desc_value desc_value;
     desc->get(GrB_MXVMODE, &desc_value);
-    if (true/*desc_value == GrB_PULLONLY*/)
-    {
-        f1.fill((T)0);
-        f1.set_element((T)1, s);
-    }
-    else
-    {
-        /*std::vector<Index> indices(1, s);
-        std::vector<T>  values(1, 1.f);
-        CHECK(f1.build(&indices, &values, 1, GrB_NULL));*/
-    }
+    f1.fill((T)0);
+    f1.set_element((T)1, s);
 
     Index iter = 0;
     T succ = 0.f;
     Index unvisited = A_nrows;
-    T gpu_tight_time = 0.f;
     Index max_iters = A_nrows;
 
     for (iter = 1; iter <= max_iters; ++iter)
@@ -134,6 +124,7 @@ void bfs_blast(Vector<T>*       v,
         if (succ == 0)
             break;
     }
+    std::cout << "BFS did " << iter << " iterations" << std::endl;
 }
 
 }

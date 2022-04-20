@@ -15,7 +15,7 @@ double GLOBAL_SORT_TIME = 0;
 double my_t1 = omp_get_wtime();           \
 call_instruction;                         \
 double my_t2 = omp_get_wtime();           \
-var = my_t2 - my_t1;
+var = (my_t2 - my_t1)*1000;
 #else
 #define GLOBAL_PERF_STATS(call_instruction, var) \
 call_instruction;

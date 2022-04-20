@@ -2,7 +2,6 @@
 
 template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
 void SpMSpV_map_seq(const MatrixCSR<A> *_matrix,
-                    bool _transposed_matrix,
                     const SparseVector <X> *_x,
                     SparseVector <Y> *_y,
                     Descriptor *_desc,

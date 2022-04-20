@@ -209,7 +209,7 @@ LA_Info vxm (Vector<W>*       _w,
         }
         else
         {
-            GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csr(), true, _u->getSparse(), _w->getSparse(),
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
                                                       _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
     }

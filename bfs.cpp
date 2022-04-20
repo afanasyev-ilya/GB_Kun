@@ -40,11 +40,11 @@ int main(int argc, char **argv)
             wall_bfs_time += bfs_time_ms / 1000;
         }
         #if(__DEBUG_PERF_STATS_ENABLED__)
-        std::cout << "BFS wall time: " << wall_bfs_time << std::endl;
-        std::cout << "BFS conversion time: " << GLOBAL_CONVERSION_TIME << std::endl;
-        std::cout << "BFS spmv time: " << GLOBAL_SPMV_TIME << std::endl;
-        std::cout << "BFS spmspv time: " << GLOBAL_SPMSPV_TIME << std::endl;
-        std::cout << "check times: " << wall_bfs_time << " vs " << GLOBAL_CONVERSION_TIME + GLOBAL_SPMV_TIME + GLOBAL_SPMSPV_TIME << std::endl;
+        std::cout << "BFS wall time: " << wall_bfs_time << " ms" << std::endl;
+        std::cout << "BFS conversion time: " << GLOBAL_CONVERSION_TIME << " ms" << std::endl;
+        std::cout << "BFS spmv time: " << GLOBAL_SPMV_TIME << " ms" << std::endl;
+        std::cout << "BFS spmspv time: " << GLOBAL_SPMSPV_TIME << " ms" << std::endl;
+        std::cout << "check times: " << wall_bfs_time << " vs " << (GLOBAL_CONVERSION_TIME + GLOBAL_SPMV_TIME + GLOBAL_SPMSPV_TIME) << std::endl;
         #endif
 
         if(parser.check())
