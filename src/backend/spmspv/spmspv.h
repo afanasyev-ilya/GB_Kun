@@ -8,6 +8,8 @@ namespace backend{
 #include "spmspv_buckets.h"
 #include "spmspv_atomics.h"
 #include "spmspv_maps.h"
+#include "spmspv_map_seq.h"
+#include "spmspv_map_par.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -66,8 +66,7 @@ int main(int argc, char** argv)
 
                 double start_time = omp_get_wtime();
                 lablas::mxv(&components, &mask, lablas::second<int>(), lablas::MinimumSelectSecondSemiring<int>(),
-                            &matrix,
-                            &components, &desc);
+                            &matrix, &components, &desc);
                 double end_time = omp_get_wtime();
                 std::cout << mask_type << " " << mask_iter << " " << iter << " " << end_time - start_time << std::endl;
 

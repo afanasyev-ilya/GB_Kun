@@ -52,8 +52,9 @@
                     GrB_IKJ_MASKED = 35,
                     SPMV_GENERAL   = 64,
                     SPMSPV_BUCKET = 65,
-                    SPMSPV_MAP = 66,
-                    SPMSPV_FOR = 67, // atomic, critical, or
+                    SPMSPV_MAP_TBB = 66,
+                    SPMSPV_MAP_SEQ = 67,
+                    SPMSPV_FOR = 68, // atomic, critical, or
                     MXV_DEFAULT = 68 // for GrB_MXMMODE
     };
 

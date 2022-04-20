@@ -170,11 +170,15 @@ LA_Info mxv (Vector<W>*       _w,
         if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT)) {
             backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
         }
-        if (algo == SPMSPV_BUCKET) {
-            throw "Error: SPMSPV_BUCKET algo not implemented yet";
+        if (algo == SPMSPV_MAP_TBB) {
+            #ifdef __USE_TBB__
+            SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            #else
+            SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            #endif
         }
-        if (algo == SPMSPV_MAP) {
-            throw "Error: SPMSPV_MAP algo not implemented yet";
+        if (algo == SPMSPV_MAP_SEQ) {
+            SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
         }
     }
     _w->convert_if_required();
@@ -206,10 +210,14 @@ LA_Info vxm (Vector<W>*       _w,
             backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
         }
         if (algo == SPMSPV_BUCKET) {
-            throw "Error: SPMSPV_BUCKET algo not implemented yet";
+            #ifdef __USE_TBB__
+            SpMSpV_map_par(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            #else
+            SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            #endif
         }
-        if (algo == SPMSPV_MAP) {
-            throw "Error: SPMSPV_MAP algo not implemented yet";
+        if (algo == SPMSPV_MAP_SEQ) {
+            SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
         }
     }
     _w->convert_if_required();

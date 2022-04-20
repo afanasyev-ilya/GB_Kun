@@ -103,9 +103,6 @@ target_include_directories(gemm PRIVATE)
 add_executable(tc tc.cpp tc.cpp)
 target_include_directories(tc PRIVATE)
 
-add_executable(sparse_test sparse_test.cpp)
-target_include_directories(sparse_test PRIVATE)
-
 add_executable(transpose transpose.cpp)
 target_include_directories(transpose PRIVATE)
 
