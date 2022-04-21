@@ -181,6 +181,25 @@ LA_Info mxv (Vector<W>*       _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename A, typename U>
+Index estimate_e_f(const MatrixCSR<A> *_matrix, const Vector<U>* _vector)
+{
+    if(_vector->is_sparse())
+    {
+        const Index *indexes = _vector->getSparse()->get_ids();
+        const Index nvals = _vector->get_nvals();
+        Index e_f = 0;
+        #pragma omp parallel for reduction(+: e_f)
+        for(Index i = 0; i < nvals; i++)
+        {
+            e_f += _matrix->get_rowdegrees()[i];
+        }
+        return e_f;
+    }
+    return _matrix->get_nnz();
+}
+
+
 template <typename W, typename M, typename A, typename U,
         typename BinaryOpTAccum, typename SemiringT>
 LA_Info vxm (Vector<W>*       _w,
@@ -195,6 +214,8 @@ LA_Info vxm (Vector<W>*       _w,
     #ifdef __DISABLE_SPMSPV__
     switch_cond = true;
     #endif
+    Index E_f = estimate_e_f(_matrix->get_csr(), _u);
+
     if(switch_cond)
     {
         GLOBAL_PERF_STATS(backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc,
