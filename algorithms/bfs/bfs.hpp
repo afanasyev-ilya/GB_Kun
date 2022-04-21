@@ -89,7 +89,8 @@ template <typename T>
 void bfs_blast(Vector<T>*       v,
                const Matrix<T> *A,
                Index s,
-               Descriptor *desc)
+               Descriptor *desc,
+               Index &_max_level)
 {
     Index A_nrows = A->nrows();
 
@@ -124,7 +125,7 @@ void bfs_blast(Vector<T>*       v,
         if (succ == 0)
             break;
     }
-    std::cout << "BFS did " << iter << " iterations" << std::endl;
+    _max_level = iter;
 }
 
 }

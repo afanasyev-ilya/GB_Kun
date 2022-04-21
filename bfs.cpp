@@ -26,19 +26,25 @@ int main(int argc, char **argv)
 
         lablas::Vector<float> levels(nrows);
 
+        std::ofstream levels_file("bfs_depth.txt", std::ios_base::app);
+
         double wall_bfs_time = 0;
+        Index max_level = 0;
         for(int run = 0; run < parser.get_iterations(); run++)
         {
             source_vertex = select_non_trivial_vertex(matrix);
             double bfs_time_ms = 0;
             {
                 Timer tm("bfs");
-                lablas::algorithm::bfs_blast(&levels, &matrix, source_vertex, &desc);
+                Index cur_level = 0;
+                lablas::algorithm::bfs_blast(&levels, &matrix, source_vertex, &desc, cur_level);
                 bfs_time_ms = tm.get_time_ms();
+                max_level = std::max(max_level, cur_level);
             }
             save_teps("BFS_chrono", bfs_time_ms, matrix.get_nnz(), 1);
             wall_bfs_time += bfs_time_ms / 1000;
         }
+        levels_file << max_level << std::endl;
         #if(__DEBUG_PERF_STATS_ENABLED__)
         std::cout << "BFS wall time: " << wall_bfs_time << " ms" << std::endl;
         std::cout << "BFS conversion time: " << GLOBAL_CONVERSION_TIME << " ms" << std::endl;
