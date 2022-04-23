@@ -469,21 +469,15 @@ LA_Info mxm(Matrix<c>* C,
     Desc_value multiplication_mode;
     desc->get(GrB_MXMMODE, &multiplication_mode);
     if (mask) {
-        bool a_is_sorted = (multiplication_mode == GrB_IJK_DOUBLE_SORT);
-        backend::SpMSpM_ijk(A,
-                            B,
-                            C,
-                            mask,
-                            op,
-                            a_is_sorted);
-        /*
-        if (multiplication_mode == GrB_IJK) {
+        if (multiplication_mode == GrB_IJK || multiplication_mode == GrB_IJK_DOUBLE_SORT) {
+            bool a_is_sorted = (multiplication_mode == GrB_IJK_DOUBLE_SORT);
             backend::SpMSpM_ijk(A,
                                 B,
                                 C,
                                 mask,
-                                op);
-        } else if (multiplication_mode == GrB_IKJ) {
+                                op,
+                                a_is_sorted);
+        } else if (multiplication_mode == GrB_IKJ_MASKED) {
             backend::SpMSpM_masked_ikj(mask,
                                        A,
                                        B,
@@ -492,7 +486,6 @@ LA_Info mxm(Matrix<c>* C,
         } else {
             return GrB_INVALID_VALUE;
         }
-         */
     } else {
         backend::SpMSpM_unmasked_ikj(A,
                                      B,
