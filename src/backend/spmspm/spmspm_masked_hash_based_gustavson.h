@@ -101,7 +101,35 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
 
             for (VNT matrix1_row_id = offsets[thread_id].first; matrix1_row_id < offsets[thread_id].second;
                  ++matrix1_row_id) {
+                tsl::hopscotch_set<ENT> mask_col_ids_set;
+                tsl::hopscotch_map<VNT, T> matrix_result;
+                for (VNT mask_row_ptr_id = mask_row_ptr[matrix1_row_id];
+                     mask_row_ptr_id < mask_row_ptr[matrix1_row_id + 1]; ++mask_row_ptr_id) {
+                    mask_col_ids_set.insert(mask_col_ids_ptr[mask_row_ptr_id]);
+                }
 
+                for (VNT matrix1_row_ptr_id = matrix1_row_ptr[matrix1_row_id];
+                     matrix1_row_ptr_id < matrix1_row_ptr[matrix1_row_id + 1]; ++matrix1_row_ptr_id) {
+                    VNT k = matrix1_col_ids_ptr[matrix1_row_ptr_id];
+                    for (VNT matrix2_col_id = matrix2_row_ptr[k];
+                         matrix2_col_id < matrix2_row_ptr[k + 1]; ++matrix2_col_id) {
+                        if (mask_col_ids_set.find(matrix2_col_ids_ptr[matrix2_col_id]) == mask_col_ids_set.end()) {
+                            continue;
+                        }
+                        VNT j = matrix2_col_ids_ptr[matrix2_col_id];
+                        if (matrix_result.find(j) == matrix_result.end()) {
+                            matrix_result[j] = identity_val;
+                        }
+                        matrix_result[j] =
+                                add_op(matrix_result[j],
+                                       mul_op(matrix1_vals_ptr[matrix1_row_ptr_id], matrix2_vals_ptr[matrix2_col_id]));
+                    }
+                }
+                auto vals_id = row_ptr[matrix1_row_id];
+                for (const auto & [key, value] : matrix_result) {
+                    vals[vals_id] = value;
+                    ++vals_id;
+                }
             }
         }
     } else {
@@ -142,8 +170,10 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                                        mul_op(matrix1_vals_ptr[matrix1_row_ptr_id], matrix2_vals_ptr[matrix2_col_id]));
                     }
                 }
+                auto vals_id = row_ptr[matrix1_row_id];
                 for (const auto & [key, value] : matrix_result) {
-                    vals[key] = value;
+                    vals[vals_id] = value;
+                    ++vals_id;
                 }
             }
         }

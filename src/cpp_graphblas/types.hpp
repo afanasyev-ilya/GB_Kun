@@ -44,7 +44,7 @@
                     GrB_IJK        = 20,    // for GrB_MXMMODE
                     GrB_IKJ        = 21,    // for GrB_MXMMODE
                     GrB_IKJ_MASKED = 22,    // for GrB_MXMMODE
-                    GrB_IJK_DOUBLE_SORT = 22// for GrB_MXMMODE
+                    GrB_IJK_DOUBLE_SORT = 23// for GrB_MXMMODE
     };
 
 

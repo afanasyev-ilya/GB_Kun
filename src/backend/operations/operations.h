@@ -471,6 +471,12 @@ LA_Info mxm(Matrix<c>* C,
     if (mask) {
         if (multiplication_mode == GrB_IJK || multiplication_mode == GrB_IJK_DOUBLE_SORT) {
             bool a_is_sorted = (multiplication_mode == GrB_IJK_DOUBLE_SORT);
+            if (a_is_sorted) {
+                cout << "Using double sort masked IJK method" << endl;
+            } else {
+                cout << "Using single sort masked IJK method" << endl;
+            }
+
             backend::SpMSpM_ijk(A,
                                 B,
                                 C,
@@ -478,6 +484,7 @@ LA_Info mxm(Matrix<c>* C,
                                 op,
                                 a_is_sorted);
         } else if (multiplication_mode == GrB_IKJ_MASKED) {
+            cout << "Using masked IKJ method" << endl;
             backend::SpMSpM_masked_ikj(mask,
                                        A,
                                        B,
@@ -487,6 +494,7 @@ LA_Info mxm(Matrix<c>* C,
             return GrB_INVALID_VALUE;
         }
     } else {
+        cout << "Using unmasked hash based mxm method" << endl;
         backend::SpMSpM_unmasked_ikj(A,
                                      B,
                                      C,
