@@ -170,14 +170,6 @@ public:
         return (*csr_data == *csc_data);
     }
 
-    void set_mxv_algo(mxv_algorithm algo){
-        current_algo = algo;
-    }
-
-    mxv_algorithm get_mxv_algo(void) const {
-        return current_algo;
-    }
-
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
@@ -189,7 +181,6 @@ private:
 
     Workspace *workspace;
 
-    mxv_algorithm current_algo;
 
     void read_mtx_file_pipelined(const string &_mtx_file_name,
                                  vector<vector<pair<VNT, T>>> &_csr_matrix,

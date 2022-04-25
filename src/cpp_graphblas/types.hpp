@@ -43,11 +43,10 @@
                     GrB_1024       = 1024,
                     GrB_IJK        = 20,    // for GrB_MXMMODE
                     GrB_IKJ        = 21,
-                    SPMV_GENERAL   = 22,
+                    SPMV_GENERAL,
                     SPMSPV_BUCKET,
                     SPMSPV_MAP,
-                    SPMSPV_FOR, // atomic, critical, or
-                    MXV_DEFAULT // for GrB_MXMMODE
+                    SPMSPV_FOR, // atomic, critical, or// for GrB_MXMMODE
     };
 
 
