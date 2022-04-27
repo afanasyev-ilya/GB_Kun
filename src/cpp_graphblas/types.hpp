@@ -46,11 +46,12 @@
                     GrB_IKJ        = 21,    // for GrB_MXMMODE
                     GrB_IKJ_MASKED = 22,    // for GrB_MXMMODE
                     GrB_IJK_DOUBLE_SORT = 23,// for GrB_MXMMODE
-                    GrB_PREFER_TBB = 32, // for all ops
-                    GrB_PREFER_OMP = 33 // for all ops
+                    GrB_PREFER_TBB = 33, // for all ops
+                    GrB_PREFER_OMP = 34, // for all ops
                     SPMV_GENERAL,
                     SPMSPV_BUCKET,
-                    SPMSPV_MAP,
+                    SPMSPV_MAP_SEQ,
+                    SPMSPV_MAP_PAR,
                     SPMSPV_FOR, // atomic, critical, or// for GrB_MXMMODE
     };
 

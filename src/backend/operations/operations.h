@@ -162,19 +162,10 @@ LA_Info mxv (Vector<W>*       _w,
     Desc_value algo;
     _desc->get(GrB_MXVMODE, &algo);
     if (algo < SPMSPV_BUCKET or (algo == GrB_DEFAULT and _u->is_dense())) {
-        #ifdef __DEBUG_INFO__
-            cout << "USING SpMV!!!!!" << endl;
-        #endif
+#ifdef __DEBUG_INFO__
+        cout << "USING SpMV!!!!!" << endl;
+#endif
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
-    bool switch_cond = _u->is_dense();
-    #ifdef __DISABLE_SPMSPV__
-    switch_cond = true;
-    #endif
-    if(switch_cond)
-    {
-        GLOBAL_PERF_STATS(backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc,
-                                        _accum, _op, _mask), GLOBAL_SPMV_TIME);
-
     }
     else
     {
@@ -187,8 +178,13 @@ LA_Info mxv (Vector<W>*       _w,
         if (algo == SPMSPV_BUCKET) {
             //backend::spmspv_buckets(_matrix,_w->getSparse(),_u->getDense(),1, _matrix->get_workspace(), _accum, _op);
         }
-        if (algo == SPMSPV_MAP) {
-            //backend::spmspv_buckets(_matrix,_w->getSparse(),_u->getDense(),1, _matrix->get_workspace(), _accum, _op);
+        if (algo == SPMSPV_MAP_PAR) {
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+        }
+        if (algo == SPMSPV_MAP_SEQ) {
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
 
         /*
@@ -235,31 +231,28 @@ LA_Info vxm (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    bool switch_cond = _u->is_dense();
-    #ifdef __DISABLE_SPMSPV__
-    switch_cond = true;
-    #endif
+    Desc_value algo;
+    _desc->get(GrB_MXVMODE, &algo);
     Index E_f = estimate_e_f(_matrix->get_csr(), _u);
 
-    if(switch_cond)
+    if (algo < SPMSPV_BUCKET or (algo == GrB_DEFAULT and _u->is_dense()))
     {
         GLOBAL_PERF_STATS(backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc,
                                         _accum, _op, _mask), GLOBAL_SPMV_TIME);
     }
     else
     {
-        if(_u->get_nvals() > 100000)
+        if(algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse()))
         {
             GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(),
                                               _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
-        else if(_u->get_nvals() > 1000)
-
+        else if(algo == SPMSPV_MAP_PAR)
         {
             GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
                                                       _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
-        else
+        else if (algo == SPMSPV_MAP_SEQ)
         {
             GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
                                                       _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
