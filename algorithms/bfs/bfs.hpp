@@ -126,15 +126,6 @@ void bfs_blast(Vector<T>*       v,
             break;
     }
     _max_level = iter;
-
-    std::cout << "MASK history" << std::endl;
-    v->print_history();
-
-    std::cout << "F1 history" << std::endl;
-    f1.print_history();
-
-    std::cout << "F2 history" << std::endl;
-    f2.print_history();
 }
 
 }
