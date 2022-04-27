@@ -20,6 +20,9 @@ int main(int argc, char **argv)
         matrix.set_preferred_matrix_format(parser.get_storage_format());
         init_matrix(matrix, parser);
 
+        AVG_DEGREE = matrix.get_nnz()/matrix.nrows();
+        EDGES = matrix.get_nnz();
+
         Index nrows;
         matrix.get_nrows(&nrows);
         Index source_vertex = 0;

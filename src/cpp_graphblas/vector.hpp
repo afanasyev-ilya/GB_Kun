@@ -109,6 +109,11 @@ public:
     {
         return _vector.get_at(_index);
     }
+
+    void print_history() const
+    {
+        _vector.print_history();
+    }
 private:
     backend::Vector<T> _vector;
 

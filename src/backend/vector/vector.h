@@ -6,6 +6,12 @@
 #include "dense_vector/dense_vector.h"
 #include "sparse_vector/sparse_vector.h"
 
+enum SwitchType
+{
+    SparseSwitch,
+    DenseSwitch
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace lablas {
@@ -20,7 +26,8 @@ void ptr_swap(T *& _a, T *& _b)
 }
 
 template<typename T>
-class Vector {
+class Vector
+{
 public:
     Vector(VNT _size)
     {
@@ -94,6 +101,8 @@ public:
         double t2 = omp_get_wtime();
         GLOBAL_CONVERSION_TIME += t2 - t1;
         #endif
+
+        switch_history.push_back(DenseSwitch);
     }
 
     void force_to_sparse()
@@ -112,13 +121,15 @@ public:
         double t2 = omp_get_wtime();
         GLOBAL_CONVERSION_TIME += t2 - t1;
         #endif
+
+        switch_history.push_back(SparseSwitch);
     }
 
     void convert_if_required()
     {
         VNT nvals = main_container->get_nvals();
         //cout << nvals << " vs " << (VNT)(get_size() * SPARSE_VECTOR_THRESHOLD) << " at vector " << get_name() << endl;
-        if(nvals > (VNT)(get_size() * SPARSE_VECTOR_THRESHOLD)) // TODO more complex
+        if(nvals*AVG_DEGREE > EDGES/10) // TODO more complex
         {
             force_to_dense();
         }
@@ -248,7 +259,20 @@ public:
         else
             throw "Error: out of range in backend::vector";
     }
+
+    void print_history() const
+    {
+        for(auto it: switch_history)
+        {
+            if(it == SparseSwitch)
+                std::cout << "SparseSwitch" << std::endl;
+            else
+                std::cout << "DenseSwitch" << std::endl;
+        }
+    }
 private:
+    std::list<SwitchType> switch_history;
+
     GenericVector<T> *main_container;
     GenericVector<T> *secondary_container;
 

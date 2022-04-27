@@ -223,10 +223,16 @@ LA_Info vxm (Vector<W>*       _w,
     }
     else
     {
-        if(_u->get_nvals() > 1000)
+        if(_u->get_nvals() > 100000)
         {
             GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(),
                                               _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+        }
+        else if(_u->get_nvals() > 1000)
+
+        {
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
         else
         {
