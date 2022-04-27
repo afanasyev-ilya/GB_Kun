@@ -23,8 +23,8 @@ void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
 
     VNT x_nvals = _x->get_nvals();
 
-    tbb::concurrent_hash_map<VNT, Y>::accessor a;
     tbb::concurrent_hash_map<VNT, Y> map_output;
+    typename tbb::concurrent_hash_map<VNT, Y>::accessor a;
 
     #pragma omp parallel for
     for (VNT i = 0; i < x_nvals; i++)
