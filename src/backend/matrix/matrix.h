@@ -176,6 +176,7 @@ public:
     friend bool operator==(const Matrix<T>& _lhs, const Matrix<T>& _rhs) {
         return (*(_lhs.csr_data) == *(_rhs.csr_data)) && (*(_lhs.csc_data) == *(_rhs.csc_data));
     }
+
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
@@ -186,6 +187,7 @@ private:
     MatrixStorageFormat _format;
 
     Workspace *workspace;
+
 
     void read_mtx_file_pipelined(const string &_mtx_file_name,
                                  vector<vector<pair<VNT, T>>> &_csr_matrix,

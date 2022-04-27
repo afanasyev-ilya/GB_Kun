@@ -159,6 +159,13 @@ LA_Info mxv (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
+    Desc_value algo;
+    _desc->get(GrB_MXVMODE, &algo);
+    if (algo < SPMSPV_BUCKET or (algo == GrB_DEFAULT and _u->is_dense())) {
+        #ifdef __DEBUG_INFO__
+            cout << "USING SpMV!!!!!" << endl;
+        #endif
+        backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     bool switch_cond = _u->is_dense();
     #ifdef __DISABLE_SPMSPV__
     switch_cond = true;
@@ -171,6 +178,24 @@ LA_Info mxv (Vector<W>*       _w,
     }
     else
     {
+        #ifdef __DEBUG_INFO__
+        cout << "USING SpMSpV!!!!!" << endl;
+        #endif
+        if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse())) {
+            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        }
+        if (algo == SPMSPV_BUCKET) {
+            //backend::spmspv_buckets(_matrix,_w->getSparse(),_u->getDense(),1, _matrix->get_workspace(), _accum, _op);
+        }
+        if (algo == SPMSPV_MAP) {
+            //backend::spmspv_buckets(_matrix,_w->getSparse(),_u->getDense(),1, _matrix->get_workspace(), _accum, _op);
+        }
+
+        /*
+        _w->print();
+        backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+        _w->print();
+        cout << "compare it" << endl;*/
         GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(),
                                           _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
     }

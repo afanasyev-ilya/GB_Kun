@@ -11,7 +11,6 @@ Matrix<T>::Matrix(): _format(CSR)
     csc_data = NULL;
     data = NULL;
     transposed_data = NULL;
-
     workspace = NULL;
 }
 

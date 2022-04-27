@@ -24,11 +24,12 @@ void apply_mask(DenseVector <Y> *_y,
                 const Vector <M> *_mask,
                 Workspace *_workspace)
 {
-    Desc_value mask_field;
+    Desc_value mask_field, output_field;
     _desc->get(GrB_MASK, &mask_field);
+    _desc->get(GrB_OUTPUT, &output_field);
     Y *y_vals = _y->get_vals();
 
-    if (mask_field != GrB_STR_COMP)
+    if (mask_field != GrB_SCMP)
     {
         if(_mask->is_dense())
         {
@@ -39,18 +40,36 @@ void apply_mask(DenseVector <Y> *_y,
                 if(mask_vals[i] != 0)
                     y_vals[i] = _accum(_old_y_vals[i], y_vals[i]);
                 else
-                    y_vals[i] = 0;
+                    if (output_field == GrB_REPLACE)
+                        y_vals[i] = 0;
             }
         }
         else
         {
             const VNT mask_nvals = _mask->getSparse()->get_nvals();
             const VNT *mask_ids = _mask->getSparse()->get_ids();
+
+            Y* tmp;
+            if (output_field == GrB_REPLACE) {
+                tmp = new Y[_y->get_size()];
+                memset(tmp, 0, _y->get_size());
+            }
+
+
             #pragma omp parallel for
             for (VNT idx = 0; idx < mask_nvals; idx++)
             {
                 VNT i = mask_ids[idx];
-                y_vals[i] = _accum(_old_y_vals[i], y_vals[i]); // TODO problem
+                if (output_field != GrB_REPLACE) {
+                    y_vals[i] = _accum(_old_y_vals[i], y_vals[i]);
+                } else {
+                    tmp[i] = _accum(_old_y_vals[i], y_vals[i]);
+                }
+            }
+
+            if (output_field == GrB_REPLACE) {
+                memcpy(y_vals,tmp,_y->get_size());
+                free(tmp);
             }
         }
     }
@@ -65,6 +84,7 @@ void apply_mask(DenseVector <Y> *_y,
                 if(mask_vals[i] == 0) // == 0 since CMP mask
                     y_vals[i] = _accum(_old_y_vals[i], y_vals[i]);
                 else
+                if (output_field == GrB_REPLACE)
                     y_vals[i] = 0;
             }
         }
@@ -93,6 +113,7 @@ void apply_mask(DenseVector <Y> *_y,
                     if(dense_mask[i] == MASK_TRUE)
                         y_vals[i] = _accum(_old_y_vals[i], y_vals[i]);
                     else
+                    if (output_field == GrB_REPLACE)
                         y_vals[i] = 0;
                 }
             }
