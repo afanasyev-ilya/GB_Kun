@@ -161,10 +161,8 @@ LA_Info mxv (Vector<W>*       _w,
 {
     Desc_value algo;
     _desc->get(GrB_MXVMODE, &algo);
-    if (algo < SPMSPV_BUCKET or (algo == GrB_DEFAULT and _u->is_dense())) {
-#ifdef __DEBUG_INFO__
-        cout << "USING SpMV!!!!!" << endl;
-#endif
+    if (algo < SPMSPV_BUCKET or (algo == GrB_DEFAULT and _u->is_dense()))
+    {
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     else
@@ -172,28 +170,25 @@ LA_Info mxv (Vector<W>*       _w,
         #ifdef __DEBUG_INFO__
         cout << "USING SpMSpV!!!!!" << endl;
         #endif
-        if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse())) {
+        if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse()))
+        {
             backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
         }
-        if (algo == SPMSPV_BUCKET) {
-            //backend::spmspv_buckets(_matrix,_w->getSparse(),_u->getDense(),1, _matrix->get_workspace(), _accum, _op);
+        if (algo == SPMSPV_MAP_PAR)
+        {
+            #ifdef __USE_TBB__
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+            #else
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+            #endif
         }
-        if (algo == SPMSPV_MAP_PAR) {
-            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
+        if (algo == SPMSPV_MAP_SEQ)
+        {
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
                                                       _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
-        if (algo == SPMSPV_MAP_SEQ) {
-            GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
-                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
-        }
-
-        /*
-        _w->print();
-        backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
-        _w->print();
-        cout << "compare it" << endl;*/
-        GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(),
-                                          _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
     }
     _w->convert_if_required();
 
@@ -242,15 +237,20 @@ LA_Info vxm (Vector<W>*       _w,
     }
     else
     {
-        if(algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse()))
+        if(algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->get_nvals() > 100000))
         {
             GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(),
                                               _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
-        else if(algo == SPMSPV_MAP_PAR)
+        else if(algo == SPMSPV_MAP_PAR or (algo == GrB_DEFAULT and _u->get_nvals() > 1000))
         {
+            #ifdef __USE_TBB__
             GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
                                                       _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+            #else
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+            #endif
         }
         else if (algo == SPMSPV_MAP_SEQ)
         {
