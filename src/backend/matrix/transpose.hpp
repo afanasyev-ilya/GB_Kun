@@ -86,15 +86,15 @@ void Matrix<T>::transpose_parallel(void) {
 
     #pragma omp parallel shared(csr_nrows, csr_ncols, row_ptr, dloc)
     {
-    int tid = omp_get_thread_num();
-    VNT first_row = offsets[tid].first;
-    VNT last_row = offsets[tid].second;
+        int tid = omp_get_thread_num();
+        VNT first_row = offsets[tid].first;
+        VNT last_row = offsets[tid].second;
 
-    for(VNT row = first_row; row < last_row; row++) {
-        for (int j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++) {
-            dloc[j] = my_fetch_add(&row_ptr[csr_data->get_col_ids()[j]], static_cast<Index>(1));
+        for(VNT row = first_row; row < last_row; row++) {
+            for (int j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++) {
+                dloc[j] = my_fetch_add(&row_ptr[csr_data->get_col_ids()[j]], static_cast<Index>(1));
+            }
         }
-    }
     }
 
     double fetch_b = omp_get_wtime();
@@ -104,28 +104,27 @@ void Matrix<T>::transpose_parallel(void) {
     ParallelPrimitives::exclusive_scan(csc_data->get_row_ptr(),csc_data->get_row_ptr(),csr_ncols);
     double scan_b = omp_get_wtime();
 
-    CommonWorkspace ccp(csr_data->get_num_cols() + 1, csc_data->get_row_ptr());
-
     double final_a = omp_get_wtime();
     #pragma omp parallel shared(csr_nrows, csr_ncols, row_ptr, dloc)
     {
-    int tid = omp_get_thread_num();
-    VNT first_row = offsets[tid].first;
-    VNT last_row = offsets[tid].second;
-    Index* this_csc;
+        int tid = omp_get_thread_num();
+        VNT first_row = offsets[tid].first;
+        VNT last_row = offsets[tid].second;
+        Index* this_csc;
 
-    for(VNT row = first_row; row < last_row; row++) {
-        for (int j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++) {
-            auto loc = row_ptr[csr_data->get_col_ids()[j]] + dloc[j];
-            csc_data->get_col_ids()[loc] = row;
-            csc_data->get_vals()[loc] = csr_data->get_vals()[j];
+        for(VNT row = first_row; row < last_row; row++) {
+            for (int j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++) {
+                auto loc = row_ptr[csr_data->get_col_ids()[j]] + dloc[j];
+                csc_data->get_col_ids()[loc] = row;
+                csc_data->get_vals()[loc] = csr_data->get_vals()[j];
+            }
         }
-    }
     }
     #pragma omp barrier
     double final_b = omp_get_wtime();
 
-    if(max_threads > THREADS_PER_SOCKET)
+    csc_data->calculate_degrees();
+    if(num_sockets_used() > 1)
     {
         csc_data->numa_aware_realloc();
     }
@@ -156,6 +155,51 @@ void Matrix<T>::transpose_parallel(void) {
 
     std::cout << "Overall bandwidth " << total_bw / 1000000000 << "GByte/sec" << std::endl;
     #endif
+
+    /*auto offsets = this->get_csr()->get_load_balancing_offsets();
+
+    int max_threads = omp_get_max_threads() / 8;
+    auto thread_maps = new std::unordered_map<VNT, std::vector<std::pair<VNT, T>>>[max_threads];
+    #pragma omp parallel num_threads(max_threads)
+    {
+        int tid = omp_get_thread_num();
+        std::unordered_map<VNT, std::vector<std::pair<VNT, T>>> &loc_map = thread_maps[tid];
+
+        VNT first_row = offsets[tid].first;
+        VNT last_row = offsets[tid + 8].second;
+
+        for(VNT row = first_row; row < last_row; row++)
+        {
+            for (int j = csr_data->get_row_ptr()[row]; j < csr_data->get_row_ptr()[row + 1]; j++)
+            {
+                VNT src_id = row;
+                VNT dst_id = csr_data->get_col_ids()[j];
+                T val = csr_data->get_vals()[j];
+                loc_map[src_id].push_back(make_pair(dst_id, val));
+            }
+        }
+    }
+
+    for(int thread = 0; thread < max_threads; thread++)
+    {
+        std::unordered_map<VNT, std::vector<VNT>> &cur_map = thread_maps[thread];
+
+        #pragma omp parallel for
+        for(size_t b = 0; b < cur_map.bucket_count(); b++)
+        {
+            for(auto bi = cur_map.begin(b); bi != cur_map.end(b);bi++)
+            {
+                VNT key = bi->first;
+                for(int i = 0; i < bi->second.size(); i++)
+                {
+                    VNT ind_val = bi->second[i];
+                    T edge_val = EDGE_VAL;
+                    ENT ptr = ;
+                    _csr_matrix[key].push_back(make_pair(ind_val, edge_val));
+                }
+            }
+        }
+    }*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

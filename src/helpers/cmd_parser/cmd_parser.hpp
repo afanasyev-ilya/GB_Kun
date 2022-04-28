@@ -71,7 +71,7 @@ void Parser::parse_args(int _argc, char **_argv)
                 file_name = string(option);
             }
 
-            if ((option == "mtx") || (option == "MTX"))
+            if ((option == "mtx") || (option == "MTX") || (option == "mtxbin"))
             {
                 synthetic_graph_type = MTX_GRAPH;
                 option = _argv[++i];
