@@ -60,6 +60,10 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
         B_csr_first_socket.deep_copy(_matrix2->get_csr(), 0);
         MatrixCSR<T> B_csr_second_socket;
         B_csr_second_socket.deep_copy(_matrix2->get_csr(), 1);
+        T* values_first_socket;
+        T* values_second_socket;
+        MemoryAPI::numa_aware_alloc(&values_first_socket, nnz, 0);
+        MemoryAPI::numa_aware_alloc(&values_second_socket, nnz, 1);
 
         #ifdef __USE_KUNPENG__
             const int max_threads_per_socket = sysconf(_SC_NPROCESSORS_ONLN)/2;
@@ -126,12 +130,29 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                     }
                 }
                 auto vals_id = row_ptr[matrix1_row_id];
-                for (const auto & [key, value] : matrix_result) {
-                    vals[vals_id] = value;
-                    ++vals_id;
+                if (socket == 0) {
+                    for (const auto &[key, value]: matrix_result) {
+                        values_first_socket[vals_id] = value;
+                        ++vals_id;
+                    }
+                } else {
+                    for (const auto &[key, value]: matrix_result) {
+                        values_second_socket[vals_id] = value;
+                        ++vals_id;
+                    }
                 }
             }
         }
+        #pragma omp parallel for
+        for (ENT i = 0; i < nnz; ++i) {
+            vals[i] = values_first_socket[i];
+        }
+        #pragma omp parallel for
+        for (ENT i = 0; i < nnz; ++i) {
+            vals[i] += values_second_socket[i];
+        }
+        free(values_first_socket);
+        free(values_second_socket);
     } else {
         auto matrix1_row_ptr = _matrix1->get_csr()->get_row_ptr();
         auto matrix1_col_ids_ptr = _matrix1->get_csr()->get_col_ids();
