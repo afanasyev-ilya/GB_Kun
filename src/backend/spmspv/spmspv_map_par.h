@@ -24,7 +24,7 @@ void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
     VNT x_nvals = _x->get_nvals();
 
     tbb::concurrent_hash_map<VNT, Y> map_output;
-    typename tbb::concurrent_hash_map<VNT, Y>::accessor a; //TODO try tp move accessor to parallel body (its lifetime
+     //TODO try tp move accessor to parallel body (its lifetime
                                                            // blocks other threads' accessors)
 
     #pragma omp parallel for
@@ -34,6 +34,7 @@ void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
         X x_val = x_vals[i];
         ENT row_start = _matrix->row_ptr[ind]; // this is actually col ptr for mxv operation
         ENT row_end   = _matrix->row_ptr[ind + 1];
+        typename tbb::concurrent_hash_map<VNT, Y>::accessor a;
 
         for (ENT j = row_start; j < row_end; j++)
         {

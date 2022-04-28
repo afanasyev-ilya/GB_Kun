@@ -51,7 +51,7 @@ void spmspv_unmasked_add(const MatrixCSR<A> *_matrix,
     }
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
-    cout << "spmspv and BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    //cout << "spmspv and BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
     #endif
 }
 
@@ -104,7 +104,7 @@ void spmspv_unmasked_or(const MatrixCSR<A> *_matrix,
     }
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
-    cout << "spmspv or BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    //cout << "spmspv or BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
     #endif
 }
 
@@ -165,7 +165,7 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
 
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
-    cout << "spmspv critical BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
+    //cout << "spmspv critical BW: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
     #endif
 }
 
