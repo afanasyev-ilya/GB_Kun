@@ -169,31 +169,32 @@ LA_Info mxv (Vector<W>*       _w,
     }
     else
     {
-        #ifdef __DEBUG_INFO__
-        cout << "USING SpMSpV!!!!!" << endl;
-        #endif
         if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse())) {
+#ifdef __DEBUG_INFO__
+            cout << "USING SpMV!!!!!" << endl;
+#endif
             backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
         }
         if (algo == SPMSPV_BUCKET) {
+#ifdef __DEBUG_INFO__
+            cout << "USING SpMV bucket-based!!!!!" << endl;
+#endif
             //backend::spmspv_buckets(_matrix,_w->getSparse(),_u->getDense(),1, _matrix->get_workspace(), _accum, _op);
         }
         if (algo == SPMSPV_MAP_PAR) {
+#ifdef __DEBUG_INFO__
+            cout << "USING SpMV TBB-based!!!!!" << endl;
+#endif
             GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
                                                       _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
         if (algo == SPMSPV_MAP_SEQ) {
+#ifdef __DEBUG_INFO__
+            cout << "USING SpMV STL map-based!!!!!" << endl;
+#endif
             GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
                                                       _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
-
-        /*
-        _w->print();
-        backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
-        _w->print();
-        cout << "compare it" << endl;*/
-//        GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(),
-//                                          _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
     }
     _w->convert_if_required();
 
@@ -237,6 +238,9 @@ LA_Info vxm (Vector<W>*       _w,
 
     if ((algo < SPMSPV_BUCKET and algo != GrB_DEFAULT) or (algo == GrB_DEFAULT and _u->is_dense()))
     {
+#ifdef __DEBUG_INFO__
+        cout << "USING SpMV!!!!!" << endl;
+#endif
         GLOBAL_PERF_STATS(backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc,
                                         _accum, _op, _mask), GLOBAL_SPMV_TIME);
     }
@@ -244,16 +248,25 @@ LA_Info vxm (Vector<W>*       _w,
     {
         if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse()))
         {
+#ifdef __DEBUG_INFO__
+            cout << "USING SpMV for-based!!!!!" << endl;
+#endif
             GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(),
                                               _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
         else if (algo == SPMSPV_MAP_PAR)
         {
+#ifdef __DEBUG_INFO__
+            cout << "USING SpMV TBB-based!!!!!" << endl;
+#endif
             GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
                                                       _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
         else if (algo == SPMSPV_MAP_SEQ)
         {
+#ifdef __DEBUG_INFO__
+            cout << "USING SpMV STL-map-based!!!!!" << endl;
+#endif
             GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
                                                       _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
