@@ -2,6 +2,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef __USE_TBB__
 template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
 void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
                     const SparseVector <X> *_x,
@@ -24,8 +25,6 @@ void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
     VNT x_nvals = _x->get_nvals();
 
     tbb::concurrent_hash_map<VNT, Y> map_output;
-     //TODO try tp move accessor to parallel body (its lifetime
-                                                           // blocks other threads' accessors)
 
     #pragma omp parallel for
     for (VNT i = 0; i < x_nvals; i++)
@@ -85,5 +84,6 @@ void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
         }
     }
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
