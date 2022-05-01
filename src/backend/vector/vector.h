@@ -178,8 +178,8 @@ public:
                    const T*     _values,
                    Index _nvals)
     {
+        LOG_TRACE("Building sparse vector");
         swap_to_sparse();
-        ((SparseVector<T>*)main_container)->build(_indices, _values, _nvals);
 
         SparseVector<T>* sparse_vec = ((SparseVector<T>*)main_container);
 
