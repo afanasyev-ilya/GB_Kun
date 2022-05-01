@@ -11,6 +11,61 @@
             GrB_SPARSE,
             GrB_DENSE};
 
+
+    enum log_level {GrB_ERROR,
+                    GrB_DEBUG,
+                    GrB_TRACE};
+
+
+    class GB_LOGGER {
+    public:
+        GB_LOGGER() {
+            const char* env_string = getenv("LOG_LEVEL");
+            if (env_string != NULL) {
+                if (!strcmp(env_string, "debug")) {
+                    level = GrB_DEBUG;
+                }
+                if (!strcmp(env_string, "trace")) {
+                    level = GrB_TRACE;
+                }
+                if (!strcmp(env_string, "error")) {
+                    level = GrB_ERROR;                      //disable any logging by default
+                }
+            } else {
+                level = GrB_ERROR;
+            }
+        }
+
+        log_level get_level() {
+            return level;
+        }
+
+        void set_level(log_level new_level) {
+            level = new_level;
+        }
+
+    private:
+        log_level level;
+    };
+
+    static GB_LOGGER logger;
+
+
+#define LOG_ERROR(string) \
+    if (logger.get_level() >= GrB_ERROR) {                      \
+        std::cout << "(GB_KUN|ERROR)" << string << std::endl;       \
+    }      \
+
+#define LOG_TRACE(string) \
+    if (logger.get_level() >= GrB_TRACE) {                       \
+        std::cout << "(GB_KUN|TRACE)" << string << std::endl;        \
+    }\
+
+#define LOG_DEBUG(string) \
+    if (logger.get_level() >= GrB_DEBUG) {                       \
+        std::cout << "(GB_KUN|DEBUG)" << string << std::endl;        \
+    }                                                            \
+
     enum Desc_field {GrB_MASK,
                     GrB_OUTPUT,
                     GrB_INP0,
