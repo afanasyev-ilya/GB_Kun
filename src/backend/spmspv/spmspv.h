@@ -29,7 +29,7 @@ void apply_mask(DenseVector <Y> *_y,
     _desc->get(GrB_OUTPUT, &output_field);
     Y *y_vals = _y->get_vals();
 
-    if (mask_field != GrB_SCMP)
+    if (mask_field == GrB_DEFAULT or mask_field == GrB_STRUCTURE)
     {
         if(_mask->is_dense())
         {
@@ -73,7 +73,7 @@ void apply_mask(DenseVector <Y> *_y,
             }
         }
     }
-    else
+    if (mask_field == GrB_STR_COMP or mask_field == GrB_COMP)
     {
         if(_mask->is_dense())
         {

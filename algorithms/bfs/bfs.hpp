@@ -117,8 +117,10 @@ void bfs_blast(Vector<T>*       v,
         unvisited -= static_cast<int>(succ);
         assign<T, T, T>(v, &f1, GrB_NULL, iter, GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK);
+        desc->toggle(GrB_OUTPUT);
         vxm<T, T, T, T>(&f2, v, GrB_NULL, LogicalOrAndSemiring<T>(), &f1, A, GrB_DESC_SC);
         desc->toggle(GrB_MASK);
+        desc->toggle(GrB_OUTPUT);
 
         f2.swap(&f1);
         reduce<T, T>(&succ, GrB_NULL, PlusMonoid<T>(), &f1, desc);
