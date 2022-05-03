@@ -188,9 +188,15 @@ LA_Info mxv (Vector<W>*       _w,
             //backend::spmspv_buckets(_matrix,_w->getSparse(),_u->getDense(),1, _matrix->get_workspace(), _accum, _op);
         }
         if (algo == SPMSPV_MAP_PAR) {
+            #ifdef __USE_TBB__
             LOG_TRACE("Using SpMSpV TBB-based");
-//            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
-//                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+            #else
+            LOG_TRACE("Using SpMSpV STL-based");
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+            #endif
         }
         if (algo == SPMSPV_MAP_SEQ) {
             LOG_TRACE("Using SpMSpV STL-based");
@@ -246,19 +252,27 @@ LA_Info vxm (Vector<W>*       _w,
     }
     else
     {
-        if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse()))
+        Index nvals = _u->get_nvals();
+        Index max_size = _u->get_size();
+        if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and (nvals >= 0.5*max_size)))
         {
             LOG_TRACE("Using SpMSpV for-based");
             GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(),
                                               _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
-        else if (algo == SPMSPV_MAP_PAR)
+        else if (algo == SPMSPV_MAP_PAR or (algo == GrB_DEFAULT and (nvals >= 0.02*max_size)))
         {
+            #ifdef __USE_TBB__
             LOG_TRACE("Using SpMSpV TBB-based");
-//            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
-//                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+            #else
+            LOG_TRACE("Using SpMSpV STL-based");
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+            #endif
         }
-        else if (algo == SPMSPV_MAP_SEQ)
+        else if (algo == SPMSPV_MAP_SEQ or (algo == GrB_DEFAULT and (nvals < 0.02*max_size)))
         {
             LOG_TRACE("Using SpMSpV STL-based");
             GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),

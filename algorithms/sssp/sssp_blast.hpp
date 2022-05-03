@@ -45,7 +45,9 @@ void sssp_bellman_ford_blast(Vector<float> *v,
 
     for (iter = 1; iter <= max_iters; ++iter)
     {
+        std::cout << "1" << std::endl;
         vxm<float, float, float, float>(&f2, nullptr, GrB_NULL, MinimumPlusSemiring<float>(), &f1, A, desc);
+        std::cout << "2" << std::endl;
 
         eWiseAdd<float, float, float, float>(&m, nullptr, GrB_NULL,
                                              CustomLessPlusSemiring<float>(), &f2, v, desc);
@@ -56,9 +58,12 @@ void sssp_bellman_ford_blast(Vector<float> *v,
         // Similar to BFS, except we need to filter out the unproductive vertices
         // here rather than as part of masked vxm
         desc->toggle(GrB_MASK);
+        desc->toggle(GrB_OUTPUT);
         assign<float, float, float>(&f2, &m, GrB_NULL, std::numeric_limits<float>::max(),
                                     GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK);
+        desc->toggle(GrB_OUTPUT);
+        std::cout << "it done" << std::endl;
 
         f2.swap(&f1);
 
