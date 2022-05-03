@@ -611,9 +611,7 @@ void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
     save_time_in_sec("build_matrix_from_file", t2 - t1);
     #endif
 
-    #ifdef __DEBUG_INFO__
-    cout << "csr (from mtx) creation time: " << t2 - t1 << " sec" << endl;
-    #endif
+    LOG_DEBUG("csr (from mtx) creation time: " + std::to_string( t2 - t1) + " sec")
 
     init_optimized_structures();
 }

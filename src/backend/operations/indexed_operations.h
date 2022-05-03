@@ -10,16 +10,18 @@ namespace lablas {
 namespace backend {
 
 template <typename M, typename LambdaOp>
-LA_Info indexed_dense_vector_op_assign(const Vector<M>* _mask,
-    const Index* _indexes,
-    const Index _nindexes,
+LA_Info indexed_dense_array_op_assign(const Vector<M>* _mask,
+    const Index* _indices,
+    const Index _nindices,
     const Index _vector_size,
     LambdaOp&& _lambda_op,
     Descriptor* _desc)
 {
+    Desc_value mask_val;
+    _desc->get(GrB_MASK, &mask_val);
     if (_mask != NULL)
     {
-        // TODO if mask is sparse
+        /*TODO for sparse mask*/
 
         if (_mask->get_size() != _vector_size)
             return GrB_DIMENSION_MISMATCH;
@@ -27,19 +29,22 @@ LA_Info indexed_dense_vector_op_assign(const Vector<M>* _mask,
         const M* mask_data = _mask->getDense()->get_vals();
 
         #pragma omp parallel for
-        for (Index i = 0; i < _nindexes; i++)
+        for (Index i = 0; i < _nindices; i++)
         {
-            const Index idx = _indexes[i];
-            if (mask_data[idx])
+            const Index idx = _indices[i];
+            if ((mask_data[idx] and (mask_val == GrB_DEFAULT or mask_val == GrB_STRUCTURE)) or
+                (!mask_data[idx] and (mask_val == GrB_COMP or mask_val == GrB_STR_COMP))) {
+
                 _lambda_op(idx, i);
+            }
         }
     }
     else
     {
         #pragma omp parallel for
-        for (Index i = 0; i < _nindexes; i++)
+        for (Index i = 0; i < _nindices; i++)
         {
-            const Index idx = _indexes[i];
+            const Index idx = _indices[i];
             _lambda_op(idx, i);
         }
     }

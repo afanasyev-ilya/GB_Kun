@@ -106,9 +106,7 @@ void seq_page_rank(Vector <T> *_ranks,
         {
             ranks_sum += ranks[i];
         }
-        #ifdef __DEBUG_INFO__
-        cout << "ranks sum: " << ranks_sum << endl;
-        #endif
+        LOG_DEBUG("ranks sum: " + std::to_string(ranks_sum));
     }
 }
 

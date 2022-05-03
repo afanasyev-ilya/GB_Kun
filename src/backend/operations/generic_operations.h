@@ -19,11 +19,12 @@ LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
         if (_mask->get_size() != _size)
             return GrB_DIMENSION_MISMATCH;
 
-        Desc_value val;
-        _desc->get(GrB_MASK, &val);
+        Desc_value mask_val;
+        _desc->get(GrB_MASK, &mask_val);
+
         if (_mask->is_sparse())
         {
-            if(val == GrB_DEFAULT || val == GrB_STRUCTURE)
+            if (mask_val == GrB_DEFAULT || mask_val == GrB_STRUCTURE)
             {
                 const Index* mask_ids = _mask->getSparse()->get_ids();
                 const Index mask_nvals = _mask->getSparse()->get_nvals();
@@ -34,7 +35,7 @@ LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
                     _lambda_op(idx, i);
                 }
             }
-            else if (val == GrB_STR_COMP)
+            else if (mask_val == GrB_COMP || mask_val == GrB_STR_COMP)
             {
                 const M* mask_data = _mask->getDense()->get_vals();
                 #pragma omp parallel for
@@ -51,8 +52,11 @@ LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
             #pragma omp parallel for
             for (Index i = 0; i < _size; i++)
             {
-                if (!mask_data[i] && val == GrB_STR_COMP || mask_data[i] && (val == GrB_DEFAULT || val == GrB_STRUCTURE))
+                if (!mask_data[i] && (mask_val == GrB_COMP || mask_val == GrB_STR_COMP) ||
+                    mask_data[i] && (mask_val == GrB_DEFAULT || mask_val == GrB_STRUCTURE)) {
+
                     _lambda_op(i, i);
+                }
             }
         }
     }

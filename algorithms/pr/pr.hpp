@@ -125,9 +125,7 @@ void LAGraph_page_rank_sinks (GrB_Vector centrality, // centrality(i): GAP-style
         //float ranks_sum = 0;
         double ranks_sum = 0;
         GrB_TRY (GrB_reduce (&ranks_sum, NULL, GrB_PLUS_MONOID_FP32, r, NULL));
-        #ifdef __DEBUG_INFO__
-        cout << "ranks sum: " << ranks_sum << endl;
-        #endif
+        LOG_DEBUG("ranks sum: " + std::to_string(ranks_sum));
     }
 
     //--------------------------------------------------------------------------

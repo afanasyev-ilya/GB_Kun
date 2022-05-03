@@ -13,9 +13,7 @@ void Matrix<T>::init_optimized_structures()
     {
         data = NULL;
         transposed_data = NULL;
-        #ifdef __DEBUG_INFO__
-        cout << "Using CSR matrix format as optimized representation" << endl;
-        #endif
+        LOG_TRACE("Using CSR matrix format as optimized representation");
     }
     else if (_format == CSR_SEG)
     {
@@ -25,9 +23,7 @@ void Matrix<T>::init_optimized_structures()
                                               csr_data->get_vals(), 0);
         ((MatrixSegmentedCSR<T>*)transposed_data)->build(csc_data->get_num_rows(), csc_data->get_nnz(), csc_data->get_row_ptr(), csc_data->get_col_ids(),
                                                          csc_data->get_vals(), 0);
-        #ifdef __DEBUG_INFO__
-        cout << "Using CSR_SEG matrix format as optimized representation" << endl;
-        #endif
+        LOG_TRACE("Using CSR_SEG matrix format as optimized representation");
     }
     else if (_format == COO)
     {
@@ -37,9 +33,8 @@ void Matrix<T>::init_optimized_structures()
                                      csr_data->get_vals(), 0);
         ((MatrixCOO<T>*)transposed_data)->build(csc_data->get_num_rows(), csc_data->get_nnz(), csc_data->get_row_ptr(), csc_data->get_col_ids(),
                                                 csc_data->get_vals(), 0);
-        #ifdef __DEBUG_INFO__
-        cout << "Using COO matrix format as optimized representation" << endl;
-        #endif
+
+        LOG_TRACE("Using COO matrix format as optimized representation");
     }
     else if (_format == SORTED_CSR)
     {
@@ -59,9 +54,7 @@ void Matrix<T>::init_optimized_structures()
                                                     csc_data->get_row_ptr(),
                                                     csc_data->get_col_ids(),
                                                     csc_data->get_vals(), 0);
-        #ifdef __DEBUG_INFO__
-        cout << "Using SORTED CSR matrix format as optimized representation" << endl;
-        #endif
+        LOG_TRACE("Using SORTED CSR matrix format as optimized representation")
     }
     else if (_format == SELL_C)
     {
@@ -79,9 +72,7 @@ void Matrix<T>::init_optimized_structures()
                                                   csc_data->get_row_ptr(),
                                                   csc_data->get_col_ids(),
                                                   csc_data->get_vals(), 0);
-        #ifdef __DEBUG_INFO__
-        cout << "Using SELL-C matrix format as optimized representation" << endl;
-        #endif
+        LOG_TRACE("Using SELL-C matrix format as optimized representation")
     }
     else if (_format == LAV)
     {
@@ -101,18 +92,15 @@ void Matrix<T>::init_optimized_structures()
                                                 csc_data->get_row_ptr(),
                                                 csc_data->get_col_ids(),
                                                 csc_data->get_vals(), 0);
-        #ifdef __DEBUG_INFO__
-        cout << "Using LAV matrix format as optimized representation" << endl;
-        #endif
+        LOG_TRACE("Using LAV matrix format as optimized representation")
     }
     else
     {
         throw "Error: unsupported format in Matrix<T>::build";
     }
     t2 = omp_get_wtime();
-    #ifdef __DEBUG_INFO__
-    cout << "creating optimized representation time: " << t2 - t1 << " sec" << endl;
-    #endif
+
+    LOG_DEBUG("creating optimized representation time: " + std::to_string(t2 - t1) + " sec")
 
     workspace = new Workspace(get_nrows(), get_ncols());
 }
@@ -157,9 +145,8 @@ void Matrix<T>::build(const VNT *_row_indices,
     csr_data->build(_row_indices, _col_indices, _values, max_rows, max_cols, _nnz);
     csc_data->build(_col_indices, _row_indices, _values, max_cols, max_rows, _nnz);
     double t2 = omp_get_wtime();
-    #ifdef __DEBUG_INFO__
-    cout << "csr creation time: " << t2 - t1 << " sec" << endl;
-    #endif
+
+    LOG_DEBUG("csr creation time: "  + std::to_string(t2 - t1) + " sec")
 
     // initializing additional data structures time
     init_optimized_structures();

@@ -75,11 +75,19 @@
                     GrB_MXMMODE,
                     GrB_PARALLEL_MODE,
                     GrB_NDESCFIELD};
+            /*
+            GrB_SCMP,               // for GrB_MASK
+            GrB_REPLACE,            // for GrB_OUTP
+            GrB_TRAN,               // for GrB_INP0, GrB_INP1
+            GrB_DEFAULT,
+            */
 
-    enum Desc_value {GrB_SCMP,               // for GrB_MASK
-                    GrB_REPLACE,            // for GrB_OUTP
-                    GrB_TRAN,               // for GrB_INP0, GrB_INP1
-                    GrB_DEFAULT,
+
+
+    enum Desc_value {GrB_SCMP = 0,               // for GrB_MASK
+                    GrB_REPLACE = 1,            // for GrB_OUTP
+                    GrB_TRAN = 2,               // for GrB_INP0, GrB_INP1
+                    GrB_DEFAULT = 3,
                     GrB_STRUCTURE = 4, // for GrB_MASK
                     GrB_STR_COMP = 5,
                     GrB_COMP,// for GrB_MASK, combination

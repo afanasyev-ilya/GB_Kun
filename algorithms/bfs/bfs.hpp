@@ -113,6 +113,7 @@ void bfs_blast(Vector<T>*       v,
 
     for (iter = 1; iter <= max_iters; ++iter)
     {
+        LOG_TRACE("Iteration #" + std::to_string(iter))
         unvisited -= static_cast<int>(succ);
         assign<T, T, T>(v, &f1, GrB_NULL, iter, GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK);

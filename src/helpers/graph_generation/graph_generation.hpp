@@ -1,4 +1,5 @@
 #pragma once
+#include "../../cpp_graphblas/types.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -40,9 +41,8 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
                                         ENT _edges_count,
                                         DirectionType _direction_type)
 {
-    #ifdef __DEBUG_INFO__
-    cout << "Creating Random Uniform matrix" << endl;
-    #endif
+
+    LOG_TRACE("Creating Random Uniform matrix")
     VNT vertices_count = _vertices_count;
     ENT edges_count = _edges_count;
     
@@ -100,9 +100,8 @@ void GraphGenerationAPI::RMAT(EdgeListContainer<T> &_edges_container,
                               int _d_prob,
                               DirectionType _direction_type)
 {
-    #ifdef __DEBUG_INFO__
-    cout << "Creating RMAT matrix" << endl;
-    #endif
+
+    LOG_TRACE("Creating RMAT matrix")
     VNT n = (VNT)log2(_vertices_count);
     VNT vertices_count = _vertices_count;
     ENT edges_count = _edges_count;

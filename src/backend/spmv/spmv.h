@@ -42,16 +42,12 @@ void SpMV(const Matrix<A> *_matrix,
             {
                 if(num_sockets_used() > 1)
                 {
-                    #ifdef __DEBUG_INFO__
-                    cout << "Using NUMA-aware SPMV" << endl;
-                    #endif
+                    LOG_TRACE("Using NUMA-aware SPMV");
                     SpMV_numa_aware(_matrix->get_csr(), _x, _y, _accum, _op, _matrix->get_workspace());
                 }
                 else
                 {
-                    #ifdef __DEBUG_INFO__
-                    cout << "Using single socket SPMV" << endl;
-                    #endif
+                    LOG_TRACE("Using single socket SPMV");
                     if(_x == _y)
                     {
                         SpMV_all_active_same_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
@@ -110,16 +106,12 @@ void VSpM(const Matrix<A> *_matrix,
         {
             if(num_sockets_used() > 1)
             {
-                #ifdef __DEBUG_INFO__
-                cout << "Using NUMA-aware VSpM" << endl;
-                #endif
+                LOG_TRACE("Using NUMA-aware VSpM")
                 SpMV_numa_aware(_matrix->get_csc(), _x, _y, _accum, _op, _matrix->get_workspace());
             }
             else
             {
-                #ifdef __DEBUG_INFO__
-                cout << "Using single socket VSpM" << endl;
-                #endif
+                LOG_TRACE("Using single socket VSpM")
                 if(_x == _y)
                 {
                     SpMV_all_active_same_vectors(_matrix->get_csc(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());

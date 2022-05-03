@@ -125,10 +125,9 @@ void MatrixCSR<T>::to_symmetric()
         new_nnz += col_data[row].size();
     }
 
-    #ifdef __DEBUG_INFO__
-    std::cout << "number of non zero elements increased from " << this->nnz << " to " << new_nnz <<
-        " (" << (double)new_nnz/this->nnz << " times)" << std::endl;
-    #endif
+    LOG_DEBUG("number of non zero elements increased from " +  std::to_string(this->nnz) + " to " +
+    std::to_string(new_nnz) + " (" + std::to_string((double)new_nnz/this->nnz) + " times)")
+
 
     this->resize(nrows, ncols, new_nnz);
     vector_of_maps_to_csr(col_data, row_ptr, col_ids, vals);

@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include "../../src/gb_kun.h"
 #include "../../src/cpp_graphblas/types.hpp"
 #define MASK_NULL static_cast<const lablas::Vector<float>*>(NULL)
@@ -96,9 +97,7 @@ void cc(Vector<int>*       v,
         eWiseMult(&diff, MASK_NULL, GrB_NULL,
                   MinimumNotEqualToSemiring<int, int, bool>(), &grandparent_temp, &grandparent, desc);
         reduce<Index, bool>(&succ, GrB_NULL, PlusMonoid<Index>(), &diff, desc);
-        #ifdef __DEBUG_INFO__
-        cout << "succ: " << succ << endl;
-        #endif
+        LOG_DEBUG("succ: " + to_string(succ));
         if (succ == 0)
         {
             break;

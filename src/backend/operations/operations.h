@@ -12,6 +12,8 @@
 namespace lablas{
 namespace backend{
 
+
+/* w[indices[i]] = value */
 template <typename W, typename M, typename U, typename I, typename BinaryOpTAccum>
 LA_Info assign(Vector<W>* _w,
                const Vector<M>* _mask,
@@ -21,6 +23,7 @@ LA_Info assign(Vector<W>* _w,
                const Index _nindices,
                Descriptor* _desc)
 {
+    LOG_TRACE("Calling value-like vector assign")
     LA_Info info;
     _w->force_to_dense();
 
@@ -33,10 +36,12 @@ LA_Info assign(Vector<W>* _w,
 
     if (_indices == NULL)
     {
+        /* w[i] = value for all i in range [0, vec_size) */
         info = backend::generic_dense_vector_op_assign(_mask, vector_size, lambda_op, _desc);
     }
     else
     {
+        /* w[i] = value for i defined in indices array */
         info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
@@ -46,6 +51,7 @@ LA_Info assign(Vector<W>* _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/* w[indices[i]] = accum(w[indices[i]], u[i]) */
 template <typename W, typename M, typename U, typename I, typename BinaryOpTAccum>
 LA_Info assign(Vector<W>* _w,
                const Vector<M>* _mask,
@@ -55,6 +61,7 @@ LA_Info assign(Vector<W>* _w,
                const Index _nindices,
                Descriptor* _desc)
 {
+    LOG_TRACE("Calling vector-like vector assign")
     _w->force_to_dense();
 
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
@@ -68,10 +75,12 @@ LA_Info assign(Vector<W>* _w,
     LA_Info info;
     if (_indices == NULL)
     {
+        /* w[i] = u[i] for all i in range [0, vec_size) */
         info = backend::generic_dense_vector_op_assign(_mask, vector_size, lambda_op, _desc);
     }
     else
     {
+        /* w[indices[i]] = u[i] for i defined in indices array */
         info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
@@ -89,6 +98,7 @@ LA_Info assign(Vector<W>* _w,
                const Index _nindices,
                Descriptor *_desc)
 {
+    LOG_TRACE("Calling value-like array assign")
     LA_Info info = GrB_SUCCESS;
     _w->force_to_dense();
 
@@ -105,7 +115,7 @@ LA_Info assign(Vector<W>* _w,
     }
     else
     {
-        info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
+        info = backend::indexed_dense_array_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
     return info;
@@ -114,6 +124,7 @@ LA_Info assign(Vector<W>* _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/* w[indices[i]] = accum(w[indices[i]], u[i]) */
 template <typename W, typename M, typename U, typename BinaryOpTAccum>
 LA_Info assign(Vector<W> *_w,
                const Vector<M> *_mask,
@@ -123,6 +134,7 @@ LA_Info assign(Vector<W> *_w,
                const Index _nindices,
                Descriptor *_desc)
 {
+    LOG_TRACE("Calling vector-like array assign")
     _w->force_to_dense();
 
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
@@ -140,7 +152,7 @@ LA_Info assign(Vector<W> *_w,
     }
     else
     {
-        info = backend::indexed_dense_vector_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
+        info = backend::indexed_dense_array_op_assign(_mask, _indices, _nindices, vector_size, lambda_op, _desc);
     }
     _w->convert_if_required();
     return info;
