@@ -118,7 +118,7 @@ void bfs_blast(Vector<T>*       v,
         assign<T, T, T>(v, &f1, GrB_NULL, iter, GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK);
         desc->toggle(GrB_OUTPUT);
-        vxm<T, T, T, T>(&f2, v, GrB_NULL, LogicalOrAndSemiring<T>(), &f1, A, GrB_DESC_SC);
+        vxm<T, T, T, T>(&f2, v, GrB_NULL, LogicalOrAndSemiring<T>(), &f1, A, GrB_DESC_RSC);
         desc->toggle(GrB_MASK);
         desc->toggle(GrB_OUTPUT);
 
