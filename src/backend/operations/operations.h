@@ -189,8 +189,8 @@ LA_Info mxv (Vector<W>*       _w,
         }
         if (algo == SPMSPV_MAP_PAR) {
             LOG_TRACE("Using SpMSpV TBB-based");
-            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
-                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+//            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
+//                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
         if (algo == SPMSPV_MAP_SEQ) {
             LOG_TRACE("Using SpMSpV STL-based");
@@ -255,8 +255,8 @@ LA_Info vxm (Vector<W>*       _w,
         else if (algo == SPMSPV_MAP_PAR)
         {
             LOG_TRACE("Using SpMSpV TBB-based");
-            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
-                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+//            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
+//                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
         else if (algo == SPMSPV_MAP_SEQ)
         {
