@@ -43,8 +43,6 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
 
     auto offsets = _result_mask->get_csr()->get_load_balancing_offsets();
 
-    double t2 = omp_get_wtime();
-
     ENT * matrix1_row_ptr;
     VNT * matrix1_col_ids_ptr;
     T * matrix1_vals_ptr;
@@ -77,14 +75,16 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
         const int max_threads_per_socket = omp_get_max_threads();
     #endif
 
+    double t2 = omp_get_wtime();
+
     #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();
         if (num_sockets_used() == 2) {
             #ifdef __USE_KUNPENG__
-            const int cpu_id = sched_getcpu();
+                const int cpu_id = sched_getcpu();
             #else
-            const int cpu_id = thread_id;
+                const int cpu_id = thread_id;
             #endif
             const int socket = cpu_id / (max_threads_per_socket);
 
