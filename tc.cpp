@@ -47,12 +47,9 @@ int main(int argc, char **argv) {
                 slow_ntriangles += D.get_matrix()->get_csr()->get(i, i);
             }
             uint64_t slow_ntriangles_undir = slow_ntriangles / 6;
-            uint64_t slow_ntriangles_dir = slow_ntriangles / 3;
-            std::cout << "Found triangles on undirected graph with slow algorithm: " << slow_ntriangles_undir << std::endl;
-            std::cout << "Found triangles on directed graph with slow algorithm: " << slow_ntriangles_dir << std::endl;
+            std::cout << "Found triangles with slow algorithm: " << slow_ntriangles_undir << std::endl;
             std::cout << "Error count: "
-                      << min((slow_ntriangles_undir > ntriangles ? slow_ntriangles_undir - ntriangles : ntriangles - slow_ntriangles_undir),
-                             (slow_ntriangles_dir > ntriangles ? slow_ntriangles_dir - ntriangles : ntriangles - slow_ntriangles_dir))
+                      << (slow_ntriangles_undir > ntriangles ? slow_ntriangles_undir - ntriangles : ntriangles - slow_ntriangles_undir)
                       << std::endl;
         }
     }
