@@ -386,27 +386,13 @@ static LA_Info select(Matrix<W> *w,
         w_vals[i] = 0;
     }
     const U* u_vals = u->get_csr()->get_vals();
-    const M* mask_vals = mask ? mask->get_csr()->get_vals() : NULL;
-
-    // Getting mask properties
-    Desc_value mask_field, mask_output;
-    if (desc) {
-        desc->get(GrB_MASK, &mask_field);
-        desc->get(GrB_OUTPUT, &mask_output);
-    }
 
     #pragma omp parallel for
     for (VNT i = 0; i < u->get_nrows(); ++i)
     {
         for (ENT cur_row_id = u->get_csr()->get_row_ptr()[i]; cur_row_id < u->get_csr()->get_row_ptr()[i + 1]; ++cur_row_id) {
             ENT j = u->get_csr()->get_col_ids()[cur_row_id];
-            if (not mask_vals or (mask_vals[cur_row_id] && (mask_field == GrB_COMP))) {
-                w_vals[cur_row_id] = accum(w_vals[cur_row_id], op(u_vals[cur_row_id], i, j, val));
-            } else {
-                if (mask_output == GrB_REPLACE) {
-                    w_vals[cur_row_id] = 0;
-                }
-            }
+            w_vals[cur_row_id] = accum(w_vals[cur_row_id], op(u_vals[cur_row_id], i, j, val));
         }
     }
     SpMSpM_alloc(w);

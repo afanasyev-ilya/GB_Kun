@@ -188,8 +188,6 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
 
     int64_t ntri ;
 
-    method = LAGraph_TriangleCount_Cohen;
-
     switch (method)
     {
         case LAGraph_TriangleCount_Burkhardt:  // 1: sum (sum ((A^2) .* A)) / 6
