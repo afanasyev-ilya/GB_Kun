@@ -56,13 +56,6 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
 
     auto offsets = _result_mask->get_csr()->get_load_balancing_offsets();
 
-    ENT * matrix1_row_ptr;
-    VNT * matrix1_col_ids_ptr;
-    T * matrix1_vals_ptr;
-    ENT * matrix2_row_ptr;
-    VNT * matrix2_col_ids_ptr;
-    T * matrix2_vals_ptr;
-
     MatrixCSR<T> A_csr_first_socket;
     MatrixCSR<T> A_csr_second_socket;
     MatrixCSR<T> B_csc_first_socket;
@@ -73,13 +66,6 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
         A_csr_second_socket.deep_copy(_matrix1->get_csr(), 1);
         B_csc_first_socket.deep_copy(_matrix2->get_csc(), 0);
         B_csc_second_socket.deep_copy(_matrix2->get_csc(), 1);
-    } else {
-        matrix1_row_ptr = _matrix1->get_csr()->get_row_ptr();
-        matrix1_col_ids_ptr = _matrix1->get_csr()->get_col_ids();
-        matrix1_vals_ptr = _matrix1->get_csr()->get_vals();
-        matrix2_row_ptr = _matrix2->get_csc()->get_row_ptr();
-        matrix2_col_ids_ptr = _matrix2->get_csc()->get_col_ids();
-        matrix2_vals_ptr = _matrix2->get_csc()->get_vals();
     }
 
     #ifdef __USE_KUNPENG__
@@ -93,6 +79,13 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
     #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();
+
+        ENT * matrix1_row_ptr;
+        VNT * matrix1_col_ids_ptr;
+        T * matrix1_vals_ptr;
+        ENT * matrix2_row_ptr;
+        VNT * matrix2_col_ids_ptr;
+        T * matrix2_vals_ptr;
 
         if (num_sockets_used() == 2) {
             #ifdef __USE_KUNPENG__
@@ -117,6 +110,13 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
                 matrix2_col_ids_ptr = B_csc_second_socket.get_col_ids();
                 matrix2_vals_ptr = B_csc_second_socket.get_vals();
             }
+        } else {
+            matrix1_row_ptr = _matrix1->get_csr()->get_row_ptr();
+            matrix1_col_ids_ptr = _matrix1->get_csr()->get_col_ids();
+            matrix1_vals_ptr = _matrix1->get_csr()->get_vals();
+            matrix2_row_ptr = _matrix2->get_csc()->get_row_ptr();
+            matrix2_col_ids_ptr = _matrix2->get_csc()->get_col_ids();
+            matrix2_vals_ptr = _matrix2->get_csc()->get_vals();
         }
         for (VNT matrix1_row_id = offsets[thread_id].first; matrix1_row_id < offsets[thread_id].second;
              ++matrix1_row_id) {
