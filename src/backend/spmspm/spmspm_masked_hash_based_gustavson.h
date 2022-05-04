@@ -59,14 +59,21 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
         T* values_second_socket;
         MemoryAPI::numa_aware_alloc(&values_first_socket, nnz, 0);
         MemoryAPI::numa_aware_alloc(&values_second_socket, nnz, 1);
-        VNT *local_mask_row_ptr_first_socket = _result_mask->get_csr()->get_row_ptr();
-        ENT *local_mask_col_ids_ptr_first_socket = _result_mask->get_csr()->get_col_ids();
-        VNT *local_mask_row_ptr_second_socket = _result_mask->get_csr()->get_row_ptr();
-        ENT *local_mask_col_ids_ptr_second_socket = _result_mask->get_csr()->get_col_ids();
+        VNT *local_mask_row_ptr_first_socket;
+        ENT *local_mask_col_ids_ptr_first_socket;
+        VNT *local_mask_row_ptr_second_socket;
+        ENT *local_mask_col_ids_ptr_second_socket;
         MemoryAPI::numa_aware_alloc(&local_mask_row_ptr_first_socket, nnz, 0);
+        MemoryAPI::copy(local_mask_row_ptr_first_socket, _result_mask->get_csr()->get_row_ptr(), nnz);
+
         MemoryAPI::numa_aware_alloc(&local_mask_col_ids_ptr_first_socket, nnz, 0);
+        MemoryAPI::copy(local_mask_col_ids_ptr_first_socket, _result_mask->get_csr()->get_col_ids(), nnz);
+
         MemoryAPI::numa_aware_alloc(&local_mask_row_ptr_second_socket, nnz, 1);
+        MemoryAPI::copy(local_mask_row_ptr_second_socket, _result_mask->get_csr()->get_row_ptr(), nnz);
+
         MemoryAPI::numa_aware_alloc(&local_mask_col_ids_ptr_second_socket, nnz, 1);
+        MemoryAPI::copy(local_mask_col_ids_ptr_second_socket, _result_mask->get_csr()->get_col_ids(), nnz);
 
         #ifdef __USE_KUNPENG__
             const int max_threads_per_socket = sysconf(_SC_NPROCESSORS_ONLN)/2;
