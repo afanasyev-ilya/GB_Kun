@@ -55,7 +55,9 @@ static int tricount_prep(GrB_Matrix *L,      // if present, compute L = tril (A,
         auto GrB_TRIL_select = [](int x, Index i, Index j, int val){
             return (j <= (i + val));
         };
-        GrB_TRY (GrB_select (*L, NULL, NULL, GrB_TRIL_select, A, (int64_t) (-1), NULL)) ;
+        #define MASK_NULL static_cast<const lablas::Matrix<float>*>(NULL)
+        GrB_TRY (GrB_select (*L, MASK_NULL, NULL, GrB_TRIL_select, A, (int64_t) (-1), NULL)) ;
+        #undef MASK_NULL
     }
 
     if (U != NULL)
@@ -65,7 +67,9 @@ static int tricount_prep(GrB_Matrix *L,      // if present, compute L = tril (A,
         auto GrB_TRIU_select = [](int x, Index i, Index j, int val){
             return (j >= (i + val));
         };
-        GrB_TRY (GrB_select (*U, NULL, NULL, GrB_TRIU_select, A, (int64_t) 1, NULL)) ;
+        #define MASK_NULL static_cast<const lablas::Matrix<float>*>(NULL)
+        GrB_TRY (GrB_select (*U, MASK_NULL, NULL, GrB_TRIU_select, A, (int64_t) 1, NULL)) ;
+        #undef MASK_NULL
     }
     return (GrB_SUCCESS) ;
 }
@@ -186,18 +190,16 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
 
     switch (method)
     {
-
         case LAGraph_TriangleCount_Burkhardt:  // 1: sum (sum ((A^2) .* A)) / 6
-            cout << "Starting mxm for TC..." << endl;
-            A->get_matrix()->sort_csc_rows("STL_SORT");
-            GrB_TRY (GrB_mxm (C, A, NULL, semiring, A, A, GrB_DESC_S)) ;
+            // A->get_matrix()->sort_csc_rows("STL_SORT");
+            GrB_TRY (GrB_mxm (C, A, NULL, semiring, A, A, &GrB_DESC_IKJ_MASKED)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
             ntri /= 6 ;
             break ;
 
         case LAGraph_TriangleCount_Cohen: // 2: sum (sum ((L * U) .* A)) / 2
             GrB_TRY (static_cast<LA_Info>(tricount_prep(&L, &U, A))) ;
-            GrB_TRY (GrB_mxm (C, A, NULL, semiring, L, U, GrB_DESC_S)) ;
+            GrB_TRY (GrB_mxm (C, A, NULL, semiring, L, U, &GrB_DESC_IKJ_MASKED)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
             ntri /= 2 ;
             break ;
@@ -205,14 +207,14 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
         case LAGraph_TriangleCount_Sandia: // 3: sum (sum ((L * L) .* L))
             // using the masked saxpy3 method
             GrB_TRY (static_cast<LA_Info>(tricount_prep(&L, NULL, A))) ;
-            GrB_TRY (GrB_mxm (C, L, NULL, semiring, L, L, GrB_DESC_S)) ;
+            GrB_TRY (GrB_mxm (C, L, NULL, semiring, L, L, &GrB_DESC_IKJ_MASKED)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
             break ;
 
         case LAGraph_TriangleCount_Sandia2: // 4: sum (sum ((U * U) .* U))
             // using the masked saxpy3 method
             GrB_TRY (static_cast<LA_Info>(tricount_prep(NULL, &U, A))) ;
-            GrB_TRY (GrB_mxm (C, U, NULL, semiring, U, U, GrB_DESC_S)) ;
+            GrB_TRY (GrB_mxm (C, U, NULL, semiring, U, U, &GrB_DESC_IKJ_MASKED)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
             break ;
 
@@ -222,14 +224,14 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
             // the SandiaDot2 method is also very fast.
             // using the masked dot product
             GrB_TRY (static_cast<LA_Info>(tricount_prep(&L, &U, A))) ;
-            GrB_TRY (GrB_mxm (C, L, NULL, semiring, L, U, GrB_DESC_S)) ;
+            GrB_TRY (GrB_mxm (C, L, NULL, semiring, L, U, &GrB_DESC_IKJ_MASKED)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
             break ;
 
         case LAGraph_TriangleCount_SandiaDot2: // 6: sum (sum ((U * L') .* U))
             // using the masked dot product
             GrB_TRY (static_cast<LA_Info>(tricount_prep(&L, &U, A))) ;
-            GrB_TRY (GrB_mxm (C, U, NULL, semiring, U, L, GrB_DESC_S)) ;
+            GrB_TRY (GrB_mxm (C, U, NULL, semiring, U, L, &GrB_DESC_IKJ_MASKED)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
             break ;
     }
