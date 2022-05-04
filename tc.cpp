@@ -15,7 +15,6 @@ int main(int argc, char **argv) {
         lablas::Matrix<int> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
         init_matrix(matrix, parser);
-        //matrix.get_matrix()->print();
 
         Index nrows;
         matrix.get_nrows(&nrows);
