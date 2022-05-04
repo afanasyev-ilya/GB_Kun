@@ -129,7 +129,7 @@ public:
     {
         VNT nvals = main_container->get_nvals();
         //cout << nvals << " vs " << (VNT)(get_size() * SPARSE_VECTOR_THRESHOLD) << " at vector " << get_name() << endl;
-        if(nvals*AVG_DEGREE > EDGES/10) // TODO more complex
+        if(nvals > (VNT)(get_size() * SPARSE_VECTOR_THRESHOLD)) // TODO more complex
         {
             force_to_dense();
         }
