@@ -114,6 +114,10 @@ public:
     {
         _vector.print_history();
     }
+
+    void keep_dense() { _vector.keep_dense(); };
+
+    void keep_sparse() { _vector.keep_sparse(); };
 private:
     backend::Vector<T> _vector;
 
