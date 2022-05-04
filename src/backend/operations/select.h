@@ -368,32 +368,50 @@ static LA_Info select(Matrix<W> *w,
                       const T val,
                       Descriptor *desc)
 {
-    /*
-    W* w_vals    = w->get_vals();
-    const U* u_vals    = u->get_vals();
-    const M* mask_vals = mask->get_vals();
+    VNT n = u->get_nrows();
+    ENT nnz = u->get_nnz();
+    VNT *row_ptr = new VNT[n + 1];
+    #pragma omp parallel for
+    for (VNT i = 0; i <= n; ++i) {
+        row_ptr[i] = u->get_csr()->get_row_ptr()[i];
+    }
+    ENT *col_ids = new ENT[nnz];
+    #pragma omp parallel for
+    for (VNT i = 0; i < nnz; ++i) {
+        col_ids[i] = u->get_csr()->get_col_ids()[i];
+    }
+    W* w_vals = new W[nnz];
+    #pragma omp parallel for
+    for (VNT i = 0; i < nnz; ++i) {
+        w_vals[i] = 0;
+    }
+    const U* u_vals = u->get_csr()->get_vals();
+    const M* mask_vals = mask ? mask->get_csr()->get_vals() : NULL;
 
     // Getting mask properties
     Desc_value mask_field, mask_output;
-    desc->get(GrB_MASK, &mask_field);
-    desc->get(GrB_OUTPUT, &mask_output);
+    if (desc) {
+        desc->get(GrB_MASK, &mask_field);
+        desc->get(GrB_OUTPUT, &mask_output);
+    }
 
     #pragma omp parallel for
-    for (Index i = 0; i < w->get_size(); ++i)
+    for (VNT i = 0; i < u->get_nrows(); ++i)
     {
-        if (mask_vals[i] ^ (mask_field == GrB_COMP))
-        {
-            w_vals[i] = accum(w_vals[i], op(u_vals[i], i, 0, val));
-        }
-        else
-        {
-            if (mask_output == GrB_REPLACE)
-            {
-                w_vals[i] = 0;
+        for (ENT cur_row_id = u->get_csr()->get_row_ptr()[i]; cur_row_id < u->get_csr()->get_row_ptr()[i + 1]; ++cur_row_id) {
+            ENT j = u->get_csr()->get_col_ids()[cur_row_id];
+            if (not mask_vals or (mask_vals[cur_row_id] && (mask_field == GrB_COMP))) {
+                w_vals[cur_row_id] = accum(w_vals[cur_row_id], op(u_vals[cur_row_id], i, j, val));
+            } else {
+                if (mask_output == GrB_REPLACE) {
+                    w_vals[cur_row_id] = 0;
+                }
             }
         }
     }
-     */
+    SpMSpM_alloc(w);
+    w->build_from_csr_arrays(row_ptr, col_ids, w_vals, n, nnz);
+
     return GrB_SUCCESS;
 }
 

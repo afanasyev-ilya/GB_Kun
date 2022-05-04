@@ -53,7 +53,7 @@ static int tricount_prep(GrB_Matrix *L,      // if present, compute L = tril (A,
         // L = tril (A,-1)
         GrB_TRY (GrB_Matrix_new (L, GrB_BOOL, n, n)) ;
         auto GrB_TRIL_select = [](int x, Index i, Index j, int val){
-            return (j <= (i + val));
+            return (j <= (i + val)) ? 0 : x;
         };
         #define MASK_NULL static_cast<const lablas::Matrix<float>*>(NULL)
         GrB_TRY (GrB_select (*L, MASK_NULL, NULL, GrB_TRIL_select, A, (int64_t) (-1), NULL)) ;
@@ -65,7 +65,7 @@ static int tricount_prep(GrB_Matrix *L,      // if present, compute L = tril (A,
         // U = triu (A,1)
         GrB_TRY (GrB_Matrix_new (U, GrB_BOOL, n, n)) ;
         auto GrB_TRIU_select = [](int x, Index i, Index j, int val){
-            return (j >= (i + val));
+            return (j >= (i + val)) ? 0 : x;
         };
         #define MASK_NULL static_cast<const lablas::Matrix<float>*>(NULL)
         GrB_TRY (GrB_select (*U, MASK_NULL, NULL, GrB_TRIU_select, A, (int64_t) 1, NULL)) ;
@@ -187,6 +187,8 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
     */
 
     int64_t ntri ;
+
+    method = LAGraph_TriangleCount_Cohen;
 
     switch (method)
     {
