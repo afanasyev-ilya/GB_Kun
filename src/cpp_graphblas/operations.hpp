@@ -529,8 +529,6 @@ LA_Info extract(Vector<W>*       w,
     return extract(w, mask, second<U, W, U>(), u, indices, desc);
 }
 
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*!
@@ -563,5 +561,26 @@ LA_Info select(Vector<W> *w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
+LA_Info select(Matrix<W> *w,
+               const Matrix<M> *mask,
+               BinaryOpT accum,
+               SelectOpT op,
+               const Matrix<U> *u,
+               const T val,
+               Descriptor *desc)
+{
+    if(not_initialized(w, u))
+        return GrB_UNINITIALIZED_OBJECT;
+
+    auto                 mask_t = (mask == NULL) ? NULL : mask->get_matrix();
+    backend::Descriptor* desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
+
+    return backend::select(w->get_matrix(), mask_t, accum, op, u->get_matrix(), val, desc_t);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

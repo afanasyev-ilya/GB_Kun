@@ -359,5 +359,45 @@ LA_Info select(Vector<W> *w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
+static LA_Info select(Matrix<W> *w,
+                      const Matrix<M> *mask,
+                      BinaryOpT accum,
+                      SelectOpT op,
+                      const Matrix<U> *u,
+                      const T val,
+                      Descriptor *desc)
+{
+    /*
+    W* w_vals    = w->get_vals();
+    const U* u_vals    = u->get_vals();
+    const M* mask_vals = mask->get_vals();
+
+    // Getting mask properties
+    Desc_value mask_field, mask_output;
+    desc->get(GrB_MASK, &mask_field);
+    desc->get(GrB_OUTPUT, &mask_output);
+
+    #pragma omp parallel for
+    for (Index i = 0; i < w->get_size(); ++i)
+    {
+        if (mask_vals[i] ^ (mask_field == GrB_COMP))
+        {
+            w_vals[i] = accum(w_vals[i], op(u_vals[i], i, 0, val));
+        }
+        else
+        {
+            if (mask_output == GrB_REPLACE)
+            {
+                w_vals[i] = 0;
+            }
+        }
+    }
+     */
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 }
 }
