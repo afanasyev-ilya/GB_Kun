@@ -174,26 +174,26 @@ LA_Info mxv (Vector<W>*       _w,
     Desc_value algo;
     _desc->get(GrB_MXVMODE, &algo);
     if ((algo < SPMSPV_BUCKET and algo != GrB_DEFAULT) or (algo == GrB_DEFAULT and _u->is_dense())) {
-        LOG_TRACE("Using SpMV");
+        LOG_TRACE("in mxv Using SpMV");
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     else
     {
         if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse())) {
-            LOG_TRACE("Using SpMSpV for-based");
+            LOG_TRACE("in mxv Using SpMSpV for-based");
             backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
         }
         if (algo == SPMSPV_BUCKET) {
-            LOG_TRACE("Using SpMSpV bucket-based");
+            LOG_TRACE("in mxv Using SpMSpV bucket-based");
             //backend::spmspv_buckets(_matrix,_w->getSparse(),_u->getDense(),1, _matrix->get_workspace(), _accum, _op);
         }
         if (algo == SPMSPV_MAP_PAR) {
-            LOG_TRACE("Using SpMSpV TBB-based");
+            LOG_TRACE("in mxv Using SpMSpV TBB-based");
 //            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
 //                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
         if (algo == SPMSPV_MAP_SEQ) {
-            LOG_TRACE("Using SpMSpV STL-based");
+            LOG_TRACE("in mxv Using SpMSpV STL-based");
             GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
                                                       _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
@@ -240,7 +240,7 @@ LA_Info vxm (Vector<W>*       _w,
 
     if ((algo < SPMSPV_BUCKET and algo != GrB_DEFAULT) or (algo == GrB_DEFAULT and _u->is_dense()))
     {
-        LOG_TRACE("Using SpMV");
+        LOG_TRACE("in vxm Using VSpM");
         GLOBAL_PERF_STATS(backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc,
                                         _accum, _op, _mask), GLOBAL_SPMV_TIME);
     }
@@ -248,19 +248,19 @@ LA_Info vxm (Vector<W>*       _w,
     {
         if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse()))
         {
-            LOG_TRACE("Using SpMSpV for-based");
+            LOG_TRACE("in vxm Using SpVSpM for-based");
             GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(),
                                               _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
         else if (algo == SPMSPV_MAP_PAR)
         {
-            LOG_TRACE("Using SpMSpV TBB-based");
+            LOG_TRACE("in vxm Using SpVSpM TBB-based");
 //            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
 //                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
         else if (algo == SPMSPV_MAP_SEQ)
         {
-            LOG_TRACE("Using SpMSpV STL-based");
+            LOG_TRACE("in vxm Using SpVSpM STL-based");
             GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
                                                       _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
         }
@@ -283,6 +283,7 @@ LA_Info eWiseAdd(Vector<W> *_w,
                  const Vector<V> *_v,
                  Descriptor *_desc)
 {
+    LOG_TRACE("ewiseAdd operation is executed")
     Index vector_size = _w->getDense()->get_size();
     auto w_vals = _w->getDense()->get_vals();
     auto u_vals = _u->getDense()->get_vals();

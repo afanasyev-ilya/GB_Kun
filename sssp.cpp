@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 
         lablas::Descriptor desc;
         int num_tests = 3;
-        for(int i = 0; i < num_tests; i++)
+        for(int i = 0; i < 1; i++)
         {
             source_vertex = select_non_trivial_vertex(matrix);
             double sssp_time_ms = 0;
