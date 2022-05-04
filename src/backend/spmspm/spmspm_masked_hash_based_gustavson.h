@@ -45,60 +45,49 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
 
     double t2 = omp_get_wtime();
 
+    ENT * matrix1_row_ptr;
+    VNT * matrix1_col_ids_ptr;
+    T * matrix1_vals_ptr;
+    ENT * matrix2_row_ptr;
+    VNT * matrix2_col_ids_ptr;
+    T * matrix2_vals_ptr;
+
+    MatrixCSR<T> A_csr_first_socket;
+    MatrixCSR<T> A_csr_second_socket;
+    MatrixCSR<T> B_csr_first_socket;
+    MatrixCSR<T> B_csr_second_socket;
     if (num_sockets_used() == 2) {
         cout << "Using NUMA optimization" << endl;
-        MatrixCSR<T> A_csr_first_socket;
         A_csr_first_socket.deep_copy(_matrix1->get_csr(), 0);
-        MatrixCSR<T> A_csr_second_socket;
         A_csr_second_socket.deep_copy(_matrix1->get_csr(), 1);
-        MatrixCSR<T> B_csr_first_socket;
         B_csr_first_socket.deep_copy(_matrix2->get_csr(), 0);
-        MatrixCSR<T> B_csr_second_socket;
         B_csr_second_socket.deep_copy(_matrix2->get_csr(), 1);
-        T* values_first_socket;
-        T* values_second_socket;
-        MemoryAPI::numa_aware_alloc(&values_first_socket, nnz, 0);
-        MemoryAPI::numa_aware_alloc(&values_second_socket, nnz, 1);
-        VNT *local_mask_row_ptr_first_socket;
-        ENT *local_mask_col_ids_ptr_first_socket;
-        VNT *local_mask_row_ptr_second_socket;
-        ENT *local_mask_col_ids_ptr_second_socket;
-        MemoryAPI::numa_aware_alloc(&local_mask_row_ptr_first_socket, nnz, 0);
-        MemoryAPI::copy(local_mask_row_ptr_first_socket, _result_mask->get_csr()->get_row_ptr(), nnz);
+    } else {
+        matrix1_row_ptr = _matrix1->get_csr()->get_row_ptr();
+        matrix1_col_ids_ptr = _matrix1->get_csr()->get_col_ids();
+        matrix1_vals_ptr = _matrix1->get_csr()->get_vals();
+        matrix2_row_ptr = _matrix2->get_csr()->get_row_ptr();
+        matrix2_col_ids_ptr = _matrix2->get_csr()->get_col_ids();
+        matrix2_vals_ptr = _matrix2->get_csr()->get_vals();
+    }
 
-        MemoryAPI::numa_aware_alloc(&local_mask_col_ids_ptr_first_socket, nnz, 0);
-        MemoryAPI::copy(local_mask_col_ids_ptr_first_socket, _result_mask->get_csr()->get_col_ids(), nnz);
+    #ifdef __USE_KUNPENG__
+        const int max_threads_per_socket = sysconf(_SC_NPROCESSORS_ONLN)/2;
+    #else
+        const int max_threads_per_socket = omp_get_max_threads();
+    #endif
 
-        MemoryAPI::numa_aware_alloc(&local_mask_row_ptr_second_socket, nnz, 1);
-        MemoryAPI::copy(local_mask_row_ptr_second_socket, _result_mask->get_csr()->get_row_ptr(), nnz);
-
-        MemoryAPI::numa_aware_alloc(&local_mask_col_ids_ptr_second_socket, nnz, 1);
-        MemoryAPI::copy(local_mask_col_ids_ptr_second_socket, _result_mask->get_csr()->get_col_ids(), nnz);
-
-        #ifdef __USE_KUNPENG__
-            const int max_threads_per_socket = sysconf(_SC_NPROCESSORS_ONLN)/2;
-        #else
-            const int max_threads_per_socket = omp_get_max_threads();
-        #endif
-
-        #pragma omp parallel
-        {
-            const auto thread_id = omp_get_thread_num();
+    #pragma omp parallel
+    {
+        const auto thread_id = omp_get_thread_num();
+        if (num_sockets_used() == 2) {
             #ifdef __USE_KUNPENG__
-                const int cpu_id = sched_getcpu();
+            const int cpu_id = sched_getcpu();
             #else
             const int cpu_id = thread_id;
             #endif
             const int socket = cpu_id / (max_threads_per_socket);
 
-            ENT * matrix1_row_ptr;
-            VNT * matrix1_col_ids_ptr;
-            T * matrix1_vals_ptr;
-            ENT * matrix2_row_ptr;
-            VNT * matrix2_col_ids_ptr;
-            T * matrix2_vals_ptr;
-            VNT *local_mask_row_ptr;
-            ENT *local_mask_col_ids_ptr;
             if (socket == 0) {
                 matrix1_row_ptr = A_csr_first_socket.get_row_ptr();
                 matrix1_col_ids_ptr = A_csr_first_socket.get_col_ids();
@@ -106,8 +95,6 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                 matrix2_row_ptr = B_csr_first_socket.get_row_ptr();
                 matrix2_col_ids_ptr = B_csr_first_socket.get_col_ids();
                 matrix2_vals_ptr = B_csr_first_socket.get_vals();
-                local_mask_row_ptr = local_mask_row_ptr_first_socket;
-                local_mask_col_ids_ptr = local_mask_col_ids_ptr_first_socket;
             } else {
                 matrix1_row_ptr = A_csr_second_socket.get_row_ptr();
                 matrix1_col_ids_ptr = A_csr_second_socket.get_col_ids();
@@ -115,107 +102,38 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                 matrix2_row_ptr = B_csr_second_socket.get_row_ptr();
                 matrix2_col_ids_ptr = B_csr_second_socket.get_col_ids();
                 matrix2_vals_ptr = B_csr_second_socket.get_vals();
-                local_mask_row_ptr = local_mask_row_ptr_second_socket;
-                local_mask_col_ids_ptr = local_mask_col_ids_ptr_second_socket;
-            }
-
-            for (VNT matrix1_row_id = offsets[thread_id].first; matrix1_row_id < offsets[thread_id].second;
-                 ++matrix1_row_id) {
-                unordered_set<ENT> mask_col_ids_set;
-                unordered_map<VNT, T> matrix_result;
-                for (VNT mask_row_ptr_id = local_mask_row_ptr[matrix1_row_id];
-                     mask_row_ptr_id < local_mask_row_ptr[matrix1_row_id + 1]; ++mask_row_ptr_id) {
-                    mask_col_ids_set.insert(local_mask_col_ids_ptr[mask_row_ptr_id]);
-                }
-
-                for (VNT matrix1_row_ptr_id = matrix1_row_ptr[matrix1_row_id];
-                     matrix1_row_ptr_id < matrix1_row_ptr[matrix1_row_id + 1]; ++matrix1_row_ptr_id) {
-                    VNT k = matrix1_col_ids_ptr[matrix1_row_ptr_id];
-                    for (VNT matrix2_col_id = matrix2_row_ptr[k];
-                         matrix2_col_id < matrix2_row_ptr[k + 1]; ++matrix2_col_id) {
-                        if (mask_col_ids_set.find(matrix2_col_ids_ptr[matrix2_col_id]) == mask_col_ids_set.end()) {
-                            continue;
-                        }
-                        VNT j = matrix2_col_ids_ptr[matrix2_col_id];
-                        if (matrix_result.find(j) == matrix_result.end()) {
-                            matrix_result[j] = identity_val;
-                        }
-                        matrix_result[j] =
-                                add_op(matrix_result[j],
-                                       mul_op(matrix1_vals_ptr[matrix1_row_ptr_id], matrix2_vals_ptr[matrix2_col_id]));
-                    }
-                }
-                auto vals_id = row_ptr[matrix1_row_id];
-                if (socket == 0) {
-                    for (const auto &[key, value]: matrix_result) {
-                        values_first_socket[vals_id] = value;
-                        ++vals_id;
-                    }
-                } else {
-                    for (const auto &[key, value]: matrix_result) {
-                        values_second_socket[vals_id] = value;
-                        ++vals_id;
-                    }
-                }
             }
         }
-        #pragma omp parallel for
-        for (ENT i = 0; i < nnz; ++i) {
-            vals[i] = values_first_socket[i];
-        }
-        #pragma omp parallel for
-        for (ENT i = 0; i < nnz; ++i) {
-            vals[i] += values_second_socket[i];
-        }
-        free(values_first_socket);
-        free(values_second_socket);
-        free(local_mask_row_ptr_first_socket);
-        free(local_mask_col_ids_ptr_first_socket);
-        free(local_mask_row_ptr_second_socket);
-        free(local_mask_col_ids_ptr_second_socket);
-    } else {
-        auto matrix1_row_ptr = _matrix1->get_csr()->get_row_ptr();
-        auto matrix1_col_ids_ptr = _matrix1->get_csr()->get_col_ids();
-        auto matrix1_vals_ptr = _matrix1->get_csr()->get_vals();
-        auto matrix2_row_ptr = _matrix2->get_csr()->get_row_ptr();
-        auto matrix2_col_ids_ptr = _matrix2->get_csr()->get_col_ids();
-        auto matrix2_vals_ptr = _matrix2->get_csr()->get_vals();
 
-        #pragma omp parallel
-        {
-            const auto thread_id = omp_get_thread_num();
+        for (VNT matrix1_row_id = offsets[thread_id].first; matrix1_row_id < offsets[thread_id].second;
+             ++matrix1_row_id) {
+            unordered_set<ENT> mask_col_ids_set;
+            unordered_map<VNT, T> matrix_result;
+            for (VNT mask_row_ptr_id = mask_row_ptr[matrix1_row_id];
+                 mask_row_ptr_id < mask_row_ptr[matrix1_row_id + 1]; ++mask_row_ptr_id) {
+                mask_col_ids_set.insert(mask_col_ids_ptr[mask_row_ptr_id]);
+            }
 
-            for (VNT matrix1_row_id = offsets[thread_id].first; matrix1_row_id < offsets[thread_id].second;
-                 ++matrix1_row_id) {
-                unordered_set<ENT> mask_col_ids_set;
-                unordered_map<VNT, T> matrix_result;
-                for (VNT mask_row_ptr_id = mask_row_ptr[matrix1_row_id];
-                        mask_row_ptr_id < mask_row_ptr[matrix1_row_id + 1]; ++mask_row_ptr_id) {
-                    mask_col_ids_set.insert(mask_col_ids_ptr[mask_row_ptr_id]);
-                }
-
-                for (VNT matrix1_row_ptr_id = matrix1_row_ptr[matrix1_row_id];
-                        matrix1_row_ptr_id < matrix1_row_ptr[matrix1_row_id + 1]; ++matrix1_row_ptr_id) {
-                    VNT k = matrix1_col_ids_ptr[matrix1_row_ptr_id];
-                    for (VNT matrix2_col_id = matrix2_row_ptr[k];
-                            matrix2_col_id < matrix2_row_ptr[k + 1]; ++matrix2_col_id) {
-                        if (mask_col_ids_set.find(matrix2_col_ids_ptr[matrix2_col_id]) == mask_col_ids_set.end()) {
-                            continue;
-                        }
-                        VNT j = matrix2_col_ids_ptr[matrix2_col_id];
-                        if (matrix_result.find(j) == matrix_result.end()) {
-                            matrix_result[j] = identity_val;
-                        }
-                        matrix_result[j] =
-                                add_op(matrix_result[j],
-                                       mul_op(matrix1_vals_ptr[matrix1_row_ptr_id], matrix2_vals_ptr[matrix2_col_id]));
+            for (VNT matrix1_row_ptr_id = matrix1_row_ptr[matrix1_row_id];
+                 matrix1_row_ptr_id < matrix1_row_ptr[matrix1_row_id + 1]; ++matrix1_row_ptr_id) {
+                VNT k = matrix1_col_ids_ptr[matrix1_row_ptr_id];
+                for (VNT matrix2_col_id = matrix2_row_ptr[k];
+                     matrix2_col_id < matrix2_row_ptr[k + 1]; ++matrix2_col_id) {
+                    VNT j = matrix2_col_ids_ptr[matrix2_col_id];
+                    if (mask_col_ids_set.find(j) == mask_col_ids_set.end()) {
+                        continue;
                     }
+                    if (matrix_result.find(j) == matrix_result.end()) {
+                        matrix_result[j] = identity_val;
+                    }
+                    matrix_result[j] = add_op(matrix_result[j],
+                            mul_op(matrix1_vals_ptr[matrix1_row_ptr_id], matrix2_vals_ptr[matrix2_col_id]));
                 }
-                auto vals_id = row_ptr[matrix1_row_id];
-                for (const auto & [key, value] : matrix_result) {
-                    vals[vals_id] = value;
-                    ++vals_id;
-                }
+            }
+            auto vals_id = row_ptr[matrix1_row_id];
+            for (const auto & [key, value] : matrix_result) {
+                vals[vals_id] = value;
+                ++vals_id;
             }
         }
     }
