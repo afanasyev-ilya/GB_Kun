@@ -2,11 +2,6 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "../../helpers/hashmap/tsl/hopscotch_map.h"
-#include "../../helpers/hashmap/tsl/hopscotch_set.h"
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 namespace lablas {
 namespace backend {
 
@@ -27,7 +22,6 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
 
     auto mask_row_ptr = _result_mask->get_csr()->get_row_ptr();
     auto mask_col_ids_ptr = _result_mask->get_csr()->get_col_ids();
-    auto mask_vals_ptr = _result_mask->get_csr()->get_vals();
 
     auto n = _result_mask->get_nrows();
     auto nnz = _result_mask->get_nnz();
@@ -52,6 +46,7 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
     double t2 = omp_get_wtime();
 
     if (num_sockets_used() == 2) {
+        cout << "Using NUMA optimization" << endl;
         MatrixCSR<T> A_csr_first_socket;
         A_csr_first_socket.deep_copy(_matrix1->get_csr(), 0);
         MatrixCSR<T> A_csr_second_socket;
@@ -64,6 +59,14 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
         T* values_second_socket;
         MemoryAPI::numa_aware_alloc(&values_first_socket, nnz, 0);
         MemoryAPI::numa_aware_alloc(&values_second_socket, nnz, 1);
+        VNT *local_mask_row_ptr_first_socket = _result_mask->get_csr()->get_row_ptr();
+        ENT *local_mask_col_ids_ptr_first_socket = _result_mask->get_csr()->get_col_ids();
+        VNT *local_mask_row_ptr_second_socket = _result_mask->get_csr()->get_row_ptr();
+        ENT *local_mask_col_ids_ptr_second_socket = _result_mask->get_csr()->get_col_ids();
+        MemoryAPI::numa_aware_alloc(&local_mask_row_ptr_first_socket, nnz, 0);
+        MemoryAPI::numa_aware_alloc(&local_mask_col_ids_ptr_first_socket, nnz, 0);
+        MemoryAPI::numa_aware_alloc(&local_mask_row_ptr_second_socket, nnz, 1);
+        MemoryAPI::numa_aware_alloc(&local_mask_col_ids_ptr_second_socket, nnz, 1);
 
         #ifdef __USE_KUNPENG__
             const int max_threads_per_socket = sysconf(_SC_NPROCESSORS_ONLN)/2;
@@ -87,6 +90,8 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
             ENT * matrix2_row_ptr;
             VNT * matrix2_col_ids_ptr;
             T * matrix2_vals_ptr;
+            VNT *local_mask_row_ptr;
+            ENT *local_mask_col_ids_ptr;
             if (socket == 0) {
                 matrix1_row_ptr = A_csr_first_socket.get_row_ptr();
                 matrix1_col_ids_ptr = A_csr_first_socket.get_col_ids();
@@ -94,6 +99,8 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                 matrix2_row_ptr = B_csr_first_socket.get_row_ptr();
                 matrix2_col_ids_ptr = B_csr_first_socket.get_col_ids();
                 matrix2_vals_ptr = B_csr_first_socket.get_vals();
+                local_mask_row_ptr = local_mask_row_ptr_first_socket;
+                local_mask_col_ids_ptr = local_mask_col_ids_ptr_first_socket;
             } else {
                 matrix1_row_ptr = A_csr_second_socket.get_row_ptr();
                 matrix1_col_ids_ptr = A_csr_second_socket.get_col_ids();
@@ -101,15 +108,17 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                 matrix2_row_ptr = B_csr_second_socket.get_row_ptr();
                 matrix2_col_ids_ptr = B_csr_second_socket.get_col_ids();
                 matrix2_vals_ptr = B_csr_second_socket.get_vals();
+                local_mask_row_ptr = local_mask_row_ptr_second_socket;
+                local_mask_col_ids_ptr = local_mask_col_ids_ptr_second_socket;
             }
 
             for (VNT matrix1_row_id = offsets[thread_id].first; matrix1_row_id < offsets[thread_id].second;
                  ++matrix1_row_id) {
-                tsl::hopscotch_set<ENT> mask_col_ids_set;
-                tsl::hopscotch_map<VNT, T> matrix_result;
-                for (VNT mask_row_ptr_id = mask_row_ptr[matrix1_row_id];
-                     mask_row_ptr_id < mask_row_ptr[matrix1_row_id + 1]; ++mask_row_ptr_id) {
-                    mask_col_ids_set.insert(mask_col_ids_ptr[mask_row_ptr_id]);
+                unordered_set<ENT> mask_col_ids_set;
+                unordered_map<VNT, T> matrix_result;
+                for (VNT mask_row_ptr_id = local_mask_row_ptr[matrix1_row_id];
+                     mask_row_ptr_id < local_mask_row_ptr[matrix1_row_id + 1]; ++mask_row_ptr_id) {
+                    mask_col_ids_set.insert(local_mask_col_ids_ptr[mask_row_ptr_id]);
                 }
 
                 for (VNT matrix1_row_ptr_id = matrix1_row_ptr[matrix1_row_id];
@@ -153,6 +162,10 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
         }
         free(values_first_socket);
         free(values_second_socket);
+        free(local_mask_row_ptr_first_socket);
+        free(local_mask_col_ids_ptr_first_socket);
+        free(local_mask_row_ptr_second_socket);
+        free(local_mask_col_ids_ptr_second_socket);
     } else {
         auto matrix1_row_ptr = _matrix1->get_csr()->get_row_ptr();
         auto matrix1_col_ids_ptr = _matrix1->get_csr()->get_col_ids();
@@ -167,8 +180,8 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
 
             for (VNT matrix1_row_id = offsets[thread_id].first; matrix1_row_id < offsets[thread_id].second;
                  ++matrix1_row_id) {
-                tsl::hopscotch_set<ENT> mask_col_ids_set;
-                tsl::hopscotch_map<VNT, T> matrix_result;
+                unordered_set<ENT> mask_col_ids_set;
+                unordered_map<VNT, T> matrix_result;
                 for (VNT mask_row_ptr_id = mask_row_ptr[matrix1_row_id];
                         mask_row_ptr_id < mask_row_ptr[matrix1_row_id + 1]; ++mask_row_ptr_id) {
                     mask_col_ids_set.insert(mask_col_ids_ptr[mask_row_ptr_id]);
