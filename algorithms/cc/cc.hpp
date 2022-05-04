@@ -107,11 +107,9 @@ void cc(Vector<int>*       v,
         // 6) Similar to BFS and SSSP, we should filter out the unproductive
         // vertices from the next iteration.
         desc->toggle(GrB_MASK);
-        desc->toggle(GrB_OUTPUT);
         assign(&grandparent, &diff, nullptr,
-                                    std::numeric_limits<int>::max(), GrB_ALL, A_nrows, desc);
+               std::numeric_limits<int>::max(), GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK);
-        desc->toggle(GrB_OUTPUT);
     }
     v->dup(&parent);
     std::cout << "Did " << iter <<  " iterations" << std::endl;
