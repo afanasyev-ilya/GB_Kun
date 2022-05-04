@@ -43,7 +43,8 @@ int main(int argc, char **argv) {
                     }
                 }
             }
-            std::cout << "Error count: " << error_cnt << std::endl;
+            cout << "error_count: " << error_cnt << "/"
+                 << A.get_matrix()->get_nrows() * A.get_matrix()->get_nrows() << endl;
         }
     }
     catch (string& error)

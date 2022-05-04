@@ -48,9 +48,8 @@ int main(int argc, char **argv) {
             }
             uint64_t slow_ntriangles_undir = slow_ntriangles / 6;
             std::cout << "Found triangles with slow algorithm: " << slow_ntriangles_undir << std::endl;
-            std::cout << "Error count: "
-                      << (slow_ntriangles_undir > ntriangles ? slow_ntriangles_undir - ntriangles : ntriangles - slow_ntriangles_undir)
-                      << std::endl;
+            cout << "error_count: " << (slow_ntriangles_undir > ntriangles ? slow_ntriangles_undir - ntriangles : ntriangles - slow_ntriangles_undir) << "/"
+                 << A->get_matrix()->get_nrows() * A->get_matrix()->get_nrows() << endl;
         }
     }
     catch (string& error)
