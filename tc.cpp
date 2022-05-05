@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
         matrix.set_preferred_matrix_format(parser.get_storage_format());
         init_matrix(matrix, parser);
 
-        if (!matrix.is_symmetric()) {
+        if (parser.check() && !matrix.is_symmetric()) {
             matrix.to_symmetric();
         }
 
