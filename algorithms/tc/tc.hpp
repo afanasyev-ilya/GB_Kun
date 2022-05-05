@@ -200,7 +200,7 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
             GrB_TRY (static_cast<LA_Info>(tricount_prep(&L, &U, A))) ;
             GrB_TRY (GrB_mxm (C, A, NULL, semiring, L, U, &GrB_DESC_IKJ_MASKED)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
-            ntri /= 2 ;
+            ntri /= 6 ;
             break ;
 
         case LAGraph_TriangleCount_Sandia: // 3: sum (sum ((L * L) .* L))
@@ -208,6 +208,7 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
             GrB_TRY (static_cast<LA_Info>(tricount_prep(&L, NULL, A))) ;
             GrB_TRY (GrB_mxm (C, L, NULL, semiring, L, L, &GrB_DESC_IKJ_MASKED)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
+            ntri /= 6 ;
             break ;
 
         case LAGraph_TriangleCount_Sandia2: // 4: sum (sum ((U * U) .* U))
@@ -215,6 +216,7 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
             GrB_TRY (static_cast<LA_Info>(tricount_prep(NULL, &U, A))) ;
             GrB_TRY (GrB_mxm (C, U, NULL, semiring, U, U, &GrB_DESC_IKJ_MASKED)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
+            ntri /= 6 ;
             break ;
 
         default:
@@ -223,19 +225,21 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
             // the SandiaDot2 method is also very fast.
             // using the masked dot product
             GrB_TRY (static_cast<LA_Info>(tricount_prep(&L, &U, A))) ;
-            L->get_matrix()->sort_csr_columns("STL_SORT");
             U->get_matrix()->sort_csc_rows("STL_SORT");
+            L->get_matrix()->sort_csr_columns("STL_SORT");
             GrB_TRY (GrB_mxm (C, L, NULL, semiring, L, U, &GrB_DESC_IJK_DOUBLE_SORT)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
+            ntri /= 6 ;
             break ;
 
         case LAGraph_TriangleCount_SandiaDot2: // 6: sum (sum ((U * L') .* U))
             // using the masked dot product
             GrB_TRY (static_cast<LA_Info>(tricount_prep(&L, &U, A))) ;
-            L->get_matrix()->sort_csc_rows("STL_SORT");
             U->get_matrix()->sort_csr_columns("STL_SORT");
+            L->get_matrix()->sort_csc_rows("STL_SORT");
             GrB_TRY (GrB_mxm (C, U, NULL, semiring, U, L, &GrB_DESC_IJK_DOUBLE_SORT)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
+            ntri /= 6 ;
             break ;
     }
 
