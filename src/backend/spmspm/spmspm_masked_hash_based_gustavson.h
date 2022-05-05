@@ -67,12 +67,12 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
     {
         const auto thread_id = omp_get_thread_num();
 
-        ENT * matrix1_row_ptr;
-        VNT * matrix1_col_ids_ptr;
-        T * matrix1_vals_ptr;
-        ENT * matrix2_row_ptr;
-        VNT * matrix2_col_ids_ptr;
-        T * matrix2_vals_ptr;
+        const ENT * matrix1_row_ptr;
+        const VNT * matrix1_col_ids_ptr;
+        const T * matrix1_vals_ptr;
+        const ENT * matrix2_row_ptr;
+        const VNT * matrix2_col_ids_ptr;
+        const T * matrix2_vals_ptr;
 
         if (num_sockets_used() == 2) {
             #ifdef __USE_KUNPENG__
