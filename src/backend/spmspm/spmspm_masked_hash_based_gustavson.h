@@ -150,6 +150,7 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
     fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "ikj_masked_mxm", overall_time * 1000, 0.0, 0.0, 0ll);
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "ikj_masked_mxm_inner_loop", (t3-t2) * 1000, 0.0, 0.0, 0ll);
     fclose(my_f);
 
     printf("Masked IKJ SpMSpM time: %lf seconds.\n", overall_time);
