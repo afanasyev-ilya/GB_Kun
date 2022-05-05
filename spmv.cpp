@@ -75,9 +75,10 @@ void test_spmv(int argc, char **argv)
     Index u_diff_const = 5;
     u.fill(u_const);
     w.fill(1.0);
-    GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, u_diff_const, &(nnz_subset[0]), nnz_subset.size(), NULL));
+    GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, u_diff_const, &(nnz_subset[0]), nnz_subset.size(), &desc));
     GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);
 
+    desc.set(GrB_MXMMODE, SPMV_GENERAL);
     int num_runs = parser.get_iterations();
     for(int run = 0; run < num_runs; run++)
     {
@@ -86,7 +87,6 @@ void test_spmv(int argc, char **argv)
         SAVE_STATS(GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);,
                    "SPMV OMP", (sizeof(float)*2 + sizeof(size_t)), 1, &matrix);
     }
-
 
     #ifdef __USE_TBB__
     for(int run = 0; run < num_runs; run++)
@@ -104,7 +104,7 @@ void test_spmv(int argc, char **argv)
 
         u.fill(u_const);
         w_check.fill(1.0);
-        GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, u_diff_const, &(nnz_subset[0]), nnz_subset.size(), NULL));
+        GrB_TRY(GrB_assign(&u, MASK_NULL, NULL, u_diff_const, &(nnz_subset[0]), nnz_subset.size(), &desc));
 
         check_mxv(w_check, matrix, u);
 

@@ -56,9 +56,11 @@ void sssp_bellman_ford_blast(Vector<float> *v,
         // Similar to BFS, except we need to filter out the unproductive vertices
         // here rather than as part of masked vxm
         desc->toggle(GrB_MASK);
+        desc->toggle(GrB_OUTPUT);
         assign<float, float, float>(&f2, &m, GrB_NULL, std::numeric_limits<float>::max(),
                                     GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK);
+        desc->toggle(GrB_OUTPUT);
 
         f2.swap(&f1);
 

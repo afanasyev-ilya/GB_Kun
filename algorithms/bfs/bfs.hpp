@@ -111,6 +111,8 @@ void bfs_blast(Vector<T>*       v,
     Index unvisited = A_nrows;
     Index max_iters = A_nrows;
 
+    v->keep_dense();
+
     for (iter = 1; iter <= max_iters; ++iter)
     {
         LOG_TRACE("Iteration #" + std::to_string(iter))

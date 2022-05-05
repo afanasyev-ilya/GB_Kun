@@ -187,10 +187,17 @@ LA_Info mxv (Vector<W>*       _w,
             LOG_TRACE("in mxv Using SpMSpV bucket-based");
             //backend::spmspv_buckets(_matrix,_w->getSparse(),_u->getDense(),1, _matrix->get_workspace(), _accum, _op);
         }
-        if (algo == SPMSPV_MAP_PAR) {
+        if (algo == SPMSPV_MAP_PAR)
+        {
+            #ifdef __USE_TBB__
             LOG_TRACE("in mxv Using SpMSpV TBB-based");
-//            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
-//                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+            #else
+            LOG_TRACE("in mxv Using SpMSpV STL-based");
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+            #endif
         }
         if (algo == SPMSPV_MAP_SEQ) {
             LOG_TRACE("in mxv Using SpMSpV STL-based");
@@ -236,7 +243,6 @@ LA_Info vxm (Vector<W>*       _w,
 {
     Desc_value algo;
     _desc->get(GrB_MXVMODE, &algo);
-    Index E_f = estimate_e_f(_matrix->get_csr(), _u);
 
     if ((algo < SPMSPV_BUCKET and algo != GrB_DEFAULT) or (algo == GrB_DEFAULT and _u->is_dense()))
     {
@@ -254,9 +260,15 @@ LA_Info vxm (Vector<W>*       _w,
         }
         else if (algo == SPMSPV_MAP_PAR)
         {
-            LOG_TRACE("in vxm Using SpVSpM TBB-based");
-//            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
-//                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+#ifdef __USE_TBB__
+            LOG_TRACE("in vxm Using SpMSpV TBB-based");
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+#else
+            LOG_TRACE("in vxm Using SpMSpV STL-based");
+            GLOBAL_PERF_STATS(backend::SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(),
+                                                      _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
+#endif
         }
         else if (algo == SPMSPV_MAP_SEQ)
         {

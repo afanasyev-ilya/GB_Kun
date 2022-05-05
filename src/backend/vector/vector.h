@@ -33,6 +33,8 @@ public:
     {
         main_container = new SparseVector<T>(_size);
         secondary_container = new DenseVector<T>(_size);
+        keep_dense_m = false;
+        keep_sparse_m = false;
     }
 
     ~Vector()
@@ -127,9 +129,12 @@ public:
 
     void convert_if_required()
     {
+        if(keep_dense_m || keep_sparse_m)
+            return;
+
         VNT nvals = main_container->get_nvals();
         //cout << nvals << " vs " << (VNT)(get_size() * SPARSE_VECTOR_THRESHOLD) << " at vector " << get_name() << endl;
-        if(nvals*AVG_DEGREE > EDGES/10) // TODO more complex
+        if(nvals > (VNT)(get_size() * SPARSE_VECTOR_THRESHOLD)) // TODO more complex
         {
             force_to_dense();
         }
@@ -271,11 +276,18 @@ public:
                 std::cout << "DenseSwitch" << std::endl;
         }
     }
+
+    void keep_dense() { force_to_dense(); keep_dense_m = true; keep_sparse_m = false; };
+
+    void keep_sparse() { force_to_sparse(); keep_dense_m = false; keep_sparse_m = true; };
 private:
     std::list<SwitchType> switch_history;
 
     GenericVector<T> *main_container;
     GenericVector<T> *secondary_container;
+
+    bool keep_dense_m;
+    bool keep_sparse_m;
 
     void swap_to_sparse()
     {

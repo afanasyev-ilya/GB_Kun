@@ -108,10 +108,8 @@ void cc(Vector<int>*       v,
         // vertices from the next iteration.
         desc->toggle(GrB_MASK);
         assign(&grandparent, &diff, nullptr,
-                                    std::numeric_limits<int>::max(), GrB_ALL, A_nrows, desc);
+               std::numeric_limits<int>::max(), GrB_ALL, A_nrows, desc);
         desc->toggle(GrB_MASK);
-        Desc_value a;
-        desc->get(GrB_MASK, &a);
     }
     v->dup(&parent);
     std::cout << "Did " << iter <<  " iterations" << std::endl;
