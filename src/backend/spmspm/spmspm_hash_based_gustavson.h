@@ -15,29 +15,29 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
 {
 
     #ifdef __DEBUG_BANDWIDTHS__
-    double bytes_requested = 0;
-bytes_requested += sizeof(vector<unordered_map<VNT, T>>);
-#pragma omp parallel for reduction(+:bytes_requested)
-for (VNT i = 0; i < _matrix1->get_csr()->get_num_rows(); ++i) {
-bytes_requested += sizeof(_matrix1->get_csr()->get_num_rows());
-for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
-     matrix1_col_id < _matrix1->get_csr()->get_row_ptr()[i + 1]; ++matrix1_col_id) {
-    bytes_requested += sizeof(_matrix1->get_csr()->get_row_ptr()[i]);
-    bytes_requested += sizeof(_matrix1->get_csr()->get_row_ptr()[i + 1]);
-    VNT k = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
-    bytes_requested += sizeof(_matrix1->get_csr()->get_col_ids()[matrix1_col_id]);
-    for (VNT matrix2_col_id = _matrix2->get_csr()->get_row_ptr()[k];
-         matrix2_col_id < _matrix2->get_csr()->get_row_ptr()[k + 1]; ++matrix2_col_id) {
-        bytes_requested += sizeof(_matrix2->get_csr()->get_row_ptr()[k]);
-        bytes_requested += sizeof(_matrix2->get_csr()->get_row_ptr()[k + 1]);
-        VNT j = _matrix2->get_csr()->get_col_ids()[matrix2_col_id];
-        bytes_requested += sizeof(_matrix2->get_csr()->get_col_ids()[matrix2_col_id]);
-        bytes_requested += sizeof(_matrix1->get_csr()->get_vals()[matrix1_col_id]);
-        bytes_requested += sizeof(_matrix2->get_csr()->get_vals()[matrix2_col_id]);
-        bytes_requested += sizeof(T);
-    }
-}
-}
+        double bytes_requested = 0;
+        bytes_requested += sizeof(vector<unordered_map<VNT, T>>);
+        #pragma omp parallel for reduction(+:bytes_requested)
+        for (VNT i = 0; i < _matrix1->get_csr()->get_num_rows(); ++i) {
+            bytes_requested += sizeof(_matrix1->get_csr()->get_num_rows());
+            for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
+                    matrix1_col_id < _matrix1->get_csr()->get_row_ptr()[i + 1]; ++matrix1_col_id) {
+                bytes_requested += sizeof(_matrix1->get_csr()->get_row_ptr()[i]);
+                bytes_requested += sizeof(_matrix1->get_csr()->get_row_ptr()[i + 1]);
+                VNT k = _matrix1->get_csr()->get_col_ids()[matrix1_col_id];
+                bytes_requested += sizeof(_matrix1->get_csr()->get_col_ids()[matrix1_col_id]);
+                for (VNT matrix2_col_id = _matrix2->get_csr()->get_row_ptr()[k];
+                     matrix2_col_id < _matrix2->get_csr()->get_row_ptr()[k + 1]; ++matrix2_col_id) {
+                    bytes_requested += sizeof(_matrix2->get_csr()->get_row_ptr()[k]);
+                    bytes_requested += sizeof(_matrix2->get_csr()->get_row_ptr()[k + 1]);
+                    VNT j = _matrix2->get_csr()->get_col_ids()[matrix2_col_id];
+                    bytes_requested += sizeof(_matrix2->get_csr()->get_col_ids()[matrix2_col_id]);
+                    bytes_requested += sizeof(_matrix1->get_csr()->get_vals()[matrix1_col_id]);
+                    bytes_requested += sizeof(_matrix2->get_csr()->get_vals()[matrix2_col_id]);
+                    bytes_requested += sizeof(T);
+                }
+            }
+        }
     #endif
     double t1 = omp_get_wtime();
 
@@ -124,9 +124,9 @@ for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
     double t3 = omp_get_wtime();
 
     double my_bw = 0;
-#ifdef __DEBUG_BANDWIDTHS__
-    my_bw = bytes_requested / 1e9 / (t2 - t1);
-#endif
+    #ifdef __DEBUG_BANDWIDTHS__
+        my_bw = bytes_requested / 1e9 / (t2 - t1);
+    #endif
 
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
@@ -145,9 +145,9 @@ for (VNT matrix1_col_id = _matrix1->get_csr()->get_row_ptr()[i];
     printf("Unmasked IKJ SpMSpM exporting results to a file time: %lf seconds.\n", t4-t3);
     printf("Unmasked IKJ SpMSpM converting CSR to Matrix object time: %lf seconds.\n", t5-t4);
     printf("Unmasked IKJ SpMSpM total time: %lf seconds.\n", t5-t1);
-#ifdef __DEBUG_BANDWIDTHS__
-    printf("\t- Sustained bandwidth: %lf GB/s\n", bytes_requested / 1e9 / (t2 - t1));
-#endif
+    #ifdef __DEBUG_BANDWIDTHS__
+        printf("\t- Sustained bandwidth: %lf GB/s\n", bytes_requested / 1e9 / (t2 - t1));
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
