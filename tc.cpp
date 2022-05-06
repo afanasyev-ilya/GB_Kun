@@ -31,11 +31,12 @@ int main(int argc, char **argv) {
                                      lablas::algorithm::LAGraph_TriangleCount_Presort::LAGraph_TriangleCount_NoSort,
                                      NULL), "TriangleCount", 1,(graph.AT));
         double t2 = omp_get_wtime();
-        std::cout << "TC time : " << t2 - t1 << std::endl;
-        std::cout << "sort time: " << GLOBAL_SORT_TIME << std::endl;
-        std::cout << "inner mxm time: " << GLOBAL_INNER_MXM_TIME << std::endl;
+        #ifdef __DEBUG_INFO__
+            std::cout << "TC time : " << t2 - t1 << std::endl;
+        #endif
 
         cout << "Found triangles: " << ntriangles << endl;
+
         if (parser.check()) {
             uint64_t slow_ntriangles = 0;
             lablas::Matrix<int> C;
@@ -50,9 +51,11 @@ int main(int argc, char **argv) {
             for (int i = 0; i < D.get_matrix()->get_nrows(); ++i) {
                 slow_ntriangles += D.get_matrix()->get_csr()->get(i, i);
             }
-            uint64_t slow_ntriangles_undir = slow_ntriangles / 6;
-            std::cout << "Found triangles with slow algorithm: " << slow_ntriangles_undir << std::endl;
-            cout << "error_count: " << (slow_ntriangles_undir > ntriangles ? slow_ntriangles_undir - ntriangles : ntriangles - slow_ntriangles_undir) << "/"
+            uint64_t triangle_cnt = slow_ntriangles / 6;
+            #ifdef __DEBUG_INFO__
+                std::cout << "Found triangles with slow algorithm: " << slow_ntriangles_undir << std::endl;
+            #endif
+            cout << "error_count: " << (triangle_cnt > ntriangles ? triangle_cnt - ntriangles : ntriangles - triangle_cnt) << "/"
                  << A->get_matrix()->get_nrows() * A->get_matrix()->get_nrows() << endl;
         }
     }

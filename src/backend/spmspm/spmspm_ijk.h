@@ -61,7 +61,9 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
     MatrixCSR<T> B_csc_first_socket;
     MatrixCSR<T> B_csc_second_socket;
     if (num_sockets_used() == 2) {
-        cout << "Using NUMA optimization" << endl;
+        #ifdef __DEBUG_INFO__
+            cout << "Using NUMA optimization" << endl;
+        #endif
         A_csr_first_socket.deep_copy(_matrix1->get_csr(), 0);
         A_csr_second_socket.deep_copy(_matrix1->get_csr(), 1);
         B_csc_first_socket.deep_copy(_matrix2->get_csc(), 0);
@@ -176,10 +178,12 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
     fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "ijk_masked_mxm", overall_time * 1000, 0.0, 0.0, 0ll);
     fclose(my_f);
 
-    printf("Unmasked IJK SpMSpM time: %lf seconds.\n", overall_time);
-    printf("\t- Preparing data before evaluations: %.1lf %%\n", (t2 - t1) / overall_time * 100.0);
-    printf("\t- Main IJK loop: %.1lf %%\n", (t3 - t2) / overall_time * 100.0);
-    printf("\t- Converting CSR result to Matrix object: %.1lf %%\n", (t4 - t3) / overall_time * 100.0);
+    #ifdef __DEBUG_INFO__
+        printf("Unmasked IJK SpMSpM time: %lf seconds.\n", overall_time);
+        printf("\t- Preparing data before evaluations: %.1lf %%\n", (t2 - t1) / overall_time * 100.0);
+        printf("\t- Main IJK loop: %.1lf %%\n", (t3 - t2) / overall_time * 100.0);
+        printf("\t- Converting CSR result to Matrix object: %.1lf %%\n", (t4 - t3) / overall_time * 100.0);
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

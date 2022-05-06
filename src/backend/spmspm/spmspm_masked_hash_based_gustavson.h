@@ -13,7 +13,9 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                        Matrix<T> *_matrix_result,
                        SemiringT _op)
 {
-    cout << "Starting masked ikj algorithm" << endl;
+    #ifdef __DEBUG_INFO__
+        cout << "Starting masked ikj algorithm" << endl;
+    #endif
     double t1 = omp_get_wtime();
 
     auto add_op = extractAdd(_op);
@@ -48,7 +50,9 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
     MatrixCSR<T> B_csr_first_socket;
     MatrixCSR<T> B_csr_second_socket;
     if (num_sockets_used() == 2) {
-        cout << "Using NUMA optimization" << endl;
+        #ifdef __DEBUG_INFO__
+            cout << "Using NUMA optimization" << endl;
+        #endif
         A_csr_first_socket.deep_copy(_matrix1->get_csr(), 0);
         A_csr_second_socket.deep_copy(_matrix1->get_csr(), 1);
         B_csr_first_socket.deep_copy(_matrix2->get_csr(), 0);
@@ -149,14 +153,18 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
 
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
-    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "ikj_masked_mxm", overall_time * 1000, 0.0, 0.0, 0ll);
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "ikj_masked_preparation", (t2-t1) * 1000, 0.0, 0.0, 0ll);
     fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "ikj_mxm_inner_loop", (t3-t2) * 1000, 0.0, 0.0, 0ll);
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "ikj_mxm_csr_export", (t4-t3) * 1000, 0.0, 0.0, 0ll);
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "ikj_masked_mxm", overall_time * 1000, 0.0, 0.0, 0ll);
     fclose(my_f);
 
-    printf("Masked IKJ SpMSpM time: %lf seconds.\n", overall_time);
-    printf("\t- Preparing data before evaluations: %.1lf %%\n", (t2 - t1) / overall_time * 100.0);
-    printf("\t- Main IKJ loop: %.1lf %%\n", (t3 - t2) / overall_time * 100.0);
-    printf("\t- Converting CSR result to Matrix object: %.1lf %%\n", (t4 - t3) / overall_time * 100.0);
+    #ifdef __DEBUG_INFO__
+        printf("Masked IKJ SpMSpM time: %lf seconds.\n", overall_time);
+        printf("\t- Preparing data before evaluations: %.1lf %%\n", (t2 - t1) / overall_time * 100.0);
+        printf("\t- Main IKJ loop: %.1lf %%\n", (t3 - t2) / overall_time * 100.0);
+        printf("\t- Converting CSR result to Matrix object: %.1lf %%\n", (t4 - t3) / overall_time * 100.0);
+    #endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

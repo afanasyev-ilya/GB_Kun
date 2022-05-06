@@ -139,12 +139,13 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
     _matrix_result->build_from_csr_arrays(row_ptr, col_ids, vals, n, nnz);
 
     double t5 = omp_get_wtime();
-
-    printf("Unmasked IKJ SpMSpM main loop: %lf seconds.\n", t2-t1);
-    printf("Unmasked IKJ SpMSpM converting result hash-map to CSR time: %lf seconds.\n", t3-t2);
-    printf("Unmasked IKJ SpMSpM exporting results to a file time: %lf seconds.\n", t4-t3);
-    printf("Unmasked IKJ SpMSpM converting CSR to Matrix object time: %lf seconds.\n", t5-t4);
-    printf("Unmasked IKJ SpMSpM total time: %lf seconds.\n", t5-t1);
+    #ifdef __DEBUG_INFO__
+        printf("Unmasked IKJ SpMSpM main loop: %lf seconds.\n", t2-t1);
+        printf("Unmasked IKJ SpMSpM converting result hash-map to CSR time: %lf seconds.\n", t3-t2);
+        printf("Unmasked IKJ SpMSpM exporting results to a file time: %lf seconds.\n", t4-t3);
+        printf("Unmasked IKJ SpMSpM converting CSR to Matrix object time: %lf seconds.\n", t5-t4);
+        printf("Unmasked IKJ SpMSpM total time: %lf seconds.\n", t5-t1);
+    #endif
     #ifdef __DEBUG_BANDWIDTHS__
         printf("\t- Sustained bandwidth: %lf GB/s\n", bytes_requested / 1e9 / (t2 - t1));
     #endif
