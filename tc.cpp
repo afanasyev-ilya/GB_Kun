@@ -26,6 +26,7 @@ int main(int argc, char **argv) {
 
         uint64_t ntriangles;
         double t1 = omp_get_wtime();
+        // For now the most fast and stable TC algorithm is LAGraph_TriangleCount_Burkhardt
         SAVE_TEPS(lablas::algorithm::LAGr_TriangleCount(&ntriangles, &graph,
                                      lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Burkhardt,
                                      lablas::algorithm::LAGraph_TriangleCount_Presort::LAGraph_TriangleCount_NoSort,
