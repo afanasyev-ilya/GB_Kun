@@ -57,25 +57,31 @@ int main(int argc, char **argv) {
         cout << "Found triangles: " << ntriangles << endl;
 
         if (parser.check()) {
-            uint64_t slow_ntriangles = 0;
-            lablas::Matrix<int> C;
-            lablas::Matrix<int> D;
-            lablas::Matrix<int>* A = graph.A;
-            #define MASK_NULL static_cast<const lablas::Matrix<int>*>(NULL)
-            lablas::mxm(&C, MASK_NULL, lablas::second<int>(),
-                        lablas::PlusMultipliesSemiring<int>(), A, A, &lablas::GrB_DESC_IKJ);
-            lablas::mxm(&D, MASK_NULL, lablas::second<int>(),
-                        lablas::PlusMultipliesSemiring<int>(), &C, A, &lablas::GrB_DESC_IKJ);
-            #undef MASK_NULL
-            for (int i = 0; i < D.get_matrix()->get_nrows(); ++i) {
-                slow_ntriangles += D.get_matrix()->get_csr()->get(i, i);
+            uint64_t slight_errors = 0;
+
+            uint64_t strong_errors = 0;
+            if (graph.A->get_matrix()->get_nrows() < 100) {
+                uint64_t slow_ntriangles = 0;
+                lablas::Matrix<int> C;
+                lablas::Matrix<int> D;
+                lablas::Matrix<int> *A = graph.A;
+                #define MASK_NULL static_cast<const lablas::Matrix<int>*>(NULL)
+                lablas::mxm(&C, MASK_NULL, lablas::second<int>(),
+                            lablas::PlusMultipliesSemiring<int>(), A, A, &lablas::GrB_DESC_IKJ);
+                lablas::mxm(&D, MASK_NULL, lablas::second<int>(),
+                            lablas::PlusMultipliesSemiring<int>(), &C, A, &lablas::GrB_DESC_IKJ);
+                #undef MASK_NULL
+                for (int i = 0; i < D.get_matrix()->get_nrows(); ++i) {
+                    slow_ntriangles += D.get_matrix()->get_csr()->get(i, i);
+                }
+                uint64_t slow_tc_result = slow_ntriangles / 6;
+                #ifdef __DEBUG_INFO__
+                    std::cout << "Found triangles with slow algorithm: " << slow_tc_result << std::endl;
+                #endif
+                strong_errors = (slow_tc_result > ntriangles ? slow_tc_result - ntriangles : ntriangles - slow_tc_result);
             }
-            uint64_t triangle_cnt = slow_ntriangles / 6;
-            #ifdef __DEBUG_INFO__
-                std::cout << "Found triangles with slow algorithm: " << slow_ntriangles_undir << std::endl;
-            #endif
-            cout << "error_count: " << (triangle_cnt > ntriangles ? triangle_cnt - ntriangles : ntriangles - triangle_cnt) << "/"
-                 << A->get_matrix()->get_nrows() * A->get_matrix()->get_nrows() << endl;
+            uint64_t errors_cnt = strong_errors + slight_errors;
+            cout << "error_count: " << errors_cnt << "/" << graph.A->get_matrix()->get_nrows() * graph.A->get_matrix()->get_nrows() << endl;
         }
     }
     catch (string& error)
