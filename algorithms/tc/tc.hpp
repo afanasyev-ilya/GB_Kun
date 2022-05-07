@@ -110,7 +110,7 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
            (presort) == LAGraph_TriangleCount_AutoSort);
 
     if (method == LAGraph_TriangleCount_Default) {
-        method = LAGraph_TriangleCount_SandiaDot ;
+        method = LAGraph_TriangleCount_Burkhardt ;
     }
 
     // the Sandia* methods can benefit from the presort
@@ -191,6 +191,7 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
     // For now the most fast and stable TC algorithm is LAGraph_TriangleCount_Burkhardt
     switch (method)
     {
+        default:
         case LAGraph_TriangleCount_Burkhardt:  // 1: sum (sum ((A^2) .* A)) / 6
             GrB_TRY (GrB_mxm (C, A, NULL, semiring, A, A, &GrB_DESC_IKJ_MASKED)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
@@ -220,7 +221,6 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
             ntri /= 6 ;
             break ;
 
-        default:
         case LAGraph_TriangleCount_SandiaDot: // 5: sum (sum ((L * U') .* L))
             // This tends to be the fastest method for most large matrices, but
             // the SandiaDot2 method is also very fast.
