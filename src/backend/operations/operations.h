@@ -441,6 +441,11 @@ LA_Info mxm(Matrix<c>* C,
             const Matrix<b> *B,
             Descriptor *desc)
 {
+    Desc_value mask_mode;
+    desc->get(GrB_MASK, &mask_mode);
+    if (mask_mode == GrB_COMP || mask_mode == GrB_STR_COMP) {
+        throw "Error: complementary mask is not supported yet";
+    }
     Desc_value multiplication_mode;
     desc->get(GrB_MXMMODE, &multiplication_mode);
     if (mask) {
