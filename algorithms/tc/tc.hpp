@@ -87,7 +87,8 @@ static int tricount_prep(GrB_Matrix *L,      // if present, compute L = tril (A,
 
 int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
                        LAGraph_TriangleCount_Method method,
-                       LAGraph_TriangleCount_Presort presort, const char *msg)
+                       LAGraph_TriangleCount_Presort presort,
+                       Descriptor *desc)
 {
     LG_CLEAR_MSG ;
     GrB_Matrix C = NULL;
@@ -188,19 +189,40 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
 
     int64_t ntri ;
 
+    Desc_value multiplication_mode = GrB_IKJ_MASKED;
+    if (desc) {
+        backend::Descriptor* desc_t =  desc->get_descriptor();
+        desc_t->get(GrB_MXMMODE, &multiplication_mode);
+    }
+
+    Descriptor mxm_desc;
+    if (multiplication_mode == GrB_IJK_DOUBLE_SORT) {
+        mxm_desc = GrB_DESC_IJK_DOUBLE_SORT;
+    } else {
+        mxm_desc = GrB_DESC_IKJ_MASKED;
+    }
+
     // For now the most fast and stable TC algorithm is LAGraph_TriangleCount_Burkhardt
     switch (method)
     {
         default:
         case LAGraph_TriangleCount_Burkhardt:  // 1: sum (sum ((A^2) .* A)) / 6
-            GrB_TRY (GrB_mxm (C, A, NULL, semiring, A, A, &GrB_DESC_IKJ_MASKED)) ;
+            if (multiplication_mode == GrB_IJK_DOUBLE_SORT) {
+                A->get_matrix()->sort_csr_columns("STL_SORT");
+                A->get_matrix()->sort_csc_rows("STL_SORT");
+            }
+            GrB_TRY (GrB_mxm (C, A, NULL, semiring, A, A, &mxm_desc)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
             ntri /= 6 ;
             break ;
 
         case LAGraph_TriangleCount_Cohen: // 2: sum (sum ((L * U) .* A)) / 2
             GrB_TRY (static_cast<LA_Info>(tricount_prep(&L, &U, A))) ;
-            GrB_TRY (GrB_mxm (C, A, NULL, semiring, L, U, &GrB_DESC_IKJ_MASKED)) ;
+            if (multiplication_mode == GrB_IJK_DOUBLE_SORT) {
+                L->get_matrix()->sort_csr_columns("STL_SORT");
+                U->get_matrix()->sort_csc_rows("STL_SORT");
+            }
+            GrB_TRY (GrB_mxm (C, A, NULL, semiring, L, U, &mxm_desc)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
             ntri /= 6 ;
             break ;
@@ -208,7 +230,11 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
         case LAGraph_TriangleCount_Sandia: // 3: sum (sum ((L * L) .* L))
             // using the masked saxpy3 method
             GrB_TRY (static_cast<LA_Info>(tricount_prep(&L, NULL, A))) ;
-            GrB_TRY (GrB_mxm (C, L, NULL, semiring, L, L, &GrB_DESC_IKJ_MASKED)) ;
+            if (multiplication_mode == GrB_IJK_DOUBLE_SORT) {
+                L->get_matrix()->sort_csr_columns("STL_SORT");
+                L->get_matrix()->sort_csc_rows("STL_SORT");
+            }
+            GrB_TRY (GrB_mxm (C, L, NULL, semiring, L, L, &mxm_desc)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
             ntri /= 6 ;
             break ;
@@ -216,7 +242,11 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
         case LAGraph_TriangleCount_Sandia2: // 4: sum (sum ((U * U) .* U))
             // using the masked saxpy3 method
             GrB_TRY (static_cast<LA_Info>(tricount_prep(NULL, &U, A))) ;
-            GrB_TRY (GrB_mxm (C, U, NULL, semiring, U, U, &GrB_DESC_IKJ_MASKED)) ;
+            if (multiplication_mode == GrB_IJK_DOUBLE_SORT) {
+                U->get_matrix()->sort_csr_columns("STL_SORT");
+                U->get_matrix()->sort_csc_rows("STL_SORT");
+            }
+            GrB_TRY (GrB_mxm (C, U, NULL, semiring, U, U, &mxm_desc)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
             ntri /= 6 ;
             break ;
@@ -226,9 +256,11 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
             // the SandiaDot2 method is also very fast.
             // using the masked dot product
             GrB_TRY (static_cast<LA_Info>(tricount_prep(&L, &U, A))) ;
-            U->get_matrix()->sort_csc_rows("STL_SORT");
-            L->get_matrix()->sort_csr_columns("STL_SORT");
-            GrB_TRY (GrB_mxm (C, L, NULL, semiring, L, U, &GrB_DESC_IJK_DOUBLE_SORT)) ;
+            if (multiplication_mode == GrB_IJK_DOUBLE_SORT) {
+                U->get_matrix()->sort_csc_rows("STL_SORT");
+                L->get_matrix()->sort_csr_columns("STL_SORT");
+            }
+            GrB_TRY (GrB_mxm (C, L, NULL, semiring, L, U, &mxm_desc)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
             ntri /= 6 ;
             break ;
@@ -236,9 +268,11 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
         case LAGraph_TriangleCount_SandiaDot2: // 6: sum (sum ((U * L') .* U))
             // using the masked dot product
             GrB_TRY (static_cast<LA_Info>(tricount_prep(&L, &U, A))) ;
-            U->get_matrix()->sort_csr_columns("STL_SORT");
-            L->get_matrix()->sort_csc_rows("STL_SORT");
-            GrB_TRY (GrB_mxm (C, U, NULL, semiring, U, L, &GrB_DESC_IJK_DOUBLE_SORT)) ;
+            if (multiplication_mode == GrB_IJK_DOUBLE_SORT) {
+                U->get_matrix()->sort_csr_columns("STL_SORT");
+                L->get_matrix()->sort_csc_rows("STL_SORT");
+            }
+            GrB_TRY (GrB_mxm (C, U, NULL, semiring, U, L, &mxm_desc)) ;
             GrB_TRY (GrB_reduce (&ntri, NULL, monoid, C, NULL)) ;
             ntri /= 6 ;
             break ;
