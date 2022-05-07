@@ -18,13 +18,13 @@ int main(int argc, char **argv) {
             tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Burkhardt;
         } else if (tc_algorithm_string == "tc_cohen") {
             tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Cohen;
-        } if (tc_algorithm_string == "tc_sandia") {
+        } else if (tc_algorithm_string == "tc_sandia") {
             tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Sandia;
-        } if (tc_algorithm_string == "tc_sandia2") {
+        } else if (tc_algorithm_string == "tc_sandia2") {
             tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Sandia2;
-        } if (tc_algorithm_string == "tc_sandiadot") {
+        } else if (tc_algorithm_string == "tc_sandiadot") {
             tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_SandiaDot;
-        } if (tc_algorithm_string == "tc_sandia2dot") {
+        } else if (tc_algorithm_string == "tc_sandia2dot") {
             tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_SandiaDot2;
         } else {
             tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Default;
