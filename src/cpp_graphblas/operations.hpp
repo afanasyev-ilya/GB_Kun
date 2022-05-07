@@ -529,8 +529,58 @@ LA_Info extract(Vector<W>*       w,
     return extract(w, mask, second<U, W, U>(), u, indices, desc);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!
+ * Selection operation
+ * Apply a select operator (an index unary operator) to the elements of a vector u
+ * and accumutale/store the result in vector w. Mask can also be provided.
+ *   w[i] = accum(w[i], op(u[i], i, 0, val))
+ */
+
+template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
+LA_Info select(Vector<W> *w,
+               const Vector<M> *mask,
+               BinaryOpT accum,
+               SelectOpT op,
+               const Vector<U> *u,
+               const T val,
+               Descriptor *desc)
+{
+    if(not_initialized(w, u))
+        return GrB_UNINITIALIZED_OBJECT;
+    if (dims_mismatched(w, u))
+        return GrB_DIMENSION_MISMATCH;
+
+    auto                 mask_t = (mask == NULL) ? NULL : mask->get_vector();
+    backend::Descriptor* desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
+
+    return backend::select(w->get_vector(), mask_t, accum, op, u->get_vector(), val, desc_t);
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
+LA_Info select(Matrix<W> *w,
+               const Matrix<M> *mask,
+               BinaryOpT accum,
+               SelectOpT op,
+               const Matrix<U> *u,
+               const T val,
+               Descriptor *desc)
+{
+    if(not_initialized(w, u))
+        return GrB_UNINITIALIZED_OBJECT;
 
+    auto                 mask_t = (mask == NULL) ? NULL : mask->get_matrix();
+    backend::Descriptor* desc_t = (desc == NULL) ? NULL : desc->get_descriptor();
+
+    return backend::select(w->get_matrix(), mask_t, accum, op, u->get_matrix(), val, desc_t);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

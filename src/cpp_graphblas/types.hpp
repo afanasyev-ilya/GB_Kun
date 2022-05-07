@@ -1,3 +1,8 @@
+/*
+ * This file uses definitions and source code from graphblast, which is available under
+ * "Apache License 2.0" license. For details, see https://github.com/gunrock/graphblast/blob/master/LICENSE
+ * */
+
 #pragma once
     #include <cstddef>
 
@@ -44,7 +49,7 @@
                     GrB_IJK        = 20,    // for GrB_MXMMODE
                     GrB_IKJ        = 21,    // for GrB_MXMMODE
                     GrB_IKJ_MASKED = 22,    // for GrB_MXMMODE
-                    GrB_IJK_DOUBLE_SORT = 22// for GrB_MXMMODE
+                    GrB_IJK_DOUBLE_SORT = 23// for GrB_MXMMODE
     };
 
 

@@ -441,24 +441,30 @@ LA_Info mxm(Matrix<c>* C,
             const Matrix<b> *B,
             Descriptor *desc)
 {
+    Desc_value mask_mode;
+    desc->get(GrB_MASK, &mask_mode);
+    if (mask_mode == GrB_COMP || mask_mode == GrB_STR_COMP) {
+        throw "Error: complementary mask is not supported yet";
+    }
     Desc_value multiplication_mode;
     desc->get(GrB_MXMMODE, &multiplication_mode);
     if (mask) {
-        bool a_is_sorted = (multiplication_mode == GrB_IJK_DOUBLE_SORT);
-        backend::SpMSpM_ijk(A,
-                            B,
-                            C,
-                            mask,
-                            op,
-                            a_is_sorted);
-        /*
-        if (multiplication_mode == GrB_IJK) {
+        if (multiplication_mode == GrB_IJK || multiplication_mode == GrB_IJK_DOUBLE_SORT) {
+            bool a_is_sorted = (multiplication_mode == GrB_IJK_DOUBLE_SORT);
+            if (a_is_sorted) {
+                cout << "Using double sort masked IJK method" << endl;
+            } else {
+                cout << "Using single sort masked IJK method" << endl;
+            }
+
             backend::SpMSpM_ijk(A,
                                 B,
                                 C,
                                 mask,
-                                op);
-        } else if (multiplication_mode == GrB_IKJ) {
+                                op,
+                                a_is_sorted);
+        } else if (multiplication_mode == GrB_IKJ_MASKED) {
+            cout << "Using masked IKJ method" << endl;
             backend::SpMSpM_masked_ikj(mask,
                                        A,
                                        B,
@@ -467,8 +473,8 @@ LA_Info mxm(Matrix<c>* C,
         } else {
             return GrB_INVALID_VALUE;
         }
-         */
     } else {
+        cout << "Using unmasked hash based mxm method" << endl;
         backend::SpMSpM_unmasked_ikj(A,
                                      B,
                                      C,
