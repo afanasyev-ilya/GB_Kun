@@ -57,17 +57,18 @@ int main(int argc, char **argv) {
         cout << "Found triangles: " << ntriangles << endl;
 
         if (parser.check()) {
-            uint64_t slight_errors = 0;
-            uint64_t another_algorithm_tc_count = 0;
+            uint64_t another_algorithm_tc_count;
             lablas::algorithm::LAGraph_TriangleCount_Method another_tc_algorithm;
-            if (tc_algorithm == lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Burkhardt) {
+            if (tc_algorithm == lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Default) {
                 another_tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Cohen;
             } else {
-                another_tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Burkhardt;
+                another_tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Default;
             }
             lablas::algorithm::LAGr_TriangleCount(&another_algorithm_tc_count, &graph, another_tc_algorithm,
                                                   lablas::algorithm::LAGraph_TriangleCount_Presort::LAGraph_TriangleCount_NoSort,
                                                   &lablas::GrB_DESC_IJK_DOUBLE_SORT);
+            uint64_t slight_errors = (another_algorithm_tc_count > ntriangles ? another_algorithm_tc_count - ntriangles : ntriangles - another_algorithm_tc_count);
+
             uint64_t strong_errors = 0;
             if (graph.A->get_matrix()->get_nrows() < 100) {
                 uint64_t slow_ntriangles = 0;
