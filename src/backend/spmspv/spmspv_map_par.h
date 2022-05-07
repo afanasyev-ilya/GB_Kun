@@ -25,7 +25,7 @@ void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
     VNT x_nvals = _x->get_nvals();
 
     tbb::concurrent_hash_map<VNT, Y> map_output;
-
+    double time_a = omp_get_wtime();
     #pragma omp parallel for
     for (VNT i = 0; i < x_nvals; i++)
     {
@@ -48,16 +48,21 @@ void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
             }
         }
     }
+    double time_b = omp_get_wtime();
+    filling_time += (time_b - time_a);
 
     if(_mask != 0) // apply mask and save results
     {
         Desc_value mask_field;
         _desc->get(GrB_MASK, &mask_field);
+        time_a = omp_get_wtime();
         if(!_mask->is_dense())
             std::cout << "warning! costly mask conversion to dense in spmspv seq_mask" << std::endl;
         const M *mask_vals = _mask->getDense()->get_vals();
+        time_b = omp_get_wtime();
+        mask_conv += (time_b - time_a);
         _y->clear();
-
+        time_a = omp_get_wtime();
         if (mask_field == GrB_STR_COMP) // CMP mask
         {
             for (auto [index, val]: map_output)
@@ -74,14 +79,19 @@ void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
                     _y->push_back(index, val);
             }
         }
+        time_b = omp_get_wtime();
+        working_time += (time_b - time_a);
     }
     else // save results in unmasked case
     {
+        time_a = omp_get_wtime();
         _y->clear();
         for (auto [index, val]: map_output)
         {
             _y->push_back(index, val);
         }
+        time_b = omp_get_wtime();
+        working_time += (time_b - time_a);
     }
 }
 #endif

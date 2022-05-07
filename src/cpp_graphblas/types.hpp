@@ -39,12 +39,16 @@
             level = new_level;
         }
 
+
     private:
         log_level level;
     };
 
     static GB_LOGGER logger;
 
+    extern double filling_time;
+    extern double working_time;
+    extern double mask_conv;
 
 #define LOG_ERROR(string) \
     if (logger.get_level() >= GrB_ERROR) {                      \
