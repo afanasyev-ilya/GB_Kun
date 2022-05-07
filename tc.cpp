@@ -10,6 +10,25 @@ int main(int argc, char **argv) {
         parser.parse_args(argc, argv);
         VNT scale = parser.get_scale();
         VNT avg_deg = parser.get_avg_degree();
+        string tc_algorithm_string = parser.get_algo_name();
+
+        lablas::algorithm::LAGraph_TriangleCount_Method tc_algorithm;
+
+        if (tc_algorithm_string == "tc_burkhardt") {
+            tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Burkhardt;
+        } else if (tc_algorithm_string == "tc_cohen") {
+            tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Cohen;
+        } if (tc_algorithm_string == "tc_sandia") {
+            tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Sandia;
+        } if (tc_algorithm_string == "tc_sandia2") {
+            tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Sandia2;
+        } if (tc_algorithm_string == "tc_sandiadot") {
+            tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_SandiaDot;
+        } if (tc_algorithm_string == "tc_sandia2dot") {
+            tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_SandiaDot2;
+        } else {
+            tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Default;
+        }
 
         lablas::Matrix<int> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
@@ -27,8 +46,7 @@ int main(int argc, char **argv) {
         uint64_t ntriangles;
         double t1 = omp_get_wtime();
         // For now the most fast and stable TC algorithm is LAGraph_TriangleCount_Burkhardt
-        SAVE_TEPS(lablas::algorithm::LAGr_TriangleCount(&ntriangles, &graph,
-                                     lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Default,
+        SAVE_TEPS(lablas::algorithm::LAGr_TriangleCount(&ntriangles, &graph, tc_algorithm,
                                      lablas::algorithm::LAGraph_TriangleCount_Presort::LAGraph_TriangleCount_NoSort,
                                      NULL), "TriangleCount", 1,(graph.AT));
         double t2 = omp_get_wtime();
