@@ -1,9 +1,5 @@
 #include "src/gb_kun.h"
 
-double filling_time = 0.0;
-double working_time = 0.0;
-double mask_conv = 0.0;
-
 int main(int argc, char** argv)
 {
     std::vector<Index> row_indices;
@@ -80,8 +76,6 @@ int main(int argc, char** argv)
                 //std::cout << "" << (float)iter/(float)nrows << " " << end_time - start_time << std::endl;
                 delete[] vec_values;
             }
-            std::cout << "Filling:" << filling_time <<", Working: " << working_time <<" , Mask conversion: " << mask_conv << std::endl;
-
         }
     }
 

@@ -25,44 +25,94 @@ void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
     VNT x_nvals = _x->get_nvals();
 
     tbb::concurrent_hash_map<VNT, Y> map_output;
-    double time_a = omp_get_wtime();
-    #pragma omp parallel for
-    for (VNT i = 0; i < x_nvals; i++)
+    bool static_ok_to_use = true;
+    int total_threads = omp_get_max_threads();
+    ENT total_edges = 0;
+    #pragma omp parallel
     {
-        VNT ind = x_ids[i];
-        X x_val = x_vals[i];
-        ENT row_start = _matrix->row_ptr[ind]; // this is actually col ptr for mxv operation
-        ENT row_end   = _matrix->row_ptr[ind + 1];
-        typename tbb::concurrent_hash_map<VNT, Y>::accessor a;
-
-        for (ENT j = row_start; j < row_end; j++)
+        ENT processed_edges = 0;
+        #pragma omp for schedule(static)
+        for (VNT i = 0; i < x_nvals; i++)
         {
-            VNT dest_ind = _matrix->col_ids[j]; // this is row_ids
-            A mat_val = _matrix->vals[j];
+            VNT ind = x_ids[i];
+            ENT row_start = _matrix->row_ptr[ind]; // this is actually col ptr for mxv operation
+            ENT row_end   = _matrix->row_ptr[ind + 1];
+            processed_edges += row_end - row_start;
+        }
 
-            if(!map_output.find(a, dest_ind)) {
-                map_output.insert(a, dest_ind);
-                a->second = add_op(identity_val, mul_op(mat_val, x_val));
-            } else {
-                a->second = add_op(a->second, mul_op(mat_val, x_val));
+        #pragma omp atomic
+        total_edges += processed_edges;
+
+        #pragma omp barrier
+
+        double real_percent = 100.0*((double)processed_edges/total_edges);
+        double supposed_percent = 100.0/total_threads;
+
+        if(fabs(real_percent - supposed_percent) > 4) // if difference is more than 4%, static not ok to use
+            static_ok_to_use = false;
+
+        #pragma omp barrier
+
+        if(static_ok_to_use)
+        {
+            #pragma omp for schedule(static)
+            for (VNT i = 0; i < x_nvals; i++)
+            {
+                VNT ind = x_ids[i];
+                X x_val = x_vals[i];
+                ENT row_start = _matrix->row_ptr[ind]; // this is actually col ptr for mxv operation
+                ENT row_end   = _matrix->row_ptr[ind + 1];
+                typename tbb::concurrent_hash_map<VNT, Y>::accessor a;
+
+                for (ENT j = row_start; j < row_end; j++)
+                {
+                    VNT dest_ind = _matrix->col_ids[j]; // this is row_ids
+                    A mat_val = _matrix->vals[j];
+
+                    if(!map_output.find(a, dest_ind)) {
+                        map_output.insert(a, dest_ind);
+                        a->second = add_op(identity_val, mul_op(mat_val, x_val));
+                    } else {
+                        a->second = add_op(a->second, mul_op(mat_val, x_val));
+                    }
+                }
+            }
+        }
+        else
+        {
+            #pragma omp for schedule(guided, 1024)
+            for (VNT i = 0; i < x_nvals; i++)
+            {
+                VNT ind = x_ids[i];
+                X x_val = x_vals[i];
+                ENT row_start = _matrix->row_ptr[ind]; // this is actually col ptr for mxv operation
+                ENT row_end   = _matrix->row_ptr[ind + 1];
+                typename tbb::concurrent_hash_map<VNT, Y>::accessor a;
+
+                for (ENT j = row_start; j < row_end; j++)
+                {
+                    VNT dest_ind = _matrix->col_ids[j]; // this is row_ids
+                    A mat_val = _matrix->vals[j];
+
+                    if(!map_output.find(a, dest_ind)) {
+                        map_output.insert(a, dest_ind);
+                        a->second = add_op(identity_val, mul_op(mat_val, x_val));
+                    } else {
+                        a->second = add_op(a->second, mul_op(mat_val, x_val));
+                    }
+                }
             }
         }
     }
-    double time_b = omp_get_wtime();
-    filling_time += (time_b - time_a);
 
     if(_mask != 0) // apply mask and save results
     {
         Desc_value mask_field;
         _desc->get(GrB_MASK, &mask_field);
-        time_a = omp_get_wtime();
         if(!_mask->is_dense())
             std::cout << "warning! costly mask conversion to dense in spmspv seq_mask" << std::endl;
         const M *mask_vals = _mask->getDense()->get_vals();
-        time_b = omp_get_wtime();
-        mask_conv += (time_b - time_a);
         _y->clear();
-        time_a = omp_get_wtime();
         if (mask_field == GrB_STR_COMP) // CMP mask
         {
             for (auto [index, val]: map_output)
@@ -79,19 +129,14 @@ void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
                     _y->push_back(index, val);
             }
         }
-        time_b = omp_get_wtime();
-        working_time += (time_b - time_a);
     }
     else // save results in unmasked case
     {
-        time_a = omp_get_wtime();
         _y->clear();
         for (auto [index, val]: map_output)
         {
             _y->push_back(index, val);
         }
-        time_b = omp_get_wtime();
-        working_time += (time_b - time_a);
     }
 }
 #endif
