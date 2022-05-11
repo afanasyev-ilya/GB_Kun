@@ -8,7 +8,7 @@
 
 #define MTX_READ_PARTITION_SIZE (32*1024)
 
-#define SPARSE_VECTOR_THRESHOLD 0.1 // 15% is really optimal according to preliminary tests, at least for BFS
+#define SPARSE_VECTOR_THRESHOLD 0.4 // 15% is really optimal according to preliminary tests, at least for BFS
 
 #ifdef __USE_NEC_SX_AURORA__
 #define LLC_CACHE_SIZE (16*1024*1024)
@@ -38,7 +38,7 @@
 #define HUB_VERTICES 131072
 
 // debug settings
-#define __DEBUG_BANDWIDTHS__
+//#define __DEBUG_BANDWIDTHS__
 //#define __DEBUG_INFO__
 #define __SHORT_VECTOR_PRINT__
 #define __DEBUG_FILE_IO__

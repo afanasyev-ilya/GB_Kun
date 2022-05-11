@@ -214,7 +214,8 @@ private:
                                 Descriptor *_desc,
                                 BinaryOpTAccum _accum,
                                 SemiringT _op,
-                                const Vector <M> *_mask);
+                                const Vector <M> *_mask,
+                                Workspace *_workspace);
 };
 
 #include "csr_matrix.hpp"
