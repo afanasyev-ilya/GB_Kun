@@ -92,7 +92,7 @@ void Parser::parse_args(int _argc, char **_argv)
                 storage_format = CSR;
             else if(option == "COO")
                 storage_format = COO;
-            else if(option == "CSR_SEG")
+            else if(option == "CSR_SEG" || option == "SEG_CSR")
                 storage_format = CSR_SEG;
             else if(option == "LAV")
                 storage_format = LAV;

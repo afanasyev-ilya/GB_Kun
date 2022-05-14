@@ -29,7 +29,7 @@ int main(int argc, char **argv)
         double wall_bfs_time = 0;
         for(int run = 0; run < parser.get_iterations(); run++)
         {
-            source_vertex = select_non_trivial_vertex(matrix);
+            source_vertex = run; //select_non_trivial_vertex(matrix);
             double bfs_time_ms = 0;
             {
                 Timer tm("bfs");
