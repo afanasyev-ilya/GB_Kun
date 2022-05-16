@@ -163,29 +163,16 @@ LA_Info mxv (Vector<W>*       _w,
     #ifdef __DISABLE_SPMSPV__
     switch_cond = true;
     #endif
-    if(switch_cond)//(false /*switch_cond*/)
+    if(switch_cond)
     {
-        #ifdef __DEBUG_INFO__
-        cout << "USING SpMV!!!!!" << endl;
-        #endif
-        backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+        GLOBAL_PERF_STATS(backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc,
+                                        _accum, _op, _mask), GLOBAL_SPMV_TIME);
+
     }
     else
     {
-        #ifdef __DEBUG_INFO__
-        cout << "USING SpMSpV!!!!!" << endl;
-        #endif
-
-        {
-            //Timer tm("dense output");
-            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
-        }
-
-        /*{
-            Timer tm("sparse output");
-            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
-        }*/
-
+        GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(),
+                                          _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
     }
     _w->convert_if_required();
 
@@ -210,25 +197,13 @@ LA_Info vxm (Vector<W>*       _w,
     #endif
     if(switch_cond)
     {
-        #ifdef __DEBUG_INFO__
-        cout << "USING SpMV!!!!!" << endl;
-        #endif
-        backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+        GLOBAL_PERF_STATS(backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc,
+                                        _accum, _op, _mask), GLOBAL_SPMV_TIME);
     }
     else
     {
-        #ifdef __DEBUG_INFO__
-        cout << "USING SpMSpV!!!!!" << endl;
-        #endif
-        {
-            //Timer tm("dense output");
-            backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
-        }
-
-        /*{
-            Timer tm("sparse output");
-            backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
-        }*/
+        GLOBAL_PERF_STATS(backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(),
+                                          _desc, _accum, _op, _mask), GLOBAL_SPMSPV_TIME);
     }
     _w->convert_if_required();
 
@@ -466,24 +441,44 @@ LA_Info mxm(Matrix<c>* C,
             const Matrix<b> *B,
             Descriptor *desc)
 {
+    Desc_value mask_mode;
+    desc->get(GrB_MASK, &mask_mode);
+    if (mask_mode == GrB_COMP || mask_mode == GrB_STR_COMP) {
+        throw "Error: complementary mask is not supported yet";
+    }
+    Desc_value multiplication_mode;
+    desc->get(GrB_MXMMODE, &multiplication_mode);
     if (mask) {
-        backend::SpMSpM_unmasked_ikj(A,
-                                     B,
-                                     C);
-    } else {
-        Desc_value multiplication_mode;
-        desc->get(GrB_MXMMODE, &multiplication_mode);
-        if (multiplication_mode == GrB_IJK) {
-            backend::SpMSpM_unmasked_ijk(A,
-                                         B,
-                                         C);
-        } else if (multiplication_mode == GrB_IKJ) {
-            backend::SpMSpM_unmasked_ikj(A,
-                                         B,
-                                         C);
+        if (multiplication_mode == GrB_IJK || multiplication_mode == GrB_IJK_DOUBLE_SORT) {
+            bool a_is_sorted = (multiplication_mode == GrB_IJK_DOUBLE_SORT);
+            if (a_is_sorted) {
+                cout << "Using double sort masked IJK method" << endl;
+            } else {
+                cout << "Using single sort masked IJK method" << endl;
+            }
+
+            backend::SpMSpM_ijk(A,
+                                B,
+                                C,
+                                mask,
+                                op,
+                                a_is_sorted);
+        } else if (multiplication_mode == GrB_IKJ_MASKED) {
+            cout << "Using masked IKJ method" << endl;
+            backend::SpMSpM_masked_ikj(mask,
+                                       A,
+                                       B,
+                                       C,
+                                       op);
         } else {
             return GrB_INVALID_VALUE;
         }
+    } else {
+        cout << "Using unmasked hash based mxm method" << endl;
+        backend::SpMSpM_unmasked_ikj(A,
+                                     B,
+                                     C,
+                                     op);
     }
     return GrB_SUCCESS;
 }

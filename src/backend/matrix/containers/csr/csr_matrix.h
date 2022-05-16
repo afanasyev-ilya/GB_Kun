@@ -16,7 +16,7 @@ public:
     MatrixCSR();
     ~MatrixCSR();
 
-    void deep_copy(MatrixCSR<T> *_copy, int _target_socket = -1);
+    void deep_copy(const MatrixCSR<T> *_copy, int _target_socket = -1);
 
     void build(vector<vector<pair<VNT, T>>> &_tmp_csr, VNT _nrows, VNT _ncols);
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _nrows, VNT _ncols, ENT _nnz);
@@ -53,6 +53,9 @@ public:
 
     bool is_symmetric();
     void to_symmetric();
+
+
+    void calculate_degrees();
 private:
     VNT nrows, ncols;
     ENT nnz;
@@ -194,8 +197,6 @@ private:
                                        SemiringT _op,
                                        Descriptor *_desc,
                                        Workspace *_workspace);
-
-    void calculate_degrees();
 };
 
 #include "csr_matrix.hpp"

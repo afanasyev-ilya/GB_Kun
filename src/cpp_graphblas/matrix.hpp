@@ -131,6 +131,14 @@ public:
     }
 
     void to_symmetric() { _matrix.to_symmetric(); };
+
+    friend bool operator==(const Matrix<T>& _lhs, const Matrix<T>& _rhs) {
+        return _lhs._matrix == _rhs._matrix;
+    }
+
+    friend bool operator!=(const Matrix<T>& _lhs, const Matrix<T>& _rhs) {
+        return !(_lhs._matrix == _rhs._matrix);
+    }
 private:
     backend::Matrix<T> _matrix;
 };

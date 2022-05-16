@@ -80,6 +80,9 @@ public:
 
     void force_to_dense()
     {
+        #if(__DEBUG_PERF_STATS_ENABLED__)
+        double t1 = omp_get_wtime();
+        #endif
         if(is_dense())
             return;
         else
@@ -87,10 +90,17 @@ public:
             swap_to_dense();
             ((DenseVector<T>*)main_container)->convert((SparseVector<T>*)secondary_container);
         }
+        #if(__DEBUG_PERF_STATS_ENABLED__)
+        double t2 = omp_get_wtime();
+        GLOBAL_CONVERSION_TIME += t2 - t1;
+        #endif
     }
 
     void force_to_sparse()
     {
+        #if(__DEBUG_PERF_STATS_ENABLED__)
+        double t1 = omp_get_wtime();
+        #endif
         if(is_sparse())
             return;
         else
@@ -98,6 +108,10 @@ public:
             swap_to_sparse();
             ((SparseVector<T>*)main_container)->convert((DenseVector<T>*)secondary_container);
         }
+        #if(__DEBUG_PERF_STATS_ENABLED__)
+        double t2 = omp_get_wtime();
+        GLOBAL_CONVERSION_TIME += t2 - t1;
+        #endif
     }
 
     void convert_if_required()
