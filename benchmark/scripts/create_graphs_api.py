@@ -31,6 +31,8 @@ def get_list_of_synthetic_graphs(run_speed_mode):
         return syn_scaling
     elif run_speed_mode == "best" or run_speed_mode == "bestf":
         return []
+    elif run_speed_mode == "dl" or run_speed_mode == "deep_learning": # for parser, won't be changed when new graphs are added
+        return syn_deep_learning
     elif run_speed_mode in konect_tiny_small_medium:
         return []
     elif run_speed_mode in syn_tiny_small_medium:
@@ -52,6 +54,8 @@ def get_list_of_real_world_graphs(run_speed_mode):
         return konect_tiny_small
     elif run_speed_mode == "tiny-small-medium" or run_speed_mode == "tiny-small-medium-rw":
         return konect_tiny_small_medium
+    elif run_speed_mode == "dl" or run_speed_mode == "deep_learning": # for parser, won't be changed when new graphs are added
+        return konect_deep_learning
     elif run_speed_mode == "fastest":
         return konect_fastest
     elif run_speed_mode == "best":

@@ -96,7 +96,11 @@ all_konect_graphs_data = {
     'GAP-road': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-road.tar.gz'},
     'GAP-web': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-web.tar.gz'},
     'GAP-kron': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-kron.tar.gz'},
-    'GAP-urand': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-urand.tar.gz'}
+    'GAP-urand': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-urand.tar.gz'},
+
+    # new graph, taken from http://konect.cc/networks/digg-friends/ , name (key) is arbitrary
+    # link (value) taken as a part of "Data as TSV" -> copy_link http://konect.cc/files/download.tsv. [digg-friends] .tar.bz2
+    'soc_digg': {'link': 'digg-friends'}
 }
 
 #####################
@@ -133,6 +137,12 @@ syn_scaling = ["syn_rmat_18_32", "syn_rmat_19_32", "syn_rmat_20_32", "syn_rmat_2
                "syn_rmat_23_32", "syn_ru_18_32", "syn_ru_19_32", "syn_ru_20_32", "syn_ru_21_32", "syn_ru_22_32",
                "syn_ru_23_32"]
 konect_scaling = []
+
+#####################
+
+# new sets of arrays, first for synthetic, second for real-wold graphs.
+syn_deep_learning = []
+konect_deep_learning = ['soc_digg'] # our new digg graph here (its key)
 
 #####################
 
