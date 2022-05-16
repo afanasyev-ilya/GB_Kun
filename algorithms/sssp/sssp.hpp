@@ -3,12 +3,36 @@
  * "Apache License 2.0" license. For details, see https://github.com/gunrock/graphblast/blob/master/LICENSE
  * */
 
+/**
+  @file sssp.hpp
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @brief SSSP algorithm.
+  @details This file uses algorithm implementation from graphblast, which is available under
+  "Apache License 2.0" license. For details, see https://github.com/gunrock/graphblast/blob/master/LICENSE.
+  @date May 12, 2022
+*/
+
 #pragma once
 
+//! Lablas namespace
+
 namespace lablas {
-namespace algorithm {
+
+    //! Algorithm namespace
+
+
+    namespace algorithm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * sssp_bellman_ford_GBTL function.
+ * @brief The function does...
+ * @param _distances _distances
+ * @param _matrix _matrix
+ * @param _source _source
+*/
 
 template<typename T>
 void sssp_bellman_ford_GBTL(Vector<T> *_distances,
@@ -27,6 +51,16 @@ void sssp_bellman_ford_GBTL(Vector<T> *_distances,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+/**
+ * sssp_bellman_ford_gbkun function.
+ * @brief The function does...
+ * @param _distances _distances
+ * @param _matrix _matrix
+ * @param _source _source
+*/
 
 template<typename T>
 void sssp_bellman_ford_gbkun(Vector<T> *_distances,

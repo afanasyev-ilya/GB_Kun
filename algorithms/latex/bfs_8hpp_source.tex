@@ -1,0 +1,151 @@
+\hypertarget{bfs_8hpp_source}{}\doxysection{bfs.\+hpp}
+\label{bfs_8hpp_source}\index{bfs.hpp@{bfs.hpp}}
+\mbox{\hyperlink{bfs_8hpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 \textcolor{comment}{/*}}
+\DoxyCodeLine{2 \textcolor{comment}{ * This file uses algorithm implementation from LAGraph, which is available under}}
+\DoxyCodeLine{3 \textcolor{comment}{ * their custom license. For details, see https://github.com/GraphBLAS/LAGraph/blob/reorg/LICENSE}}
+\DoxyCodeLine{4 \textcolor{comment}{ * */}}
+\DoxyCodeLine{5 }
+\DoxyCodeLine{16 \textcolor{preprocessor}{\#pragma once}}
+\DoxyCodeLine{17 \textcolor{preprocessor}{\#include "{}../../src/gb\_kun.h"{}}}
+\DoxyCodeLine{18 }
+\DoxyCodeLine{20 }
+\DoxyCodeLine{21 \textcolor{preprocessor}{\#define GrB\_Matrix lablas::Matrix<int>*}}
+\DoxyCodeLine{22 \textcolor{preprocessor}{\#define GrB\_Vector lablas::Vector<int>*}}
+\DoxyCodeLine{23 \textcolor{preprocessor}{\#define MASK\_NULL static\_cast<const lablas::Vector<int>*>(NULL)}}
+\DoxyCodeLine{24 }
+\DoxyCodeLine{36 \textcolor{keywordtype}{int} \mbox{\hyperlink{bfs_8hpp_ab5148def793c21710d166ead44e501b6}{LG\_BreadthFirstSearch\_vanilla}}(GrB\_Vector *level,}
+\DoxyCodeLine{37                                   GrB\_Vector *parent,}
+\DoxyCodeLine{38                                   LAGraph\_Graph<int> *G,}
+\DoxyCodeLine{39                                   GrB\_Index src,}
+\DoxyCodeLine{40                                   \textcolor{keywordtype}{bool} pushpull)}
+\DoxyCodeLine{41 \{}
+\DoxyCodeLine{42     \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{43     \textcolor{comment}{// check inputs}}
+\DoxyCodeLine{44     \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{45 }
+\DoxyCodeLine{46     lablas::Vector<bool> *frontier = NULL;     \textcolor{comment}{// the current frontier}}
+\DoxyCodeLine{47     GrB\_Vector l\_parent = NULL;     \textcolor{comment}{// parent vector}}
+\DoxyCodeLine{48     GrB\_Vector l\_level = NULL;      \textcolor{comment}{// level vector}}
+\DoxyCodeLine{49     lablas::Descriptor desc;}
+\DoxyCodeLine{50 }
+\DoxyCodeLine{51     \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{52     \textcolor{comment}{// get the problem size and properties}}
+\DoxyCodeLine{53     \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{54     GrB\_Matrix A = G-\/>A;}
+\DoxyCodeLine{55 }
+\DoxyCodeLine{56     GrB\_Index n;}
+\DoxyCodeLine{57     GrB\_TRY( GrB\_Matrix\_nrows (\&n, A) );}
+\DoxyCodeLine{58     assert(src < n \&\& \textcolor{stringliteral}{"{}invalid source node"{}});}
+\DoxyCodeLine{59 }
+\DoxyCodeLine{60     \textcolor{comment}{// only the level is needed}}
+\DoxyCodeLine{61 }
+\DoxyCodeLine{62     \textcolor{comment}{// create a sparse boolean vector frontier, and set frontier(src) = true}}
+\DoxyCodeLine{63     GrB\_TRY (GrB\_Vector\_new(\&frontier, GrB\_BOOL, n)) ;}
+\DoxyCodeLine{64     GrB\_TRY (GrB\_Vector\_setElement(frontier, \textcolor{keyword}{true}, src)) ;}
+\DoxyCodeLine{65     frontier-\/>print();}
+\DoxyCodeLine{66 }
+\DoxyCodeLine{67     \textcolor{comment}{// create the level vector. v(i) is the level of node i}}
+\DoxyCodeLine{68     \textcolor{comment}{// v (src) = 0 denotes the source node}}
+\DoxyCodeLine{69     GrB\_TRY (GrB\_Vector\_new(\&l\_level, GrB\_INT32, n)) ;}
+\DoxyCodeLine{70 }
+\DoxyCodeLine{71     \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{72     \textcolor{comment}{// BFS traversal and label the nodes}}
+\DoxyCodeLine{73     \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{74     GrB\_Index nq = 1; \textcolor{comment}{// number of nodes in the current level}}
+\DoxyCodeLine{75     GrB\_Index last\_nq = 0;}
+\DoxyCodeLine{76     GrB\_Index current\_level = 1;}
+\DoxyCodeLine{77     GrB\_Index nvals = 1;}
+\DoxyCodeLine{78 }
+\DoxyCodeLine{79     \textcolor{comment}{// \{!mask\} is the set of unvisited nodes}}
+\DoxyCodeLine{80     GrB\_Vector mask = l\_level ;}
+\DoxyCodeLine{81 }
+\DoxyCodeLine{82     \textcolor{comment}{// parent BFS}}
+\DoxyCodeLine{83     \textcolor{keywordflow}{do}}
+\DoxyCodeLine{84     \{}
+\DoxyCodeLine{85         \textcolor{comment}{// assign levels: l\_level<s(frontier)> = current\_level}}
+\DoxyCodeLine{86         GrB\_TRY( GrB\_assign(l\_level, frontier, NULL, current\_level, GrB\_ALL, n, GrB\_DESC\_S) );}
+\DoxyCodeLine{87         l\_level-\/>print();}
+\DoxyCodeLine{88         ++current\_level;}
+\DoxyCodeLine{89 }
+\DoxyCodeLine{90         \textcolor{comment}{// frontier = kth level of the BFS}}
+\DoxyCodeLine{91         \textcolor{comment}{// mask is l\_parent if computing parent, l\_level if computing just level}}
+\DoxyCodeLine{92         GrB\_TRY( GrB\_vxm(frontier, mask, NULL, lablas::LogicalOrAndSemiring<bool>(), frontier, A, GrB\_DESC\_RSC) );}
+\DoxyCodeLine{93         frontier-\/>print();}
+\DoxyCodeLine{94 }
+\DoxyCodeLine{95         \textcolor{comment}{// done if frontier is empty}}
+\DoxyCodeLine{96         GrB\_TRY( GrB\_Vector\_nvals(\&nvals, frontier) );}
+\DoxyCodeLine{97     \} \textcolor{keywordflow}{while} (nvals > 0);}
+\DoxyCodeLine{98 }
+\DoxyCodeLine{99     \textcolor{comment}{//l\_level-\/>force\_to\_dense();}}
+\DoxyCodeLine{100 }
+\DoxyCodeLine{101     (*level ) = l\_level;}
+\DoxyCodeLine{102     \textcolor{keywordflow}{return} (0);}
+\DoxyCodeLine{103 \}}
+\DoxyCodeLine{104 }
+\DoxyCodeLine{105 \textcolor{preprocessor}{\#undef GrB\_Matrix}}
+\DoxyCodeLine{106 \textcolor{preprocessor}{\#undef GrB\_Vector}}
+\DoxyCodeLine{107 \textcolor{preprocessor}{\#undef MASK\_NULL}}
+\DoxyCodeLine{108 }
+\DoxyCodeLine{110 }
+\DoxyCodeLine{112 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelablas}{lablas}} \{}
+\DoxyCodeLine{114     \textcolor{keyword}{namespace }algorithm \{}
+\DoxyCodeLine{115 }
+\DoxyCodeLine{125 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{126 \textcolor{keywordtype}{void} \mbox{\hyperlink{namespacelablas_1_1algorithm_a660901220b8aa3a0d2a737856872a070}{bfs\_blast}}(Vector<T>*       v,}
+\DoxyCodeLine{127                \textcolor{keyword}{const} Matrix<T> *A,}
+\DoxyCodeLine{128                Index s,}
+\DoxyCodeLine{129                Descriptor *desc)}
+\DoxyCodeLine{130 \{}
+\DoxyCodeLine{131     Index A\_nrows = A-\/>nrows();}
+\DoxyCodeLine{132 }
+\DoxyCodeLine{133     \textcolor{comment}{// Visited vector (use T for now)}}
+\DoxyCodeLine{134     v-\/>fill((T)0);}
+\DoxyCodeLine{135 }
+\DoxyCodeLine{136     \textcolor{comment}{// Frontier vectors (use T for now)}}
+\DoxyCodeLine{137     Vector<T> f1(A\_nrows);}
+\DoxyCodeLine{138     Vector<T> f2(A\_nrows);}
+\DoxyCodeLine{139 }
+\DoxyCodeLine{140     Desc\_value desc\_value;}
+\DoxyCodeLine{141     desc-\/>get(GrB\_MXVMODE, \&desc\_value);}
+\DoxyCodeLine{142     \textcolor{keywordflow}{if} (\textcolor{keyword}{true}\textcolor{comment}{/*desc\_value == GrB\_PULLONLY*/})}
+\DoxyCodeLine{143     \{}
+\DoxyCodeLine{144         f1.fill((T)0);}
+\DoxyCodeLine{145         f1.set\_element((T)1, s);}
+\DoxyCodeLine{146     \}}
+\DoxyCodeLine{147     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{148     \{}
+\DoxyCodeLine{149         \textcolor{comment}{/*std::vector<Index> indices(1, s);}}
+\DoxyCodeLine{150 \textcolor{comment}{        std::vector<T>  values(1, 1.f);}}
+\DoxyCodeLine{151 \textcolor{comment}{        CHECK(f1.build(\&indices, \&values, 1, GrB\_NULL));*/}}
+\DoxyCodeLine{152     \}}
+\DoxyCodeLine{153 }
+\DoxyCodeLine{154     Index iter = 0;}
+\DoxyCodeLine{155     T succ = 0.f;}
+\DoxyCodeLine{156     Index unvisited = A\_nrows;}
+\DoxyCodeLine{157     T gpu\_tight\_time = 0.f;}
+\DoxyCodeLine{158     Index max\_iters = A\_nrows;}
+\DoxyCodeLine{159 }
+\DoxyCodeLine{160     \textcolor{keywordflow}{for} (iter = 1; iter <= max\_iters; ++iter)}
+\DoxyCodeLine{161     \{}
+\DoxyCodeLine{162         unvisited -\/= \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{int}\textcolor{keyword}{>}(succ);}
+\DoxyCodeLine{163         assign<T, T, T>(v, \&f1, GrB\_NULL, iter, GrB\_ALL, A\_nrows, desc);}
+\DoxyCodeLine{164         desc-\/>toggle(GrB\_MASK); \textcolor{comment}{// TODO wtf why desc needed?}}
+\DoxyCodeLine{165         vxm<T, T, T, T>(\&f2, v, GrB\_NULL, LogicalOrAndSemiring<T>(), \&f1, A, GrB\_DESC\_SC);}
+\DoxyCodeLine{166         desc-\/>toggle(GrB\_MASK);}
+\DoxyCodeLine{167 }
+\DoxyCodeLine{168         f2.swap(\&f1);}
+\DoxyCodeLine{169         reduce<T, T>(\&succ, GrB\_NULL, PlusMonoid<T>(), \&f1, desc);}
+\DoxyCodeLine{170 }
+\DoxyCodeLine{171         \textcolor{keywordflow}{if} (succ == 0)}
+\DoxyCodeLine{172             \textcolor{keywordflow}{break};}
+\DoxyCodeLine{173     \}}
+\DoxyCodeLine{174 \}}
+\DoxyCodeLine{175 }
+\DoxyCodeLine{176 \}}
+\DoxyCodeLine{177 \}}
+\DoxyCodeLine{178 }
+\DoxyCodeLine{180 }
+
+\end{DoxyCode}

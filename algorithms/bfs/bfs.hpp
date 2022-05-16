@@ -3,6 +3,16 @@
  * their custom license. For details, see https://github.com/GraphBLAS/LAGraph/blob/reorg/LICENSE
  * */
 
+/**
+  @file bfs.hpp
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @brief BFS algorithm.
+  @details This file uses algorithm implementation from LAGraph, which is available under
+  their custom license. For details, see https://github.com/GraphBLAS/LAGraph/blob/reorg/LICENSE.
+  @date May 12, 2022
+*/
+
 #pragma once
 #include "../../src/gb_kun.h"
 
@@ -11,6 +21,17 @@
 #define GrB_Matrix lablas::Matrix<int>*
 #define GrB_Vector lablas::Vector<int>*
 #define MASK_NULL static_cast<const lablas::Vector<int>*>(NULL)
+
+/**
+ * LG_BreadthFirstSearch_vanilla function.
+ * @brief Brief description.
+ * @return Returns int.
+ * @param level level
+ * @param parent parent
+ * @param G G
+ * @param src src
+ * @param pushpull pushpull
+*/
 
 int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
                                   GrB_Vector *parent,
@@ -87,8 +108,19 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//! Lablas namespace
 namespace lablas {
-namespace algorithm {
+//! Algorithm namespace
+    namespace algorithm {
+
+/**
+ * bfs_blast function.
+ * @brief Brief description.
+ * @param v v
+ * @param A A
+ * @param s s
+ * @param desc desc
+*/
 
 template <typename T>
 void bfs_blast(Vector<T>*       v,

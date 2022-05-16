@@ -1,14 +1,34 @@
+/**
+  @file cc.hpp
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @brief CC algorithm.
+  @details  Code is based on the algorithm described in the following paper.
+  Zhang, Azad, Hu. FastSV: FastSV: A Distributed-Memory Connected Component
+  Algorithm with Fast Convergence (SIAM PP20).
+  @date May 12, 2022
+*/
+
 #pragma once
 #include "../../src/gb_kun.h"
 #include "../../src/cpp_graphblas/types.hpp"
 #define MASK_NULL static_cast<const lablas::Vector<float>*>(NULL)
 
-namespace lablas {
-namespace algorithm {
 
-// Code is based on the algorithm described in the following paper.
-// Zhang, Azad, Hu. FastSV: FastSV: A Distributed-Memory Connected Component
-// Algorithm with Fast Convergence (SIAM PP20).
+//! Lablas namespace
+namespace lablas {
+//! Algorithm namespace
+    namespace algorithm {
+
+/**
+ * cc function.
+ * @brief The function does...
+ * @param v v
+ * @param A A
+ * @param seed seed
+ * @param desc desc
+*/
+
 void cc(Vector<int>*       v,
         const Matrix<int> *A,
         int seed,

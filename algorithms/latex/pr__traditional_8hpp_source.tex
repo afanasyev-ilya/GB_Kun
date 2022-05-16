@@ -1,0 +1,126 @@
+\hypertarget{pr__traditional_8hpp_source}{}\doxysection{pr\+\_\+traditional.\+hpp}
+\label{pr__traditional_8hpp_source}\index{pr\_traditional.hpp@{pr\_traditional.hpp}}
+\mbox{\hyperlink{pr__traditional_8hpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 }
+\DoxyCodeLine{10 \textcolor{preprocessor}{\#pragma once}}
+\DoxyCodeLine{11 }
+\DoxyCodeLine{13 }
+\DoxyCodeLine{15 }
+\DoxyCodeLine{16 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelablas}{lablas}}\{}
+\DoxyCodeLine{17 }
+\DoxyCodeLine{19 }
+\DoxyCodeLine{20 }
+\DoxyCodeLine{21     \textcolor{keyword}{namespace }algorithm \{}
+\DoxyCodeLine{22 }
+\DoxyCodeLine{24 }
+\DoxyCodeLine{36 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{37 \textcolor{keywordtype}{void} \mbox{\hyperlink{namespacelablas_1_1algorithm_a6bc6dbfdd40538af1e262e9245fdeea3}{seq\_page\_rank}}(Vector <T> *\_ranks,}
+\DoxyCodeLine{38                    \textcolor{keyword}{const} Matrix <T> *\_graph,}
+\DoxyCodeLine{39                    \textcolor{keywordtype}{int} *iters,                     \textcolor{comment}{// output: number of iterations taken}}
+\DoxyCodeLine{40                    \textcolor{keywordtype}{int} itermax = 100,              \textcolor{comment}{// maximum number of iterations (typically 100)}}
+\DoxyCodeLine{41                    \textcolor{keywordtype}{double} damping = 0.85,          \textcolor{comment}{// damping factor (typically 0.85)}}
+\DoxyCodeLine{42                    \textcolor{keywordtype}{double} tol = 1e-\/4)               \textcolor{comment}{// stopping tolerance (typically 1e-\/4) ;}}
+\DoxyCodeLine{43 \{}
+\DoxyCodeLine{44     Index vertices\_count = \_ranks-\/>get\_vector()-\/>getDense()-\/>get\_size();}
+\DoxyCodeLine{45     T* ranks = \_ranks-\/>get\_vector()-\/>getDense()-\/>get\_vals();}
+\DoxyCodeLine{46     backend::MatrixCSR<T> *graph = ((backend::MatrixCSR<T> *) \_graph-\/>get\_matrix()-\/>get\_csr());}
+\DoxyCodeLine{47 }
+\DoxyCodeLine{48     \textcolor{comment}{// set PR parameters}}
+\DoxyCodeLine{49     T d = 0.85;}
+\DoxyCodeLine{50     T k = (1.0 -\/ d) / ((T)vertices\_count);}
+\DoxyCodeLine{51 }
+\DoxyCodeLine{52     std::vector<int> number\_of\_loops(vertices\_count, 0);}
+\DoxyCodeLine{53     std::vector<int> incoming\_degrees(vertices\_count, 0);}
+\DoxyCodeLine{54     std::vector<int> incoming\_degrees\_without\_loops(vertices\_count, 0);}
+\DoxyCodeLine{55     std::vector<T> old\_page\_ranks(vertices\_count, 0);}
+\DoxyCodeLine{56 }
+\DoxyCodeLine{57     \textcolor{comment}{// init ranks and other data}}
+\DoxyCodeLine{58     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < vertices\_count; i++)}
+\DoxyCodeLine{59     \{}
+\DoxyCodeLine{60         ranks[i] = 1.0/((T)vertices\_count);}
+\DoxyCodeLine{61         number\_of\_loops[i] = 0;}
+\DoxyCodeLine{62     \}}
+\DoxyCodeLine{63 }
+\DoxyCodeLine{64     \textcolor{comment}{// calculate number of loops}}
+\DoxyCodeLine{65     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} src\_id = 0; src\_id < vertices\_count; src\_id++)}
+\DoxyCodeLine{66     \{}
+\DoxyCodeLine{67         Index shift = graph-\/>get\_row\_ptr()[src\_id];}
+\DoxyCodeLine{68         Index connections\_count = graph-\/>get\_row\_ptr()[src\_id + 1] -\/ graph-\/>get\_row\_ptr()[src\_id];}
+\DoxyCodeLine{69         \textcolor{keywordflow}{for}(Index edge\_pos = 0; edge\_pos < connections\_count; edge\_pos++)}
+\DoxyCodeLine{70         \{}
+\DoxyCodeLine{71             Index dst\_id = graph-\/>get\_col\_ids()[shift + edge\_pos];}
+\DoxyCodeLine{72             \textcolor{keywordflow}{if}(src\_id == dst\_id)}
+\DoxyCodeLine{73                 number\_of\_loops[src\_id]++;}
+\DoxyCodeLine{74         \}}
+\DoxyCodeLine{75     \}}
+\DoxyCodeLine{76 }
+\DoxyCodeLine{77     \textcolor{comment}{// calculate incoming degrees without loops}}
+\DoxyCodeLine{78     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < vertices\_count; i++)}
+\DoxyCodeLine{79     \{}
+\DoxyCodeLine{80         incoming\_degrees[i] = \_graph-\/>get\_coldegrees()[i]; \textcolor{comment}{// TODO rowdegrees?}}
+\DoxyCodeLine{81     \}}
+\DoxyCodeLine{82 }
+\DoxyCodeLine{83     \textcolor{comment}{// calculate incoming degrees without loops}}
+\DoxyCodeLine{84     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < vertices\_count; i++)}
+\DoxyCodeLine{85     \{}
+\DoxyCodeLine{86         incoming\_degrees\_without\_loops[i] = incoming\_degrees[i] -\/ number\_of\_loops[i];}
+\DoxyCodeLine{87     \}}
+\DoxyCodeLine{88 }
+\DoxyCodeLine{89     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} iterations\_count = 0; iterations\_count < itermax; iterations\_count++)}
+\DoxyCodeLine{90     \{}
+\DoxyCodeLine{91         \textcolor{comment}{// copy ranks from prev iteration to temporary array}}
+\DoxyCodeLine{92         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < vertices\_count; i++)}
+\DoxyCodeLine{93         \{}
+\DoxyCodeLine{94             old\_page\_ranks[i] = ranks[i];}
+\DoxyCodeLine{95             ranks[i] = 0;}
+\DoxyCodeLine{96         \}}
+\DoxyCodeLine{97 }
+\DoxyCodeLine{98         \textcolor{comment}{// calculate dangling input}}
+\DoxyCodeLine{99         T dangling\_input = 0;}
+\DoxyCodeLine{100         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < vertices\_count; i++)}
+\DoxyCodeLine{101         \{}
+\DoxyCodeLine{102             \textcolor{keywordflow}{if}(incoming\_degrees\_without\_loops[i] <= 0)}
+\DoxyCodeLine{103             \{}
+\DoxyCodeLine{104                 dangling\_input += old\_page\_ranks[i] / vertices\_count;}
+\DoxyCodeLine{105             \}}
+\DoxyCodeLine{106         \}}
+\DoxyCodeLine{107 }
+\DoxyCodeLine{108         \textcolor{comment}{// traverse graph and calculate page ranks}}
+\DoxyCodeLine{109         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} src\_id = 0; src\_id < vertices\_count; src\_id++)}
+\DoxyCodeLine{110         \{}
+\DoxyCodeLine{111             Index shift = graph-\/>get\_row\_ptr()[src\_id];}
+\DoxyCodeLine{112             Index connections\_count = graph-\/>get\_row\_ptr()[src\_id + 1] -\/ graph-\/>get\_row\_ptr()[src\_id];}
+\DoxyCodeLine{113             \textcolor{keywordflow}{for}(Index edge\_pos = 0; edge\_pos < connections\_count; edge\_pos++)}
+\DoxyCodeLine{114             \{}
+\DoxyCodeLine{115                 Index dst\_id = graph-\/>get\_col\_ids()[shift + edge\_pos];}
+\DoxyCodeLine{116                 T dst\_rank = old\_page\_ranks[dst\_id];}
+\DoxyCodeLine{117 }
+\DoxyCodeLine{118                 T dst\_links\_num = 1.0 / incoming\_degrees\_without\_loops[dst\_id];}
+\DoxyCodeLine{119                 \textcolor{keywordflow}{if}(incoming\_degrees\_without\_loops[dst\_id] == 0)}
+\DoxyCodeLine{120                     dst\_links\_num = 0;}
+\DoxyCodeLine{121 }
+\DoxyCodeLine{122                 \textcolor{keywordflow}{if}(src\_id != dst\_id)}
+\DoxyCodeLine{123                     ranks[src\_id] += dst\_rank * dst\_links\_num;}
+\DoxyCodeLine{124             \}}
+\DoxyCodeLine{125 }
+\DoxyCodeLine{126             ranks[src\_id] = k + d * (ranks[src\_id] + dangling\_input);}
+\DoxyCodeLine{127         \}}
+\DoxyCodeLine{128 }
+\DoxyCodeLine{129         \textcolor{comment}{// calculate new ranks sum}}
+\DoxyCodeLine{130         \textcolor{keywordtype}{double} ranks\_sum = 0;}
+\DoxyCodeLine{131         \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < vertices\_count; i++)}
+\DoxyCodeLine{132         \{}
+\DoxyCodeLine{133             ranks\_sum += ranks[i];}
+\DoxyCodeLine{134         \}}
+\DoxyCodeLine{135 \textcolor{preprocessor}{        \#ifdef \_\_DEBUG\_INFO\_\_}}
+\DoxyCodeLine{136         cout << \textcolor{stringliteral}{"{}ranks sum: "{}} << ranks\_sum << endl;}
+\DoxyCodeLine{137 \textcolor{preprocessor}{        \#endif}}
+\DoxyCodeLine{138     \}}
+\DoxyCodeLine{139 \}}
+\DoxyCodeLine{140 }
+\DoxyCodeLine{142 }
+\DoxyCodeLine{143 \}}
+\DoxyCodeLine{144 \}}
+
+\end{DoxyCode}

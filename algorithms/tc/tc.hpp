@@ -1,6 +1,15 @@
 // code taken form LAGraph
 // add license
 
+/**
+  @file tc.hpp
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @brief TC algorithm.
+  @details code taken form LAGraph. Add license.
+  @date May 12, 2022
+*/
+
 #pragma once
 #include "../../src/gb_kun.h"
 
@@ -10,8 +19,13 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//! Lablas namespace
+
 namespace lablas {
-namespace algorithm {
+
+    //! Algorithm namespace
+
+    namespace algorithm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -82,6 +96,18 @@ static int tricount_prep
     LAGraph_Free ((void **) &P) ;           \
 }
 */
+
+/**
+ * LAGr_TriangleCount function.
+ * @brief The function does...
+ * @param ntriangles ntriangles
+ * @param G G
+ * @param method method
+ * @param presort presort
+ * @param msg msg
+ * @return Returns int.
+*/
+
 int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
                        LAGraph_TriangleCount_Method method,
                        LAGraph_TriangleCount_Presort presort, const char *msg)
