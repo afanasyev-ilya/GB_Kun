@@ -309,7 +309,7 @@ void SubgraphSegment<T>::check_if_static_can_be_used()
 {
     VNT num_rows = this->size; // fixme
 
-    int cores_num = omp_get_max_threads();
+    int total_threads = omp_get_max_threads();
     static_ok_to_use = true;
     #pragma omp parallel
     {
@@ -322,7 +322,7 @@ void SubgraphSegment<T>::check_if_static_can_be_used()
         }
 
         double real_percent = 100.0*((double)core_edges/nnz);
-        double supposed_percent = 100.0/cores_num;
+        double supposed_percent = 100.0/total_threads;
 
         if(fabs(real_percent - supposed_percent) > 4) // if difference is more than 4%, static not ok to use
             static_ok_to_use = false;

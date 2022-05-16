@@ -59,7 +59,7 @@ void MemoryAPI::numa_aware_alloc(T **_ptr, size_t _size, int _target_socket)
         size_t work_per_thread = (_size - 1)/threads_active_on_target_socket + 1;
         if(cur_socket == _target_socket) // init target array using threads only from target socket
         {
-            int tid = omp_get_thread_num();
+            int tid = omp_get_thread_num() % threads_active_on_target_socket;
             for(size_t i = tid*work_per_thread; i < min((tid+1)*work_per_thread, _size); i++)
             {
                 (*_ptr)[i] = 0;
@@ -83,17 +83,16 @@ void MemoryAPI::numa_aware_alloc_valued(T **_ptr, size_t _size, int _target_sock
     *_ptr = (T*)malloc(_size*sizeof(T));
 
     int max_threads = omp_get_max_threads();
-    if(max_threads == 2*numCPU)
+    if(max_threads == 2*numCPU())
     {
-#pragma omp parallel num_threads(2*numCPU)
+        #pragma omp parallel num_threads(2*numCPU())
         {
-            size_t sock = omp_get_thread_num() / numCPU;
-            size_t tid = omp_get_thread_num() % numCPU;
+            size_t sock = omp_get_thread_num() / numCPU();
+            size_t tid = omp_get_thread_num() % numCPU();
 
-            size_t work_per_thread = (_size - 1)/numCPU + 1;
+            size_t work_per_thread = (_size - 1)/numCPU() + 1;
             if(sock == _target_socket)
             {
-
                 for(size_t i = tid*work_per_thread; i < min((tid+1)*work_per_thread, _size); i++)
                 {
                     (*_ptr)[i] = vals[i];
@@ -101,9 +100,9 @@ void MemoryAPI::numa_aware_alloc_valued(T **_ptr, size_t _size, int _target_sock
             }
         }
     }
-    else if(omp_get_max_threads() == numCPU)
+    else if(omp_get_max_threads() == numCPU())
     {
-#pragma omp parallel for num_threads(numCPU)
+#pragma omp parallel for num_threads(numCPU())
         for(size_t i = 0; i < _size; i++)
         {
             (*_ptr)[i] = vals[i];
