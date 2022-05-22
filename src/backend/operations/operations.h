@@ -161,13 +161,13 @@ LA_Info mxv (Vector<W>*       _w,
 {
     Desc_value algo;
     _desc->get(GrB_MXVMODE, &algo);
-    if (algo == SPMV_GENERAL or (algo == GrB_DEFAULT and _u->is_dense())) // PLS CHECK IT!!!!!
+    if (algo == SPMV_GENERAL or (algo == GrB_DEFAULT and _u->is_dense()))
     {
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     else
     {
-        if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT)) {
+        if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse())) {
             backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
         }
         if (algo == SPMSPV_MAP_TBB) {
