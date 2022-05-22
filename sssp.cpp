@@ -3,7 +3,6 @@
 #include "algorithms/sssp/sssp.hpp"
 #include "algorithms/sssp/sssp_blast.hpp"
 #include "algorithms/sssp/sssp_traditional.hpp"
-//#define __DISABLE_SPMSPV__
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
