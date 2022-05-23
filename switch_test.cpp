@@ -1,5 +1,16 @@
 #include "src/gb_kun.h"
 
+std::string is_correct(lablas::Vector<int>& a1, lablas::Vector<int>& a2) {
+    if (a1 == a2) {
+        std::string ans = "correct";
+        return ans;
+    } else {
+        std::string ans = "ERROR";
+        return ans;
+    }
+
+}
+
 
 int main(int argc, char** argv)
 {
@@ -47,28 +58,35 @@ int main(int argc, char** argv)
             for (int iter = 2 * nrows / 100; iter < nrows; iter += 2 * nrows / 100) {
                 size_t vec_nvals = iter;
                 lablas::Vector<int> components(nrows);
+                std::vector<VNT> vec_indices(vec_nvals);
 
                 lablas::Vector<int> res_1(nrows);
                 lablas::Vector<int> res_2(nrows);
                 lablas::Vector<int> res_3(nrows);
                 lablas::Vector<int> res_4(nrows);
 
+                std::cout << "Entering generation zone" << std::endl;
+
+                std::vector<int> indices(nrows);
+                std::iota (std::begin(indices), std::end(indices), 0);
 
                 for (size_t i = 0; i < vec_nvals; i++) {
-                    VNT idx = rand() % nrows;
-                    while (idx_set.find(idx) != idx_set.end()) {
-                        idx = rand() % nrows;
-                    }
-                    idx_set.insert(idx);
+                    VNT idx = rand() % (nrows - i);
+                    auto it = indices.begin() + idx;
+                    VNT elem = *it;
+                    vec_indices[i] = elem;
+                    indices.erase(it);
                 }
 
+                std::vector<int> vec_vals(vec_nvals);
+                for (int i = 0; i < vec_nvals; i++) {
+                    vec_vals[i] = rand() % INT_MAX;
+                }
+
+                components.build(&vec_indices, &vec_vals, vec_nvals);
 
                 std::cout << "Matrix dim size: " << nrows << std::endl;
-                for (auto &a: idx_set) {
-                    std::cout << a << " ";
-                }
-                std::cout << endl;
-                std::cout << mask_type << " " << mask_iter << " " << iter << std::endl;
+                std::cout << "(" << mask_type << " " << mask_iter << " " << (double)iter/(double)nrows  << ")" << "\t";
 
                 lablas::Descriptor desc;
                 double t_general, t_map_seq, t_map_par, t_for;
@@ -92,7 +110,7 @@ int main(int argc, char** argv)
                 }
                 end_time = omp_get_wtime();
                 t_general = end_time - start_time;
-                std::cout << t_general << std::endl;
+                std::cout << t_general << "\t";
 
                 desc.set(GrB_MXVMODE, SPMSPV_MAP_TBB);
                 start_time = omp_get_wtime();
@@ -114,9 +132,11 @@ int main(int argc, char** argv)
                 t_for = end_time - start_time;
                 std::cout << t_for << std::endl;
 
-                if (res_1 == res_2 and res_3 == res_4 and res_1 == res_3) {
-                    std::cout << " Correct" << std::endl;
-                }
+
+                std::cout << "correct" << " " << is_correct(res_1, res_2) << " " << is_correct(res_1, res_3) << " " << is_correct(res_1, res_4) << " " << std::endl;
+                std::cout << is_correct(res_1, res_2) << " " << "correct" << " " << is_correct(res_2, res_3) << " " << is_correct(res_2, res_4) << " " << std::endl;
+                std::cout << is_correct(res_1, res_3) << " "<< is_correct(res_3, res_2) << " "<< "correct" << " "<< is_correct(res_3, res_4) << std::endl;
+                std::cout << is_correct(res_1, res_4) << " "<< is_correct(res_4, res_2) << " "<< is_correct(res_4, res_3) << " "<< "correct" << std::endl;
 
                 /*
                 auto min_val = min(t_bucket, t_for);
