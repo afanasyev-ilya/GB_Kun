@@ -5,7 +5,7 @@ std::string is_correct(lablas::Vector<int>& a1, lablas::Vector<int>& a2) {
         std::string ans = "correct";
         return ans;
     } else {
-        std::string ans = "ERROR";
+        std::string ans = "_ERROR_";
         return ans;
     }
 
@@ -23,6 +23,7 @@ int main(int argc, char** argv)
     parser.parse_args(argc, argv);
     VNT scale = parser.get_scale();
     VNT avg_deg = parser.get_avg_degree();
+    int in_iters = parser.get_iterations();
 
     // Matrix A
     lablas::Matrix<int> matrix;
@@ -65,7 +66,7 @@ int main(int argc, char** argv)
                 lablas::Vector<int> res_3(nrows);
                 lablas::Vector<int> res_4(nrows);
 
-                std::cout << "Entering generation zone" << std::endl;
+                LOG_TRACE("Entering generation zone")
 
                 std::vector<int> indices(nrows);
                 std::iota (std::begin(indices), std::end(indices), 0);
@@ -85,8 +86,9 @@ int main(int argc, char** argv)
 
                 components.build(&vec_indices, &vec_vals, vec_nvals);
 
-                std::cout << "Matrix dim size: " << nrows << std::endl;
-                std::cout << "(" << mask_type << " " << mask_iter << " " << (double)iter/(double)nrows  << ")" << "\t";
+                LOG_TRACE("Generation and build done, Matrix dim size: ")
+
+                std::cout << "(mask type: " << mask_type << ", mask sparsity: " << (double)mask_iter/(double)nrows << ", vector sparsity: " << (double)iter/(double)nrows  << ")" << "\t";
 
                 lablas::Descriptor desc;
                 double t_general, t_map_seq, t_map_par, t_for;
@@ -94,7 +96,7 @@ int main(int argc, char** argv)
 
                 desc.set(GrB_MXVMODE, SPMSPV_MAP_SEQ);
                 double start_time = omp_get_wtime();
-                for (size_t in_iter = 0; in_iter < IN_ITER; in_iter++) {
+                for (size_t in_iter = 0; in_iter < in_iters; in_iter++) {
                     lablas::mxv(&res_1, &mask, lablas::second<int>(), lablas::MinimumSelectSecondSemiring<int>(),
                                 &matrix, &components, &desc);
                 }
@@ -104,7 +106,7 @@ int main(int argc, char** argv)
 
                 desc.set(GrB_MXVMODE, SPMV_GENERAL);
                 start_time = omp_get_wtime();
-                for (size_t in_iter = 0; in_iter < IN_ITER; in_iter++) {
+                for (size_t in_iter = 0; in_iter < in_iters; in_iter++) {
                     lablas::mxv(&res_2, &mask, lablas::second<int>(), lablas::MinimumSelectSecondSemiring<int>(),
                                 &matrix, &components, &desc);
                 }
@@ -114,7 +116,7 @@ int main(int argc, char** argv)
 
                 desc.set(GrB_MXVMODE, SPMSPV_MAP_TBB);
                 start_time = omp_get_wtime();
-                for (size_t in_iter = 0; in_iter < IN_ITER; in_iter++) {
+                for (size_t in_iter = 0; in_iter < in_iters; in_iter++) {
                     lablas::mxv(&res_3, &mask, lablas::second<int>(), lablas::MinimumSelectSecondSemiring<int>(),
                                 &matrix, &components, &desc);
                 }
@@ -124,7 +126,7 @@ int main(int argc, char** argv)
 
                 desc.set(GrB_MXVMODE, SPMSPV_FOR);
                 start_time = omp_get_wtime();
-                for (size_t in_iter = 0; in_iter < IN_ITER; in_iter++) {
+                for (size_t in_iter = 0; in_iter < in_iters; in_iter++) {
                     lablas::mxv(&res_4, &mask, lablas::second<int>(), lablas::MinimumSelectSecondSemiring<int>(),
                                 &matrix, &components, &desc);
                 }
