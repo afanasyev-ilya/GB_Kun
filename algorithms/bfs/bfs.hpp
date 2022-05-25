@@ -125,12 +125,17 @@ void bfs_blast(Vector<T>*       v,
     T gpu_tight_time = 0.f;
     Index max_iters = A_nrows;
 
+    double bfs_time = 0;
+    double bfs_mxv = 0;
+    double t1 = omp_get_wtime();
     for (iter = 1; iter <= max_iters; ++iter)
     {
         unvisited -= static_cast<int>(succ);
         assign<T, T, T>(v, &f1, GrB_NULL, iter, GrB_ALL, A_nrows, desc);
-        desc->toggle(GrB_MASK);
+        double t1_in = omp_get_wtime();
         vxm<T, T, T, T>(&f2, v, GrB_NULL, LogicalOrAndSemiring<T>(), &f1, A, GrB_DESC_SC);
+        double t2_in = omp_get_wtime();
+        bfs_mxv += t2_in - t1_in;
         desc->toggle(GrB_MASK);
 
         f2.swap(&f1);
@@ -139,6 +144,10 @@ void bfs_blast(Vector<T>*       v,
         if (succ == 0)
             break;
     }
+    double t2 = omp_get_wtime();
+    bfs_time += t2 - t1;
+
+    std::cout << "bfs time comp: " << (bfs_mxv/bfs_time)*100.0 << "%\n";
 }
 
 }
