@@ -208,14 +208,20 @@ LA_Info vxm (Vector<W>*       _w,
     if (algo == SPMV_GENERAL or (algo == GrB_DEFAULT and _u->is_dense()))
     {
         LOG_TRACE("Using SpMV General");
+        double t1 = omp_get_wtime();
         backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+        double t2 = omp_get_wtime();
+        SPMV_TIME += t2 - t1;
     }
     else
     {
         if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse()))
         {
             LOG_TRACE("Using SpMSpV for-based");
+            double t1 = omp_get_wtime();
             backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+            double t2 = omp_get_wtime();
+            SPMSPV_TIME += t2 - t1;
         }
         if (algo == SPMSPV_BUCKET)
         {
@@ -233,7 +239,11 @@ LA_Info vxm (Vector<W>*       _w,
             SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
         }
     }
+
+    double t1 = omp_get_wtime();
     _w->convert_if_required();
+    double t2 = omp_get_wtime();
+    CONVERT_TIME += t2 - t1;
 
     return GrB_SUCCESS;
 }
