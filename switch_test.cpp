@@ -34,7 +34,10 @@ int main(int argc, char** argv)
     ncols = matrix.ncols();
     nvals = matrix.get_nvals(&nvals);
 
-    size_t IN_ITER = 500;
+    std::vector<int> indices(nrows);
+    for(int i = 0; i < nrows; i++)
+        indices[i] = i;
+    random_shuffle(indices.begin(), indices.end());
 
     /* Mask type (dense or sparse */
     for (int mask_type = 0; mask_type < 2; mask_type++) {
@@ -68,16 +71,8 @@ int main(int argc, char** argv)
 
                 LOG_TRACE("Entering generation zone")
 
-                std::vector<int> indices(nrows);
-                std::iota (std::begin(indices), std::end(indices), 0);
-
-                for (size_t i = 0; i < vec_nvals; i++) {
-                    VNT idx = rand() % (nrows - i);
-                    auto it = indices.begin() + idx;
-                    VNT elem = *it;
-                    vec_indices[i] = elem;
-                    indices.erase(it);
-                }
+                for(int i = 0; i < vec_nvals; i++)
+                    vec_indices[i] = indices[i];
 
                 std::vector<int> vec_vals(vec_nvals);
                 for (int i = 0; i < vec_nvals; i++) {
@@ -134,29 +129,13 @@ int main(int argc, char** argv)
                 t_for = end_time - start_time;
                 std::cout << t_for << std::endl;
 
-
-                std::cout << "correct" << " " << is_correct(res_1, res_2) << " " << is_correct(res_1, res_3) << " " << is_correct(res_1, res_4) << " " << std::endl;
-                std::cout << is_correct(res_1, res_2) << " " << "correct" << " " << is_correct(res_2, res_3) << " " << is_correct(res_2, res_4) << " " << std::endl;
-                std::cout << is_correct(res_1, res_3) << " "<< is_correct(res_3, res_2) << " "<< "correct" << " "<< is_correct(res_3, res_4) << std::endl;
-                std::cout << is_correct(res_1, res_4) << " "<< is_correct(res_4, res_2) << " "<< is_correct(res_4, res_3) << " "<< "correct" << std::endl;
-
-                /*
-                auto min_val = min(t_bucket, t_for);
-                min_val = min(min_val, t_map_par);
-                min_val = min(min_val, t_map_seq);
-                if (min_val == t_bucket) {
-                    std::cout << "bucket" << std::endl;
+                if (parser.check())
+                {
+                    std::cout << "correct" << " " << is_correct(res_1, res_2) << " " << is_correct(res_1, res_3) << " " << is_correct(res_1, res_4) << " " << std::endl;
+                    std::cout << is_correct(res_1, res_2) << " " << "correct" << " " << is_correct(res_2, res_3) << " " << is_correct(res_2, res_4) << " " << std::endl;
+                    std::cout << is_correct(res_1, res_3) << " "<< is_correct(res_3, res_2) << " "<< "correct" << " "<< is_correct(res_3, res_4) << std::endl;
+                    std::cout << is_correct(res_1, res_4) << " "<< is_correct(res_4, res_2) << " "<< is_correct(res_4, res_3) << " "<< "correct" << std::endl;
                 }
-                if (min_val == t_map_seq) {
-                    std::cout << "map_seq" << std::endl;
-                }
-                if (min_val == t_map_par) {
-                    std::cout << "map_par" << std::endl;
-                }
-                if (min_val == t_for) {
-                    std::cout << "for" << std::endl;
-                }
-                 */
             }
         }
     }
