@@ -14,7 +14,8 @@
 
     enum log_level {GrB_ERROR,
                     GrB_DEBUG,
-                    GrB_TRACE};
+                    GrB_TRACE,
+                    GrB_DEBUG_TRACE};
 
 
     class GB_LOGGER {
@@ -30,6 +31,9 @@
                 }
                 if (!strcmp(env_string, "error")) {
                     level = GrB_ERROR;                      //disable any logging by default
+                }
+                if (!strcmp(env_string, "trace_debug") or !strcmp(env_string, "debug_trace")) {
+                    level = GrB_DEBUG_TRACE;
                 }
             } else {
                 level = GrB_ERROR;
