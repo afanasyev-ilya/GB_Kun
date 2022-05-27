@@ -13,7 +13,7 @@ void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
                          Matrix<T> *_matrix_result,
                          SemiringT _op)
 {
-
+    LOG_TRACE("Running SpMSpM_unmasked_ikj")
     #ifdef __DEBUG_BANDWIDTHS__
         double bytes_requested = 0;
         bytes_requested += sizeof(vector<unordered_map<VNT, T>>);

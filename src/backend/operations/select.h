@@ -24,6 +24,7 @@ static LA_Info select(DenseVector<W> *w,
                       const T val,
                       Descriptor *desc)
 {
+    LOG_TRACE("Running select for dense vector and dense mask")
           W* w_vals    = w->get_vals();
     const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
@@ -63,6 +64,7 @@ static LA_Info select(DenseVector<W> *w,
                       const T val,
                       Descriptor *desc)
 {
+    LOG_TRACE("Running select for sparse vector and dense mask")
           W* w_vals    = w->get_vals();
     const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
@@ -119,6 +121,7 @@ static LA_Info select(DenseVector<W> *w,
                       const T val,
                       Descriptor *desc)
 {
+    LOG_TRACE("Running select for dense vector and sparse mask")
           W* w_vals    = w->get_vals();
     const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
@@ -174,6 +177,7 @@ static LA_Info select(DenseVector<W> *w,
                       const T val,
                       Descriptor *desc)
 {
+    LOG_TRACE("Running select for sparse vector and sparse mask")
           W* w_vals    = w->get_vals();
     const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
@@ -264,6 +268,7 @@ static LA_Info select(DenseVector<W> *w,
                       const DenseVector<U> *u,
                       const T val)
 {
+    LOG_TRACE("Running non-masked select for dense vector")
           W* w_vals = w->get_vals();
     const U* u_vals = u->get_vals();
 
@@ -285,6 +290,7 @@ static LA_Info select(DenseVector<W> *w,
                       const SparseVector<U> *u,
                       const T val)
 {
+    LOG_TRACE("Running non-masked select for sparse vector")
           W* w_vals = w->get_vals();
     const U* u_vals = u->get_vals();
 
@@ -368,6 +374,7 @@ static LA_Info select(Matrix<W> *w,
                       const T val,
                       Descriptor *desc)
 {
+    LOG_TRACE("Running matrix-like select")
     VNT n = u->get_nrows();
     ENT nnz = u->get_nnz();
     VNT *row_ptr = new VNT[n + 1];

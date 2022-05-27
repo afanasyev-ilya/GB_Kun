@@ -13,6 +13,7 @@ void SpMV(const MatrixCOO<A> *_matrix,
           SemiringT _op,
           Workspace *_workspace)
 {
+    LOG_TRACE("Running SpMV for COO")
     const X * __restrict x_vals = _x->get_vals();
     Y * __restrict y_vals = _y->get_vals();
     auto add_op = extractAdd(_op);
