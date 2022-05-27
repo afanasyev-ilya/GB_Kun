@@ -8,9 +8,14 @@ std::string is_correct(lablas::Vector<int>& a1, lablas::Vector<int>& a2) {
         std::string ans = "_ERROR_";
         return ans;
     }
-
 }
 
+int to_int(const std::string &str)
+{
+    if(str == "correct")
+        return 1;
+    return 0;
+}
 
 int main(int argc, char** argv)
 {
@@ -39,14 +44,19 @@ int main(int argc, char** argv)
         indices[i] = i;
     random_shuffle(indices.begin(), indices.end());
 
+    int experiments_count = 0;
+    int error_count = 0;
+
     /* Mask type (dense or sparse */
-    for (int mask_type = 0; mask_type < 2; mask_type++) {
+    for (int mask_type = 0; mask_type < 2; mask_type++)
+    {
         lablas::Vector<int> mask(nrows);
         mask_type == 0 ? mask.get_vector()->force_to_dense() : mask.get_vector()->force_to_sparse();
 
         /* Mask sparsity iterations */
-        for (int mask_iter = 10 * nrows / 100; mask_iter < nrows; mask_iter += 10 * nrows / 100) {
-
+        //for (int mask_iter = 10 * nrows / 100; mask_iter < nrows; mask_iter += 10 * nrows / 100)
+        for (int mask_iter = 50 * nrows / 100; mask_iter <= 50 * nrows / 100; mask_iter += 10 * nrows / 100)
+        {
             std::set<VNT> idx_set;
             size_t mask_nvals = mask_iter;
             for (size_t i = 0; i < mask_nvals; i++) {
@@ -56,12 +66,17 @@ int main(int argc, char** argv)
                 }
                 idx_set.insert(idx);
             }
+            vector<VNT> mask_vec_ids;
+            vector<int> mask_vec_vals;
+            for(auto it: idx_set)
+                mask_vec_ids.push_back(it), mask_vec_vals.push_back(1);
+            mask.build(&mask_vec_ids, &mask_vec_vals, mask_vec_ids.size());
             idx_set.clear();
 
             /* Vector sparsity iterations */
             for (int iter = 2 * nrows / 100; iter < nrows; iter += 2 * nrows / 100) {
                 size_t vec_nvals = iter;
-                lablas::Vector<int> components(nrows);
+                lablas::Vector<int> results(nrows);
                 std::vector<VNT> vec_indices(vec_nvals);
 
                 lablas::Vector<int> res_1(nrows);
@@ -79,7 +94,7 @@ int main(int argc, char** argv)
                     vec_vals[i] = rand() % INT_MAX;
                 }
 
-                components.build(&vec_indices, &vec_vals, vec_nvals);
+                results.build(&vec_indices, &vec_vals, vec_nvals);
 
                 LOG_TRACE("Generation and build done, Matrix dim size: ")
 
@@ -88,12 +103,11 @@ int main(int argc, char** argv)
                 lablas::Descriptor desc;
                 double t_general, t_map_seq, t_map_par, t_for;
 
-
                 desc.set(GrB_MXVMODE, SPMSPV_MAP_SEQ);
                 double start_time = omp_get_wtime();
                 for (size_t in_iter = 0; in_iter < in_iters; in_iter++) {
-                    lablas::mxv(&res_1, &mask, lablas::second<int>(), lablas::MinimumSelectSecondSemiring<int>(),
-                                &matrix, &components, &desc);
+                    lablas::mxv(&res_1, &mask, lablas::second<int>(), lablas::LogicalOrAndSemiring<int>(),
+                                &matrix, &results, &desc);
                 }
                 double end_time = omp_get_wtime();
                 t_map_seq = end_time - start_time;
@@ -102,8 +116,8 @@ int main(int argc, char** argv)
                 desc.set(GrB_MXVMODE, SPMV_GENERAL);
                 start_time = omp_get_wtime();
                 for (size_t in_iter = 0; in_iter < in_iters; in_iter++) {
-                    lablas::mxv(&res_2, &mask, lablas::second<int>(), lablas::MinimumSelectSecondSemiring<int>(),
-                                &matrix, &components, &desc);
+                    lablas::mxv(&res_2, &mask, lablas::second<int>(), lablas::LogicalOrAndSemiring<int>(),
+                                &matrix, &results, &desc);
                 }
                 end_time = omp_get_wtime();
                 t_general = end_time - start_time;
@@ -112,8 +126,8 @@ int main(int argc, char** argv)
                 desc.set(GrB_MXVMODE, SPMSPV_MAP_TBB);
                 start_time = omp_get_wtime();
                 for (size_t in_iter = 0; in_iter < in_iters; in_iter++) {
-                    lablas::mxv(&res_3, &mask, lablas::second<int>(), lablas::MinimumSelectSecondSemiring<int>(),
-                                &matrix, &components, &desc);
+                    lablas::mxv(&res_3, &mask, lablas::second<int>(), lablas::LogicalOrAndSemiring<int>(),
+                                &matrix, &results, &desc);
                 }
                 end_time = omp_get_wtime();
                 t_map_par = end_time - start_time;
@@ -122,8 +136,8 @@ int main(int argc, char** argv)
                 desc.set(GrB_MXVMODE, SPMSPV_FOR);
                 start_time = omp_get_wtime();
                 for (size_t in_iter = 0; in_iter < in_iters; in_iter++) {
-                    lablas::mxv(&res_4, &mask, lablas::second<int>(), lablas::MinimumSelectSecondSemiring<int>(),
-                                &matrix, &components, &desc);
+                    lablas::mxv(&res_4, &mask, lablas::second<int>(), lablas::LogicalOrAndSemiring<int>(),
+                                &matrix, &results, &desc);
                 }
                 end_time = omp_get_wtime();
                 t_for = end_time - start_time;
@@ -131,13 +145,25 @@ int main(int argc, char** argv)
 
                 if (parser.check())
                 {
+                    #define ALGO_COUNT 4
                     std::cout << "correct" << " " << is_correct(res_1, res_2) << " " << is_correct(res_1, res_3) << " " << is_correct(res_1, res_4) << " " << std::endl;
                     std::cout << is_correct(res_1, res_2) << " " << "correct" << " " << is_correct(res_2, res_3) << " " << is_correct(res_2, res_4) << " " << std::endl;
                     std::cout << is_correct(res_1, res_3) << " "<< is_correct(res_3, res_2) << " "<< "correct" << " "<< is_correct(res_3, res_4) << std::endl;
                     std::cout << is_correct(res_1, res_4) << " "<< is_correct(res_4, res_2) << " "<< is_correct(res_4, res_3) << " "<< "correct" << std::endl;
+                    int cur_experiment_correct_count = ALGO_COUNT + to_int(is_correct(res_1, res_2)) + to_int(is_correct(res_1, res_3)) + to_int(is_correct(res_1, res_4)) +
+                            to_int(is_correct(res_1, res_2)) + to_int(is_correct(res_2, res_3)) + to_int(is_correct(res_2, res_4)) +
+                            to_int(is_correct(res_1, res_3)) + to_int(is_correct(res_3, res_2)) + to_int(is_correct(res_3, res_4)) +
+                            to_int(is_correct(res_1, res_4)) + to_int(is_correct(res_4, res_2)) + to_int(is_correct(res_4, res_3));
+                    experiments_count += ALGO_COUNT*ALGO_COUNT;
+                    error_count += (ALGO_COUNT*ALGO_COUNT - cur_experiment_correct_count);
                 }
             }
         }
+    }
+
+    if (parser.check())
+    {
+        cout << "error_count: " << error_count << " / " << experiments_count << endl;
     }
 
     return 0;
