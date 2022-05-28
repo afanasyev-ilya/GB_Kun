@@ -67,6 +67,7 @@ public:
         if (nvals > size)
             return GrB_INDEX_OUT_OF_BOUNDS;
 
+        #pragma omp parallel for
         for (Index i = 0; i < _nvals; i++){
             vals[i] = _values[i];
             ids[i] = _indices[i];

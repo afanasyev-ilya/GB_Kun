@@ -148,6 +148,7 @@ int main(int argc, char** argv)
                         std::cout << std::endl;
                     }
                     experiments_count += ALGO_COUNT*ALGO_COUNT;
+                    std::cout << "Errors in current experiment: " << (ALGO_COUNT*ALGO_COUNT - cur_experiment_correct_count) << std::endl;
                     error_count += (ALGO_COUNT*ALGO_COUNT - cur_experiment_correct_count);
                 }
             }
