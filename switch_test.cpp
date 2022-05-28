@@ -28,7 +28,9 @@ int main(int argc, char** argv)
     parser.parse_args(argc, argv);
     VNT scale = parser.get_scale();
     VNT avg_deg = parser.get_avg_degree();
-    int in_iters = parser.get_iterations();
+    int in_iters = 20;
+    if(parser.check())
+        in_iters = 1;
 
     // Matrix A
     lablas::Matrix<int> matrix;
@@ -47,6 +49,10 @@ int main(int argc, char** argv)
     int experiments_count = 0;
     int error_count = 0;
 
+    #define ALGO_COUNT 4
+    Desc_value tested_algos[ALGO_COUNT] = {SPMV_GENERAL, SPMSPV_FOR, SPMSPV_MAP_TBB, SPMSPV_MAP_SEQ};
+    std::string tested_algo_names[ALGO_COUNT] = {"GENERIC", "FOR    ", "TBB_MAP", "SEQ_MAP"};
+
     /* Mask type (dense or sparse */
     for (int mask_type = 0; mask_type < 2; mask_type++)
     {
@@ -55,7 +61,7 @@ int main(int argc, char** argv)
 
         /* Mask sparsity iterations */
         //for (int mask_iter = 10 * nrows / 100; mask_iter < nrows; mask_iter += 10 * nrows / 100)
-        for (int mask_iter = 50 * nrows / 100; mask_iter <= 50 * nrows / 100; mask_iter += 10 * nrows / 100)
+        for (int mask_iter = 50 * nrows / 100; mask_iter <= 50 * nrows / 100; mask_iter += 10 * nrows / 100) // 50% sparse mask for now
         {
             std::set<VNT> idx_set;
             size_t mask_nvals = mask_iter;
@@ -71,18 +77,15 @@ int main(int argc, char** argv)
             for(auto it: idx_set)
                 mask_vec_ids.push_back(it), mask_vec_vals.push_back(1);
             mask.build(&mask_vec_ids, &mask_vec_vals, mask_vec_ids.size());
-            idx_set.clear();
 
             /* Vector sparsity iterations */
             for (int iter = 2 * nrows / 100; iter < nrows; iter += 2 * nrows / 100) {
                 size_t vec_nvals = iter;
-                lablas::Vector<int> results(nrows);
+                lablas::Vector<int> data_vector(nrows);
                 std::vector<VNT> vec_indices(vec_nvals);
 
-                lablas::Vector<int> res_1(nrows);
-                lablas::Vector<int> res_2(nrows);
-                lablas::Vector<int> res_3(nrows);
-                lablas::Vector<int> res_4(nrows);
+                lablas::Vector<int> results[ALGO_COUNT] = { lablas::Vector<int>(nrows), lablas::Vector<int>(nrows),
+                                                  lablas::Vector<int>(nrows), lablas::Vector<int>(nrows)};
 
                 LOG_TRACE("Entering generation zone")
 
@@ -94,66 +97,56 @@ int main(int argc, char** argv)
                     vec_vals[i] = rand() % INT_MAX;
                 }
 
-                results.build(&vec_indices, &vec_vals, vec_nvals);
+                data_vector.build(&vec_indices, &vec_vals, vec_nvals);
 
                 LOG_TRACE("Generation and build done, Matrix dim size: ")
 
                 std::cout << "(mask type: " << mask_type << ", mask sparsity: " << (double)mask_iter/(double)nrows << ", vector sparsity: " << (double)iter/(double)nrows  << ")" << "\t";
 
-                lablas::Descriptor desc;
-                double t_general, t_map_seq, t_map_par, t_for;
+                double algo_times[ALGO_COUNT];
+                double best_time = std::numeric_limits<double>::max();
+                std::string best_name;
+                for(int algo_id = 0; algo_id < ALGO_COUNT; algo_id++)
+                {
+                    lablas::Descriptor desc;
 
-                desc.set(GrB_MXVMODE, SPMSPV_MAP_SEQ);
-                double start_time = omp_get_wtime();
-                for (size_t in_iter = 0; in_iter < in_iters; in_iter++) {
-                    lablas::mxv(&res_1, &mask, lablas::second<int>(), lablas::LogicalOrAndSemiring<int>(),
-                                &matrix, &results, &desc);
-                }
-                double end_time = omp_get_wtime();
-                t_map_seq = end_time - start_time;
-                std::cout << t_map_seq << "\t";
+                    desc.set(GrB_MXVMODE, tested_algos[algo_id]);
+                    double start_time = omp_get_wtime();
+                    for (size_t in_iter = 0; in_iter < in_iters; in_iter++) {
+                        lablas::mxv(&(results[algo_id]), &mask, lablas::second<int>(), lablas::LogicalOrAndSemiring<bool>(),
+                                    &matrix, &data_vector, &desc);
+                    }
+                    double end_time = omp_get_wtime();
+                    double algo_time = end_time - start_time;
 
-                desc.set(GrB_MXVMODE, SPMV_GENERAL);
-                start_time = omp_get_wtime();
-                for (size_t in_iter = 0; in_iter < in_iters; in_iter++) {
-                    lablas::mxv(&res_2, &mask, lablas::second<int>(), lablas::LogicalOrAndSemiring<int>(),
-                                &matrix, &results, &desc);
-                }
-                end_time = omp_get_wtime();
-                t_general = end_time - start_time;
-                std::cout << t_general << "\t";
+                    if(algo_time < best_time)
+                    {
+                        best_time = algo_time;
+                        best_name = tested_algo_names[algo_id];
+                    }
 
-                desc.set(GrB_MXVMODE, SPMSPV_MAP_TBB);
-                start_time = omp_get_wtime();
-                for (size_t in_iter = 0; in_iter < in_iters; in_iter++) {
-                    lablas::mxv(&res_3, &mask, lablas::second<int>(), lablas::LogicalOrAndSemiring<int>(),
-                                &matrix, &results, &desc);
+                    algo_times[algo_id] = algo_time;
                 }
-                end_time = omp_get_wtime();
-                t_map_par = end_time - start_time;
-                std::cout << t_map_par << "\t";
 
-                desc.set(GrB_MXVMODE, SPMSPV_FOR);
-                start_time = omp_get_wtime();
-                for (size_t in_iter = 0; in_iter < in_iters; in_iter++) {
-                    lablas::mxv(&res_4, &mask, lablas::second<int>(), lablas::LogicalOrAndSemiring<int>(),
-                                &matrix, &results, &desc);
-                }
-                end_time = omp_get_wtime();
-                t_for = end_time - start_time;
-                std::cout << t_for << std::endl;
+                std::cout << "fastest algo: " << best_name << "  | times: ";
+                for(int i = 0; i < ALGO_COUNT; i++)
+                    std::cout << algo_times[i] << "(s) ";
+                std::cout << endl;
 
                 if (parser.check())
                 {
-                    #define ALGO_COUNT 4
-                    std::cout << "correct" << " " << is_correct(res_1, res_2) << " " << is_correct(res_1, res_3) << " " << is_correct(res_1, res_4) << " " << std::endl;
-                    std::cout << is_correct(res_1, res_2) << " " << "correct" << " " << is_correct(res_2, res_3) << " " << is_correct(res_2, res_4) << " " << std::endl;
-                    std::cout << is_correct(res_1, res_3) << " "<< is_correct(res_3, res_2) << " "<< "correct" << " "<< is_correct(res_3, res_4) << std::endl;
-                    std::cout << is_correct(res_1, res_4) << " "<< is_correct(res_4, res_2) << " "<< is_correct(res_4, res_3) << " "<< "correct" << std::endl;
-                    int cur_experiment_correct_count = ALGO_COUNT + to_int(is_correct(res_1, res_2)) + to_int(is_correct(res_1, res_3)) + to_int(is_correct(res_1, res_4)) +
-                            to_int(is_correct(res_1, res_2)) + to_int(is_correct(res_2, res_3)) + to_int(is_correct(res_2, res_4)) +
-                            to_int(is_correct(res_1, res_3)) + to_int(is_correct(res_3, res_2)) + to_int(is_correct(res_3, res_4)) +
-                            to_int(is_correct(res_1, res_4)) + to_int(is_correct(res_4, res_2)) + to_int(is_correct(res_4, res_3));
+                    int cur_experiment_correct_count = 0;
+                    std::cout << "  /   " << "  GEN  " << "  FOR  " << "  TBB  " << "  SEQ  " << endl;
+                    for(int i = 0; i < ALGO_COUNT; i++)
+                    {
+                        std::cout << tested_algo_names[i] << ": ";
+                        for(int j = 0; j < ALGO_COUNT; j++)
+                        {
+                            std::cout << is_correct(results[i], results[j]) << " ";
+                            cur_experiment_correct_count += to_int(is_correct(results[i], results[j]));
+                        }
+                        std::cout << std::endl;
+                    }
                     experiments_count += ALGO_COUNT*ALGO_COUNT;
                     error_count += (ALGO_COUNT*ALGO_COUNT - cur_experiment_correct_count);
                 }
