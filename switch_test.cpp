@@ -1,4 +1,5 @@
 #include "src/gb_kun.h"
+#include <iomanip>
 
 std::string is_correct(lablas::Vector<int>& a1, lablas::Vector<int>& a2) {
     if (a1 == a2) {
@@ -49,9 +50,12 @@ int main(int argc, char** argv)
     int experiments_count = 0;
     int error_count = 0;
 
-    #define ALGO_COUNT 4
-    Desc_value tested_algos[ALGO_COUNT] = {SPMV_GENERAL, SPMSPV_FOR, SPMSPV_MAP_TBB, SPMSPV_MAP_SEQ};
-    std::string tested_algo_names[ALGO_COUNT] = {"GENERIC", "FOR    ", "TBB_MAP", "SEQ_MAP"};
+    ofstream switch_stats;
+    switch_stats.open("switch_stats.txt", std::ios_base::app);
+
+    const int algo_count = 4;
+    Desc_value tested_algos[algo_count] = {SPMV_GENERAL, SPMSPV_FOR, SPMSPV_MAP_TBB, SPMSPV_MAP_SEQ};
+    std::string tested_algo_names[algo_count] = {"GENERIC", "FOR    ", "TBB_MAP", "SEQ_MAP"};
 
     /* Mask type (dense or sparse */
     for (int mask_type = 0; mask_type < 2; mask_type++)
@@ -61,7 +65,7 @@ int main(int argc, char** argv)
 
         /* Mask sparsity iterations */
         //for (int mask_iter = 10 * nrows / 100; mask_iter < nrows; mask_iter += 10 * nrows / 100)
-        for (int mask_iter = 50 * nrows / 100; mask_iter <= 50 * nrows / 100; mask_iter += 10 * nrows / 100) // 50% sparse mask for now
+        for (int mask_iter = (int)(40 * nrows / 100); mask_iter <= (int)(40 * nrows / 100); mask_iter += 10 * nrows / 100) // 40% sparse mask for now
         {
             std::set<VNT> idx_set;
             size_t mask_nvals = mask_iter;
@@ -78,13 +82,15 @@ int main(int argc, char** argv)
                 mask_vec_ids.push_back(it), mask_vec_vals.push_back(1);
             mask.build(&mask_vec_ids, &mask_vec_vals, mask_vec_ids.size());
 
+            std::string prev_best_name = "";
             /* Vector sparsity iterations */
-            for (int iter = 2 * nrows / 100; iter < nrows; iter += 2 * nrows / 100) {
+            double vec_sparse_step = 1; // initially one element in vector
+            for (int iter = vec_sparse_step; iter < nrows; iter += vec_sparse_step) {
                 size_t vec_nvals = iter;
                 lablas::Vector<int> data_vector(nrows);
                 std::vector<VNT> vec_indices(vec_nvals);
 
-                lablas::Vector<int> results[ALGO_COUNT] = { lablas::Vector<int>(nrows), lablas::Vector<int>(nrows),
+                lablas::Vector<int> results[algo_count] = { lablas::Vector<int>(nrows), lablas::Vector<int>(nrows),
                                                   lablas::Vector<int>(nrows), lablas::Vector<int>(nrows)};
 
                 LOG_TRACE("Entering generation zone")
@@ -101,12 +107,14 @@ int main(int argc, char** argv)
 
                 LOG_TRACE("Generation and build done, Matrix dim size: ")
 
-                std::cout << "(mask type: " << mask_type << ", mask sparsity: " << (double)mask_iter/(double)nrows << ", vector sparsity: " << (double)iter/(double)nrows  << ")" << "\t";
+                std::cout << std::fixed << std::setprecision(5) << "(mask type: " << mask_type << ", mask sparsity: " <<
+                    100.0*(((double)mask_iter)/(double)nrows) << "%, vector sparsity: " <<
+                    100.0*(((double)iter)/(double)nrows)  << "%)" << "\t";
 
-                double algo_times[ALGO_COUNT];
+                double algo_times[algo_count];
                 double best_time = std::numeric_limits<double>::max();
                 std::string best_name;
-                for(int algo_id = 0; algo_id < ALGO_COUNT; algo_id++)
+                for(int algo_id = 0; algo_id < algo_count; algo_id++)
                 {
                     lablas::Descriptor desc;
 
@@ -129,29 +137,44 @@ int main(int argc, char** argv)
                 }
 
                 std::cout << "fastest algo: " << best_name << "  | times: ";
-                for(int i = 0; i < ALGO_COUNT; i++)
+                for(int i = 0; i < algo_count; i++)
                     std::cout << algo_times[i] << "(s) ";
                 std::cout << endl;
+
+                if(prev_best_name != best_name && prev_best_name != "")
+                {
+                    switch_stats << parser.get_file_name() << ") " << prev_best_name << " -> " << best_name << " at : " <<
+                         100.0*(((double)iter)/(double)nrows) << "%, vector sparsity" << ", mask_type = " <<
+                         mask_type << std::endl;
+                }
+
+                prev_best_name = best_name;
 
                 if (parser.check())
                 {
                     int cur_experiment_correct_count = 0;
                     std::cout << "  /   " << "  GEN  " << "  FOR  " << "  TBB  " << "  SEQ  " << endl;
-                    for(int i = 0; i < ALGO_COUNT; i++)
+                    for(int i = 0; i < algo_count; i++)
                     {
                         std::cout << tested_algo_names[i] << ": ";
-                        for(int j = 0; j < ALGO_COUNT; j++)
+                        for(int j = 0; j < algo_count; j++)
                         {
                             std::cout << is_correct(results[i], results[j]) << " ";
                             cur_experiment_correct_count += to_int(is_correct(results[i], results[j]));
                         }
                         std::cout << std::endl;
                     }
-                    experiments_count += ALGO_COUNT*ALGO_COUNT;
-                    std::cout << "Errors in current experiment: " << (ALGO_COUNT*ALGO_COUNT - cur_experiment_correct_count) << std::endl;
-                    error_count += (ALGO_COUNT*ALGO_COUNT - cur_experiment_correct_count);
+                    experiments_count += algo_count*algo_count;
+                    std::cout << "Errors in current experiment: " << (algo_count*algo_count - cur_experiment_correct_count) << std::endl;
+                    error_count += (algo_count*algo_count - cur_experiment_correct_count);
                 }
+
+                if((vec_sparse_step / (double)nrows) > 0.05)
+                    vec_sparse_step = nrows * 0.05;
+                else
+                    vec_sparse_step *= 2;
             }
+            switch_stats << " -------------------------------------------- " << std::endl;
         }
     }
 
@@ -159,6 +182,5 @@ int main(int argc, char** argv)
     {
         cout << "error_count: " << error_count << " / " << experiments_count << endl;
     }
-
     return 0;
 }

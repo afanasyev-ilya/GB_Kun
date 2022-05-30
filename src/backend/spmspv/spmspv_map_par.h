@@ -52,8 +52,9 @@ void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
     {
         Desc_value mask_field;
         _desc->get(GrB_MASK, &mask_field);
+
         if(!_mask->is_dense())
-            std::cout << "warning! costly mask conversion to dense in spmspv seq_mask" << std::endl;
+            LOG_DEBUG("warning! costly mask conversion to dense in spmspv par_map_based");
         const M *mask_vals = _mask->getDense()->get_vals();
         _y->clear();
         if (mask_field == GrB_STR_COMP) // CMP mask
