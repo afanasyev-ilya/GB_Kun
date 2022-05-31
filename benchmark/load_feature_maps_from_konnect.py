@@ -1,13 +1,19 @@
 import pickle
 import requests
+import argparse
+import sys
+import time
+from progress.bar import IncrementalBar
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
+requests_get_headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'}
+
 def get_category_names():
     url = "http://konect.cc/categories/"
-   # html = urlopen(url).read()
-   # soup = BeautifulSoup(html, features="html.parser")
-    html= requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
+    # html = urlopen(url).read()
+    # soup = BeautifulSoup(html, features="html.parser")
+    html= requests.get(url, headers=requests_get_headers)
     soup = BeautifulSoup(html.text, features="html.parser")
     category_names = []
 
@@ -23,9 +29,9 @@ def get_graph_names(category_names):
     graph_urls = []
     for category_name in category_names:
         category_url = "http://konect.cc/categories/" + category_name
-#        html = urlopen(category_url).read()
-#        soup = BeautifulSoup(html, features="html.parser")
-        html= requests.get(category_url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
+        #        html = urlopen(category_url).read()
+        #        soup = BeautifulSoup(html, features="html.parser")
+        html= requests.get(category_url, headers=requests_get_headers)
         soup = BeautifulSoup(html.text, features="html.parser")
         for name in soup.find_all('a'):
             url = name.get('href')
@@ -38,14 +44,14 @@ def get_name(soup):
     return soup.select('h1')[0].text.strip()
 
 def get_tsv_link(soup):
-#        print(soup.find_all('h1'))
-        for name in soup.find_all('a'):
-            link = name.get('href')
-            if link == None:
-                continue
-            if 'tsv' in link:
-                return link
-        return None
+    #        print(soup.find_all('h1'))
+    for name in soup.find_all('a'):
+        link = name.get('href')
+        if link == None:
+            continue
+        if 'tsv' in link:
+            return link
+    return None
 
 def extract_number(line):
     digits_list = [int(s) for s in line if s.isdigit()]
@@ -65,12 +71,12 @@ def extract_category(line):
 
 def get_graph_info(graph_url):
     #html = urlopen(graph_url).read()
-    html= requests.get(graph_url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
+    html= requests.get(graph_url, headers=requests_get_headers)
     soup = BeautifulSoup(html.text, features="html.parser")
 
-#    print(html)
+    #    print(html)
 
-    if "404" in str(html): 
+    if "404" in str(html):
         return None
 
     # kill all script and style elements
@@ -100,7 +106,7 @@ def get_graph_info(graph_url):
     # If it does not work, then you need to write your own function which
     # extracts parameter you need from the html code.
     #
-    # Do not forget to add new parameter to the returned dictionary 
+    # Do not forget to add new parameter to the returned dictionary
     tsv_link = get_tsv_link(soup)
 
     download_link = None
@@ -113,16 +119,18 @@ def get_graph_info(graph_url):
 
 def add_parameter(parameter, soup):
     ans = {parameter: ''}
-    
+
     return ans
 
-def get_info_for_all_graphs(graph_urls):
-    cnt = 0 # !
+def get_info_for_all_graphs(graph_urls, cnt):
+    am = 0
     ans = {}
-    for graph_url in graph_urls:     
+    if cnt != None:
+        bar = IncrementalBar('Progress', max = int(cnt))
+    for graph_url in graph_urls:
         try:
-           # html = urlopen(graph_url).read()
-            html= requests.get(graph_url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
+            # html = urlopen(graph_url).read()
+            html= requests.get(graph_url, headers=requests_get_headers)
         except:
             print("ERROR WITH " + graph_url + '\n')
             continue
@@ -130,22 +138,37 @@ def get_info_for_all_graphs(graph_urls):
         ret = get_graph_info(graph_url)
         if ret != None:
             ans[get_name(soup)] = ret
-            cnt += 1
+            am += 1
 
-        if cnt == 10: # !
-            return ans # !
+        if ret != None and cnt != None:
+            bar.next()
+            if int(cnt) == am:
+                bar.finish()
+                return ans
 
     return ans
 
-def main():
+
+def createParser ():
+    parser = argparse.ArgumentParser()
+    parser.add_argument ('-c', '--cnt')
+    parser.add_argument ('-f', '--file')
+    return parser
+
+if __name__ == '__main__':
+    parser = createParser()
+    namespace = parser.parse_args(sys.argv[1:])
+
+    cnt = namespace.cnt
+    output_file = namespace.file
+    if output_file == None:
+        output_file = 'dict.pickle'
+
     category_names = get_category_names()
     graph_urls = get_graph_names(category_names)
-    dict = get_info_for_all_graphs(graph_urls)
-    print(dict)
-    with open('dict.pickle', 'wb') as handle:
+    dict = get_info_for_all_graphs(graph_urls, cnt)
+
+    with open(output_file, 'wb') as handle:
         pickle.dump(dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-
-main()
 
 # You can add new parameter in get_graph_info() function.
