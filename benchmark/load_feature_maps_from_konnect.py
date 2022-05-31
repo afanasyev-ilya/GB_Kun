@@ -136,7 +136,7 @@ def get_info_for_all_graphs(graph_urls, cnt):
             continue
         soup = BeautifulSoup(html.text, features="html.parser")
         ret = get_graph_info(graph_url)
-        if ret != None:
+        if ret != None and ret['tsv_link'] != None:
             ans[get_name(soup)] = ret
             am += 1
 
@@ -167,6 +167,19 @@ if __name__ == '__main__':
     category_names = get_category_names()
     graph_urls = get_graph_names(category_names)
     dict = get_info_for_all_graphs(graph_urls, cnt)
+
+    txt_output_file = 'txt_' + output_file
+
+    if not '.txt' in txt_output_file:
+        txt_output_file += '.txt'
+
+    f = open(txt_output_file, 'w')
+
+    for name in dict:
+        tsv_link = dict[name]['tsv_link']
+        if tsv_link != None:
+            f.write('\'' + name + '\': {\'link\': \'' + tsv_link + '\'}\n')
+
 
     with open(output_file, 'wb') as handle:
         pickle.dump(dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
