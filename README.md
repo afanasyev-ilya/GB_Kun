@@ -76,3 +76,30 @@ python3 ./run_tests.py --help
 ```
 
 For example, other options, such as --scaling, are available.
+
+***Documentation***
+
+To generate documentations for all algorithms, go to the directory with algorithms and use doxygen command:
+```bash
+cd GB_Kun/algorithms
+doxygen
+```
+```/documentation``` directory will be generated with html and latex folders which contain generated documentation in different formats.
+
+***Downloading graphs from Konect***
+
+To download graphs from connect, type:
+```bash
+cd GB_Kun/benchmark
+python3 ./load_feature_maps_from_konnect.py --cnt 100 --file output
+```
+Parameter ```--cnt``` is used to specify how many graphs to download. 
+
+If ```--cnt``` parameter is not specified all graphs will be downloaded.
+
+Parameter ```--file``` is used to specify the name of the output file.
+
+If ```--file``` parameter is not specified the output file will be named ```dict.pickle```.
+
+
+
