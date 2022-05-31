@@ -178,7 +178,9 @@ if __name__ == '__main__':
     for name in dict:
         tsv_link = dict[name]['tsv_link']
         if tsv_link != None:
-            f.write('\'' + name + '\': {\'link\': \'' + tsv_link + '\'}\n')
+            pos1 = tsv_link.find('tsv.')
+            pos2 = tsv_link.find('.tar')
+            f.write('\'' + name + '\': {\'link\': \'' + tsv_link[pos1 + 4:pos2] + '\'},\n')
 
 
     with open(output_file, 'wb') as handle:
