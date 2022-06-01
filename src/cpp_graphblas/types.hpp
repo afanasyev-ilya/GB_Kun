@@ -14,8 +14,7 @@
 
     enum log_level {GrB_ERROR,
                     GrB_TRACE,
-                    GrB_DEBUG,
-                    GrB_TIME};
+                    GrB_DEBUG};
 
 
     class GB_LOGGER {
@@ -31,9 +30,6 @@
                 }
                 if (!strcmp(env_string, "error")) {
                     level = GrB_ERROR;                      //disable any logging by default
-                }
-                if (!strcmp(env_string, "time")) {
-                    level = GrB_TIME;                      //disable any logging by default
                 }
             } else {
                 level = GrB_ERROR;
@@ -70,10 +66,6 @@
         std::cout << "(GB_KUN|DEBUG)" << string << std::endl;        \
     }                     \
 
-#define LOG_TIME(string) \
-    if (logger.get_level() >= GrB_TIME) {                       \
-        std::cout << "(GB_KUN|TIME)" << string << std::endl;        \
-    }                     \
 
     enum Desc_field {GrB_MASK,
                     GrB_OUTPUT,

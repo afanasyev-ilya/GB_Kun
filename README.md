@@ -1,6 +1,6 @@
 GB_Kun is a high-performance graph-processing library, based on the GraphBLAS standard. 
 Primary target hardware of GB_Kun is Kunpeng 920 processors (48-core and 64-core), 
-but it can be also launched on other multicore CPU if all the software requirements are provides. 
+but it can be also launched on other multicore CPU if all the software requirements are provided. 
 
 Software Requirements:
 
@@ -76,3 +76,15 @@ python3 ./run_tests.py --help
 ```
 
 For example, other options, such as --scaling, are available.
+
+***Logging***
+
+We have implemented logger interface for convenient working process with GB_Kun library
+
+Logging in particular parts of a code are implemented via function-like macros 
+LOG_TRACE, LOG_DEBUG or LOG_ERROR
+
+In order to output data from such parts of code, you need to set environment variable LOG_LEVEL like
+```bash
+LOG_LEVEL=trace ./bfs ...
+```
