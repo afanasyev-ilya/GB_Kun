@@ -26,7 +26,7 @@ public:
     void print() const
     {
         if(nvals == 0)
-            cout << "vector is empty (from print)" << endl;
+            LOG_DEBUG("vector is empty (from print)")
         else
         {
             for(VNT i = 0; i < nvals; i++)

@@ -87,9 +87,7 @@ void DenseVector<T>::fill_with_zeros()
 template <typename T>
 void DenseVector<T>::convert(SparseVector<T> *_sparse_vector)
 {
-    #ifdef __DEBUG_INFO__
-    cout << "converting sparse -> dense, name = " << this->name << endl;
-    #endif
+    LOG_TRACE("converting sparse -> dense, name = " + this->name)
     memset(this->vals, 0, size*sizeof(T));
 
     VNT *sparse_ids = _sparse_vector->get_ids();

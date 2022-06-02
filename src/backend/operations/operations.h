@@ -21,6 +21,7 @@ LA_Info assign(Vector<W>* _w,
                const Index _nindices,
                Descriptor* _desc)
 {
+    LOG_TRACE("Running assign with value-like vector variant")
     LA_Info info;
     _w->force_to_dense();
 
@@ -55,6 +56,7 @@ LA_Info assign(Vector<W>* _w,
                const Index _nindices,
                Descriptor* _desc)
 {
+    LOG_TRACE("Running assign with vector-like vector variant")
     _w->force_to_dense();
 
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
@@ -89,6 +91,7 @@ LA_Info assign(Vector<W>* _w,
                const Index _nindices,
                Descriptor *_desc)
 {
+    LOG_TRACE("Running assign with value-like array variant")
     LA_Info info = GrB_SUCCESS;
     _w->force_to_dense();
 
@@ -123,6 +126,7 @@ LA_Info assign(Vector<W> *_w,
                const Index _nindices,
                Descriptor *_desc)
 {
+    LOG_TRACE("Running assign with vector-like array variant")
     _w->force_to_dense();
 
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
@@ -261,6 +265,7 @@ LA_Info eWiseAdd(Vector<W> *_w,
                  const Vector<V> *_v,
                  Descriptor *_desc)
 {
+    LOG_TRACE("Running eWiseAdd")
     Index vector_size = _w->getDense()->get_size();
     auto w_vals = _w->getDense()->get_vals();
     auto u_vals = _u->getDense()->get_vals();
@@ -288,7 +293,7 @@ LA_Info eWiseMult(Vector<W> *_w,
                   const Vector<V> *_v,
                   Descriptor *_desc)
 {
-
+    LOG_TRACE("Running eWiseMult")
     Index vector_size = _w->getDense()->get_size();
     auto w_vals = _w->getDense()->get_vals();
     auto u_vals = _u->getDense()->get_vals();
@@ -316,7 +321,7 @@ LA_Info apply(Vector<W> *_w,
               const Vector<U> *_u,
               Descriptor *_desc)
 {
-
+    LOG_TRACE("Running value-like binary apply")
     Index vector_size = _w->getDense()->get_size();
     auto w_vals = _w->getDense()->get_vals();
     auto u_vals = _u->getDense()->get_vals();
@@ -340,7 +345,7 @@ LA_Info apply(Vector<W> *_w,
               const Vector<U> *_u,
               Descriptor *_desc)
 {
-
+    LOG_TRACE("Running unary apply")
     Index vector_size = _w->getDense()->get_size();
     auto w_vals = _w->getDense()->get_vals();
     auto u_vals = _u->getDense()->get_vals();
@@ -365,7 +370,7 @@ LA_Info apply(Vector<W>* _w,
     const T _val,
     Descriptor* _desc)
 {
-
+    LOG_TRACE("Running vector-like binary apply")
     Index vector_size = _w->getDense()->get_size();
     auto w_vals = _w->getDense()->get_vals();
     auto u_vals = _u->getDense()->get_vals();
@@ -388,6 +393,7 @@ LA_Info reduce(T *_val,
                const Vector<U> *_u,
                Descriptor *_desc)
 {
+    LOG_TRACE("Running vector-like reduce")
     T reduce_result = _op.identity();
     if(_u->is_dense())
     {
@@ -423,6 +429,7 @@ LA_Info reduce(T *_val,
                const Matrix<U> *_u,
                Descriptor *_desc)
 {
+    LOG_TRACE("Running matrix-like reduce")
     T reduce_result = _op.identity();
     Index nvals = _u->get_csr()->get_nnz();
     const U* u_vals = _u->get_csr()->get_vals();
@@ -444,6 +451,7 @@ LA_Info extract(Vector<W>*       w,
                 const Vector<I>* indices,
                 Descriptor*      desc)
 {
+    LOG_TRACE("Running vector-like extract")
     w->force_to_dense();
 
     Index vector_size = w->getDense()->get_size(); // can be called since force dense conversion before
@@ -490,9 +498,9 @@ LA_Info mxm(Matrix<c>* C,
         if (multiplication_mode == GrB_IJK || multiplication_mode == GrB_IJK_DOUBLE_SORT) {
             bool a_is_sorted = (multiplication_mode == GrB_IJK_DOUBLE_SORT);
             if (a_is_sorted) {
-                cout << "Using double sort masked IJK method" << endl;
+                LOG_TRACE("Using double sort masked IJK method")
             } else {
-                cout << "Using single sort masked IJK method" << endl;
+                LOG_TRACE("Using single sort masked IJK method")
             }
 
             backend::SpMSpM_ijk(A,
@@ -502,7 +510,7 @@ LA_Info mxm(Matrix<c>* C,
                                 op,
                                 a_is_sorted);
         } else if (multiplication_mode == GrB_IKJ_MASKED) {
-            cout << "Using masked IKJ method" << endl;
+            LOG_TRACE("Using masked IKJ method")
             backend::SpMSpM_masked_ikj(mask,
                                        A,
                                        B,
@@ -512,7 +520,7 @@ LA_Info mxm(Matrix<c>* C,
             return GrB_INVALID_VALUE;
         }
     } else {
-        cout << "Using unmasked hash based mxm method" << endl;
+        LOG_TRACE("Using unmasked hash based mxm method")
         backend::SpMSpM_unmasked_ikj(A,
                                      B,
                                      C,

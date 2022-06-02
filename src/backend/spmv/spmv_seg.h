@@ -13,6 +13,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
           SemiringT op,
           Workspace *_workspace)
 {
+    LOG_TRACE("Running SpMV for SegCSR")
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
