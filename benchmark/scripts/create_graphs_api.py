@@ -31,6 +31,8 @@ def get_list_of_synthetic_graphs(run_speed_mode):
         return syn_scaling
     elif run_speed_mode == "best" or run_speed_mode == "bestf":
         return []
+    elif run_speed_mode == "dl" or run_speed_mode == "deep_learning": # for parser, won't be changed when new graphs are added
+        return syn_deep_learning
     elif run_speed_mode in konect_tiny_small_medium:
         return []
     elif run_speed_mode in syn_tiny_small_medium:
@@ -52,6 +54,8 @@ def get_list_of_real_world_graphs(run_speed_mode):
         return konect_tiny_small
     elif run_speed_mode == "tiny-small-medium" or run_speed_mode == "tiny-small-medium-rw":
         return konect_tiny_small_medium
+    elif run_speed_mode == "dl" or run_speed_mode == "deep_learning": # for parser, won't be changed when new graphs are added
+        return konect_deep_learning
     elif run_speed_mode == "fastest":
         return konect_fastest
     elif run_speed_mode == "best":
@@ -97,6 +101,7 @@ def download_all_real_world_graphs(run_speed_mode):
 
 def download_konect(graph_name):
     file_name = SOURCE_GRAPH_DIR + "download.tsv." + all_konect_graphs_data[graph_name]["link"] + ".tar.bz2"
+    print(file_name)
     if not path.exists(file_name):
         link = "http://konect.cc/files/download.tsv." + all_konect_graphs_data[graph_name]["link"] + ".tar.bz2"
         print("Trying to download " + file_name + " using " + link)
@@ -236,6 +241,7 @@ def graph_missing(output_graph_file_name, options):
 def create_real_world_graph(graph_name, options):
     graph_format = "mtx"
     output_graph_file_name = get_path_to_graph(graph_name, graph_format)
+    print(output_graph_file_name)
     if graph_missing(output_graph_file_name, options):
         print("Creating new graph!! " + output_graph_file_name)
         if 'GAP' in graph_name:
@@ -252,15 +258,35 @@ def create_real_world_graph(graph_name, options):
             new_path = GRAPHS_DIR + "/" + graph_name + ".mtx"
             shutil.move(old_path, new_path)
         else:
+            clear_dir(SOURCE_GRAPH_DIR)
             download_graph(graph_name)
             tar_name = SOURCE_GRAPH_DIR + "download.tsv." + all_konect_graphs_data[graph_name]["link"] + ".tar.bz2"
             cmd = ["tar", "-xjf", tar_name, '-C', SOURCE_GRAPH_DIR]
             subprocess.call(cmd, shell=False, stdout=subprocess.PIPE)
 
-            if "unarch_graph_name" in all_konect_graphs_data[graph_name]:
-                source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["unarch_graph_name"]
-            else:
-                source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"] + "/out." + all_konect_graphs_data[graph_name]["link"]
+            list_dir = os.listdir(SOURCE_GRAPH_DIR)
+            folder_name = ""
+            for name in list_dir:
+                if not ".tar.bz2" in name:
+                    folder_name = name
+                    break
+            
+            dir_name = SOURCE_GRAPH_DIR + "/" + folder_name
+            print("! ! ! " + dir_name)
+
+            list_dir = os.listdir(dir_name)
+#
+            source_name = ""
+            for name in list_dir:
+                if "out." in name:
+                    source_name = dir_name + "/" + name
+                    break
+#            print("! ! ! " + source_name)
+
+#            if "unarch_graph_name" in all_konect_graphs_data[graph_name]:
+ #               source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"]
+  #          else:
+   #             source_name = SOURCE_GRAPH_DIR + all_konect_graphs_data[graph_name]["link"]
 
             # it does not work
             #if check_if_no_loops_and_multiple_edges(graph_name):

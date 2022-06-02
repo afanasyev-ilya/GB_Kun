@@ -96,7 +96,52 @@ all_konect_graphs_data = {
     'GAP-road': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-road.tar.gz'},
     'GAP-web': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-web.tar.gz'},
     'GAP-kron': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-kron.tar.gz'},
-    'GAP-urand': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-urand.tar.gz'}
+    'GAP-urand': {'link': 'https://suitesparse-collection-website.herokuapp.com/MM/GAP/GAP-urand.tar.gz'},
+
+    # new graph, taken from http://konect.cc/networks/digg-friends/ , name (key) is arbitrary
+    # link (value) taken as a part of "Data as TSV" -> copy_link http://konect.cc/files/download.tsv. [digg-friends] .tar.bz2
+    'South_African_companies': {'link': 'brunson_south-africa'},
+    'Corporate_club_memberships': {'link': 'brunson_club-membership'},
+    'Corporate_leaderships': {'link': 'brunson_corporate-leadership'},
+    'American_Revolution': {'link': 'brunson_revolution'},
+    'Record_labels': {'link': 'dbpedia-recordlabel'},
+    'Occupations': {'link': 'dbpedia-occupation'},
+    'YouTube': {'link': 'youtube-groupmemberships'},
+    'DBpedia_countries': {'link': 'dbpedia-country'},
+    'Teams': {'link': 'dbpedia-team'},
+    'Actor_movies': {'link': 'actor-movie'},
+
+    'IMDB': {'link': 'actor2'},
+    'Flickr': {'link': 'flickr-groupmemberships'},
+    'Discogs': {'link': 'discogs_affiliation'},
+    'Wiktionary_edits_(ku)': {'link': 'edit-kuwiktionary'},
+    'Wiktionary_edits_(hu)': {'link': 'edit-huwiktionary'},
+    'Wiktionary_edits_(pt)': {'link': 'edit-ptwiktionary'},
+    'Wikipedia_edits_(ta)': {'link': 'edit-tawiki'},
+    'Wikivoyage_edits_(en)': {'link': 'edit-enwikivoyage'},
+    'Wikipedia_edits_(bs)': {'link': 'edit-bswiki'},
+    'Wikipedia_edits_(kk)': {'link': 'edit-kkwiki'},
+    'Wikibooks_edits_(en)': {'link': 'edit-enwikibooks'},
+    'Wikipedia_edits_(ml)': {'link': 'edit-mlwiki'},
+    'Wikipedia_edits_(be)': {'link': 'edit-bewiki'},
+    'Wiktionary_edits_(io)': {'link': 'edit-iowiktionary'},
+    'Wikipedia_edits_(lv)': {'link': 'edit-lvwiki'},
+    'Wikipedia_edits_(bn)': {'link': 'edit-bnwiki'},
+    'Wikiquote_edits_(ru)': {'link': 'edit-ruwikisource'},
+    'Wikipedia_edits_(ur)': {'link': 'edit-urwiki'},
+    'Wikipedia_edits_(mk)': {'link': 'edit-mkwiki'},
+    'Wiktionary_edits_(sv)': {'link': 'edit-svwiktionary'},
+    'Wikipedia_edits_(cy)': {'link': 'edit-cywiki'},
+    'Wikipedia_edits_(nn)': {'link': 'edit-nnwiki'},
+    'Wikipedia_edits_(la)': {'link': 'edit-lawiki'},
+    'Wikiquote_edits_(de)': {'link': 'edit-dewikisource'},
+    'Wikipedia_edits_(hi)': {'link': 'edit-hiwiki'},
+    'Wiktionary_edits_(it)': {'link': 'edit-itwiktionary'},
+    'Wiktionary_edits_(fi)': {'link': 'edit-fiwiktionary'},
+    'Wikipedia_edits_(vo)': {'link': 'edit-vowiki'},
+    'Wikipedia_edits_(ka)': {'link': 'edit-kawiki'},
+
+
 }
 
 #####################
@@ -133,6 +178,14 @@ syn_scaling = ["syn_rmat_18_32", "syn_rmat_19_32", "syn_rmat_20_32", "syn_rmat_2
                "syn_rmat_23_32", "syn_ru_18_32", "syn_ru_19_32", "syn_ru_20_32", "syn_ru_21_32", "syn_ru_22_32",
                "syn_ru_23_32"]
 konect_scaling = []
+
+#####################
+
+# new sets of arrays, first for synthetic, second for real-wold graphs.
+syn_deep_learning = []
+#konect_deep_learning = ['South African companies', 'Corporate club memberships', 'Corporate leaderships', 'American Revolution', 'Record labels', 'Occupations', 'YouTube', 'DBpedia countries', 'Teams', 'Actor movies']
+#konect_deep_learning = ['South_African_companies', 'Corporate_club_memberships', 'Corporate_leaderships', 'American_Revolution', 'Record_labels', 'Occupations', 'YouTube', 'DBpedia_countries', 'Teams', 'Actor_movies']
+konect_deep_learning = ['IMDB', 'Flickr', 'Discogs', 'Wiktionary_edits_(ku)', 'Wiktionary_edits_(hu)', 'Wiktionary_edits_(pt)', 'Wikipedia_edits_(ta)', 'Wikivoyage_edits_(en)', 'Wikipedia_edits_(bs)', 'Wikipedia_edits_(kk)', 'Wikibooks_edits_(en)', 'Wikipedia_edits_(ml)', 'Wikipedia_edits_(be)', 'Wiktionary_edits_(io)', 'Wikipedia_edits_(lv)', 'Wikipedia_edits_(bn)', 'Wikiquote_edits_(ru)', 'Wikipedia_edits_(ur)', 'Wikipedia_edits_(mk)', 'Wiktionary_edits_(sv)', 'Wikipedia_edits_(cy)', 'Wikipedia_edits_(nn)', 'Wikipedia_edits_(la)', 'Wikiquote_edits_(de)', 'Wikipedia_edits_(hi)', 'Wiktionary_edits_(it)', 'Wiktionary_edits_(fi)', 'Wikipedia_edits_(vo)', 'Wikipedia_edits_(ka)']
 
 #####################
 
