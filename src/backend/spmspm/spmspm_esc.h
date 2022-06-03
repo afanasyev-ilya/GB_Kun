@@ -2,22 +2,12 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace lablas {
-namespace backend {
+#include "esc_helpers.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-unsigned long long get_nearest_power_of_two(unsigned long long val) {
-    val--;
-    val |= val >> 1;
-    val |= val >> 2;
-    val |= val >> 4;
-    val |= val >> 8;
-    val |= val >> 16;
-    val |= val >> 32;
-    val++;
-    return val;
-}
+namespace lablas {
+namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -82,7 +72,7 @@ void SpMSpM_unmasked_esc(const Matrix<T> *_matrix1,
             ENT cur_slice_nnz =
                 matrix1_row_ptr[cur_slice_end] - matrix1_row_ptr[cur_slice_start];
             unsigned long long avg_nnz = (cur_slice_nnz + cur_slice_length - 1) / cur_slice_length;
-            const auto rounded_avg_nnz = get_nearest_power_of_two(avg_nnz);
+            const auto rounded_avg_nnz = esc_helpers::get_nearest_power_of_two(avg_nnz);
 
             block_size = nnz_cache / rounded_avg_nnz;
             blocks_per_slice = (cur_slice_length + block_size - 1) / block_size;
