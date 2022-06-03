@@ -498,6 +498,13 @@ LA_Info mxm(Matrix<c>* C,
                                        B,
                                        C,
                                        op);
+        } else if (multiplication_mode == GrB_ESC_MASKED) {
+            cout << "Using masked ESC method" << endl;
+            backend::SpMSpM_masked_esc(mask,
+                                       A,
+                                       B,
+                                       C,
+                                       op);
         } else {
             return GrB_INVALID_VALUE;
         }
