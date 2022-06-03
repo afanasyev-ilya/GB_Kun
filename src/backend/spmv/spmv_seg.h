@@ -13,6 +13,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
           SemiringT op,
           Workspace *_workspace)
 {
+    LOG_TRACE("Running SpMV for SegCSR")
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
@@ -55,7 +56,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
     // end of testing region*/
 
     double t1 = omp_get_wtime();
-    int cores_num = omp_get_max_threads();
+    int max_threads = omp_get_max_threads();
     #pragma omp parallel // parallelism within each segment
     {
         int tid = omp_get_thread_num();
@@ -228,7 +229,7 @@ void SpMV(const MatrixSegmentedCSR<A> *_matrix,
 
     double t3 = omp_get_wtime();
     Y *merge_result = (Y*)_workspace->get_first_socket_vector();
-    if(_matrix->merge_blocks_number >= 4*cores_num)
+    if(_matrix->merge_blocks_number >= 4*max_threads)
     {
         cout << "using cache-aware merge" << endl;
         #pragma omp parallel // cache aware scatter merge

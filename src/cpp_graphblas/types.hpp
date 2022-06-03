@@ -11,6 +11,62 @@
             GrB_SPARSE,
             GrB_DENSE};
 
+
+    enum log_level {GrB_ERROR,
+                    GrB_TRACE,
+                    GrB_DEBUG};
+
+
+    class GB_LOGGER {
+    public:
+        GB_LOGGER() {
+            const char* env_string = getenv("LOG_LEVEL");
+            if (env_string != NULL) {
+                if (!strcmp(env_string, "debug")) {
+                    level = GrB_DEBUG;
+                }
+                if (!strcmp(env_string, "trace")) {
+                    level = GrB_TRACE;
+                }
+                if (!strcmp(env_string, "error")) {
+                    level = GrB_ERROR;                      //disable any logging by default
+                }
+            } else {
+                level = GrB_ERROR;
+            }
+        }
+
+        log_level get_level() {
+            return level;
+        }
+
+        void set_level(log_level new_level) {
+            level = new_level;
+        }
+
+    private:
+        log_level level;
+    };
+
+    static GB_LOGGER logger;
+
+
+#define LOG_ERROR(string) \
+    if (logger.get_level() >= GrB_ERROR) {                      \
+        std::cout << "(GB_KUN|ERROR)" << string << std::endl;       \
+    }      \
+
+#define LOG_TRACE(string) \
+    if (logger.get_level() >= GrB_TRACE) {                       \
+        std::cout << "(GB_KUN|TRACE)" << string << std::endl;        \
+    }\
+
+#define LOG_DEBUG(string) \
+    if (logger.get_level() >= GrB_DEBUG) {                       \
+        std::cout << "(GB_KUN|DEBUG)" << string << std::endl;        \
+    }                     \
+
+
     enum Desc_field {GrB_MASK,
                     GrB_OUTPUT,
                     GrB_INP0,
@@ -22,16 +78,16 @@
                     GrB_MXVMODE,
                     GrB_TOL,
                     GrB_BACKEND,
-                    GrB_NDESCFIELD,
-                    GrB_MXMMODE};
+                    GrB_MXMMODE,
+                    GrB_NDESCFIELD};
 
-    enum Desc_value {GrB_SCMP = 0,
-                    GrB_REPLACE = 1, // for GrB_OUTP
-                    GrB_COMP = 2, // for GrB_MASK
-                    GrB_TRAN = 3, // for GrB_INP0, GrB_INP1
+    enum Desc_value {GrB_SCMP,               // for GrB_MASK
+                    GrB_REPLACE,            // for GrB_OUTP
+                    GrB_TRAN,               // for GrB_INP0, GrB_INP1
+                    GrB_DEFAULT,
                     GrB_STRUCTURE = 4, // for GrB_MASK
-                    GrB_STR_COMP = 5, // for GrB_MASK, combination
-                    GrB_DEFAULT = 6,
+                    GrB_STR_COMP = 5,
+                    GrB_COMP,// for GrB_MASK, combination
                     GrB_FIXEDROW,
                     GrB_PUSHPULL   =   10,  // for GrB_MXVMODE
                     GrB_PUSHONLY   =   11,  // for GrB_MXVMODE
@@ -46,8 +102,16 @@
                     GrB_256        =  256,
                     GrB_512        =  512,
                     GrB_1024       = 1024,
-                    GrB_IJK        = 20,    // for GrB_MXMMODE
-                    GrB_IKJ        = 21,    // for GrB_MXMMODE
+                    GrB_IJK        = 32,    // for GrB_MXMMODE
+                    GrB_IKJ        = 33,
+                    GrB_IJK_DOUBLE_SORT = 34,
+                    GrB_IKJ_MASKED = 35,
+                    SPMV_GENERAL   = 63,
+                    SPMSPV_BUCKET = 65,
+                    SPMSPV_MAP_TBB = 66,
+                    SPMSPV_MAP_SEQ = 67,
+                    SPMSPV_FOR = 68, // atomic, critical, or
+                    MXV_DEFAULT = 68 // for GrB_MXMMODE
     };
 
 
@@ -84,6 +148,7 @@
         GrB_PANIC = 13                  // unknown error, or GrB_init not called.
     }
     LA_Info;
+
 
 
 namespace lablas{

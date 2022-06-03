@@ -14,7 +14,10 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
     list_of_graphs = get_list_of_all_graphs(run_speed_mode)
 
     create_graphs_if_required(list_of_graphs, run_speed_mode, options)
-    common_args = ["-it", str(common_iterations), "-format", graph_format, "-no-check"]
+    mult = 1
+    if app_name == "bfs":
+        mult = 100
+    common_args = ["-it", str(common_iterations*mult), "-format", graph_format, "-no-check"]
     print(common_args)
 
     algorithms_tested = 0
@@ -41,8 +44,8 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
                 os.remove(PERF_DATA_FILE)
             except OSError:
                 pass
-
             cmd = ["bash", "./benchmark.sh", get_binary_path(app_name), "-graph mtx ", get_path_to_graph(current_graph, file_extension)] + current_args + common_args
+            print("! ! ! " + get_path_to_graph(current_graph, file_extension))
             print(' '.join(cmd))
             proc = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             timer = Timer(int(timeout_length), proc.kill)

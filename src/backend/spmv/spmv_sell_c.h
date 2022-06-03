@@ -19,6 +19,7 @@ void SpMV(const MatrixSellC<A> *_matrix,
           SemiringT op,
           Workspace *_workspace)
 {
+    LOG_TRACE("Running SpMV for SellC")
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
 

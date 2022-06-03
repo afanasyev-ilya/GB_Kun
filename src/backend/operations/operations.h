@@ -21,6 +21,7 @@ LA_Info assign(Vector<W>* _w,
                const Index _nindices,
                Descriptor* _desc)
 {
+    LOG_TRACE("Running assign with value-like vector variant")
     LA_Info info;
     _w->force_to_dense();
 
@@ -55,6 +56,7 @@ LA_Info assign(Vector<W>* _w,
                const Index _nindices,
                Descriptor* _desc)
 {
+    LOG_TRACE("Running assign with vector-like vector variant")
     _w->force_to_dense();
 
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
@@ -89,6 +91,7 @@ LA_Info assign(Vector<W>* _w,
                const Index _nindices,
                Descriptor *_desc)
 {
+    LOG_TRACE("Running assign with value-like array variant")
     LA_Info info = GrB_SUCCESS;
     _w->force_to_dense();
 
@@ -123,6 +126,7 @@ LA_Info assign(Vector<W> *_w,
                const Index _nindices,
                Descriptor *_desc)
 {
+    LOG_TRACE("Running assign with vector-like array variant")
     _w->force_to_dense();
 
     Index vector_size = _w->getDense()->get_size(); // can be called since force dense conversion before
@@ -159,33 +163,32 @@ LA_Info mxv (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    bool switch_cond = _u->is_dense();
-    #ifdef __DISABLE_SPMSPV__
-    switch_cond = true;
-    #endif
-    if(switch_cond)//(false /*switch_cond*/)
+    Desc_value algo;
+    _desc->get(GrB_MXVMODE, &algo);
+    if (algo == SPMV_GENERAL or (algo == GrB_DEFAULT and _u->is_dense()))
     {
-        #ifdef __DEBUG_INFO__
-        cout << "USING SpMV!!!!!" << endl;
-        #endif
+        LOG_TRACE("Using SpMV General");
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     }
     else
     {
-        #ifdef __DEBUG_INFO__
-        cout << "USING SpMSpV!!!!!" << endl;
-        #endif
-
-        {
-            //Timer tm("dense output");
+        if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse())) {
+            LOG_TRACE("Using SpMSpV for-based");
             backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
         }
-
-        /*{
-            Timer tm("sparse output");
-            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
-        }*/
-
+        if (algo == SPMSPV_MAP_TBB) {
+            #ifdef __USE_TBB__
+            LOG_TRACE("Using SpMSpV TBB map-based");
+            SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            #else
+            LOG_TRACE("Using SpMSpV sequential map-based");
+            SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            #endif
+        }
+        if (algo == SPMSPV_MAP_SEQ) {
+            LOG_TRACE("Using SpMSpV sequential map-based");
+            SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+        }
     }
     _w->convert_if_required();
 
@@ -204,33 +207,47 @@ LA_Info vxm (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    bool switch_cond = _u->is_dense();
-    #ifdef __DISABLE_SPMSPV__
-    switch_cond = true;
-    #endif
-    if(switch_cond)
+    Desc_value algo;
+    _desc->get(GrB_MXVMODE, &algo);
+    if (algo == SPMV_GENERAL or (algo == GrB_DEFAULT and _u->is_dense()))
     {
-        #ifdef __DEBUG_INFO__
-        cout << "USING SpMV!!!!!" << endl;
-        #endif
+        LOG_TRACE("Using SpMV General");
+        double t1 = omp_get_wtime();
         backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
+        double t2 = omp_get_wtime();
+        SPMV_TIME += t2 - t1;
     }
     else
     {
-        #ifdef __DEBUG_INFO__
-        cout << "USING SpMSpV!!!!!" << endl;
-        #endif
+        if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse()))
         {
-            //Timer tm("dense output");
+            LOG_TRACE("Using SpMSpV for-based");
+            double t1 = omp_get_wtime();
             backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+            double t2 = omp_get_wtime();
+            SPMSPV_TIME += t2 - t1;
         }
-
-        /*{
-            Timer tm("sparse output");
-            backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
-        }*/
+        if (algo == SPMSPV_BUCKET)
+        {
+            #ifdef __USE_TBB__
+            LOG_TRACE("Using SpMSpV TBB map-based");
+            SpMSpV_map_par(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            #else
+            LOG_TRACE("Using SpMSpV sequential map-based");
+            SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            #endif
+        }
+        if (algo == SPMSPV_MAP_SEQ)
+        {
+            LOG_TRACE("Using SpMSpV sequential map-based");
+            SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+        }
     }
+
+    double t1 = omp_get_wtime();
     _w->convert_if_required();
+    double t2 = omp_get_wtime();
+    CONVERT_TIME += t2 - t1;
 
     return GrB_SUCCESS;
 }
@@ -248,6 +265,7 @@ LA_Info eWiseAdd(Vector<W> *_w,
                  const Vector<V> *_v,
                  Descriptor *_desc)
 {
+    LOG_TRACE("Running eWiseAdd")
     Index vector_size = _w->getDense()->get_size();
     auto w_vals = _w->getDense()->get_vals();
     auto u_vals = _u->getDense()->get_vals();
@@ -275,7 +293,7 @@ LA_Info eWiseMult(Vector<W> *_w,
                   const Vector<V> *_v,
                   Descriptor *_desc)
 {
-
+    LOG_TRACE("Running eWiseMult")
     Index vector_size = _w->getDense()->get_size();
     auto w_vals = _w->getDense()->get_vals();
     auto u_vals = _u->getDense()->get_vals();
@@ -303,7 +321,7 @@ LA_Info apply(Vector<W> *_w,
               const Vector<U> *_u,
               Descriptor *_desc)
 {
-
+    LOG_TRACE("Running value-like binary apply")
     Index vector_size = _w->getDense()->get_size();
     auto w_vals = _w->getDense()->get_vals();
     auto u_vals = _u->getDense()->get_vals();
@@ -327,7 +345,7 @@ LA_Info apply(Vector<W> *_w,
               const Vector<U> *_u,
               Descriptor *_desc)
 {
-
+    LOG_TRACE("Running unary apply")
     Index vector_size = _w->getDense()->get_size();
     auto w_vals = _w->getDense()->get_vals();
     auto u_vals = _u->getDense()->get_vals();
@@ -352,7 +370,7 @@ LA_Info apply(Vector<W>* _w,
     const T _val,
     Descriptor* _desc)
 {
-
+    LOG_TRACE("Running vector-like binary apply")
     Index vector_size = _w->getDense()->get_size();
     auto w_vals = _w->getDense()->get_vals();
     auto u_vals = _u->getDense()->get_vals();
@@ -375,6 +393,7 @@ LA_Info reduce(T *_val,
                const Vector<U> *_u,
                Descriptor *_desc)
 {
+    LOG_TRACE("Running vector-like reduce")
     T reduce_result = _op.identity();
     if(_u->is_dense())
     {
@@ -410,6 +429,7 @@ LA_Info reduce(T *_val,
                const Matrix<U> *_u,
                Descriptor *_desc)
 {
+    LOG_TRACE("Running matrix-like reduce")
     T reduce_result = _op.identity();
     Index nvals = _u->get_csr()->get_nnz();
     const U* u_vals = _u->get_csr()->get_vals();
@@ -431,6 +451,7 @@ LA_Info extract(Vector<W>*       w,
                 const Vector<I>* indices,
                 Descriptor*      desc)
 {
+    LOG_TRACE("Running vector-like extract")
     w->force_to_dense();
 
     Index vector_size = w->getDense()->get_size(); // can be called since force dense conversion before
@@ -466,24 +487,44 @@ LA_Info mxm(Matrix<c>* C,
             const Matrix<b> *B,
             Descriptor *desc)
 {
+    Desc_value mask_mode;
+    desc->get(GrB_MASK, &mask_mode);
+    if (mask_mode == GrB_COMP || mask_mode == GrB_STR_COMP) {
+        throw "Error: complementary mask is not supported yet";
+    }
+    Desc_value multiplication_mode;
+    desc->get(GrB_MXMMODE, &multiplication_mode);
     if (mask) {
-        backend::SpMSpM_unmasked_ikj(A,
-                                     B,
-                                     C);
-    } else {
-        Desc_value multiplication_mode;
-        desc->get(GrB_MXMMODE, &multiplication_mode);
-        if (multiplication_mode == GrB_IJK) {
-            backend::SpMSpM_unmasked_ijk(A,
-                                         B,
-                                         C);
-        } else if (multiplication_mode == GrB_IKJ) {
-            backend::SpMSpM_unmasked_ikj(A,
-                                         B,
-                                         C);
+        if (multiplication_mode == GrB_IJK || multiplication_mode == GrB_IJK_DOUBLE_SORT) {
+            bool a_is_sorted = (multiplication_mode == GrB_IJK_DOUBLE_SORT);
+            if (a_is_sorted) {
+                LOG_TRACE("Using double sort masked IJK method")
+            } else {
+                LOG_TRACE("Using single sort masked IJK method")
+            }
+
+            backend::SpMSpM_ijk(A,
+                                B,
+                                C,
+                                mask,
+                                op,
+                                a_is_sorted);
+        } else if (multiplication_mode == GrB_IKJ_MASKED) {
+            LOG_TRACE("Using masked IKJ method")
+            backend::SpMSpM_masked_ikj(mask,
+                                       A,
+                                       B,
+                                       C,
+                                       op);
         } else {
             return GrB_INVALID_VALUE;
         }
+    } else {
+        LOG_TRACE("Using unmasked hash based mxm method")
+        backend::SpMSpM_unmasked_ikj(A,
+                                     B,
+                                     C,
+                                     op);
     }
     return GrB_SUCCESS;
 }

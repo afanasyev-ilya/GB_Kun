@@ -16,7 +16,7 @@ public:
     MatrixCSR();
     ~MatrixCSR();
 
-    void deep_copy(MatrixCSR<T> *_copy, int _target_socket = -1);
+    void deep_copy(const MatrixCSR<T> *_copy, int _target_socket = -1);
 
     void build(vector<vector<pair<VNT, T>>> &_tmp_csr, VNT _nrows, VNT _ncols);
     void build(const VNT *_row_ids, const VNT *_col_ids, const T *_vals, VNT _nrows, VNT _ncols, ENT _nnz);
@@ -53,6 +53,9 @@ public:
 
     bool is_symmetric();
     void to_symmetric();
+
+
+    void calculate_degrees();
 private:
     VNT nrows, ncols;
     ENT nnz;
@@ -195,7 +198,23 @@ private:
                                        Descriptor *_desc,
                                        Workspace *_workspace);
 
-    void calculate_degrees();
+    template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
+    friend void SpMSpV_map_seq(const MatrixCSR<A> *_matrix,
+                        const SparseVector <X> *_x,
+                        SparseVector <Y> *_y,
+                        Descriptor *_desc,
+                        BinaryOpTAccum _accum,
+                        SemiringT _op,
+                        const Vector <M> *_mask);
+
+    template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
+    friend void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
+                        const SparseVector <X> *_x,
+                        SparseVector <Y> *_y,
+                        Descriptor *_desc,
+                        BinaryOpTAccum _accum,
+                        SemiringT _op,
+                        const Vector <M> *_mask);
 };
 
 #include "csr_matrix.hpp"

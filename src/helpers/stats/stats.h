@@ -7,13 +7,9 @@
 #include <omp.h>
 #include <unistd.h>
 
-
-#ifdef __USE_KUNPENG__
-const int numCPU = sysconf(_SC_NPROCESSORS_ONLN);
-#else
-const int numCPU = 1;
-#endif
-
+double SPMV_TIME;
+double SPMSPV_TIME;
+double CONVERT_TIME;
 
 #ifdef __DEBUG_INFO__
 #define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, matrix)       \
@@ -125,6 +121,7 @@ void save_time_in_sec(const char *_op_name, double _time)
 
 void print_omp_stats()
 {
+    #ifdef __DEBUG_INFO__
     #ifdef __USE_KUNPENG__
     #pragma omp parallel
     {
@@ -149,6 +146,7 @@ void print_omp_stats()
 
     cout << "Threads used: " << max_thread + 1 << endl;
     cout << "Largest core used: " << max_core + 1 << " cores" << endl;
+    #endif
     #endif
 
     /*size_t size = 1024*1024*128*8;
@@ -178,39 +176,4 @@ void print_omp_stats()
     MemoryAPI::free_array(a);
     MemoryAPI::free_array(b);
     MemoryAPI::free_array(c);*/
-}
-
-int num_sockets_used()
-{
-    #ifdef __USE_KUNPENG__
-    const int numCPU = sysconf(_SC_NPROCESSORS_ONLN);
-    int threads_amount;
-    int cpu[numCPU];
-    #pragma omp parallel
-    {
-        threads_amount = omp_get_num_threads();
-        int cpu_num = sched_getcpu();
-        cpu[omp_get_thread_num()] = cpu_num;
-    }
-    bool socket[2];
-    socket[0] = false;
-    socket[1] = false;
-    for (int i = 0; i < threads_amount && !(socket[0] && socket[1]); i++)
-    {
-        if (cpu[i] < numCPU / 2)
-        {
-            socket[0] = true;
-        }
-        else
-        {
-            socket[1] = true;
-        }
-    }
-    if(socket[0] && socket[1])
-        return 2;
-    else
-        return 1;
-    #else
-    return 1;
-    #endif
 }

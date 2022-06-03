@@ -57,7 +57,7 @@ class BenchmarkingResults:
             iter += 1
 
     def add_performance_test_name_to_xls_table(self, app_name, app_args, part_name, num_part):
-        test_name = part_name + '\n' + '(' + ' '.join([app_name] + app_args) + ')'
+        test_name = str(part_name) + '\n' + '(' + ' '.join([app_name] + app_args) + ')'
         self.worksheet.write(self.line_pos, num_part * XLSX_DATA_SHIFT, test_name)
         self.current_app_name = app_name
 

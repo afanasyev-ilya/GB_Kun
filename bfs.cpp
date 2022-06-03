@@ -26,9 +26,10 @@ int main(int argc, char **argv)
 
         lablas::Vector<float> levels(nrows);
 
+        double wall_bfs_time = 0;
         for(int run = 0; run < parser.get_iterations(); run++)
         {
-            source_vertex = select_non_trivial_vertex(matrix);
+            source_vertex = run; //select_non_trivial_vertex(matrix);
             double bfs_time_ms = 0;
             {
                 Timer tm("bfs");
@@ -36,7 +37,15 @@ int main(int argc, char **argv)
                 bfs_time_ms = tm.get_time_ms();
             }
             save_teps("BFS_chrono", bfs_time_ms, matrix.get_nnz(), 1);
+            wall_bfs_time += bfs_time_ms / 1000;
         }
+        #if(__DEBUG_PERF_STATS_ENABLED__)
+        std::cout << "BFS wall time: " << wall_bfs_time << std::endl;
+        std::cout << "BFS conversion time: " << GLOBAL_CONVERSION_TIME << std::endl;
+        std::cout << "BFS spmv time: " << GLOBAL_SPMV_TIME << std::endl;
+        std::cout << "BFS spmspv time: " << GLOBAL_SPMSPV_TIME << std::endl;
+        std::cout << "check times: " << wall_bfs_time << " vs " << GLOBAL_CONVERSION_TIME + GLOBAL_SPMV_TIME + GLOBAL_SPMSPV_TIME << std::endl;
+        #endif
 
         if(parser.check())
         {

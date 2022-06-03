@@ -77,6 +77,18 @@ python3 ./run_tests.py --help
 
 For example, other options, such as --scaling, are available.
 
+***Logging***
+
+We have implemented logger interface for convenient working process with GB_Kun library
+
+Logging in particular parts of a code are implemented via function-like macros 
+LOG_TRACE, LOG_DEBUG or LOG_ERROR
+
+In order to output data from such parts of code, you need to set environment variable LOG_LEVEL like
+```bash
+LOG_LEVEL=trace ./bfs ...
+```
+
 ***Documentation***
 
 To generate documentations for all algorithms, go to the directory with algorithms and use doxygen command:
@@ -93,13 +105,12 @@ To download graphs from connect, type:
 cd GB_Kun/benchmark
 python3 ./load_feature_maps_from_konnect.py --cnt 100 --file output
 ```
-Parameter ```--cnt``` is used to specify how many graphs to download.
+
+Parameter ```--cnt``` is used to specify how many graphs to download. 
 
 If ```--cnt``` parameter is not specified all graphs will be downloaded.
 
 Parameter ```--file``` is used to specify the name of the output file.
 
 If ```--file``` parameter is not specified the output file will be named ```dict.pickle```.
-
-
 
