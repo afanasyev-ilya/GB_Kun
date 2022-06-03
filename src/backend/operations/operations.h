@@ -503,10 +503,11 @@ LA_Info mxm(Matrix<c>* C,
         }
     } else {
         cout << "Using unmasked hash based mxm method" << endl;
-        backend::SpMSpM_unmasked_ikj(A,
-                                     B,
-                                     C,
-                                     op);
+        if (multiplication_mode == GrB_ESC) {
+            backend::SpMSpM_unmasked_esc(A, B, C, op);
+        } else {
+            backend::SpMSpM_unmasked_ikj(A, B, C, op);
+        }
     }
     return GrB_SUCCESS;
 }

@@ -105,6 +105,8 @@
                     GrB_IKJ        = 33,
                     GrB_IJK_DOUBLE_SORT = 34,
                     GrB_IKJ_MASKED = 35,
+                    GrB_ESC = 36,
+                    GrB_ESC_MASKED = 37,
                     SPMV_GENERAL   = 63,
                     SPMSPV_BUCKET = 65,
                     SPMSPV_MAP_TBB = 66,
