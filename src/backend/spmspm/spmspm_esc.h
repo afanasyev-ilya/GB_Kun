@@ -7,12 +7,28 @@ namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+unsigned long long get_nearest_power_of_two(unsigned long long val) {
+    val--;
+    val |= val >> 1;
+    val |= val >> 2;
+    val |= val >> 4;
+    val |= val >> 8;
+    val |= val >> 16;
+    val |= val >> 32;
+    val++;
+    return val;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T, typename SemiringT>
 void SpMSpM_unmasked_esc(const Matrix<T> *_matrix1,
                          const Matrix<T> *_matrix2,
                          Matrix<T> *_matrix_result,
                          SemiringT _op)
 {
+    static const unsigned long long cache_effective_size = 1048675;
+    const unsigned long long nnz_cache = 1048675;
     double t1 = omp_get_wtime();
 
     auto add_op = extractAdd(_op);
@@ -46,19 +62,42 @@ void SpMSpM_unmasked_esc(const Matrix<T> *_matrix1,
     #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();
-        const auto cur_slice_start = offsets[thread_id].first;
+        auto cur_slice_start = offsets[thread_id].first;
         auto cur_slice_end = offsets[thread_id].second;
         if (cur_slice_start > cur_slice_end) {
             cur_slice_end = cur_slice_start;
         }
-        const auto cur_slice_length = cur_slice_end - cur_slice_start;
-        // setting block size by the dynamic parameter tuning method
-        const int block_size = 3; // to be implemented
-        const int blocks_per_slice = (cur_slice_length + block_size - 1) / block_size;
+        if (cur_slice_start > n) {
+            cur_slice_start = n;
+        }
+        if (cur_slice_end > n) {
+            cur_slice_end = n;
+        }
 
+        // setting block size by the dynamic parameter tuning method
+        int blocks_per_slice;
+        unsigned long long block_size;
+        const auto cur_slice_length = cur_slice_end - cur_slice_start;
+        if (cur_slice_length) {
+            ENT cur_slice_nnz =
+                matrix1_row_ptr[cur_slice_end] - matrix1_row_ptr[cur_slice_start];
+            unsigned long long avg_nnz = (cur_slice_nnz + cur_slice_length - 1) / cur_slice_length;
+            const auto rounded_avg_nnz = get_nearest_power_of_two(avg_nnz);
+
+            block_size = nnz_cache / rounded_avg_nnz;
+            blocks_per_slice = (cur_slice_length + block_size - 1) / block_size;
+        } else {
+            blocks_per_slice = 0;
+            block_size = 0;
+        }
+
+        // doing ESC algorithm for each block
         for (int cur_block_id = 0; cur_block_id < blocks_per_slice; ++cur_block_id) {
-            const auto cur_block_start = cur_slice_start + cur_block_id * block_size;
+            auto cur_block_start = cur_slice_start + cur_block_id * block_size;
             auto cur_block_end = cur_slice_start + (cur_block_id + 1) * block_size;
+            if (cur_block_start > cur_slice_end) {
+                cur_block_start = cur_slice_end;
+            }
             if (cur_block_end > cur_slice_end) {
                 cur_block_end = cur_slice_end;
             }
