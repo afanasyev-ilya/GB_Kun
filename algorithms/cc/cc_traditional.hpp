@@ -1,10 +1,28 @@
+/**
+  @file cc_traditional.hpp
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @brief Traditional CC algorithm.
+  @details Detailed description.
+  @date May 12, 2022
+*/
+
 #ifndef GB_KUN_CC_TRADITIONAL_HPP
 #define GB_KUN_CC_TRADITIONAL_HPP
 #define COMPONENT_UNSET -1
 #define FIRST_COMPONENT 1
 
-namespace lablas{
-namespace algorithm {
+//! Lablas namespace
+namespace lablas {
+//! Algorithm namespace
+    namespace algorithm {
+
+/**
+ * cc_bfs_based_sequential function.
+ * @brief The function does...
+ * @param _components _components
+ * @param _graph _graph
+*/
 
 template <typename T>
 void cc_bfs_based_sequential(Vector <T> *_components,

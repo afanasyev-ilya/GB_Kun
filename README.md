@@ -1,6 +1,6 @@
-GB_Kun is a high-performance graph-processing library, based on the GraphBLAS standard. 
-Primary target hardware of GB_Kun is Kunpeng 920 processors (48-core and 64-core), 
-but it can be also launched on other multicore CPU if all the software requirements are provided. 
+GB_Kun is a high-performance graph-processing library, based on the GraphBLAS standard.
+Primary target hardware of GB_Kun is Kunpeng 920 processors (48-core and 64-core),
+but it can be also launched on other multicore CPU if all the software requirements are provides.
 
 Software Requirements:
 
@@ -14,7 +14,7 @@ Software Requirements:
 
 5. GoogleTest
 
-***Important***: for matlibplot installation use 
+***Important***: for matlibplot installation use
 
 ```bash
 yum install python3-devel
@@ -22,7 +22,7 @@ pip3 install matplotlib
 ```
 
 
-On CentOS 8, yum must be fixed according to the following instruction:  
+On CentOS 8, yum must be fixed according to the following instruction:
 
 
 ***gtest installation***
@@ -105,6 +105,7 @@ To download graphs from connect, type:
 cd GB_Kun/benchmark
 python3 ./load_feature_maps_from_konnect.py --cnt 100 --file output
 ```
+
 Parameter ```--cnt``` is used to specify how many graphs to download. 
 
 If ```--cnt``` parameter is not specified all graphs will be downloaded.

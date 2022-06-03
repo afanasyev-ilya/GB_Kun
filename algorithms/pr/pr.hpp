@@ -3,19 +3,44 @@
  * their custom license. For details, see https://github.com/GraphBLAS/LAGraph/blob/reorg/LICENSE
  * */
 
+/**
+  @file pr.hpp
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @brief PR algorithm.
+  @details This file uses algorithm implementation from LAGraph, which is available under
+  their custom license. For details, see https://github.com/GraphBLAS/LAGraph/blob/reorg/LICENSE.
+  @date May 12, 2022
+*/
+
 #pragma once
 
 #define GrB_Matrix lablas::Matrix<float>*
 #define GrB_Vector lablas::Vector<float>*
 #define MASK_NULL static_cast<const lablas::Vector<float>*>(NULL)
 
+//! Lablas namespace
+
 namespace lablas {
+
+//! Algorithm namespace
+
 namespace algorithm {
 
 }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * LAGraph_page_rank_sinks function.
+ * @brief The function does...
+ * @param centrality centrality(i): GAP-style pagerank of node i
+ * @param G input graph
+ * @param iters output: number of iterations taken
+ * @param itermax maximum number of iterations (typically 100)
+ * @param damping damping factor (typically 0.85)
+ * @param tol  stopping tolerance (typically 1e-4)
+*/
 
 void LAGraph_page_rank_sinks (GrB_Vector centrality, // centrality(i): GAP-style pagerank of node i
         // inputs:

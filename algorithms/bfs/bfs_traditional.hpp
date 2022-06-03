@@ -1,11 +1,34 @@
+/**
+  @file bfs_traditional.hpp
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @brief Traditional BFS algorithm.
+  @details Detailed description.
+  @date May 12, 2022
+*/
+
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+//! Lablas namespace
+
 namespace lablas {
+
+//! Algorithm namespace
+
 namespace algorithm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * bfs_traditional function.
+ * @brief Brief description.
+ * @param _levels _levels
+ * @param _graph _graph
+ * @param _source_vertex _source_vertex
+*/
 
 template <typename T>
 void bfs_traditional(Vector <T> *_levels,

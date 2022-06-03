@@ -1,9 +1,32 @@
+/**
+  @file sssp_traditional.hpp
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @brief Traditional SSSP algorithm.
+  @details Detailed description.
+  @date May 12, 2022
+*/
+
 #pragma once
 
+
+//! Lablas namespace
+
 namespace lablas {
-namespace algorithm {
+
+    //! Algorithm namespace
+
+    namespace algorithm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * sssp_traditional_dijkstra function.
+ * @brief The function does...
+ * @param _distances _distances
+ * @param _graph _graph
+ * @param _source_vertex _source_vertex
+*/
 
 template <typename T>
 void sssp_traditional_dijkstra(Vector <T> *_distances,
