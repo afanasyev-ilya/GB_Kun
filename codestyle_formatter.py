@@ -9,6 +9,7 @@ allowed_file_extensions = [".c", ".cpp", ".h", ".hpp"]
 clang_format_executable = "clang-format"
 clang_format_arguments = "-style=file"
 lines_to_comment_out_prefixes = ["#pragma", "#ifdef", "#else", "#endif"]
+comment_string = "//123@123"
 
 
 def get_files_to_format(directory_path):
@@ -28,7 +29,7 @@ def preprocess_file(target_file_path):
         file_data = file.read()
 
     for line_to_comment_out_prefix in lines_to_comment_out_prefixes:
-        file_data = file_data.replace(line_to_comment_out_prefix, "//" + line_to_comment_out_prefix)
+        file_data = file_data.replace(line_to_comment_out_prefix, comment_string + line_to_comment_out_prefix)
 
     with open(target_file_path, 'w') as file:
         file.write(file_data)
@@ -39,7 +40,7 @@ def undo_preprocessing_file(target_file_path):
         file_data = file.read()
 
     for line_to_comment_out_prefix in lines_to_comment_out_prefixes:
-        file_data = file_data.replace("//" + line_to_comment_out_prefix, line_to_comment_out_prefix)
+        file_data = file_data.replace(comment_string + line_to_comment_out_prefix, line_to_comment_out_prefix)
 
     with open(target_file_path, 'w') as file:
         file.write(file_data)
