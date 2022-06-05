@@ -1,8 +1,12 @@
 # do not move
 # this file has to be in the root folder of the project
 
-import os, sys, argparse, subprocess, shutil, tempfile
-
+import argparse
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
 
 clang_format_file_path = "./.clang-format"
 allowed_file_extensions = [".c", ".cpp", ".h", ".hpp"]
