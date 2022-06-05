@@ -50,22 +50,21 @@ def undo_preprocessing_file(target_file_path):
         file.write(file_data)
 
 
-def get_clang_format_diff(target_file_path, safe_diff):
+def print_clang_format_diff(target_file_path, safe_diff):
     if not safe_diff:
         tmp = tempfile.NamedTemporaryFile(suffix='.cpp', delete=False)
         try:
             shutil.copyfile(target_file_path, tmp.name)
             preprocess_file(target_file_path)
-            result = subprocess.check_output([clang_format_executable, clang_format_arguments,
-                                              "--dry-run", tmp.name], stderr=subprocess.STDOUT)
+            subprocess.run([clang_format_executable, clang_format_arguments,
+                            "--dry-run", tmp.name], stderr=subprocess.STDOUT)
             undo_preprocessing_file(target_file_path)
         finally:
             tmp.close()
             os.unlink(tmp.name)
     else:
-        result = subprocess.check_output([clang_format_executable, clang_format_arguments,
-                                          "--dry-run", target_file_path], stderr=subprocess.STDOUT)
-    return str(result).replace("\\n", "\n")
+        subprocess.run([clang_format_executable, clang_format_arguments,
+                        "--dry-run", target_file_path], stderr=subprocess.STDOUT)
 
 
 def apply_clang_format(target_file_path, safe_apply):
@@ -96,9 +95,8 @@ def main():
     files_to_format_paths = get_files_to_format(os.getcwd())
     for file_to_format_path in files_to_format_paths:
         if args.check:
-            check_result = get_clang_format_diff(file_to_format_path, args.safe)
-            if check_result:
-                print(f"Found problems with file: {file_to_format_path}:\n{check_result}0\n")
+            print(f"Problems with file: {file_to_format_path}:\n")
+            print_clang_format_diff(file_to_format_path, args.safe)
         if args.apply:
             print(f"Applied format to the file: {file_to_format_path}")
             apply_clang_format(file_to_format_path, args.safe)
