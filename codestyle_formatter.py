@@ -14,11 +14,13 @@ clang_format_executable = "clang-format"
 clang_format_arguments = "-style=file"
 lines_to_comment_out_prefixes = ["#pragma", "#ifdef", "#else", "#endif"]
 comment_string = "//123@123"
+folders_to_ignore = ["cmake-build-debug", "tsl"]
 
 
 def get_files_to_format(directory_path):
     result = []
-    for path, subdirs, files in os.walk(directory_path):
+    for path, subdirs, files in os.walk(directory_path, topdown=True):
+        subdirs[:] = [d for d in subdirs if d not in folders_to_ignore]
         for name in files:
             cur_file_path = os.path.join(path, name)
             for allowed_extension in allowed_file_extensions:
