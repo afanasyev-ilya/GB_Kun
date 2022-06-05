@@ -1,3 +1,6 @@
+# do not move
+# this file has to be in the root folder of the project
+
 import os, sys, argparse, subprocess, shutil, tempfile
 
 
