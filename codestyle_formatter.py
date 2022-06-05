@@ -12,7 +12,7 @@ clang_format_file_path = "./.clang-format"
 allowed_file_extensions = [".c", ".cpp", ".h", ".hpp"]
 clang_format_executable = "clang-format"
 clang_format_arguments = "-style=file"
-lines_to_comment_out_prefixes = ["#pragma", "#ifdef", "#else", "#endif"]
+lines_to_comment_out_prefixes = ["#pragma", "#ifdef", "#else", "#endif", "#ifndef"]
 comment_string = "//123@123"
 folders_to_ignore = ["cmake-build-debug", "tsl"]
 
