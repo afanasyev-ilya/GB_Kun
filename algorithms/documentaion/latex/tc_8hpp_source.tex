@@ -1,0 +1,289 @@
+\hypertarget{tc_8hpp_source}{}\doxysection{tc.\+hpp}
+\label{tc_8hpp_source}\index{tc.hpp@{tc.hpp}}
+\mbox{\hyperlink{tc_8hpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 \textcolor{comment}{// code taken form LAGraph}}
+\DoxyCodeLine{2 \textcolor{comment}{// add license}}
+\DoxyCodeLine{3 }
+\DoxyCodeLine{13 \textcolor{preprocessor}{\#pragma once}}
+\DoxyCodeLine{14 \textcolor{preprocessor}{\#include "{}../../src/gb\_kun.h"{}}}
+\DoxyCodeLine{15 }
+\DoxyCodeLine{16 \textcolor{preprocessor}{\#define GrB\_Matrix lablas::Matrix<int>*}}
+\DoxyCodeLine{17 \textcolor{preprocessor}{\#define GrB\_Vector lablas::Vector<int>*}}
+\DoxyCodeLine{18 \textcolor{preprocessor}{\#define MASK\_NULL static\_cast<const lablas::Vector<int>*>(NULL)}}
+\DoxyCodeLine{19 }
+\DoxyCodeLine{21 }
+\DoxyCodeLine{23 }
+\DoxyCodeLine{24 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelablas}{lablas}} \{}
+\DoxyCodeLine{25 }
+\DoxyCodeLine{27 }
+\DoxyCodeLine{28     \textcolor{keyword}{namespace }algorithm \{}
+\DoxyCodeLine{29 }
+\DoxyCodeLine{31 }
+\DoxyCodeLine{32 \textcolor{keyword}{enum} LAGraph\_TriangleCount\_Method}
+\DoxyCodeLine{33 \{}
+\DoxyCodeLine{34     LAGraph\_TriangleCount\_Default = 0,}
+\DoxyCodeLine{35     LAGraph\_TriangleCount\_Burkhardt = 1,}
+\DoxyCodeLine{36     LAGraph\_TriangleCount\_Cohen = 2,}
+\DoxyCodeLine{37     LAGraph\_TriangleCount\_Sandia = 3,}
+\DoxyCodeLine{38     LAGraph\_TriangleCount\_Sandia2 = 4,}
+\DoxyCodeLine{39     LAGraph\_TriangleCount\_SandiaDot = 5,}
+\DoxyCodeLine{40     LAGraph\_TriangleCount\_SandiaDot2 = 6}
+\DoxyCodeLine{41 \};}
+\DoxyCodeLine{42 }
+\DoxyCodeLine{43 \textcolor{keyword}{enum} LAGraph\_TriangleCount\_Presort}
+\DoxyCodeLine{44 \{}
+\DoxyCodeLine{45     LAGraph\_TriangleCount\_NoSort,}
+\DoxyCodeLine{46     LAGraph\_TriangleCount\_Ascending,}
+\DoxyCodeLine{47     LAGraph\_TriangleCount\_Descending,}
+\DoxyCodeLine{48     LAGraph\_TriangleCount\_AutoSort}
+\DoxyCodeLine{49 \};}
+\DoxyCodeLine{50 }
+\DoxyCodeLine{52 \textcolor{comment}{/*}}
+\DoxyCodeLine{53 \textcolor{comment}{\#define LG\_FREE\_ALL             \(\backslash\)}}
+\DoxyCodeLine{54 \textcolor{comment}{\{                               \(\backslash\)}}
+\DoxyCodeLine{55 \textcolor{comment}{    GrB\_free (L) ;              \(\backslash\)}}
+\DoxyCodeLine{56 \textcolor{comment}{    GrB\_free (U) ;              \(\backslash\)}}
+\DoxyCodeLine{57 \textcolor{comment}{\}}}
+\DoxyCodeLine{58 \textcolor{comment}{}}
+\DoxyCodeLine{59 \textcolor{comment}{static int tricount\_prep}}
+\DoxyCodeLine{60 \textcolor{comment}{        (}}
+\DoxyCodeLine{61 \textcolor{comment}{                GrB\_Matrix *L,      // if present, compute L = tril (A,-\/1)}}
+\DoxyCodeLine{62 \textcolor{comment}{                GrB\_Matrix *U,      // if present, compute U = triu (A, 1)}}
+\DoxyCodeLine{63 \textcolor{comment}{                GrB\_Matrix A,       // input matrix}}
+\DoxyCodeLine{64 \textcolor{comment}{                char *msg}}
+\DoxyCodeLine{65 \textcolor{comment}{        )}}
+\DoxyCodeLine{66 \textcolor{comment}{\{}}
+\DoxyCodeLine{67 \textcolor{comment}{    GrB\_Index n ;}}
+\DoxyCodeLine{68 \textcolor{comment}{    GrB\_TRY (GrB\_Matrix\_nrows (\&n, A)) ;}}
+\DoxyCodeLine{69 \textcolor{comment}{}}
+\DoxyCodeLine{70 \textcolor{comment}{    if (L != NULL)}}
+\DoxyCodeLine{71 \textcolor{comment}{    \{}}
+\DoxyCodeLine{72 \textcolor{comment}{        // L = tril (A,-\/1)}}
+\DoxyCodeLine{73 \textcolor{comment}{        GrB\_TRY (GrB\_Matrix\_new (L, GrB\_BOOL, n, n)) ;}}
+\DoxyCodeLine{74 \textcolor{comment}{        GrB\_TRY (GrB\_select (*L, NULL, NULL, GrB\_TRIL, A, (int64\_t) (-\/1),}}
+\DoxyCodeLine{75 \textcolor{comment}{                             NULL)) ;}}
+\DoxyCodeLine{76 \textcolor{comment}{    \}}}
+\DoxyCodeLine{77 \textcolor{comment}{}}
+\DoxyCodeLine{78 \textcolor{comment}{    if (U != NULL)}}
+\DoxyCodeLine{79 \textcolor{comment}{    \{}}
+\DoxyCodeLine{80 \textcolor{comment}{        // U = triu (A,1)}}
+\DoxyCodeLine{81 \textcolor{comment}{        GrB\_TRY (GrB\_Matrix\_new (U, GrB\_BOOL, n, n)) ;}}
+\DoxyCodeLine{82 \textcolor{comment}{        GrB\_TRY (GrB\_select (*U, NULL, NULL, GrB\_TRIU, A, (int64\_t) 1, NULL)) ;}}
+\DoxyCodeLine{83 \textcolor{comment}{    \}}}
+\DoxyCodeLine{84 \textcolor{comment}{    return (GrB\_SUCCESS) ;}}
+\DoxyCodeLine{85 \textcolor{comment}{\}}}
+\DoxyCodeLine{86 \textcolor{comment}{\#undef  LG\_FREE\_ALL}}
+\DoxyCodeLine{87 \textcolor{comment}{*/}}
+\DoxyCodeLine{89 \textcolor{comment}{/*}}
+\DoxyCodeLine{90 \textcolor{comment}{\#define LG\_FREE\_ALL                         \(\backslash\)}}
+\DoxyCodeLine{91 \textcolor{comment}{\{                                           \(\backslash\)}}
+\DoxyCodeLine{92 \textcolor{comment}{    GrB\_free (\&C) ;                         \(\backslash\)}}
+\DoxyCodeLine{93 \textcolor{comment}{    GrB\_free (\&L) ;                         \(\backslash\)}}
+\DoxyCodeLine{94 \textcolor{comment}{    GrB\_free (\&T) ;                         \(\backslash\)}}
+\DoxyCodeLine{95 \textcolor{comment}{    GrB\_free (\&U) ;                         \(\backslash\)}}
+\DoxyCodeLine{96 \textcolor{comment}{    LAGraph\_Free ((void **) \&P) ;           \(\backslash\)}}
+\DoxyCodeLine{97 \textcolor{comment}{\}}}
+\DoxyCodeLine{98 \textcolor{comment}{*/}}
+\DoxyCodeLine{99 }
+\DoxyCodeLine{111 \textcolor{keywordtype}{int} \mbox{\hyperlink{namespacelablas_1_1algorithm_af0f3f085fff0c435ad3e1eba347bf425}{LAGr\_TriangleCount}}(uint64\_t *ntriangles, \textcolor{keyword}{const} LAGraph\_Graph<int>* G,}
+\DoxyCodeLine{112                        LAGraph\_TriangleCount\_Method method,}
+\DoxyCodeLine{113                        LAGraph\_TriangleCount\_Presort presort, \textcolor{keyword}{const} \textcolor{keywordtype}{char} *msg)}
+\DoxyCodeLine{114 \{}
+\DoxyCodeLine{115     LG\_CLEAR\_MSG ;}
+\DoxyCodeLine{116     GrB\_Matrix C = NULL;}
+\DoxyCodeLine{117     GrB\_Matrix L = NULL;}
+\DoxyCodeLine{118     GrB\_Matrix U = NULL;}
+\DoxyCodeLine{119     GrB\_Matrix T = NULL;}
+\DoxyCodeLine{120     int64\_t *P = NULL ;}
+\DoxyCodeLine{121     \textcolor{comment}{/*}}
+\DoxyCodeLine{122 \textcolor{comment}{    LG\_ASSERT\_MSG (}}
+\DoxyCodeLine{123 \textcolor{comment}{            method == LAGraph\_TriangleCount\_Default ||   // 0: use default method}}
+\DoxyCodeLine{124 \textcolor{comment}{            method == LAGraph\_TriangleCount\_Burkhardt || // 1: sum (sum ((A\string^2) .* A))/6}}
+\DoxyCodeLine{125 \textcolor{comment}{            method == LAGraph\_TriangleCount\_Cohen ||     // 2: sum (sum ((L * U) .*A))/2}}
+\DoxyCodeLine{126 \textcolor{comment}{            method == LAGraph\_TriangleCount\_Sandia ||    // 3: sum (sum ((L * L) .* L))}}
+\DoxyCodeLine{127 \textcolor{comment}{            method == LAGraph\_TriangleCount\_Sandia2 ||   // 4: sum (sum ((U * U) .* U))}}
+\DoxyCodeLine{128 \textcolor{comment}{            method == LAGraph\_TriangleCount\_SandiaDot || // 5: sum (sum ((L * U') .* L))}}
+\DoxyCodeLine{129 \textcolor{comment}{            method == LAGraph\_TriangleCount\_SandiaDot2,  // 6: sum (sum ((U * L') .* U))}}
+\DoxyCodeLine{130 \textcolor{comment}{            GrB\_INVALID\_VALUE, "{}method is invalid"{}) ;}}
+\DoxyCodeLine{131 \textcolor{comment}{    if (presort != NULL)}}
+\DoxyCodeLine{132 \textcolor{comment}{    \{}}
+\DoxyCodeLine{133 \textcolor{comment}{        LG\_ASSERT\_MSG (}}
+\DoxyCodeLine{134 \textcolor{comment}{                (*presort) == LAGraph\_TriangleCount\_NoSort ||}}
+\DoxyCodeLine{135 \textcolor{comment}{                (*presort) == LAGraph\_TriangleCount\_Ascending ||}}
+\DoxyCodeLine{136 \textcolor{comment}{                (*presort) == LAGraph\_TriangleCount\_Descending ||}}
+\DoxyCodeLine{137 \textcolor{comment}{                (*presort) == LAGraph\_TriangleCount\_AutoSort,}}
+\DoxyCodeLine{138 \textcolor{comment}{                GrB\_INVALID\_VALUE, "{}presort is invalid"{}) ;}}
+\DoxyCodeLine{139 \textcolor{comment}{    \}}}
+\DoxyCodeLine{140 \textcolor{comment}{    LG\_TRY (LAGraph\_CheckGraph (G, msg)) ;}}
+\DoxyCodeLine{141 \textcolor{comment}{    LG\_ASSERT (ntriangles != NULL, GrB\_NULL\_POINTER) ;}}
+\DoxyCodeLine{142 \textcolor{comment}{    LG\_ASSERT (G-\/>ndiag == 0, LAGRAPH\_NO\_SELF\_EDGES\_ALLOWED) ;}}
+\DoxyCodeLine{143 \textcolor{comment}{}}
+\DoxyCodeLine{144 \textcolor{comment}{    if (method == LAGraph\_TriangleCount\_Default)}}
+\DoxyCodeLine{145 \textcolor{comment}{    \{}}
+\DoxyCodeLine{146 \textcolor{comment}{        // 0: use default method (5): SandiaDot: sum (sum ((L * U') .* L))}}
+\DoxyCodeLine{147 \textcolor{comment}{        method = LAGraph\_TriangleCount\_SandiaDot ;}}
+\DoxyCodeLine{148 \textcolor{comment}{    \}}}
+\DoxyCodeLine{149 \textcolor{comment}{}}
+\DoxyCodeLine{150 \textcolor{comment}{    LG\_ASSERT\_MSG ((G-\/>kind == LAGraph\_ADJACENCY\_UNDIRECTED ||}}
+\DoxyCodeLine{151 \textcolor{comment}{                    (G-\/>kind == LAGraph\_ADJACENCY\_DIRECTED \&\&}}
+\DoxyCodeLine{152 \textcolor{comment}{                     G-\/>structure\_is\_symmetric == LAGraph\_TRUE)),}}
+\DoxyCodeLine{153 \textcolor{comment}{                   LAGRAPH\_SYMMETRIC\_STRUCTURE\_REQUIRED,}}
+\DoxyCodeLine{154 \textcolor{comment}{                   "{}G-\/>A must be known to be symmetric"{}) ;}}
+\DoxyCodeLine{155 \textcolor{comment}{}}
+\DoxyCodeLine{156 \textcolor{comment}{    // the Sandia* methods can benefit from the presort}}
+\DoxyCodeLine{157 \textcolor{comment}{    bool method\_can\_use\_presort =}}
+\DoxyCodeLine{158 \textcolor{comment}{            method == LAGraph\_TriangleCount\_Sandia ||    // 3: sum (sum ((L * L) .* L))}}
+\DoxyCodeLine{159 \textcolor{comment}{            method == LAGraph\_TriangleCount\_Sandia2 ||   // 4: sum (sum ((U * U) .* U))}}
+\DoxyCodeLine{160 \textcolor{comment}{            method == LAGraph\_TriangleCount\_SandiaDot || // 5: sum (sum ((L * U') .* L))}}
+\DoxyCodeLine{161 \textcolor{comment}{            method == LAGraph\_TriangleCount\_SandiaDot2 ; // 6: sum (sum ((U * L') .* U))}}
+\DoxyCodeLine{162 \textcolor{comment}{    */}}
+\DoxyCodeLine{163     GrB\_Matrix A = G-\/>A ;}
+\DoxyCodeLine{164     \textcolor{keyword}{auto} Degree = G-\/>rowdegree ;}
+\DoxyCodeLine{165     \textcolor{comment}{/*}}
+\DoxyCodeLine{166 \textcolor{comment}{    bool auto\_sort = (presort != NULL)}}
+\DoxyCodeLine{167 \textcolor{comment}{                     \&\& ((*presort) == LAGraph\_TriangleCount\_AutoSort) ;}}
+\DoxyCodeLine{168 \textcolor{comment}{    if (auto\_sort \&\& method\_can\_use\_presort)}}
+\DoxyCodeLine{169 \textcolor{comment}{    \{}}
+\DoxyCodeLine{170 \textcolor{comment}{        LG\_ASSERT\_MSG (Degree != NULL,}}
+\DoxyCodeLine{171 \textcolor{comment}{                       LAGRAPH\_PROPERTY\_MISSING, "{}G-\/>rowdegree is required"{}) ;}}
+\DoxyCodeLine{172 \textcolor{comment}{    \}}}
+\DoxyCodeLine{173 \textcolor{comment}{    */}}
+\DoxyCodeLine{174     GrB\_Index n ;}
+\DoxyCodeLine{175     GrB\_TRY (GrB\_Matrix\_nrows (\&n, A)) ;}
+\DoxyCodeLine{176     GrB\_TRY (GrB\_Matrix\_new (\&C, GrB\_INT64, n, n)) ;}
+\DoxyCodeLine{177     \textcolor{keyword}{auto} semiring = LAGraph\_plus\_one\_int64 ;}
+\DoxyCodeLine{178     \textcolor{keyword}{auto} monoid = GrB\_PLUS\_MONOID\_INT64 ;}
+\DoxyCodeLine{179     \textcolor{comment}{/*}}
+\DoxyCodeLine{180 \textcolor{comment}{    if (auto\_sort)}}
+\DoxyCodeLine{181 \textcolor{comment}{    \{}}
+\DoxyCodeLine{182 \textcolor{comment}{        // auto selection of sorting method}}
+\DoxyCodeLine{183 \textcolor{comment}{        (*presort) = LAGraph\_TriangleCount\_NoSort ; // default is not to sort}}
+\DoxyCodeLine{184 \textcolor{comment}{}}
+\DoxyCodeLine{185 \textcolor{comment}{        if (method\_can\_use\_presort)}}
+\DoxyCodeLine{186 \textcolor{comment}{        \{}}
+\DoxyCodeLine{187 \textcolor{comment}{            \#define NSAMPLES 1000}}
+\DoxyCodeLine{188 \textcolor{comment}{            GrB\_Index nvals ;}}
+\DoxyCodeLine{189 \textcolor{comment}{            GrB\_TRY (GrB\_Matrix\_nvals (\&nvals, A)) ;}}
+\DoxyCodeLine{190 \textcolor{comment}{            if (n > NSAMPLES \&\& ((double) nvals / ((double) n)) >= 10)}}
+\DoxyCodeLine{191 \textcolor{comment}{            \{}}
+\DoxyCodeLine{192 \textcolor{comment}{                // estimate the mean and median degrees}}
+\DoxyCodeLine{193 \textcolor{comment}{                double mean, median ;}}
+\DoxyCodeLine{194 \textcolor{comment}{                LG\_TRY (LAGraph\_SampleDegree (\&mean, \&median,}}
+\DoxyCodeLine{195 \textcolor{comment}{                                              G, true, NSAMPLES, n, msg)) ;}}
+\DoxyCodeLine{196 \textcolor{comment}{                // sort if the average degree is very high vs the median}}
+\DoxyCodeLine{197 \textcolor{comment}{                if (mean > 4 * median)}}
+\DoxyCodeLine{198 \textcolor{comment}{                \{}}
+\DoxyCodeLine{199 \textcolor{comment}{                    switch (method)}}
+\DoxyCodeLine{200 \textcolor{comment}{                    \{}}
+\DoxyCodeLine{201 \textcolor{comment}{                        case LAGraph\_TriangleCount\_Sandia:}}
+\DoxyCodeLine{202 \textcolor{comment}{                            // 3:sum (sum ((L * L) .* L))}}
+\DoxyCodeLine{203 \textcolor{comment}{                            (*presort) = LAGraph\_TriangleCount\_Ascending  ;}}
+\DoxyCodeLine{204 \textcolor{comment}{                            break ;}}
+\DoxyCodeLine{205 \textcolor{comment}{                        case LAGraph\_TriangleCount\_Sandia2:}}
+\DoxyCodeLine{206 \textcolor{comment}{                            // 4: sum (sum ((U * U) .* U))}}
+\DoxyCodeLine{207 \textcolor{comment}{                            (*presort) = LAGraph\_TriangleCount\_Descending ;}}
+\DoxyCodeLine{208 \textcolor{comment}{                            break ;}}
+\DoxyCodeLine{209 \textcolor{comment}{                        default:}}
+\DoxyCodeLine{210 \textcolor{comment}{                        case LAGraph\_TriangleCount\_SandiaDot:}}
+\DoxyCodeLine{211 \textcolor{comment}{                            // 5: sum (sum ((L * U') .* L))}}
+\DoxyCodeLine{212 \textcolor{comment}{                            (*presort) = LAGraph\_TriangleCount\_Ascending  ;}}
+\DoxyCodeLine{213 \textcolor{comment}{                            break ;}}
+\DoxyCodeLine{214 \textcolor{comment}{                        case LAGraph\_TriangleCount\_SandiaDot2:}}
+\DoxyCodeLine{215 \textcolor{comment}{                            // 6: sum (sum ((U * L') .* U))}}
+\DoxyCodeLine{216 \textcolor{comment}{                            (*presort) = LAGraph\_TriangleCount\_Descending ;}}
+\DoxyCodeLine{217 \textcolor{comment}{                            break ;}}
+\DoxyCodeLine{218 \textcolor{comment}{                    \}}}
+\DoxyCodeLine{219 \textcolor{comment}{                \}}}
+\DoxyCodeLine{220 \textcolor{comment}{            \}}}
+\DoxyCodeLine{221 \textcolor{comment}{        \}}}
+\DoxyCodeLine{222 \textcolor{comment}{    \}}}
+\DoxyCodeLine{223 \textcolor{comment}{}}
+\DoxyCodeLine{224 \textcolor{comment}{    if (presort != NULL \&\& (*presort) != LAGraph\_TriangleCount\_NoSort)}}
+\DoxyCodeLine{225 \textcolor{comment}{    \{}}
+\DoxyCodeLine{226 \textcolor{comment}{        // P = permutation that sorts the rows by their degree}}
+\DoxyCodeLine{227 \textcolor{comment}{        LG\_TRY (LAGraph\_SortByDegree (\&P, G, true,}}
+\DoxyCodeLine{228 \textcolor{comment}{                                      (*presort) == LAGraph\_TriangleCount\_Ascending, msg)) ;}}
+\DoxyCodeLine{229 \textcolor{comment}{}}
+\DoxyCodeLine{230 \textcolor{comment}{        // T = A (P,P) and typecast to boolean}}
+\DoxyCodeLine{231 \textcolor{comment}{        GrB\_TRY (GrB\_Matrix\_new (\&T, GrB\_BOOL, n, n)) ;}}
+\DoxyCodeLine{232 \textcolor{comment}{        GrB\_TRY (GrB\_extract (T, NULL, NULL, A, (GrB\_Index *) P, n,}}
+\DoxyCodeLine{233 \textcolor{comment}{                              (GrB\_Index *) P, n, NULL)) ;}}
+\DoxyCodeLine{234 \textcolor{comment}{        A = T ;}}
+\DoxyCodeLine{235 \textcolor{comment}{}}
+\DoxyCodeLine{236 \textcolor{comment}{        // free workspace}}
+\DoxyCodeLine{237 \textcolor{comment}{        LAGraph\_Free ((void **) \&P) ;}}
+\DoxyCodeLine{238 \textcolor{comment}{    \}}}
+\DoxyCodeLine{239 \textcolor{comment}{    */}}
+\DoxyCodeLine{240     int64\_t ntri ;}
+\DoxyCodeLine{241     GrB\_TRY (GrB\_mxm (C, A, NULL, semiring, A, A, GrB\_DESC\_S)) ;}
+\DoxyCodeLine{242     GrB\_TRY (GrB\_reduce (\&ntri, NULL, monoid, C, NULL)) ;}
+\DoxyCodeLine{243     ntri /= 6 ;}
+\DoxyCodeLine{244     \textcolor{comment}{/*}}
+\DoxyCodeLine{245 \textcolor{comment}{    switch (method)}}
+\DoxyCodeLine{246 \textcolor{comment}{    \{}}
+\DoxyCodeLine{247 \textcolor{comment}{}}
+\DoxyCodeLine{248 \textcolor{comment}{        case LAGraph\_TriangleCount\_Burkhardt:  // 1: sum (sum ((A\string^2) .* A)) / 6}}
+\DoxyCodeLine{249 \textcolor{comment}{}}
+\DoxyCodeLine{250 \textcolor{comment}{            GrB\_TRY (GrB\_mxm (C, A, NULL, semiring, A, A, GrB\_DESC\_S)) ;}}
+\DoxyCodeLine{251 \textcolor{comment}{            GrB\_TRY (GrB\_reduce (\&ntri, NULL, monoid, C, NULL)) ;}}
+\DoxyCodeLine{252 \textcolor{comment}{            ntri /= 6 ;}}
+\DoxyCodeLine{253 \textcolor{comment}{            break ;}}
+\DoxyCodeLine{254 \textcolor{comment}{}}
+\DoxyCodeLine{255 \textcolor{comment}{        case LAGraph\_TriangleCount\_Cohen: // 2: sum (sum ((L * U) .* A)) / 2}}
+\DoxyCodeLine{256 \textcolor{comment}{}}
+\DoxyCodeLine{257 \textcolor{comment}{            LG\_TRY (tricount\_prep (\&L, \&U, A, msg)) ;}}
+\DoxyCodeLine{258 \textcolor{comment}{            GrB\_TRY (GrB\_mxm (C, A, NULL, semiring, L, U, GrB\_DESC\_S)) ;}}
+\DoxyCodeLine{259 \textcolor{comment}{            GrB\_TRY (GrB\_reduce (\&ntri, NULL, monoid, C, NULL)) ;}}
+\DoxyCodeLine{260 \textcolor{comment}{            ntri /= 2 ;}}
+\DoxyCodeLine{261 \textcolor{comment}{            break ;}}
+\DoxyCodeLine{262 \textcolor{comment}{}}
+\DoxyCodeLine{263 \textcolor{comment}{        case LAGraph\_TriangleCount\_Sandia: // 3: sum (sum ((L * L) .* L))}}
+\DoxyCodeLine{264 \textcolor{comment}{}}
+\DoxyCodeLine{265 \textcolor{comment}{            // using the masked saxpy3 method}}
+\DoxyCodeLine{266 \textcolor{comment}{            LG\_TRY (tricount\_prep (\&L, NULL, A, msg)) ;}}
+\DoxyCodeLine{267 \textcolor{comment}{            GrB\_TRY (GrB\_mxm (C, L, NULL, semiring, L, L, GrB\_DESC\_S)) ;}}
+\DoxyCodeLine{268 \textcolor{comment}{            GrB\_TRY (GrB\_reduce (\&ntri, NULL, monoid, C, NULL)) ;}}
+\DoxyCodeLine{269 \textcolor{comment}{            break ;}}
+\DoxyCodeLine{270 \textcolor{comment}{}}
+\DoxyCodeLine{271 \textcolor{comment}{        case LAGraph\_TriangleCount\_Sandia2: // 4: sum (sum ((U * U) .* U))}}
+\DoxyCodeLine{272 \textcolor{comment}{}}
+\DoxyCodeLine{273 \textcolor{comment}{            // using the masked saxpy3 method}}
+\DoxyCodeLine{274 \textcolor{comment}{            LG\_TRY (tricount\_prep (NULL, \&U, A, msg)) ;}}
+\DoxyCodeLine{275 \textcolor{comment}{            GrB\_TRY (GrB\_mxm (C, U, NULL, semiring, U, U, GrB\_DESC\_S)) ;}}
+\DoxyCodeLine{276 \textcolor{comment}{            GrB\_TRY (GrB\_reduce (\&ntri, NULL, monoid, C, NULL)) ;}}
+\DoxyCodeLine{277 \textcolor{comment}{            break ;}}
+\DoxyCodeLine{278 \textcolor{comment}{}}
+\DoxyCodeLine{279 \textcolor{comment}{        default:}}
+\DoxyCodeLine{280 \textcolor{comment}{        case LAGraph\_TriangleCount\_SandiaDot: // 5: sum (sum ((L * U') .* L))}}
+\DoxyCodeLine{281 \textcolor{comment}{}}
+\DoxyCodeLine{282 \textcolor{comment}{            // This tends to be the fastest method for most large matrices, but}}
+\DoxyCodeLine{283 \textcolor{comment}{            // the SandiaDot2 method is also very fast.}}
+\DoxyCodeLine{284 \textcolor{comment}{}}
+\DoxyCodeLine{285 \textcolor{comment}{            // using the masked dot product}}
+\DoxyCodeLine{286 \textcolor{comment}{            LG\_TRY (tricount\_prep (\&L, \&U, A, msg)) ;}}
+\DoxyCodeLine{287 \textcolor{comment}{            GrB\_TRY (GrB\_mxm (C, L, NULL, semiring, L, U, GrB\_DESC\_ST1)) ;}}
+\DoxyCodeLine{288 \textcolor{comment}{            GrB\_TRY (GrB\_reduce (\&ntri, NULL, monoid, C, NULL)) ;}}
+\DoxyCodeLine{289 \textcolor{comment}{            break ;}}
+\DoxyCodeLine{290 \textcolor{comment}{}}
+\DoxyCodeLine{291 \textcolor{comment}{        case LAGraph\_TriangleCount\_SandiaDot2: // 6: sum (sum ((U * L') .* U))}}
+\DoxyCodeLine{292 \textcolor{comment}{}}
+\DoxyCodeLine{293 \textcolor{comment}{            // using the masked dot product}}
+\DoxyCodeLine{294 \textcolor{comment}{            LG\_TRY (tricount\_prep (\&L, \&U, A, msg)) ;}}
+\DoxyCodeLine{295 \textcolor{comment}{            GrB\_TRY (GrB\_mxm (C, U, NULL, semiring, U, L, GrB\_DESC\_ST1)) ;}}
+\DoxyCodeLine{296 \textcolor{comment}{            GrB\_TRY (GrB\_reduce (\&ntri, NULL, monoid, C, NULL)) ;}}
+\DoxyCodeLine{297 \textcolor{comment}{            break ;}}
+\DoxyCodeLine{298 \textcolor{comment}{    \}}}
+\DoxyCodeLine{299 \textcolor{comment}{    */}}
+\DoxyCodeLine{300     \textcolor{comment}{//LG\_FREE\_ALL ;}}
+\DoxyCodeLine{301     (*ntriangles) = (uint64\_t) ntri ;}
+\DoxyCodeLine{302     \textcolor{keywordflow}{return} (GrB\_SUCCESS) ;}
+\DoxyCodeLine{303 \}}
+\DoxyCodeLine{304 }
+\DoxyCodeLine{305 \textcolor{comment}{//\#undef  LG\_FREE\_ALL}}
+\DoxyCodeLine{306 }
+\DoxyCodeLine{308 }
+\DoxyCodeLine{309 \}}
+\DoxyCodeLine{310 \}}
+
+\end{DoxyCode}

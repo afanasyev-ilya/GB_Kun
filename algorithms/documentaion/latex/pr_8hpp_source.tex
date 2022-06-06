@@ -1,0 +1,174 @@
+\hypertarget{pr_8hpp_source}{}\doxysection{pr.\+hpp}
+\label{pr_8hpp_source}\index{pr.hpp@{pr.hpp}}
+\mbox{\hyperlink{pr_8hpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 \textcolor{comment}{/*}}
+\DoxyCodeLine{2 \textcolor{comment}{ * This file uses algorithm implementation from LAGraph, which is available under}}
+\DoxyCodeLine{3 \textcolor{comment}{ * their custom license. For details, see https://github.com/GraphBLAS/LAGraph/blob/reorg/LICENSE}}
+\DoxyCodeLine{4 \textcolor{comment}{ * */}}
+\DoxyCodeLine{5 }
+\DoxyCodeLine{16 \textcolor{preprocessor}{\#pragma once}}
+\DoxyCodeLine{17 }
+\DoxyCodeLine{18 \textcolor{preprocessor}{\#define GrB\_Matrix lablas::Matrix<float>*}}
+\DoxyCodeLine{19 \textcolor{preprocessor}{\#define GrB\_Vector lablas::Vector<float>*}}
+\DoxyCodeLine{20 \textcolor{preprocessor}{\#define MASK\_NULL static\_cast<const lablas::Vector<float>*>(NULL)}}
+\DoxyCodeLine{21 }
+\DoxyCodeLine{23 }
+\DoxyCodeLine{24 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelablas}{lablas}} \{}
+\DoxyCodeLine{25 }
+\DoxyCodeLine{27 }
+\DoxyCodeLine{28 \textcolor{keyword}{namespace }algorithm \{}
+\DoxyCodeLine{29 }
+\DoxyCodeLine{30 \}}
+\DoxyCodeLine{31 \}}
+\DoxyCodeLine{32 }
+\DoxyCodeLine{34 }
+\DoxyCodeLine{45 \textcolor{keywordtype}{void} \mbox{\hyperlink{pr_8hpp_aa759210773f764b3453c6967514c6a96}{LAGraph\_page\_rank\_sinks}} (GrB\_Vector centrality, \textcolor{comment}{// centrality(i): GAP-\/style pagerank of node i}}
+\DoxyCodeLine{46         \textcolor{comment}{// inputs:}}
+\DoxyCodeLine{47                               LAGraph\_Graph<float> *G,        \textcolor{comment}{// input graph}}
+\DoxyCodeLine{48                               \textcolor{keywordtype}{int} *iters,                     \textcolor{comment}{// output: number of iterations taken}}
+\DoxyCodeLine{49                               \textcolor{keywordtype}{int} itermax = 100,              \textcolor{comment}{// maximum number of iterations (typically 100)}}
+\DoxyCodeLine{50                               \textcolor{keywordtype}{double} damping = 0.85,           \textcolor{comment}{// damping factor (typically 0.85)}}
+\DoxyCodeLine{51                               \textcolor{keywordtype}{double} tol = 1e-\/4               \textcolor{comment}{// stopping tolerance (typically 1e-\/4) ;}}
+\DoxyCodeLine{52 )}
+\DoxyCodeLine{53 \{}
+\DoxyCodeLine{54     GrB\_Matrix AT = G-\/>AT;}
+\DoxyCodeLine{55     lablas::Vector<Index>* d\_out = G-\/>coldegree; \textcolor{comment}{// TODO row degree and transpose}}
+\DoxyCodeLine{56     GrB\_Vector r = NULL, *d = NULL, *t = NULL, *w = NULL, *d1 = NULL ;}
+\DoxyCodeLine{57     lablas::Descriptor desc;}
+\DoxyCodeLine{58 }
+\DoxyCodeLine{59     \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{60     \textcolor{comment}{// initializations}}
+\DoxyCodeLine{61     \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{62 }
+\DoxyCodeLine{63     GrB\_Index n ;}
+\DoxyCodeLine{64     GrB\_TRY (GrB\_Matrix\_nrows (\&n, AT)) ;}
+\DoxyCodeLine{65 }
+\DoxyCodeLine{66     \textcolor{keyword}{const} \textcolor{keywordtype}{double} scaled\_damping = (1 -\/ damping) / n ;}
+\DoxyCodeLine{67     \textcolor{keywordtype}{float} rdiff = 1 ;       \textcolor{comment}{// first iteration is always done}}
+\DoxyCodeLine{68 }
+\DoxyCodeLine{69     \textcolor{comment}{// r = 1 / n}}
+\DoxyCodeLine{70     GrB\_TRY (GrB\_Vector\_new (\&t, GrB\_FP32, n)) ;}
+\DoxyCodeLine{71     GrB\_TRY (GrB\_Vector\_new (\&r, GrB\_FP32, n)) ;}
+\DoxyCodeLine{72     GrB\_TRY (GrB\_Vector\_new (\&w, GrB\_FP32, n)) ;}
+\DoxyCodeLine{73     GrB\_TRY (GrB\_Vector\_new (\&d, GrB\_FP32, n)) ;}
+\DoxyCodeLine{74     GrB\_TRY (GrB\_Vector\_new (\&d1, GrB\_FP32, n)) ;}
+\DoxyCodeLine{75     t-\/>set\_name(\textcolor{stringliteral}{"{}t"{}});}
+\DoxyCodeLine{76     r-\/>set\_name(\textcolor{stringliteral}{"{}r"{}});}
+\DoxyCodeLine{77     w-\/>set\_name(\textcolor{stringliteral}{"{}w"{}});}
+\DoxyCodeLine{78     d-\/>set\_name(\textcolor{stringliteral}{"{}d"{}});}
+\DoxyCodeLine{79     d1-\/>set\_name(\textcolor{stringliteral}{"{}d1"{}});}
+\DoxyCodeLine{80 }
+\DoxyCodeLine{81     \textcolor{keywordtype}{double} init\_rank = 1.0/n;}
+\DoxyCodeLine{82     GrB\_TRY (GrB\_assign (r, MASK\_NULL, NULL, init\_rank, GrB\_ALL, n, NULL)) ;}
+\DoxyCodeLine{83 }
+\DoxyCodeLine{84     \textcolor{comment}{// find all sinks, where sink(i) = true if node i has d\_out(i)=0, or with}}
+\DoxyCodeLine{85     \textcolor{comment}{// d\_out(i) not present.  LAGraph\_Property\_RowDegree computes d\_out =}}
+\DoxyCodeLine{86     \textcolor{comment}{// G-\/>rowdegree so that it has no explicit zeros, so a structural mask can}}
+\DoxyCodeLine{87     \textcolor{comment}{// be used here.}}
+\DoxyCodeLine{88     lablas::Vector<bool>* sink = NULL;}
+\DoxyCodeLine{89     lablas::Vector<float>* rsink = NULL;}
+\DoxyCodeLine{90     GrB\_Index nsinks, nvals ;}
+\DoxyCodeLine{91     GrB\_TRY (GrB\_Vector\_nvals (\&nvals, d\_out)) ;}
+\DoxyCodeLine{92     nsinks = n -\/ nvals ;}
+\DoxyCodeLine{93     \textcolor{keywordflow}{if} (nsinks > 0)}
+\DoxyCodeLine{94     \{}
+\DoxyCodeLine{95         \textcolor{comment}{// sink<!struct(d\_out)> = true}}
+\DoxyCodeLine{96         GrB\_TRY (GrB\_Vector\_new (\&sink, GrB\_BOOL, n)) ;}
+\DoxyCodeLine{97         GrB\_TRY (GrB\_assign (sink, d\_out, NULL, (\textcolor{keywordtype}{bool})\textcolor{keyword}{true}, GrB\_ALL, n, GrB\_DESC\_SC)) ;}
+\DoxyCodeLine{98         GrB\_TRY (GrB\_Vector\_new (\&rsink, GrB\_FP32, n));}
+\DoxyCodeLine{99         sink-\/>set\_name(\textcolor{stringliteral}{"{}sink"{}});}
+\DoxyCodeLine{100         rsink-\/>set\_name(\textcolor{stringliteral}{"{}rsink"{}});}
+\DoxyCodeLine{101     \}}
+\DoxyCodeLine{102 }
+\DoxyCodeLine{103     \textcolor{comment}{// prescale with damping factor, so it isn't done each iteration}}
+\DoxyCodeLine{104     \textcolor{comment}{// d = d\_out / damping ;}}
+\DoxyCodeLine{105     GrB\_TRY (GrB\_apply (d, MASK\_NULL, NULL, GrB\_DIV\_FP32, d\_out, damping, \&desc)) ;}
+\DoxyCodeLine{106 }
+\DoxyCodeLine{107     \textcolor{comment}{// d1 = 1 / damping}}
+\DoxyCodeLine{108     \textcolor{keywordtype}{float} dmin = 1.0 / damping ;}
+\DoxyCodeLine{109     GrB\_TRY (GrB\_assign (d1, MASK\_NULL, NULL, dmin, GrB\_ALL, n, NULL)) ;}
+\DoxyCodeLine{110 }
+\DoxyCodeLine{111     \textcolor{comment}{// d = max (d1, d)}}
+\DoxyCodeLine{112     GrB\_TRY (GrB\_eWiseAdd (d, MASK\_NULL, NULL, GrB\_MAX\_FP32, d1, d, NULL)) ;}
+\DoxyCodeLine{113 }
+\DoxyCodeLine{114     \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{115     \textcolor{comment}{// pagerank iterations}}
+\DoxyCodeLine{116     \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{117     \textcolor{keywordflow}{for} ((*iters) = 0 ; (*iters) < itermax; (*iters)++)}
+\DoxyCodeLine{118     \{}
+\DoxyCodeLine{119         \textcolor{keywordtype}{float} teleport = scaled\_damping ; \textcolor{comment}{// teleport = (1 -\/ damping) / n}}
+\DoxyCodeLine{120         \textcolor{keywordflow}{if} (nsinks > 0)}
+\DoxyCodeLine{121         \{}
+\DoxyCodeLine{122             \textcolor{keyword}{const} \textcolor{keywordtype}{float} damping\_over\_n = damping / n ;}
+\DoxyCodeLine{123             \textcolor{comment}{// handle the sinks: teleport += (damping/n) * sum (r (sink))}}
+\DoxyCodeLine{124             \textcolor{comment}{// rsink<struct(sink)> = r}}
+\DoxyCodeLine{125             GrB\_TRY (GrB\_Vector\_clear (rsink)) ;}
+\DoxyCodeLine{126 }
+\DoxyCodeLine{127             GrB\_TRY (GrB\_assign (rsink, sink, NULL, r, GrB\_ALL, n, GrB\_DESC\_S));}
+\DoxyCodeLine{128 }
+\DoxyCodeLine{129             \textcolor{comment}{// sum\_rsink = sum (rsink)}}
+\DoxyCodeLine{130             \textcolor{keywordtype}{float} sum\_rsink = 0 ;}
+\DoxyCodeLine{131             GrB\_TRY (GrB\_reduce (\&sum\_rsink, NULL, GrB\_PLUS\_MONOID\_FP32, rsink, NULL)) ;}
+\DoxyCodeLine{132             teleport += damping\_over\_n * sum\_rsink ;}
+\DoxyCodeLine{133         \}}
+\DoxyCodeLine{134 }
+\DoxyCodeLine{135         \textcolor{comment}{// swap t and r ; now t is the old score}}
+\DoxyCodeLine{136         GrB\_Vector temp = t ; t = r ; r = temp ;}
+\DoxyCodeLine{137         \textcolor{comment}{// w = t ./ d}}
+\DoxyCodeLine{138 }
+\DoxyCodeLine{139         GrB\_TRY (GrB\_eWiseMult (w, MASK\_NULL, NULL, GrB\_DIV\_FP32, t, d, NULL)) ;}
+\DoxyCodeLine{140 }
+\DoxyCodeLine{141         \textcolor{comment}{// r = teleport}}
+\DoxyCodeLine{142         GrB\_TRY (GrB\_assign (r, MASK\_NULL, NULL, teleport, GrB\_ALL, n, NULL)) ;}
+\DoxyCodeLine{143 }
+\DoxyCodeLine{144         \textcolor{comment}{// r += A'*w}}
+\DoxyCodeLine{145         SAVE\_STATS((GrB\_TRY (GrB\_mxv (r, MASK\_NULL, GrB\_PLUS\_FP32, LAGraph\_plus\_second\_fp32, AT, w, \&desc))),}
+\DoxyCodeLine{146                    \textcolor{stringliteral}{"{}pr\_mxv"{}}, (\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{float})*2 + \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{size\_t})), 1, AT);}
+\DoxyCodeLine{147 }
+\DoxyCodeLine{148         \textcolor{comment}{// t -\/= r}}
+\DoxyCodeLine{149         GrB\_TRY (GrB\_assign (t, MASK\_NULL, GrB\_MINUS\_FP32, r, GrB\_ALL, n, NULL)) ;}
+\DoxyCodeLine{150         \textcolor{comment}{// t = abs (t)}}
+\DoxyCodeLine{151         GrB\_TRY (GrB\_apply (t, MASK\_NULL, NULL, GrB\_ABS\_FP32, t, NULL)) ;}
+\DoxyCodeLine{152         \textcolor{comment}{// rdiff = sum (t)}}
+\DoxyCodeLine{153         GrB\_TRY (GrB\_reduce (\&rdiff, NULL, GrB\_PLUS\_MONOID\_FP32, t, NULL)) ;}
+\DoxyCodeLine{154 }
+\DoxyCodeLine{155         \textcolor{comment}{//float ranks\_sum = 0;}}
+\DoxyCodeLine{156         \textcolor{keywordtype}{double} ranks\_sum = 0;}
+\DoxyCodeLine{157         GrB\_TRY (GrB\_reduce (\&ranks\_sum, NULL, GrB\_PLUS\_MONOID\_FP32, r, NULL));}
+\DoxyCodeLine{158 \textcolor{preprocessor}{        \#ifdef \_\_DEBUG\_INFO\_\_}}
+\DoxyCodeLine{159         cout << \textcolor{stringliteral}{"{}ranks sum: "{}} << ranks\_sum << endl;}
+\DoxyCodeLine{160 \textcolor{preprocessor}{        \#endif}}
+\DoxyCodeLine{161     \}}
+\DoxyCodeLine{162 }
+\DoxyCodeLine{163     \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{164     \textcolor{comment}{// free workspace and return result}}
+\DoxyCodeLine{165     \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{166 }
+\DoxyCodeLine{167     centrality-\/>dup(r);}
+\DoxyCodeLine{168     GrB\_free (\&d1) ;}
+\DoxyCodeLine{169     GrB\_free (\&d);}
+\DoxyCodeLine{170     GrB\_free (\&t);}
+\DoxyCodeLine{171     GrB\_free (\&w);}
+\DoxyCodeLine{172     GrB\_free (\&r);}
+\DoxyCodeLine{173     \textcolor{keywordflow}{if} (nsinks > 0)}
+\DoxyCodeLine{174     \{}
+\DoxyCodeLine{175         GrB\_free (\&sink);}
+\DoxyCodeLine{176         GrB\_free (\&rsink);}
+\DoxyCodeLine{177     \}}
+\DoxyCodeLine{178 \}}
+\DoxyCodeLine{179 }
+\DoxyCodeLine{181 }
+\DoxyCodeLine{182 \textcolor{preprocessor}{\#undef GrB\_Matrix}}
+\DoxyCodeLine{183 \textcolor{preprocessor}{\#undef GrB\_Vector}}
+\DoxyCodeLine{184 \textcolor{preprocessor}{\#undef MASK\_NULL}}
+\DoxyCodeLine{185 }
+\DoxyCodeLine{187 }
+\DoxyCodeLine{188 \textcolor{comment}{// Алгоритм преобразования LAGraph кода графового алгоритма к коду, совместимому с GB\_Kun}}
+\DoxyCodeLine{189 \textcolor{comment}{// удалить инициализуию LAgraph}}
+\DoxyCodeLine{190 \textcolor{comment}{// lablas::Vector<Index>* d\_out}}
+\DoxyCodeLine{191 \textcolor{comment}{// *}}
+\DoxyCodeLine{192 \textcolor{comment}{// изменить маски NULL на MASK\_TEMP}}
+\DoxyCodeLine{193 \textcolor{comment}{// изменить дескриптор}}
+
+\end{DoxyCode}

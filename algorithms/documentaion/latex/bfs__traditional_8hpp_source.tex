@@ -1,0 +1,61 @@
+\hypertarget{bfs__traditional_8hpp_source}{}\doxysection{bfs\+\_\+traditional.\+hpp}
+\label{bfs__traditional_8hpp_source}\index{bfs\_traditional.hpp@{bfs\_traditional.hpp}}
+\mbox{\hyperlink{bfs__traditional_8hpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 }
+\DoxyCodeLine{10 \textcolor{preprocessor}{\#pragma once}}
+\DoxyCodeLine{11 }
+\DoxyCodeLine{13 }
+\DoxyCodeLine{14 }
+\DoxyCodeLine{16 }
+\DoxyCodeLine{17 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelablas}{lablas}} \{}
+\DoxyCodeLine{18 }
+\DoxyCodeLine{20 }
+\DoxyCodeLine{21 \textcolor{keyword}{namespace }algorithm \{}
+\DoxyCodeLine{22 }
+\DoxyCodeLine{24 }
+\DoxyCodeLine{33 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{34 \textcolor{keywordtype}{void} \mbox{\hyperlink{namespacelablas_1_1algorithm_af5963ed88416a73964acaf260e4c63f6}{bfs\_traditional}}(Vector <T> *\_levels,}
+\DoxyCodeLine{35                      \textcolor{keyword}{const} Matrix <T> *\_graph,}
+\DoxyCodeLine{36                      Index \_source\_vertex)}
+\DoxyCodeLine{37 \{}
+\DoxyCodeLine{38     Index vertices\_count = \_levels-\/>get\_vector()-\/>getDense()-\/>get\_size();}
+\DoxyCodeLine{39     T* levels = \_levels-\/>get\_vector()-\/>getDense()-\/>get\_vals();}
+\DoxyCodeLine{40     backend::MatrixCSR<T> *graph = ((backend::MatrixCSR<T> *) \_graph-\/>get\_matrix()-\/>get\_csr());}
+\DoxyCodeLine{41 }
+\DoxyCodeLine{42     \textcolor{comment}{// Mark all the vertices as not visited}}
+\DoxyCodeLine{43     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < vertices\_count; i++)}
+\DoxyCodeLine{44         levels[i] = 0;}
+\DoxyCodeLine{45 }
+\DoxyCodeLine{46     \textcolor{comment}{// Create a queue for BFS}}
+\DoxyCodeLine{47     list<Index> queue;}
+\DoxyCodeLine{48 }
+\DoxyCodeLine{49     \textcolor{comment}{// Mark the current node as visited and enqueue it}}
+\DoxyCodeLine{50     levels[\_source\_vertex] = 1;}
+\DoxyCodeLine{51     queue.push\_back(\_source\_vertex);}
+\DoxyCodeLine{52 }
+\DoxyCodeLine{53     \textcolor{keywordflow}{while}(!queue.empty())}
+\DoxyCodeLine{54     \{}
+\DoxyCodeLine{55         \textcolor{comment}{// Dequeue a vertex from queue and print it}}
+\DoxyCodeLine{56         Index s = queue.front();}
+\DoxyCodeLine{57         queue.pop\_front();}
+\DoxyCodeLine{58 }
+\DoxyCodeLine{59         Index shift = graph-\/>get\_row\_ptr()[s];}
+\DoxyCodeLine{60         Index connections\_count = graph-\/>get\_row\_ptr()[s + 1] -\/ graph-\/>get\_row\_ptr()[s];}
+\DoxyCodeLine{61         \textcolor{keywordflow}{for}(Index edge\_pos = 0; edge\_pos < connections\_count; edge\_pos++)}
+\DoxyCodeLine{62         \{}
+\DoxyCodeLine{63             Index v = graph-\/>get\_col\_ids()[shift + edge\_pos];}
+\DoxyCodeLine{64             \textcolor{keywordflow}{if} (levels[v] == 0)}
+\DoxyCodeLine{65             \{}
+\DoxyCodeLine{66                 levels[v] = levels[s] + 1;}
+\DoxyCodeLine{67                 queue.push\_back(v);}
+\DoxyCodeLine{68             \}}
+\DoxyCodeLine{69         \}}
+\DoxyCodeLine{70     \}}
+\DoxyCodeLine{71 \}}
+\DoxyCodeLine{72 }
+\DoxyCodeLine{74 }
+\DoxyCodeLine{75 \}}
+\DoxyCodeLine{76 \}}
+
+\end{DoxyCode}

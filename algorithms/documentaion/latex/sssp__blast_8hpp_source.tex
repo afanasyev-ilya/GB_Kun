@@ -1,0 +1,85 @@
+\hypertarget{sssp__blast_8hpp_source}{}\doxysection{sssp\+\_\+blast.\+hpp}
+\label{sssp__blast_8hpp_source}\index{sssp\_blast.hpp@{sssp\_blast.hpp}}
+\mbox{\hyperlink{sssp__blast_8hpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 }
+\DoxyCodeLine{10 \textcolor{preprocessor}{\#pragma once}}
+\DoxyCodeLine{11 }
+\DoxyCodeLine{13 }
+\DoxyCodeLine{14 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelablas}{lablas}} \{}
+\DoxyCodeLine{15 }
+\DoxyCodeLine{17 }
+\DoxyCodeLine{18     \textcolor{keyword}{namespace }algorithm \{}
+\DoxyCodeLine{19 }
+\DoxyCodeLine{21 }
+\DoxyCodeLine{31 \textcolor{keywordtype}{void} \mbox{\hyperlink{namespacelablas_1_1algorithm_a00bfa52e982f7eafc2fffa03bf1787a0}{sssp\_bellman\_ford\_blast}}(Vector<float> *v,}
+\DoxyCodeLine{32                              \textcolor{keyword}{const} Matrix<float> *A,}
+\DoxyCodeLine{33                              Index s,}
+\DoxyCodeLine{34                              Descriptor *desc)}
+\DoxyCodeLine{35 \{}
+\DoxyCodeLine{36     Index A\_nrows = A-\/>nrows();}
+\DoxyCodeLine{37 }
+\DoxyCodeLine{38     \textcolor{comment}{// Visited vector (use float for now)}}
+\DoxyCodeLine{39     v-\/>fill(std::numeric\_limits<float>::max());}
+\DoxyCodeLine{40     v-\/>set\_element(0.f, s);}
+\DoxyCodeLine{41 }
+\DoxyCodeLine{42     \textcolor{comment}{// Frontier vectors (use float for now)}}
+\DoxyCodeLine{43     Vector<float> f1(A\_nrows);}
+\DoxyCodeLine{44     Vector<float> f2(A\_nrows);}
+\DoxyCodeLine{45 }
+\DoxyCodeLine{46     Desc\_value desc\_value;}
+\DoxyCodeLine{47 }
+\DoxyCodeLine{48     \textcolor{comment}{// Visited vector (use float for now)}}
+\DoxyCodeLine{49     \textcolor{keywordflow}{if} (\textcolor{keyword}{true})}
+\DoxyCodeLine{50     \{}
+\DoxyCodeLine{51         f1.fill(std::numeric\_limits<float>::max());}
+\DoxyCodeLine{52         f1.set\_element(0.f, s);}
+\DoxyCodeLine{53     \}}
+\DoxyCodeLine{54     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{55     \{}
+\DoxyCodeLine{56         \textcolor{comment}{/*std::vector<Index> indices(1, s); // TODO}}
+\DoxyCodeLine{57 \textcolor{comment}{        std::vector<float>  values(1, 0.f);}}
+\DoxyCodeLine{58 \textcolor{comment}{        f1.build(\&indices, \&values, 1, GrB\_NULL);*/}}
+\DoxyCodeLine{59     \}}
+\DoxyCodeLine{60 }
+\DoxyCodeLine{61     \textcolor{comment}{// Mask vector}}
+\DoxyCodeLine{62     Vector<float> m(A\_nrows);}
+\DoxyCodeLine{63 }
+\DoxyCodeLine{64     Index iter = 0;}
+\DoxyCodeLine{65     Index f1\_nvals = 1;}
+\DoxyCodeLine{66     \textcolor{keywordtype}{float} succ = 1.f;}
+\DoxyCodeLine{67     Index max\_iters = A\_nrows;}
+\DoxyCodeLine{68 }
+\DoxyCodeLine{69     \textcolor{keywordflow}{for} (iter = 1; iter <= max\_iters; ++iter)}
+\DoxyCodeLine{70     \{}
+\DoxyCodeLine{71         vxm<float, float, float, float>(\&f2, \textcolor{keyword}{nullptr}, GrB\_NULL, MinimumPlusSemiring<float>(), \&f1, A, desc);}
+\DoxyCodeLine{72 }
+\DoxyCodeLine{73         eWiseAdd<float, float, float, float>(\&m, \textcolor{keyword}{nullptr}, GrB\_NULL,}
+\DoxyCodeLine{74                                              CustomLessPlusSemiring<float>(), \&f2, v, desc);}
+\DoxyCodeLine{75 }
+\DoxyCodeLine{76         eWiseAdd<float, float, float, float>(v, \textcolor{keyword}{nullptr}, GrB\_NULL,}
+\DoxyCodeLine{77                                              MinimumPlusSemiring<float>(), v, \&f2, desc);}
+\DoxyCodeLine{78 }
+\DoxyCodeLine{79         \textcolor{comment}{// Similar to BFS, except we need to filter out the unproductive vertices}}
+\DoxyCodeLine{80         \textcolor{comment}{// here rather than as part of masked vxm}}
+\DoxyCodeLine{81         desc-\/>toggle(GrB\_MASK);}
+\DoxyCodeLine{82         assign<float, float, float>(\&f2, \&m, GrB\_NULL, std::numeric\_limits<float>::max(),}
+\DoxyCodeLine{83                                     GrB\_ALL, A\_nrows, desc);}
+\DoxyCodeLine{84         desc-\/>toggle(GrB\_MASK);}
+\DoxyCodeLine{85 }
+\DoxyCodeLine{86         f2.swap(\&f1);}
+\DoxyCodeLine{87 }
+\DoxyCodeLine{88         f1\_nvals = f1.nvals();}
+\DoxyCodeLine{89         reduce<float, float>(\&succ, GrB\_NULL, PlusMonoid<float>(), \&m, desc);}
+\DoxyCodeLine{90 }
+\DoxyCodeLine{91         \textcolor{keywordflow}{if} (f1\_nvals == 0 || succ == 0)}
+\DoxyCodeLine{92             \textcolor{keywordflow}{break};}
+\DoxyCodeLine{93     \}}
+\DoxyCodeLine{94     std::cout << \textcolor{stringliteral}{"{}sssp did "{}} << iter << \textcolor{stringliteral}{"{} iterations"{}} << std::endl;}
+\DoxyCodeLine{95 \}}
+\DoxyCodeLine{96 }
+\DoxyCodeLine{98 }
+\DoxyCodeLine{99 \}}
+\DoxyCodeLine{100 \}}
+
+\end{DoxyCode}

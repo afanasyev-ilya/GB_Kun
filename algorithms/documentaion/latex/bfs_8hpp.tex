@@ -1,0 +1,77 @@
+\hypertarget{bfs_8hpp}{}\doxysection{bfs.\+hpp File Reference}
+\label{bfs_8hpp}\index{bfs.hpp@{bfs.hpp}}
+
+
+BFS algorithm.  
+
+
+{\ttfamily \#include \char`\"{}../../src/gb\+\_\+kun.\+h\char`\"{}}\newline
+\doxysubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacelablas}{lablas}}
+\begin{DoxyCompactList}\small\item\em Lablas namespace. \end{DoxyCompactList}\item 
+namespace \mbox{\hyperlink{namespacelablas_1_1algorithm}{lablas\+::algorithm}}
+\begin{DoxyCompactList}\small\item\em Algorithm namespace. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{bfs_8hpp_a533f2af5fb4385a182d1e57e60e6519a}\label{bfs_8hpp_a533f2af5fb4385a182d1e57e60e6519a}} 
+\#define {\bfseries Gr\+B\+\_\+\+Matrix}~lablas\+::\+Matrix$<$int$>$$\ast$
+\item 
+\mbox{\Hypertarget{bfs_8hpp_a3ce4589fc30e281e67d008f522921b18}\label{bfs_8hpp_a3ce4589fc30e281e67d008f522921b18}} 
+\#define {\bfseries Gr\+B\+\_\+\+Vector}~lablas\+::\+Vector$<$int$>$$\ast$
+\item 
+\mbox{\Hypertarget{bfs_8hpp_a02c465a5d1253e3636a9d1debf9e1f4c}\label{bfs_8hpp_a02c465a5d1253e3636a9d1debf9e1f4c}} 
+\#define {\bfseries MASK\+\_\+\+NULL}~static\+\_\+cast$<$const lablas\+::\+Vector$<$int$>$$\ast$$>$(NULL)
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{bfs_8hpp_ab5148def793c21710d166ead44e501b6}{LG\+\_\+\+Breadth\+First\+Search\+\_\+vanilla}} (Gr\+B\+\_\+\+Vector $\ast$level, Gr\+B\+\_\+\+Vector $\ast$parent, LAGraph\+\_\+\+Graph$<$ int $>$ $\ast$G, Gr\+B\+\_\+\+Index src, bool pushpull)
+\begin{DoxyCompactList}\small\item\em Brief description. \end{DoxyCompactList}\item 
+{\footnotesize template$<$typename T $>$ }\\void \mbox{\hyperlink{namespacelablas_1_1algorithm_a660901220b8aa3a0d2a737856872a070}{lablas\+::algorithm\+::bfs\+\_\+blast}} (Vector$<$ T $>$ $\ast$v, const Matrix$<$ T $>$ $\ast$A, Index s, Descriptor $\ast$desc)
+\begin{DoxyCompactList}\small\item\em Brief description. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+BFS algorithm. 
+
+\begin{DoxyAuthor}{Author}
+Lastname\+:\+Firstname\+:\+A00123456\+:cscxxxxx 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+Revision 1.\+1
+\end{DoxyVersion}
+This file uses algorithm implementation from LAGraph, which is available under their custom license. For details, see \href{https://github.com/GraphBLAS/LAGraph/blob/reorg/LICENSE}{\texttt{ https\+://github.\+com/\+Graph\+BLAS/\+LAGraph/blob/reorg/\+LICENSE}}. \begin{DoxyDate}{Date}
+May 12, 2022 
+\end{DoxyDate}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{bfs_8hpp_ab5148def793c21710d166ead44e501b6}\label{bfs_8hpp_ab5148def793c21710d166ead44e501b6}} 
+\index{bfs.hpp@{bfs.hpp}!LG\_BreadthFirstSearch\_vanilla@{LG\_BreadthFirstSearch\_vanilla}}
+\index{LG\_BreadthFirstSearch\_vanilla@{LG\_BreadthFirstSearch\_vanilla}!bfs.hpp@{bfs.hpp}}
+\doxysubsubsection{\texorpdfstring{LG\_BreadthFirstSearch\_vanilla()}{LG\_BreadthFirstSearch\_vanilla()}}
+{\footnotesize\ttfamily int LG\+\_\+\+Breadth\+First\+Search\+\_\+vanilla (\begin{DoxyParamCaption}\item[{Gr\+B\+\_\+\+Vector $\ast$}]{level,  }\item[{Gr\+B\+\_\+\+Vector $\ast$}]{parent,  }\item[{LAGraph\+\_\+\+Graph$<$ int $>$ $\ast$}]{G,  }\item[{Gr\+B\+\_\+\+Index}]{src,  }\item[{bool}]{pushpull }\end{DoxyParamCaption})}
+
+
+
+Brief description. 
+
+LG\+\_\+\+Breadth\+First\+Search\+\_\+vanilla function. \begin{DoxyReturn}{Returns}
+Returns int. 
+\end{DoxyReturn}
+
+\begin{DoxyParams}{Parameters}
+{\em level} & level \\
+\hline
+{\em parent} & parent \\
+\hline
+{\em G} & G \\
+\hline
+{\em src} & src \\
+\hline
+{\em pushpull} & pushpull \\
+\hline
+\end{DoxyParams}

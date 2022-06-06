@@ -1,0 +1,93 @@
+\hypertarget{sssp__traditional_8hpp_source}{}\doxysection{sssp\+\_\+traditional.\+hpp}
+\label{sssp__traditional_8hpp_source}\index{sssp\_traditional.hpp@{sssp\_traditional.hpp}}
+\mbox{\hyperlink{sssp__traditional_8hpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 }
+\DoxyCodeLine{10 \textcolor{preprocessor}{\#pragma once}}
+\DoxyCodeLine{11 }
+\DoxyCodeLine{12 }
+\DoxyCodeLine{14 }
+\DoxyCodeLine{15 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelablas}{lablas}} \{}
+\DoxyCodeLine{16 }
+\DoxyCodeLine{18 }
+\DoxyCodeLine{19     \textcolor{keyword}{namespace }algorithm \{}
+\DoxyCodeLine{20 }
+\DoxyCodeLine{22 }
+\DoxyCodeLine{31 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{32 \textcolor{keywordtype}{void} \mbox{\hyperlink{namespacelablas_1_1algorithm_a9d56acb770d65d1243f813df3e07c4a9}{sssp\_traditional\_dijkstra}}(Vector <T> *\_distances,}
+\DoxyCodeLine{33                                \textcolor{keyword}{const} Matrix <T> *\_graph,}
+\DoxyCodeLine{34                                Index \_source\_vertex)}
+\DoxyCodeLine{35 \{}
+\DoxyCodeLine{36     Index vertices\_count = \_distances-\/>get\_vector()-\/>getDense()-\/>get\_size();}
+\DoxyCodeLine{37     T* distance\_vals = \_distances-\/>get\_vector()-\/>getDense()-\/>get\_vals();}
+\DoxyCodeLine{38     backend::MatrixCSR<T> *graph = ((backend::MatrixCSR<T> *) \_graph-\/>get\_matrix()-\/>get\_csr());}
+\DoxyCodeLine{39 }
+\DoxyCodeLine{40     \textcolor{comment}{// Create a priority queue to store vertices that}}
+\DoxyCodeLine{41     \textcolor{comment}{// are being preprocessed.}}
+\DoxyCodeLine{42     \textcolor{keyword}{typedef} pair<T, Index> iPair;}
+\DoxyCodeLine{43     std::priority\_queue< iPair, vector <iPair> , greater<iPair> > pq;}
+\DoxyCodeLine{44 }
+\DoxyCodeLine{45     \textcolor{comment}{// Create a vector for distances and initialize all}}
+\DoxyCodeLine{46     \textcolor{comment}{// distances as infinite (INF)}}
+\DoxyCodeLine{47     T inf\_val = std::numeric\_limits<T>::max();}
+\DoxyCodeLine{48     \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < vertices\_count; i++)}
+\DoxyCodeLine{49         distance\_vals[i] = inf\_val;}
+\DoxyCodeLine{50 }
+\DoxyCodeLine{51     \textcolor{comment}{// Insert source itself in priority queue and initialize}}
+\DoxyCodeLine{52     \textcolor{comment}{// its distance as 0.}}
+\DoxyCodeLine{53     pq.push(make\_pair(0, \_source\_vertex));}
+\DoxyCodeLine{54     distance\_vals[\_source\_vertex] = 0;}
+\DoxyCodeLine{55     ENT vertices\_visited = 0;}
+\DoxyCodeLine{56 }
+\DoxyCodeLine{57     \textcolor{comment}{/*cout << "{}row ptrs: "{};}}
+\DoxyCodeLine{58 \textcolor{comment}{    for(int i = 0; i < 20; i++)}}
+\DoxyCodeLine{59 \textcolor{comment}{        cout << graph-\/>get\_row\_ptr()[i] << "{} "{};}}
+\DoxyCodeLine{60 \textcolor{comment}{    cout << endl;}}
+\DoxyCodeLine{61 \textcolor{comment}{}}
+\DoxyCodeLine{62 \textcolor{comment}{    cout << "{}col ptrs: "{};}}
+\DoxyCodeLine{63 \textcolor{comment}{    for(int i = 0; i < 20; i++)}}
+\DoxyCodeLine{64 \textcolor{comment}{        cout << graph-\/>get\_col\_ids()[i] << "{} "{};}}
+\DoxyCodeLine{65 \textcolor{comment}{    cout << endl;*/}}
+\DoxyCodeLine{66 }
+\DoxyCodeLine{67     \textcolor{comment}{/* Looping till priority queue becomes empty (or all}}
+\DoxyCodeLine{68 \textcolor{comment}{      distances are not finalized) */}}
+\DoxyCodeLine{69     \textcolor{keywordflow}{while} (!pq.empty())}
+\DoxyCodeLine{70     \{}
+\DoxyCodeLine{71         \textcolor{comment}{// The first vertex in pair is the minimum distance}}
+\DoxyCodeLine{72         \textcolor{comment}{// vertex, extract it from priority queue.}}
+\DoxyCodeLine{73         \textcolor{comment}{// vertex label is stored in second of pair (it}}
+\DoxyCodeLine{74         \textcolor{comment}{// has to be done this way to keep the vertices}}
+\DoxyCodeLine{75         \textcolor{comment}{// sorted distance (distance must be first item}}
+\DoxyCodeLine{76         \textcolor{comment}{// in pair)}}
+\DoxyCodeLine{77         \textcolor{keywordtype}{int} s = pq.top().second;}
+\DoxyCodeLine{78         pq.pop();}
+\DoxyCodeLine{79         vertices\_visited++;}
+\DoxyCodeLine{80 }
+\DoxyCodeLine{81         Index shift = graph-\/>get\_row\_ptr()[s];}
+\DoxyCodeLine{82         Index connections\_count = graph-\/>get\_row\_ptr()[s + 1] -\/ graph-\/>get\_row\_ptr()[s];}
+\DoxyCodeLine{83 }
+\DoxyCodeLine{84         \textcolor{comment}{//cout << "{}source "{} << \_source\_vertex << "{} vs "{} << s << endl;}}
+\DoxyCodeLine{85         \textcolor{comment}{//cout << "{} s"{} << s << "{} ccnt = "{} << connections\_count << "{} | "{} << graph-\/>get\_row\_ptr()[s + 1] << "{} "{} << graph-\/>get\_row\_ptr()[s] << endl;}}
+\DoxyCodeLine{86 }
+\DoxyCodeLine{87         \textcolor{keywordflow}{for}(Index edge\_pos = 0; edge\_pos < connections\_count; edge\_pos++)}
+\DoxyCodeLine{88         \{}
+\DoxyCodeLine{89             Index v = graph-\/>get\_col\_ids()[shift + edge\_pos];}
+\DoxyCodeLine{90             T weight = graph-\/>get\_vals()[shift + edge\_pos];}
+\DoxyCodeLine{91 }
+\DoxyCodeLine{92             \textcolor{keywordflow}{if} (distance\_vals[v] > distance\_vals[s] + weight)}
+\DoxyCodeLine{93             \{}
+\DoxyCodeLine{94                 \textcolor{comment}{// Updating distance of dst\_id}}
+\DoxyCodeLine{95                 distance\_vals[v] = distance\_vals[s] + weight;}
+\DoxyCodeLine{96 }
+\DoxyCodeLine{97                 pq.push(make\_pair(distance\_vals[v], v));}
+\DoxyCodeLine{98             \}}
+\DoxyCodeLine{99         \}}
+\DoxyCodeLine{100     \}}
+\DoxyCodeLine{101     cout << \textcolor{stringliteral}{"{}SSSP check visited "{}} << vertices\_visited << \textcolor{stringliteral}{"{} vertices"{}} << endl;}
+\DoxyCodeLine{102 \}}
+\DoxyCodeLine{103 }
+\DoxyCodeLine{105 }
+\DoxyCodeLine{106 \}}
+\DoxyCodeLine{107 \}}
+
+\end{DoxyCode}
