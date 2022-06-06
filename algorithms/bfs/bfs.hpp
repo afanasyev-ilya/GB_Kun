@@ -16,6 +16,12 @@
 #pragma once
 #include "../../src/gb_kun.h"
 
+//! Lablas namespace
+namespace lablas {
+//! Algorithm namespace
+    namespace algorithm {
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define GrB_Matrix lablas::Matrix<int>*
@@ -107,11 +113,6 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
 #undef MASK_NULL
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//! Lablas namespace
-namespace lablas {
-//! Algorithm namespace
-    namespace algorithm {
 
 /**
  * bfs_blast function.

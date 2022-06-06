@@ -27,9 +27,6 @@ namespace lablas {
 
 namespace algorithm {
 
-}
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * LAGraph_page_rank_sinks function.
@@ -155,9 +152,9 @@ void LAGraph_page_rank_sinks (GrB_Vector centrality, // centrality(i): GAP-style
         //float ranks_sum = 0;
         double ranks_sum = 0;
         GrB_TRY (GrB_reduce (&ranks_sum, NULL, GrB_PLUS_MONOID_FP32, r, NULL));
-        #ifdef __DEBUG_INFO__
+#ifdef __DEBUG_INFO__
         cout << "ranks sum: " << ranks_sum << endl;
-        #endif
+#endif
     }
 
     //--------------------------------------------------------------------------
@@ -178,6 +175,8 @@ void LAGraph_page_rank_sinks (GrB_Vector centrality, // centrality(i): GAP-style
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+}
+}
 
 #undef GrB_Matrix
 #undef GrB_Vector
