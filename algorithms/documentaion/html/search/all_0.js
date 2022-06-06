@@ -1,7 +1,0 @@
-var searchData=
-[
-  ['bfs_2ehpp_0',['bfs.hpp',['../bfs_8hpp.html',1,'']]],
-  ['bfs_5fblast_1',['bfs_blast',['../namespacelablas_1_1algorithm.html#a660901220b8aa3a0d2a737856872a070',1,'lablas::algorithm']]],
-  ['bfs_5ftraditional_2',['bfs_traditional',['../namespacelablas_1_1algorithm.html#af5963ed88416a73964acaf260e4c63f6',1,'lablas::algorithm']]],
-  ['bfs_5ftraditional_2ehpp_3',['bfs_traditional.hpp',['../bfs__traditional_8hpp.html',1,'']]]
-];
