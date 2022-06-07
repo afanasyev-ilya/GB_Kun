@@ -12,7 +12,7 @@ clang_format_file_path = "./.clang-format"
 allowed_file_extensions = [".c", ".cpp", ".h", ".hpp"]
 clang_format_executable = "clang-format"
 clang_format_arguments = "-style=file"
-lines_to_comment_out_prefixes = ["#pragma", "#ifdef", "if", "#else", "#endif", "#ifndef"]
+lines_to_comment_out_prefixes = ["#pragma", "#ifdef", "#ifndef", "#undef", "#if", "#elif", "#else", "#endif"]
 comment_string = "//123@123"
 folders_to_ignore = ["cmake-build-debug", "tsl"]
 files_to_ignore = []
@@ -61,19 +61,13 @@ def undo_preprocessing_file(target_file_path):
 
 def print_clang_format_diff(target_file_path, safe_diff):
     if not safe_diff:
-        tmp = tempfile.NamedTemporaryFile(suffix='.cpp', delete=False)
-        try:
-            shutil.copyfile(target_file_path, tmp.name)
-            preprocess_file(target_file_path)
-            subprocess.run([clang_format_executable, clang_format_arguments,
-                            "--dry-run", tmp.name], stderr=subprocess.STDOUT)
-            undo_preprocessing_file(target_file_path)
-        finally:
-            tmp.close()
-            os.unlink(tmp.name)
+        with tempfile.TemporaryDirectory() as tmp_dir_name:
+            temp_file_name = shutil.copy(target_file_path, tmp_dir_name)
+            shutil.copy(clang_format_file_path, tmp_dir_name)
+            preprocess_file(temp_file_name)
+            subprocess.run([clang_format_executable, clang_format_arguments, "--dry-run", temp_file_name])
     else:
-        subprocess.run([clang_format_executable, clang_format_arguments,
-                        "--dry-run", target_file_path], stderr=subprocess.STDOUT)
+        subprocess.run([clang_format_executable, clang_format_arguments, "--dry-run", target_file_path])
 
 
 def apply_clang_format(target_file_path, safe_apply):
@@ -104,7 +98,7 @@ def main():
     files_to_format_paths = get_files_to_format(os.getcwd())
     for file_to_format_path in files_to_format_paths:
         if args.check:
-            print(f"Problems with file: {file_to_format_path}:\n")
+            print("=" * 99 + "\n" + f"Problems with file: {file_to_format_path}:")
             print_clang_format_diff(file_to_format_path, args.safe)
         if args.apply:
             print(f"Applied format to the file: {file_to_format_path}")
