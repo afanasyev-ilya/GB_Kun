@@ -1,11 +1,37 @@
+/**
+  @file pr_traditional.hpp
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @brief Traditional PR algorithm.
+  @details Detailed description.
+  @date May 12, 2022
+*/
+
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//! Lablas namespace
+
 namespace lablas{
-namespace algorithm {
+
+    //! Algorithm namespace
+
+
+    namespace algorithm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * seq_page_rank function.
+ * @brief The function does...
+ * @param _ranks _ranks
+ * @param _graph _graph
+ * @param iters output: number of iterations taken
+ * @param itermax maximum number of iterations (typically 100)
+ * @param damping damping factor (typically 0.85)
+ * @param tol stopping tolerance (typically 1e-4)
+*/
 
 template <typename T>
 void seq_page_rank(Vector <T> *_ranks,

@@ -15,6 +15,7 @@ namespace backend {
 
 void balance_matrix_rows(const ENT *_row_ptrs, VNT num_rows, pair<VNT, VNT> *_offsets, int threads_count)
 {
+    LOG_TRACE("running balance_matrix_rows")
     ENT nnz = _row_ptrs[num_rows];
     ENT approx_nnz_per_thread = (nnz - 1) / threads_count + 1;
     for(int tid = 0; tid < threads_count; tid++)

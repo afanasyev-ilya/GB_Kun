@@ -24,6 +24,7 @@ void apply_mask(DenseVector <Y> *_y,
                 const Vector <M> *_mask,
                 Workspace *_workspace)
 {
+    LOG_TRACE("Running apply_mask function")
     Desc_value mask_field;
     _desc->get(GrB_MASK, &mask_field);
     Y *y_vals = _y->get_vals();
@@ -112,6 +113,7 @@ void SpMSpV(const Matrix<A> *_matrix,
             SemiringT _op,
             const Vector <M> *_mask)
 {
+    LOG_TRACE("Running SpMSpV with functor options (y is dense)")
     auto add_op = extractAdd(_op);
     Y *y_vals = _y->get_vals();
     Y *old_y_vals = (Y*)_matrix->get_workspace()->get_shared_one();
@@ -171,6 +173,7 @@ void SpMSpV(const Matrix<A> *_matrix,
             SemiringT _op,
             const Vector <M> *_mask)
 {
+    LOG_TRACE("Running SpMSpV with functor options (y is sparse)")
     auto add_op = extractAdd(_op);
     Y *y_vals = _y->get_vals();
     Y *old_y_vals = (Y*)_matrix->get_workspace()->get_shared_one();
@@ -201,7 +204,7 @@ void SpMSpV(const Matrix<A> *_matrix,
 
     if (_mask != 0)
     {
-        std::cout << "masked map-based spmspv is not implemented yet" << std::endl;
+        LOG_DEBUG("masked map-based spmspv is not implemented yet")
         throw "Aborting...";
         //apply_mask(_y, old_y_vals, _desc, _accum, _mask, _matrix->get_workspace());
     }

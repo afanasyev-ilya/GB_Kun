@@ -13,9 +13,7 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                        Matrix<T> *_matrix_result,
                        SemiringT _op)
 {
-    #ifdef __DEBUG_INFO__
-        cout << "Starting masked ikj algorithm" << endl;
-    #endif
+    LOG_TRACE("Running SpMSpM_masked_ikj")
     double t1 = omp_get_wtime();
 
     auto add_op = extractAdd(_op);
@@ -50,9 +48,7 @@ void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
     MatrixCSR<T> B_csr_first_socket;
     MatrixCSR<T> B_csr_second_socket;
     if (num_sockets_used() == 2) {
-        #ifdef __DEBUG_INFO__
-            cout << "Using NUMA optimization" << endl;
-        #endif
+        LOG_TRACE("Using NUMA optimization")
         A_csr_first_socket.deep_copy(_matrix1->get_csr(), 0);
         A_csr_second_socket.deep_copy(_matrix1->get_csr(), 1);
         B_csr_first_socket.deep_copy(_matrix2->get_csr(), 0);

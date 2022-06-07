@@ -14,6 +14,7 @@ LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
                                        LambdaOp &&_lambda_op,
                                        Descriptor *_desc)
 {
+    LOG_TRACE("Running generic_dense_vector_op_assign")
     if (_mask != NULL)
     {
         if (_mask->get_size() != _size)
@@ -75,6 +76,7 @@ LA_Info generic_dense_vector_op_extract(const Vector<M>* _mask,
                                         LambdaOp &&_lambda_op,
                                         Descriptor *_desc)
 {
+    LOG_TRACE("Running generic_dense_vector_op_extract")
     if (_mask != NULL)
     {
         if (_mask->get_size() != _size)
@@ -122,6 +124,7 @@ LA_Info generic_dense_vector_op(const Vector<M>* _mask,
     LambdaOp&& _lambda_op,
     Descriptor* _desc)
 {
+    LOG_TRACE("Running generic_dense_vector_op")
     if (_mask != NULL)
     {
         if (_mask->get_size() != _size)
@@ -169,6 +172,7 @@ LA_Info generic_dense_reduce_op(T* _tmp_val,
                                 MonoidOpT _monoid_op,
                                 Descriptor *_desc)
 {
+    LOG_TRACE("Running generic_dense_reduce_op")
     #pragma omp parallel
     {
         T local_res = _monoid_op.identity();
@@ -195,6 +199,7 @@ LA_Info generic_sparse_vals_reduce_op(T *_tmp_val,
                                       MonoidOpT _monoid_op,
                                       Descriptor *_desc)
 {
+    LOG_TRACE("Running generic_sparse_vals_reduce_op")
     #pragma omp parallel
     {
         T local_res = _monoid_op.identity();

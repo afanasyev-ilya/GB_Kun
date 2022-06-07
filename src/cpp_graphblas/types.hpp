@@ -13,8 +13,8 @@
 
 
     enum log_level {GrB_ERROR,
-                    GrB_DEBUG,
-                    GrB_TRACE};
+                    GrB_TRACE,
+                    GrB_DEBUG};
 
 
     class GB_LOGGER {
@@ -64,7 +64,8 @@
 #define LOG_DEBUG(string) \
     if (logger.get_level() >= GrB_DEBUG) {                       \
         std::cout << "(GB_KUN|DEBUG)" << string << std::endl;        \
-    }                                                            \
+    }                     \
+
 
     enum Desc_field {GrB_MASK,
                     GrB_OUTPUT,

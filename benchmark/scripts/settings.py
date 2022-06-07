@@ -112,33 +112,6 @@ all_konect_graphs_data = {
     'Actor_movies': {'link': 'actor-movie'},
     'IMDB': {'link': 'actor2'},
     'Flickr': {'link': 'flickr-growth'},
-    'Discogs': {'link': 'discogs_affiliation'},
-    'Wiktionary_edits_(ku)': {'link': 'edit-kuwiktionary'},
-    'Wiktionary_edits_(hu)': {'link': 'edit-huwiktionary'},
-    'Wiktionary_edits_(pt)': {'link': 'edit-ptwiktionary'},
-    'Wikipedia_edits_(ta)': {'link': 'edit-tawiki'},
-    'Wikivoyage_edits_(en)': {'link': 'edit-enwikivoyage'},
-    'Wikipedia_edits_(bs)': {'link': 'edit-bswiki'},
-    'Wikipedia_edits_(kk)': {'link': 'edit-kkwiki'},
-    'Wikibooks_edits_(en)': {'link': 'edit-enwikibooks'},
-    'Wikipedia_edits_(ml)': {'link': 'edit-mlwiki'},
-    'Wikipedia_edits_(be)': {'link': 'edit-bewiki'},
-    'Wiktionary_edits_(io)': {'link': 'edit-iowiktionary'},
-    'Wikipedia_edits_(lv)': {'link': 'edit-lvwiki'},
-    'Wikipedia_edits_(bn)': {'link': 'edit-bnwiki'},
-    'Wikiquote_edits_(ru)': {'link': 'edit-ruwikisource'},
-    'Wikipedia_edits_(ur)': {'link': 'edit-urwiki'},
-    'Wikipedia_edits_(mk)': {'link': 'edit-mkwiki'},
-    'Wiktionary_edits_(sv)': {'link': 'edit-svwiktionary'},
-    'Wikipedia_edits_(cy)': {'link': 'edit-cywiki'},
-    'Wikipedia_edits_(nn)': {'link': 'edit-nnwiki'},
-    'Wikipedia_edits_(la)': {'link': 'edit-lawiki'},
-    'Wikiquote_edits_(de)': {'link': 'edit-dewikisource'},
-    'Wikipedia_edits_(hi)': {'link': 'edit-hiwiki'},
-    'Wiktionary_edits_(it)': {'link': 'edit-itwiktionary'},
-    'Wiktionary_edits_(fi)': {'link': 'edit-fiwiktionary'},
-    'Wikipedia_edits_(vo)': {'link': 'edit-vowiki'},
-    'Wikipedia_edits_(ka)': {'link': 'edit-kawiki'},
     'Wikinews_edits_(sr)': {'link': 'edit-srwikinews'},
     'Wikipedia_edits_(az)': {'link': 'edit-azwiki'},
     'Wiktionary_edits_(ko)': {'link': 'edit-kowiktionary'},
@@ -353,8 +326,6 @@ all_konect_graphs_data = {
     'Wikipedia_words_(en)': {'link': 'gottron-excellent'},
     'Enron_words': {'link': 'bag-enron'},
     'WebUni_Magdeburg': {'link': 'webuni'}
-
-
 }
 
 #####################
@@ -396,10 +367,8 @@ konect_scaling = []
 
 # new sets of arrays, first for synthetic, second for real-wold graphs.
 syn_deep_learning = []
-#konect_deep_learning = ['South African companies', 'Corporate club memberships', 'Corporate leaderships', 'American Revolution', 'Record labels', 'Occupations', 'YouTube', 'DBpedia countries', 'Teams', 'Actor movies']
-#konect_deep_learning = ['South_African_companies', 'Corporate_club_memberships', 'Corporate_leaderships', 'American_Revolution', 'Record_labels', 'Occupations', 'YouTube', 'DBpedia_countries', 'Teams', 'Actor_movies']
-#konect_deep_learning = ['IMDB', 'Flickr', 'Discogs', 'Wiktionary_edits_(ku)', 'Wiktionary_edits_(hu)', 'Wiktionary_edits_(pt)', 'Wikipedia_edits_(ta)', 'Wikivoyage_edits_(en)', 'Wikipedia_edits_(bs)', 'Wikipedia_edits_(kk)', 'Wikibooks_edits_(en)', 'Wikipedia_edits_(ml)', 'Wikipedia_edits_(be)', 'Wiktionary_edits_(io)', 'Wikipedia_edits_(lv)', 'Wikipedia_edits_(bn)', 'Wikiquote_edits_(ru)', 'Wikipedia_edits_(ur)', 'Wikipedia_edits_(mk)', 'Wiktionary_edits_(sv)', 'Wikipedia_edits_(cy)', 'Wikipedia_edits_(nn)', 'Wikipedia_edits_(la)', 'Wikiquote_edits_(de)', 'Wikipedia_edits_(hi)', 'Wiktionary_edits_(it)', 'Wiktionary_edits_(fi)', 'Wikipedia_edits_(vo)', 'Wikipedia_edits_(ka)']
-konect_deep_learning = ['IMDB', 'Flickr', 'Discogs', 'Wiktionary_edits_(ku)', 'Wiktionary_edits_(hu)', 'Wiktionary_edits_(pt)', 'Wikipedia_edits_(ta)', 'Wikivoyage_edits_(en)', 'Wikipedia_edits_(bs)', 'Wikipedia_edits_(kk)', 'Wikibooks_edits_(en)', 'Wikipedia_edits_(ml)', 'Wikipedia_edits_(be)', 'Wiktionary_edits_(io)', 'Wikipedia_edits_(lv)', 'Wikipedia_edits_(bn)', 'Wikiquote_edits_(ru)', 'Wikipedia_edits_(ur)', 'Wikipedia_edits_(mk)', 'Wiktionary_edits_(sv)', 'Wikipedia_edits_(cy)', 'Wikipedia_edits_(nn)', 'Wikipedia_edits_(la)', 'Wikiquote_edits_(de)', 'Wikipedia_edits_(hi)', 'Wiktionary_edits_(it)', 'Wiktionary_edits_(fi)', 'Wikipedia_edits_(vo)', 'Wikipedia_edits_(ka)', 'Wikinews_edits_(sr)', 'Wikipedia_edits_(az)', 'Wiktionary_edits_(ko)', 'Wiktionary_edits_(nl)', 'Wikipedia_edits_(ms)', 'Wiktionary_edits_(el)', 'Wikipedia_edits_(gl)', 'Wikipedia_edits_(et)', 'Wikipedia_edits_(hr)', 'Wikipedia_edits_(sl)', 'Wikinews_edits_(en)', 'Wikipedia_edits_(lt)', 'Wiktionary_edits_(es)', 'Wikipedia_edits_(simple)', 'Wikipedia_edits_(hy)', 'Wiktionary_edits_(zh)', 'Wikipedia_edits_(el)', 'Wikipedia_edits_(th)', 'Wikipedia_edits_(eu)', 'Wiktionary_edits_(pl)', 'Wiktionary_edits_(de)', 'Wikipedia_edits_(sk)', 'Wikipedia_edits_(eo)', 'Wikipedia_edits_(war)', 'Wikipedia_edits_(bg)', 'Wikiquote_edits_(fr)', 'Wikiquote_edits_(en)', 'Wikipedia_edits_(da)', 'Wiktionary_edits_(ru)', 'DBLP', 'Wikipedia_edits_(ro)', 'Wikipedia_edits_(id)', 'Wikipedia_edits_(cs)', 'Wikipedia_edits_(sr)', 'Wikipedia_edits_(fi)', 'Wikipedia_edits_(tr)', 'Wikipedia_edits_(ko)', 'Wikipedia_edits_(no)', 'Wikipedia_edits_(ceb)', 'Wikipedia_edits_(ca)', 'Wikipedia_edits_(hu)', 'Wikipedia_edits_(he)', 'Wikipedia_edits_(fa)', 'Wikipedia_edits_(uk)', 'Wikipedia_edits_(ar)', 'Wiktionary_edits_(mg)', 'Wiktionary_edits_(fr)', 'Wikipedia_edits_(vi)', 'Wikipedia_edits_(pt)', 'Wikipedia_edits_(sv)', 'Wikipedia_edits_(zh)', 'Wikipedia_edits_(sh)', 'Wikipedia_edits_(pl)', 'Wikipedia_edits_(nl)', 'Wikipedia_edits_(ja)', 'Wiktionary_edits_(en)', 'Wikipedia_edits_(ru)', 'US_patents', 'arXiv_hep-th', 'arXiv_hep-ph', 'Wikipedia_talk_(ru)', 'Wikipedia_talk_(pt)', 'Wikipedia_threads_(de)', 'Wikipedia_talk_(zh)', 'Wikipedia_talk_(es)', 'Wikipedia_messages_(en)', 'Wikipedia_talk_(it)', 'Wikipedia_talk_(fr)', 'Wikipedia_talk_(de)', 'Wikipedia_talk_(en)', 'Skitter', 'vi.sualize.us_tag–item', 'Discogs_label–genre', 'TV_Tropes', 'Wikipedia_categories_(en)', 'Discogs_label–style', 'BibSonomy_tag–item', 'CiteULike_tag–item', 'Discogs_artist–genre', 'Discogs_artist–style', 'Wikipedia_links_(af)', 'Wikipedia_links_(ia)', 'Wikipedia_links_(ast)', 'Wikipedia_links_(ml)', 'Wikipedia_links_(bpy)', 'Wikipedia_links_(tl)', 'Stanford', 'Wikipedia_links_(sq)', 'Wikipedia_links_(be-x-old)', 'Wikipedia_links_(ne)', 'Wikipedia_links_(bn)', 'Wikipedia_links_(te)', 'Wikipedia_links_(cy)', 'Italian_CNR', 'Baidu_related', 'Wikipedia_links_(lmo)', 'Wikipedia_links_(lv)', 'Wikipedia_links_(nn)', 'Wikipedia_links_(la)', 'Wikipedia_links_(sa)', 'Wikipedia_links_(uz)', 'Wikipedia_links_(az)', 'Wikipedia_links_(zh-min-nan)', 'Wikipedia_links_(tt)', 'Wikipedia_links_(mk)', 'Wikipedia_links_(ka)', 'Wikipedia_links_(simple)', 'Wikipedia_links_(et)', 'Wikipedia_links_(bug)', 'Wikipedia_links_(tg)', 'Google_hyperlinks', 'Wikipedia_links_(el)', 'Wikipedia_links_(th)', 'Wikipedia_links_(lt)', 'Wikipedia_links_(be)', 'Wikipedia_links_(gl)', 'Wikipedia_links_(ur)', 'Wikipedia_links_(ce)', 'Wikipedia_links_(hr)', 'Wikipedia_links_(sk)', 'Wikipedia_links_(ta)', 'Wikipedia_links_(hi)', 'Berkeley_Stanford', 'Wikipedia_links_(sl)', 'Wikipedia_links_(eu)', 'TREC_WT10g', 'Wikipedia_links_(bg)', 'Wikipedia_links_(da)', 'Wikipedia_links_(eo)', 'Wikipedia_links_(bs)', 'Wikipedia_links_(kk)', 'Wikipedia_links_(he)', 'Wikipedia_links_(tr)', 'Wikipedia_links_(fi)', 'Indian_domain', 'Hudong_internal', 'European_Union_domain', 'Baidu_internal', 'Wikipedia_links_(cs)', 'Wikipedia_links_(hy)', 'Wikipedia_links_(no)', 'Wikipedia_links_(oc)', 'Hudong_related', 'Wikipedia_links_(ms)', 'Wikipedia_links_(ko)', 'Wikipedia_links_(ro)', 'Wikipedia_links_(id)', 'Wikipedia_links_(war)', 'Wikipedia_links_(ca)', 'Wikipedia_dynamic_(nl)', 'Wikipedia_links_(hu)', 'Wikipedia_links_(es)', 'Wikipedia_dynamic_(pl)', 'Wikipedia_links_(vi)', 'Wikipedia_links_(pt)', 'Wikipedia_links_(uk)', 'Wikipedia_links_(nl)', 'Wikipedia_dynamic_(it)', 'Zhishi', 'Wikipedia_growth_(en)', 'Wikipedia_dynamic_(fr)', 'Florida', 'Northwest_USA', 'California', 'Northeast_USA', 'California_and_Nevada', 'Great_Lakes', 'Eastern_USA', 'Western_USA', 'Central_USA', 'Full_USA', 'vi.sualize.us_user–tag', 'vi.sualize.us_user–item', 'BibSonomy_user–tag', 'BibSonomy_user–item', 'CiteULike_user–tag', 'CiteULike_user–item', 'Prosper_loans', 'Twitter_user–tag', 'Last.fm_bands', 'Last.fm_songs', 'Yahoo_advertisers', 'Amazon_(TWEB,_0601)', 'DBpedia', 'Actor_collaborations', 'Wikipedia_conflict', 'Stack_Overflow', 'Livemocha', 'Dogster_households', 'Catster_dogster_households', 'Youtube_friendships', 'Hyves', 'Catster', 'Youtube_links', 'Catster_friends', 'Dogster', 'Flixster', 'Dogster_friends', 'Higgs', 'Catster_dogster_friends', 'Flickr_links', 'Catster_Dogster', 'YouTube', 'Libimseti.cz', 'Pokec', 'LiveJournal_links', 'Jester_100', 'Digg_votes', 'Amazon_ratings', 'MovieLens_10M', 'Epinions', 'Wikipedia_words_(en)', 'Enron_words', 'WebUni_Magdeburg']
+konect_deep_learning = ['IMDB', 'Flickr', 'Discogs', 'Wiktionary_edits_(ku)', 'Wiktionary_edits_(hu)', 'Wiktionary_edits_(pt)', 'Wikipedia_edits_(ta)', 'Wikivoyage_edits_(en)', 'Wikipedia_edits_(bs)', 'Wikipedia_edits_(kk)', 'Wikibooks_edits_(en)', 'Wikipedia_edits_(ml)', 'Wikipedia_edits_(be)', 'Wiktionary_edits_(io)', 'Wikipedia_edits_(lv)', 'Wikipedia_edits_(bn)', 'Wikiquote_edits_(ru)', 'Wikipedia_edits_(ur)', 'Wikipedia_edits_(mk)', 'Wiktionary_edits_(sv)', 'Wikipedia_edits_(cy)', 'Wikipedia_edits_(nn)', 'Wikipedia_edits_(la)', 'Wikiquote_edits_(de)', 'Wikipedia_edits_(hi)', 'Wiktionary_edits_(it)', 'Wiktionary_edits_(fi)', 'Wikipedia_edits_(vo)', 'Wikipedia_edits_(ka)']
+
 #####################
 
 apps_and_graphs_ingore = {"sssp": [],

@@ -1,6 +1,15 @@
 // code taken form LAGraph
 // add license
 
+/**
+  @file tc.hpp
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @brief TC algorithm.
+  @details code taken form LAGraph. Add license.
+  @date May 12, 2022
+*/
+
 #pragma once
 #include "../../src/gb_kun.h"
 
@@ -9,8 +18,13 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//! Lablas namespace
+
 namespace lablas {
-namespace algorithm {
+
+    //! Algorithm namespace
+
+    namespace algorithm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

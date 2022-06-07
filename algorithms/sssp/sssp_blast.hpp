@@ -1,9 +1,32 @@
+/**
+  @file sssp_blast.hpp
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @brief SSSP blast algorithm.
+  @details Detailed description.
+  @date May 12, 2022
+*/
+
 #pragma once
 
+//! Lablas namespace
+
 namespace lablas {
-namespace algorithm {
+
+    //! Algorithm namespace
+
+    namespace algorithm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * sssp_bellman_ford_blast function.
+ * @brief The function does...
+ * @param v v
+ * @param A A
+ * @param s s
+ * @param desc desc
+*/
 
 void sssp_bellman_ford_blast(Vector<float> *v,
                              const Matrix<float> *A,

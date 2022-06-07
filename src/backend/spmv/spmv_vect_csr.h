@@ -12,6 +12,7 @@ void SpMV_load_balanced(const MatrixVectGroupCSR<T> *_matrix,
                         const DenseVector<T> *_x,
                         DenseVector<T> *_y)
 {
+    LOG_TRACE("Running SpMV for VectGroupCSR")
     const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();
 
@@ -40,6 +41,7 @@ void SpMV_vector(const MatrixVectGroupCSR<T> *_matrix,
                  const DenseVector<T> *_x,
                  DenseVector<T> *_y)
 {
+    LOG_TRACE("Running SpMV for GroupCSR")
     const T *x_vals = _x->get_vals();
     T *y_vals = _y->get_vals();
 

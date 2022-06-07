@@ -7,6 +7,9 @@
 #include <omp.h>
 #include <unistd.h>
 
+double SPMV_TIME;
+double SPMSPV_TIME;
+double CONVERT_TIME;
 
 #ifdef __DEBUG_INFO__
 #define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, matrix)       \
