@@ -136,3 +136,5 @@ could be used for a safe check/apply as follows:
 ```bash
 python3 codestyle_formatter.py --apply --safe
 ```
+
+The script also has `--quiet` option so the output could be easily interpreted by other scripts.

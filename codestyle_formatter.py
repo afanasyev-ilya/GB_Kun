@@ -89,6 +89,9 @@ def main():
     parser.add_argument("-s", "--safe", help="Do check and apply without preprocessing",
                         action="store_true")
 
+    parser.add_argument("-q", "--quiet", help="No debug output, so the runner could easily interpret output",
+                        action="store_true")
+
     args = parser.parse_args()
 
     if not os.path.exists(clang_format_file_path):
@@ -98,10 +101,12 @@ def main():
     files_to_format_paths = get_files_to_format(os.getcwd())
     for file_to_format_path in files_to_format_paths:
         if args.check:
-            print("=" * 99 + "\n" + f"Problems with file: {file_to_format_path}:")
+            if not args.quiet:
+                print("=" * 99 + "\n" + f"Problems with file: {file_to_format_path}:")
             print_clang_format_diff(file_to_format_path, args.safe)
         if args.apply:
-            print(f"Applied format to the file: {file_to_format_path}")
+            if not args.quiet:
+                print(f"Applied format to the file: {file_to_format_path}")
             apply_clang_format(file_to_format_path, args.safe)
 
 
