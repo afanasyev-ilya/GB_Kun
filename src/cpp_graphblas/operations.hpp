@@ -1,3 +1,10 @@
+/// @file operations.hpp
+/// @author Lastname:Firstname
+/// @version Revision 1.1
+/// @brief CPP_GRAPHBLAS wrappers operations
+/// @details Implements wrappers for implemented base operations for CPP_GRAPHBLAS interfaces
+/// @date June 8, 2022
+
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -7,6 +14,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace lablas {
+
+/// @namespace Lablas
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -406,6 +415,20 @@ LA_Info vxm (Vector<W>*       _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief CPP_GRAPHBLAS MxM Wrapper
+///
+/// A CPP_GRAPHBLAS wrapper for MxM algorithm. The selection of mxm algorithm is defined by the mask parameter and the
+/// passed descriptor. This function stores the result of multiplication of two input matrices A and B in matrix by
+/// pointer C. Masked multiplication is done if the _mask parameter is not null pointer. Binary operation accumulator
+/// and semiring operations are supported as well with parameters accum and op.
+/// @param[out] C Pointer to the (empty) matrix object that will contain the result matrix.
+/// @param[in] mask Pointer to the mask matrix
+/// @param[in] accum Binary operation accumulator
+/// @param[in] op Semiring operation
+/// @param[in] A Pointer to the first input matrix
+/// @param[in] B Pointer to the second input matrix
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename c, typename m, typename a, typename b,
         typename BinaryOpT, typename SemiringT>
 LA_Info mxm(Matrix<c>*       C,
@@ -424,6 +447,21 @@ LA_Info mxm(Matrix<c>*       C,
                         A->get_matrix(), B->get_matrix(), desc->get_descriptor());
 }
 
+/// @brief CPP_GRAPHBLAS MxM Wrapper with default accumulator
+///
+/// A CPP_GRAPHBLAS wrapper for MxM algorithm. The selection of mxm algorithm is defined by the mask parameter and the
+/// passed descriptor. This function stores the result of multiplication of two input matrices A and B in matrix by
+/// pointer C. Masked multiplication is done if the _mask parameter is not null pointer. Binary operation accumulator
+/// and semiring operations are supported as well with parameters accum and op. The default accumulator is chosen
+/// as second<c, a, b>().
+/// @param[out] C Pointer to the (empty) matrix object that will contain the result matrix.
+/// @param[in] mask Pointer to the mask matrix
+/// @param[in] accum NULL_TYPE accumulator
+/// @param[in] op Semiring operation
+/// @param[in] A Pointer to the first input matrix
+/// @param[in] B Pointer to the second input matrix
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename c, typename m, typename a, typename b, typename SemiringT>
 LA_Info mxm(Matrix<c>*       C,
             const Matrix<m>* mask,
@@ -438,7 +476,17 @@ LA_Info mxm(Matrix<c>*       C,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* w = op(w, u[i]) for each i; */
+/// @brief CPP_GRAPHBLAS Reduce Wrapper for Vector
+///
+/// Implements a wrapper over a reduce operation for vector which is basically does
+/// w = op(w, u[i]) for each i. Accumulator also could be used as well as descriptor.
+/// If input vector _u is not initialized it returns GrB_UNINITIALIZED_OBJECT.
+/// @param[out] _val Pointer to result value
+/// @param[in] _accum Binary operation accumulator
+/// @param[in] _op Monoid operation
+/// @param[in] _u Pointer to the Vector object
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
 LA_Info reduce(T *_val,
                BinaryOpTAccum _accum,
@@ -454,7 +502,17 @@ LA_Info reduce(T *_val,
     return backend::reduce(_val, _accum, _op, _u->get_vector(), desc_t);
 }
 
-/* w = op(w, u[i]) for each i; */
+/// @brief CPP_GRAPHBLAS Reduce Wrapper for Vector with default accumulator
+///
+/// Implements a wrapper over a reduce operation for vector which is basically does
+/// w = op(w, u[i]) for each i. Accumulator also could be used as well as descriptor.
+/// Accumulator is initialized with second<T, T, T>().
+/// @param[out] _val Pointer to result value
+/// @param[in] _accum NULL_TYPE accumulator
+/// @param[in] _op Monoid operation
+/// @param[in] _u Pointer to the Vector object
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename T, typename U, typename MonoidT>
 LA_Info reduce(T *_val,
                NULL_TYPE _accum,
@@ -467,7 +525,16 @@ LA_Info reduce(T *_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* w = op(w, u[i]) for each i; */
+/// @brief CPP_GRAPHBLAS Reduce Wrapper for Matrix
+///
+/// Implements a wrapper over a reduce operation for matrix which is basically does
+/// w = op(w, u[i, j]) for each i, j. If input matrix _u is not initialized it returns GrB_UNINITIALIZED_OBJECT.
+/// @param[out] _val Pointer to result value
+/// @param[in] _accum Binary operation accumulator
+/// @param[in] _op Monoid operation
+/// @param[in] _u Pointer to the Matrix object
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
 LA_Info reduce(T *_val,
                BinaryOpTAccum _accum,
@@ -483,7 +550,17 @@ LA_Info reduce(T *_val,
     return backend::reduce(_val, _accum, _op, _u->get_matrix(), desc_t);
 }
 
-/* w = op(w, u[i]) for each i; */
+/// @brief CPP_GRAPHBLAS Reduce Wrapper for Matrix with default accumulator
+///
+/// Implements a wrapper over a reduce operation for Matrix which is basically does
+/// w = op(w, u[i, j]) for each i, j. Accumulator also could be used as well as descriptor.
+/// Accumulator is initialized with second<T, T, T>().
+/// @param[out] _val Pointer to result value
+/// @param[in] _accum NULL_TYPE accumulator
+/// @param[in] _op Monoid operation
+/// @param[in] _u Pointer to the Vector object
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename T, typename U, typename MonoidT>
 LA_Info reduce(T *_val,
                NULL_TYPE _accum,
@@ -496,12 +573,18 @@ LA_Info reduce(T *_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*!
- * Extension method
- * Gather values in vector u from indices (vector index) and store in another
- * vector w.
- *   w[i] = u[index[i]]
- */
+/// @brief CPP_GRAPHBLAS Extract Wrapper for Vector
+///
+/// Gather values in vector u from indices (vector index) and store in another
+/// vector w.
+/// w[i] = u[index[i]]
+/// @param[out] w Pointer to result vector object
+/// @param[in] mask Input mask
+/// @param[in] accum Binary operation accumulator
+/// @param[in] u Pointer to the input Vector object
+/// @param[in] indices Pointer to the Indices Vector object
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename I, typename BinaryOpT>
 LA_Info extract(Vector<W>*       w,
                const Vector<M>* mask,
@@ -519,6 +602,18 @@ LA_Info extract(Vector<W>*       w,
                                   indices->get_vector(), desc_t);
 }
 
+/// @brief CPP_GRAPHBLAS Extract Wrapper for Vector with default accumulator
+///
+/// Gather values in vector u from indices (vector index) and store in another
+/// vector w.
+/// w[i] = u[index[i]]. By default accumulator is set to second<U, W, U>().
+/// @param[out] w Pointer to result vector object
+/// @param[in] mask Input mask
+/// @param[in] _accum NULL_TYPE accumulator
+/// @param[in] u Pointer to the input Vector object
+/// @param[in] indices Pointer to the Indices Vector object
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename I>
 LA_Info extract(Vector<W>*       w,
                 const Vector<M>* mask,
@@ -531,13 +626,20 @@ LA_Info extract(Vector<W>*       w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*!
- * Selection operation
- * Apply a select operator (an index unary operator) to the elements of a vector u
- * and accumutale/store the result in vector w. Mask can also be provided.
- *   w[i] = accum(w[i], op(u[i], i, 0, val))
- */
-
+/// @brief CPP_GRAPHBLAS Select Wrapper for Vector
+///
+/// Implements a wrapper over a Select operation for Vector which is basically does apply a select operator
+/// (an index unary operator) to the elements of a vector u
+/// and accumutale/store the result in vector w. Mask can also be provided.
+/// w[i] = accum(w[i], op(u[i], i, 0, val)).
+/// @param[out] w Pointer to result vector
+/// @param[in] mask Pointer to mask vector
+/// @param[in] accum NULL_TYPE accumulator
+/// @param[in] op Select operation
+/// @param[in] u Pointer to the input Vector object
+/// @param[in] val Val parameter for Accum
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
 LA_Info select(Vector<W> *w,
                const Vector<M> *mask,
@@ -561,6 +663,20 @@ LA_Info select(Vector<W> *w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief CBLAS Select Wrapper for Matrix
+///
+/// Implements a wrapper over a Select operation for Matrix which is basically does apply a select operator
+/// (an index unary operator) to the elements of a matrix u
+/// and accumutale/store the result in vector w. Mask can also be provided.
+/// w[i, j] = accum(w[i, j], op(u[i, j], i, j, 0, val))
+/// @param[out] w Pointer to result Matrix object
+/// @param[in] mask Pointer to mask Matrix
+/// @param[in] accum Binary operation accumulator
+/// @param[in] op Select operation
+/// @param[in] u Pointer to the input Matrix object
+/// @param[in] val Val parameter for Accum
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
 LA_Info select(Matrix<W> *w,
                const Matrix<M> *mask,
