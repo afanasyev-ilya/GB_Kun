@@ -7,6 +7,13 @@ namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Hash-based unmasked SpMSpM algorithm.
+///
+/// This algorithm by default uses tsl::hopscotch_map hash map container to accumulate matrix elements.
+/// @param[in] _matrix1 Pointer to the first input matrix
+/// @param[in] _matrix2 Pointer to the second input matrix
+/// @param[out] _matrix_result Pointer to the (empty) matrix object that will contain the result matrix
+/// @param[in] _op Semiring operation
 template <typename T, typename SemiringT>
 void SpMSpM_unmasked_ikj(const Matrix<T> *_matrix1,
                          const Matrix<T> *_matrix2,
