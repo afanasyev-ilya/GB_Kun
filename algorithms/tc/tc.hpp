@@ -1,14 +1,9 @@
-// code taken form LAGraph
-// add license
-
-/**
-  @file tc.hpp
-  @author Lastname:Firstname:A00123456:cscxxxxx
-  @version Revision 1.1
-  @brief TC algorithm.
-  @details code taken form LAGraph. Add license.
-  @date May 12, 2022
-*/
+/// @file tc.hpp
+/// @author Lastname:Firstname:A00123456:cscxxxxx
+/// @version Revision 1.1
+/// @brief TC algorithm.
+/// @details code taken form LAGraph. Add license.
+/// @date May 12, 2022
 
 #pragma once
 #include "../../src/gb_kun.h"
@@ -18,13 +13,13 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//! Lablas namespace
+/// @namespace Lablas
 
 namespace lablas {
 
-    //! Algorithm namespace
+/// @namespace Algorithm
 
-    namespace algorithm {
+namespace algorithm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -170,58 +165,6 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
     GrB_TRY (GrB_Matrix_new (&C, GrB_INT64, n, n)) ;
     auto semiring = LAGraph_plus_one_int64 ;
     auto monoid = GrB_PLUS_MONOID_INT64 ;
-
-    /*
-    if (auto_sort) {
-        // auto selection of sorting method
-        presort = LAGraph_TriangleCount_NoSort ; // default is not to sort
-
-        if (method_can_use_presort) {
-            #define NSAMPLES 1000
-            GrB_Index nvals ;
-            GrB_TRY (GrB_Matrix_nvals (&nvals, A)) ;
-            if (n > NSAMPLES && ((double) nvals / ((double) n)) >= 10) {
-                // estimate the mean and median degrees
-                double mean, median ;
-                LG_TRY (LAGraph_SampleDegree (&mean, &median, G, true, NSAMPLES, n, msg)) ;
-                // sort if the average degree is very high vs the median
-                if (mean > 4 * median) {
-                    switch (method)
-                    {
-                        case LAGraph_TriangleCount_Sandia:
-                            presort = LAGraph_TriangleCount_Ascending  ;
-                            break ;
-                        case LAGraph_TriangleCount_Sandia2:
-                            presort = LAGraph_TriangleCount_Descending ;
-                            break ;
-                        default:
-                        case LAGraph_TriangleCount_SandiaDot:
-                            presort = LAGraph_TriangleCount_Ascending  ;
-                            break ;
-                        case LAGraph_TriangleCount_SandiaDot2:
-                            presort = LAGraph_TriangleCount_Descending ;
-                            break ;
-                    }
-                }
-            }
-        }
-    }
-
-    if (presort != LAGraph_TriangleCount_NoSort) {
-        // P = permutation that sorts the rows by their degree
-        LG_TRY (LAGraph_SortByDegree (&P, G, true, presort == LAGraph_TriangleCount_Ascending, msg)) ;
-
-        // T = A (P,P) and typecast to boolean
-        GrB_TRY (GrB_Matrix_new (&T, GrB_BOOL, n, n)) ;
-        GrB_TRY (GrB_extract (T, NULL, NULL, A, (GrB_Index *) P, n, (GrB_Index *) P, n, NULL)) ;
-        A = T ;
-
-        // free workspace
-        if (P != NULL) {
-            free(P);
-        }
-    }
-    */
 
     int64_t ntri ;
 
