@@ -286,7 +286,7 @@ LA_Info GrB_select(lablas::Vector<W> *w,
 /// Implements a wrapper over a Select operation for Matrix which is basically does apply a select operator
 /// (an index unary operator) to the elements of a matrix u
 /// and accumutale/store the result in vector w. Mask can also be provided.
-/// w[i, j] = accum(w[i, j], op(u[i, j], i, 0, val))
+/// w[i, j] = accum(w[i, j], op(u[i, j], i, j, 0, val))
 /// @param[out] w Pointer to result Matrix object
 /// @param[in] mask Pointer to mask Matrix
 /// @param[in] accum NULL_TYPE accumulator
