@@ -55,6 +55,13 @@ enum LAGraph_TriangleCount_Presort
     GrB_free (U) ;              \
 }
 
+/// @brief Triangle count preparation function for TC algorithms.
+///
+/// This algorithm implements LU-decomposition for several TC algorithms by using GrB_select function.
+/// @param[out] L Pointer to the first (left) selected matrix from LU-decomposition
+/// @param[out] U Pointer to the second (right) selected matrix from LU-decomposition
+/// @param[in] A Input matrix
+/// @result GrB status
 static int tricount_prep(GrB_Matrix *L,      // if present, compute L = tril (A,-1)
                          GrB_Matrix *U,      // if present, compute U = triu (A, 1)
                          GrB_Matrix A)
@@ -99,6 +106,21 @@ static int tricount_prep(GrB_Matrix *L,      // if present, compute L = tril (A,
     GrB_free (&U) ;                         \
 }
 
+/// @brief Triangle count function.
+///
+/// This algorithm implements triangle counting by using several TC algorithms implementations.
+/// Implemented TC algorithms are as follows:
+/// <li> Burkhardt algorithm (used by default),
+/// <li> Cohen algorithm,
+/// <li> Sandia algorithm,
+/// <li> SandiaDot algorithm
+/// By using descriptor it is also possible to choose from mxm methods to be used in TC.
+/// @param[out] ntriangles Pointer to the triangles count result variable
+/// @param[in] G Pointer to the input Graph object
+/// @param[in] method Lagraph method enum value
+/// @param[in] presort Lagraph presort option enum value
+/// @param[in] desc Pointer to the descriptor
+/// @result GrB status
 int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
                        LAGraph_TriangleCount_Method method,
                        LAGraph_TriangleCount_Presort presort,
