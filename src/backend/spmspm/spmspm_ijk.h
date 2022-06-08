@@ -2,6 +2,14 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Lower bound function for IJK algorithm.
+///
+/// A helper function for IJK-based SpMSpM algorithm.
+/// @param[in] data Pointer to the data
+/// @param[in] left Left index of an array (inclusive)
+/// @param[out] right Right index of an array (exclusive)
+/// @param[in] value Value that is searched
+/// @result Index of the data array that is a lower bound in terms of a binary search
 VNT spgemm_lower_bound(const Index* data, VNT left, VNT right, ENT value)
 {
     while (left < right) {
