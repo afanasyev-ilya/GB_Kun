@@ -22,6 +22,17 @@ namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Masked IJK-based SpMSpM algorithm.
+///
+/// This algorithm is using IJK-structured main loop that uses binary search on sorted second input
+/// matrix CSR structure. This algorithm could also be modified by passing sorted first matrix and mentioning it with
+/// a_is_sorted parameter. Algorithm assumes that result matrix will have the same nnz structure as a mask matrix.
+/// @param[in] _matrix1 Pointer to the first input matrix
+/// @param[in] _matrix2 Pointer to the second input matrix (should be sorted)
+/// @param[out] _matrix_result Pointer to the (empty) matrix object that will contain the result matrix.
+/// @param[in] _result_mask Mask matrix
+/// @param[in] _op Semiring operation
+/// @param[in] a_is_sorted Whether or not the first input matrix is sorted
 template <typename T, typename SemiringT>
 void SpMSpM_ijk(const Matrix<T> *_matrix1,
                 const Matrix<T> *_matrix2,
