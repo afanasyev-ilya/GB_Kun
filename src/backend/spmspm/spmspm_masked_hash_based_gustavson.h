@@ -6,6 +6,17 @@ namespace lablas {
 namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Masked Hash-based SpMSpM algorithm.
+///
+/// This algorithm is using IKJ-structured main loop that uses stl::unordered_map Hash Table to accumulate the
+/// result matrix that is then exported to the CSR format. Algorithm assumes that result matrix will have the
+/// same nnz structure as a mask matrix.
+/// @param[in] _result_mask Mask matrix
+/// @param[in] _matrix1 Pointer to the first input matrix
+/// @param[in] _matrix2 Pointer to the second input matrix
+/// @param[out] _matrix_result Pointer to the (empty) matrix object that will contain the result matrix.
+/// @param[in] _op Semiring operation
 template <typename T, typename mask_type, typename SemiringT>
 void SpMSpM_masked_ikj(const Matrix<mask_type> *_result_mask,
                        const Matrix<T> *_matrix1,
