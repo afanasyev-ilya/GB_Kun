@@ -1,3 +1,10 @@
+/// @file indexed_operations.h
+/// @author Lastname:Firstname
+/// @version Revision 1.1
+/// @brief Implementations of Indexed Operations
+/// @details Backend implementations of Indexed operation
+/// @date June 8, 2022
+
 #pragma once
 
 #include "../matrix/matrix.h"
@@ -7,7 +14,12 @@
 
 
 namespace lablas {
+
+/// @namespace Lablas
+
 namespace backend {
+
+/// @namespace Backend
 
 template <typename M, typename LambdaOp>
 LA_Info indexed_dense_vector_op_assign(const Vector<M>* _mask,
@@ -86,6 +98,16 @@ LA_Info indexed_dense_vector_op_assign(const Vector<M>* _mask,
     return GrB_SUCCESS;
 }
 
+/// @brief Indexed Extract Operation for Dense Vector (array variant)
+///
+/// Applies lambda_op that might use outside variables as lambda function for each mask element by using indexes array.
+/// @param[in] _mask Input mask
+/// @param[in] _indexes Array of indexes
+/// @param[in] _nindexes Expected amount of indexes
+/// @param[in] _vector_size Expected mask size
+/// @param[in] _lambda_op Lambda operation
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename M, typename LambdaOp>
 LA_Info indexed_dense_vector_op_extract(const Vector<M>* _mask,
                                 const Index* _indexes,
@@ -124,6 +146,16 @@ LA_Info indexed_dense_vector_op_extract(const Vector<M>* _mask,
     return GrB_SUCCESS;
 }
 
+/// @brief Indexed Extract Operation for Dense Vector (Vector variant)
+///
+/// Applies lambda_op that might use outside variables as lambda function for each mask element by using indexes Vector.
+/// @param[in] _mask Input mask
+/// @param[in] _indexes Vector of indexes
+/// @param[in] _nindexes Expected amount of indexes
+/// @param[in] _vector_size Expected mask size
+/// @param[in] _lambda_op Lambda operation
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename M, typename I, typename LambdaOp>
 LA_Info indexed_dense_vector_op_extract(const Vector<M>* _mask,
                                 const Vector<I>* _indexes,
