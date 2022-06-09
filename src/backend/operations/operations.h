@@ -16,13 +16,11 @@
 #include "../../cpp_graphblas/types.hpp"
 
 
+/// @namespace Lablas
 namespace lablas{
 
-/// @namespace Lablas
-
-namespace backend{
-
 /// @namespace Backend
+namespace backend{
 
 template <typename W, typename M, typename U, typename I, typename BinaryOpTAccum>
 LA_Info assign(Vector<W>* _w,

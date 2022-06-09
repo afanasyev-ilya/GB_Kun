@@ -17,13 +17,11 @@
 #include "indexed_operations.h"
 #include "../../cpp_graphblas/types.hpp"
 
+/// @namespace Lablas
 namespace lablas{
 
-/// @namespace Lablas
-
-namespace backend{
-
 /// @namespace Backend
+namespace backend{
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

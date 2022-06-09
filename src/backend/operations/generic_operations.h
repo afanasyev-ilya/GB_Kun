@@ -12,13 +12,11 @@
 #include "../descriptor/descriptor.h"
 #include "../la_backend.h"
 
+/// @namespace Lablas
 namespace lablas {
 
-/// @namespace Lablas
-
-namespace backend {
-
 /// @namespace Backend
+namespace backend {
 
 template <typename M, typename LambdaOp>
 LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
