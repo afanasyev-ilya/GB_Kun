@@ -1,6 +1,13 @@
 #ifndef GB_KUN_MATRIX_HPP
 #define GB_KUN_MATRIX_HPP
 
+/// @file matrix.hpp
+/// @author Lastname:Firstname
+/// @version Revision 1.1
+/// @brief Matrix class frontend wrapper for cpp usage
+/// @details Describes GraphBLAS methods for matrix object, invokes functions and methods of backend matrix object
+/// @date June 12, 2022
+
 #include "../backend/matrix/matrix.h"
 #include "types.hpp"
 #include <vector>
@@ -11,22 +18,54 @@ namespace lablas {
 template<typename T>
 class Matrix {
 public:
+    /**
+     * Create a new Matrix object with default sizes
+     * @brief Default constructor
+     * @see Matrix(Index nrows, Index ncols)
+     */
     Matrix() : _matrix() {};
+
+    /**
+     * Create a new Matrix object with particular sizes
+     * @brief Parameter constructor
+     * @param nrows The number of rows in new matrix
+     * @param ncols The number of columns in new matrix
+     * @see Matrix()
+     */
     Matrix(Index nrows, Index ncols) : _matrix(nrows, ncols) {}
 
+    /**
+     * @brief Print graphviz image of matrix object
+     * @param file_name The name of output file
+     * @param label_vector Labels are to be put into vertices of a visualized graph
+     * @return Nothing
+     */
     template<class U>
     void print_graphviz(string file_name, backend::Vector<U>* label_vector) {
         _matrix.print_graphviz(file_name, backend::VisualizationMode::VISUALISE_AS_UNDIRECTED, label_vector);
     }
 
+    /**
+     * @brief Get arbitrary pointer to the matrix bakcend member of matrix class
+     * @return matrix Pointer to the backend matrix
+     */
     backend::Matrix<T>* get_matrix() {
         return &_matrix;
     }
 
+    /**
+     * @brief Get constant pointer to the matrix bakcend member of matrix class
+     * @return matrix Const pointer to the backend matrix
+     */
     const backend::Matrix<T>* get_matrix() const {
         return &_matrix;
     }
 
+    /**
+     * @brief Get the type of main backend container (sparse or dense representation)
+     * @param[out] _mat_type Type of current matrix storage
+     * @return la_info Flag for the correctness check
+     */
     LA_Info get_storage(Storage* _mat_type) const {
         return _matrix.get_storage(_mat_type);
     }
