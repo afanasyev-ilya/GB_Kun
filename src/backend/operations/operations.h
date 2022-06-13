@@ -1,3 +1,10 @@
+/// @file operations.h
+/// @author Lastname:Firstname
+/// @version Revision 1.1
+/// @brief Backend basic operations
+/// @details Implements basic GraphBLAS operations
+/// @date June 8, 2022
+
 #pragma once
 
 #include "../matrix/matrix.h"
@@ -9,7 +16,10 @@
 #include "../../cpp_graphblas/types.hpp"
 
 
+/// @namespace Lablas
 namespace lablas{
+
+/// @namespace Backend
 namespace backend{
 
 template <typename W, typename M, typename U, typename I, typename BinaryOpTAccum>
@@ -227,7 +237,7 @@ LA_Info vxm (Vector<W>*       _w,
             double t2 = omp_get_wtime();
             SPMSPV_TIME += t2 - t1;
         }
-        if (algo == SPMSPV_BUCKET)
+        if (algo == SPMSPV_MAP_TBB)
         {
             #ifdef __USE_TBB__
             LOG_TRACE("Using SpMSpV TBB map-based");
@@ -385,7 +395,17 @@ LA_Info apply(Vector<W>* _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* w = op(w, u[i]) for each i; */
+/// @brief Reduce Operation for Vector
+///
+/// Implements a reduce operation for vector which is basically does
+/// w = op(w, u[i]) for each i. Accumulator also could be used as well as descriptor.
+/// Different base operations are used for dense and sparse vectors.
+/// @param[out] _val Pointer to result value
+/// @param[in] _accum Binary operation accumulator
+/// @param[in] _op Monoid operation
+/// @param[in] _u Pointer to the Vector object
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
 LA_Info reduce(T *_val,
                BinaryOpTAccum _accum,
@@ -421,7 +441,16 @@ LA_Info reduce(T *_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* w = op(w, u[i]) for each i; */
+/// @brief Reduce Operation for Matrix
+///
+/// Implements a reduce operation for Matrix which is basically does
+/// w = op(w, u[i, j]) for each i, j. Accumulator also could be used as well as descriptor.
+/// @param[out] _val Pointer to result value
+/// @param[in] _accum Binary operation accumulator
+/// @param[in] _op Monoid operation
+/// @param[in] _u Pointer to the Matrix object
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
 LA_Info reduce(T *_val,
                BinaryOpTAccum _accum,
@@ -442,7 +471,18 @@ LA_Info reduce(T *_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* Assume that we have allocated memory in w of size sizeof(indices) */
+/// @brief Extract Operation for Vector
+///
+/// Gather values in vector u from indices (vector index) and store in another
+/// vector w. Assumes that we have allocated memory in w of size sizeof(indices)
+/// w[i] = u[index[i]]
+/// @param[out] w Pointer to result vector object
+/// @param[in] mask Input mask
+/// @param[in] accum Binary operation accumulator
+/// @param[in] u Pointer to the input Vector object
+/// @param[in] indices Pointer to the Indices Vector object
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename I, typename BinaryOpT>
 LA_Info extract(Vector<W>*       w,
                 const Vector<M>* mask,
@@ -477,6 +517,27 @@ LA_Info extract(Vector<W>*       w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief MxM operation for two matrices
+///
+/// A backend implementation of MxM operation that selects the mxm algorithm from masked/unmasked type by mask
+/// parameter and the specific implementation by passed descriptor. This function stores the result of multiplication
+/// of two input matrices A and B in matrix by pointer C. Masked multiplication is done if the mask parameter is not
+/// null pointer. Binary operation accumulator and semiring operations are supported as well with parameters accum and
+/// op.
+///
+/// The algorithm chooses from following algorithms:
+/// <li> Basic Masked IJK algorithm
+/// <li> Masked IJK algorithm with both input matrices presorted
+/// <li> Masked hash-based IKJ algorithm
+/// <li> Unmasked hash-based IKJ algorithm
+/// @param[out] C Pointer to the (empty) matrix object that will contain the result matrix.
+/// @param[in] mask Pointer to the mask matrix
+/// @param[in] accum NULL_TYPE accumulator
+/// @param[in] op Semiring operation
+/// @param[in] A Pointer to the first input matrix
+/// @param[in] B Pointer to the second input matrix
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename c, typename a, typename b, typename m,
         typename BinaryOpT,     typename SemiringT>
 LA_Info mxm(Matrix<c>* C,

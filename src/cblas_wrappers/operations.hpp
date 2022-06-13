@@ -1,3 +1,10 @@
+/// @file operations.hpp
+/// @author Lastname:Firstname
+/// @version Revision 1.1
+/// @brief CBLAS wrappers operations
+/// @details Implements wrappers for implemented base operations for CBLAS interfaces
+/// @date June 8, 2022
+
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,6 +129,20 @@ LA_Info GrB_vxm (lablas::Vector<W>*       _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief CBLAS MxM Wrapper
+///
+/// A CBLAS wrapper for MxM algorithm. The selection of mxm algorithm is defined by the _mask parameter and the
+/// passed descriptor. This function stores the result of multiplication of two input matrices _a and _b in matrix by
+/// pointer _c. Masked multiplication is done if the _mask parameter is not null pointer. Binary operation accumulator
+/// and semiring operations are supported as well with parameters _accum and _op.
+/// @param[out] _c Pointer to the (empty) matrix object that will contain the result matrix.
+/// @param[in] _mask Pointer to the mask matrix
+/// @param[in] _accum Binary operation accumulator
+/// @param[in] _op Semiring operation
+/// @param[in] _a Pointer to the first input matrix
+/// @param[in] _b Pointer to the second input matrix
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename a, typename U,
         typename BinaryOpTAccum, typename SemiringT>
 LA_Info GrB_mxm (lablas::Matrix<W>*       _c,
@@ -152,7 +173,16 @@ LA_Info GrB_mxv (lablas::Vector<W>*       _w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* w = op(w, u[i]) for each i; */
+/// @brief CBLAS Reduce Wrapper for Vector
+///
+/// Implements a wrapper over a reduce operation for vector which is basically does
+/// w = op(w, u[i]) for each i. Accumulator also could be used as well as descriptor.
+/// @param[out] _val Pointer to result value
+/// @param[in] _accum Binary operation accumulator
+/// @param[in] _op Monoid operation
+/// @param[in] _u Pointer to the Vector object
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
 LA_Info GrB_reduce(T *_val,
                    BinaryOpTAccum _accum,
@@ -165,6 +195,16 @@ LA_Info GrB_reduce(T *_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief CBLAS Reduce Wrapper for Matrix
+///
+/// Implements a wrapper over a reduce operation for matrix which is basically does
+/// w = op(w, u[i, j]) for each i, j
+/// @param[out] _val Pointer to result value
+/// @param[in] _accum Binary operation accumulator
+/// @param[in] _op Monoid operation
+/// @param[in] _u Pointer to the Matrix object
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
 LA_Info GrB_reduce(T *_val,
                    BinaryOpTAccum _accum,
@@ -185,6 +225,20 @@ LA_Info GrB_Vector_clear(lablas::Vector<T>* _vec)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief CBLAS Select Wrapper for Vector
+///
+/// Implements a wrapper over a Select operation for Vector which is basically does apply a select operator
+/// (an index unary operator) to the elements of a vector u
+/// and accumutale/store the result in vector w. Mask can also be provided.
+/// w[i] = accum(w[i], op(u[i], i, 0, val))
+/// @param[out] w Pointer to result vector
+/// @param[in] mask Pointer to mask vector
+/// @param[in] accum Binary operation accumulator
+/// @param[in] op Select operation
+/// @param[in] u Pointer to the result Vector object
+/// @param[in] val Val parameter for Accum
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
 LA_Info GrB_select(lablas::Vector<W> *w,
                    const lablas::Vector<M> *mask,
@@ -199,6 +253,20 @@ LA_Info GrB_select(lablas::Vector<W> *w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief CBLAS Select Wrapper for Vector with default accumulator
+///
+/// Implements a wrapper over a Select operation for Vector which is basically does apply a select operator
+/// (an index unary operator) to the elements of a vector u
+/// and accumutale/store the result in vector w. Mask can also be provided.
+/// w[i] = accum(w[i], op(u[i], i, 0, val)). Default accumulator is lablas::second<W, T>.
+/// @param[out] w Pointer to result vector
+/// @param[in] mask Pointer to mask vector
+/// @param[in] accum NULL_TYPE accumulator
+/// @param[in] op Select operation
+/// @param[in] u Pointer to the input Vector object
+/// @param[in] val Val parameter for Accum
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename T, typename SelectOpT>
 LA_Info GrB_select(lablas::Vector<W> *w,
                    const lablas::Vector<M> *mask,
@@ -213,6 +281,20 @@ LA_Info GrB_select(lablas::Vector<W> *w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief CBLAS Select Wrapper for Matrix with default accumulator
+///
+/// Implements a wrapper over a Select operation for Matrix which is basically does apply a select operator
+/// (an index unary operator) to the elements of a matrix u
+/// and accumutale/store the result in vector w. Mask can also be provided.
+/// w[i, j] = accum(w[i, j], op(u[i, j], i, j, 0, val))
+/// @param[out] w Pointer to result Matrix object
+/// @param[in] mask Pointer to mask Matrix
+/// @param[in] accum NULL_TYPE accumulator
+/// @param[in] op Select operation
+/// @param[in] u Pointer to the input Matrix object
+/// @param[in] val Val parameter for Accum
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename T, typename SelectOpT>
 LA_Info GrB_select(lablas::Matrix<W> *w,
                    const lablas::Matrix<M> *mask,
