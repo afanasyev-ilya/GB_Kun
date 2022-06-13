@@ -22,11 +22,11 @@ namespace lablas {
 
 /**
  * cc function.
- * @brief The function does...
- * @param v v
- * @param A A
- * @param seed seed
- * @param desc desc
+ * @brief The function implements the CC algorithm in notion of GraphBLAS standard
+ * @param v Vector to store component labels
+ * @param A Target matrix
+ * @param seed seed?
+ * @param desc Descriptor to store some auxilary data
 */
 
 void cc(Vector<int>*       v,
