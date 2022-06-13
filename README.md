@@ -1,6 +1,6 @@
-GB_Kun is a high-performance graph-processing library, based on the GraphBLAS standard. 
-Primary target hardware of GB_Kun is Kunpeng 920 processors (48-core and 64-core), 
-but it can be also launched on other multicore CPU if all the software requirements are provides. 
+GB_Kun is a high-performance graph-processing library, based on the GraphBLAS standard.
+Primary target hardware of GB_Kun is Kunpeng 920 processors (48-core and 64-core),
+but it can be also launched on other multicore CPU if all the software requirements are provides.
 
 Software Requirements:
 
@@ -14,7 +14,9 @@ Software Requirements:
 
 5. GoogleTest
 
-***Important***: for matlibplot installation use 
+6. clang-format >= 10
+
+***Important***: for matlibplot installation use
 
 ```bash
 yum install python3-devel
@@ -22,7 +24,7 @@ pip3 install matplotlib
 ```
 
 
-On CentOS 8, yum must be fixed according to the following instruction:  
+On CentOS 8, yum must be fixed according to the following instruction:
 
 
 ***gtest installation***
@@ -76,3 +78,63 @@ python3 ./run_tests.py --help
 ```
 
 For example, other options, such as --scaling, are available.
+
+***Logging***
+
+We have implemented logger interface for convenient working process with GB_Kun library
+
+Logging in particular parts of a code are implemented via function-like macros 
+LOG_TRACE, LOG_DEBUG or LOG_ERROR
+
+In order to output data from such parts of code, you need to set environment variable LOG_LEVEL like
+```bash
+LOG_LEVEL=trace ./bfs ...
+```
+
+***Documentation***
+
+To generate documentations for all algorithms, go to the directory with algorithms and use doxygen command:
+```bash
+cd GB_Kun/algorithms
+doxygen
+```
+```/documentation``` directory will be generated with html and latex folders which contain generated documentation in different formats.
+
+***Downloading graphs from Konect***
+
+To download graphs from connect, type:
+```bash
+cd GB_Kun/benchmark
+python3 ./load_feature_maps_from_konnect.py --cnt 100 --file output
+```
+
+Parameter ```--cnt``` is used to specify how many graphs to download. 
+
+If ```--cnt``` parameter is not specified all graphs will be downloaded.
+
+Parameter ```--file``` is used to specify the name of the output file.
+
+If ```--file``` parameter is not specified the output file will be named ```dict.pickle```.
+
+***Handling project Code Style***
+
+For this project we applied a Code Style that is specified in `.clang-format` file in the root folder of the repository.
+
+In order to be able to do both safe checking and applying Code Style in a whole project, the has two main options:
+- `--apply` to apply the Code Style to all `.cpp`, `.c`, `.hpp`, `.h` files in project
+- `--check` to check all these files for a Code Style violations
+
+So for example to check and apply Code Style to a whole project you can use the following command:
+```bash
+python3 codestyle_formatter.py --apply --check
+```
+
+It's important to mention that in order to ignore `#pragma`, `#ifdef` and other preprocessing directives indentations 
+in project files, mentioned above options are modifying source code before applying `clang-format` so the indentations
+for these preprocessing directives are ignored. In order to avoid this behaviour we added one more option `--safe` which
+could be used for a safe check/apply as follows:
+```bash
+python3 codestyle_formatter.py --apply --safe
+```
+
+The script also has `--quiet` option so the output could be easily interpreted by other scripts.

@@ -26,7 +26,7 @@ public:
     void print() const
     {
         if(nvals == 0)
-            cout << "vector is empty (from print)" << endl;
+            LOG_DEBUG("vector is empty (from print)")
         else
         {
             for(VNT i = 0; i < nvals; i++)
@@ -61,19 +61,22 @@ public:
         return ids;
     }
 
-    LA_Info build(const Index* indices, const T *values, Index nvals) {
-
+    LA_Info build(const Index* _indices, const T *_values, Index _nvals)
+    {
+        nvals = _nvals;
         if (nvals > size)
             return GrB_INDEX_OUT_OF_BOUNDS;
 
-        for (Index i = 0; i < nvals; i++){
-            vals[i] = values[i];
-            ids[i] = indices[i];
+        #pragma omp parallel for
+        for (Index i = 0; i < _nvals; i++){
+            vals[i] = _values[i];
+            ids[i] = _indices[i];
         }
         return GrB_SUCCESS;
     }
 
     LA_Info fillAscending(Index nvals) {
+        throw "vector.fillAscending not implemented yet";
 //        for (Index i = 0; i < nvals; i++)
 //            vals[ids[i]] = i;
         /*NOT IMPLEMENTED YET*/

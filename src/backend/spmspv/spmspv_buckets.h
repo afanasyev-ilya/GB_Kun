@@ -20,6 +20,7 @@ struct bucket {
 template <typename T>
 void estimate_buckets(const MatrixCSR<T> *matrix, const SparseVector<T> *x, vector<vector<int>> &Boffset, int nb, int nt)
 {
+    LOG_TRACE("Running estimate_buckets")
 
     // This function is essential in implementing synchronization free insertion
     VNT nz = x->get_nvals();
@@ -60,6 +61,7 @@ void spmspv_buckets(const MatrixCSR<A> *_matrix_csc,
                     BinaryOpTAccum _accum,
                     SemiringT op)
 {
+    LOG_TRACE("Running spmspv_buckets")
 
     auto add_op = extractAdd(op);
     auto mul_op = extractMul(op);

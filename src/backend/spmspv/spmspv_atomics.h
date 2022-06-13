@@ -11,6 +11,7 @@ void spmspv_unmasked_add(const MatrixCSR<A> *_matrix,
                          Descriptor *_desc,
                          Workspace *_workspace)
 {
+    LOG_TRACE("Running spmspv_unmasked_add")
     const X *x_vals = _x->get_vals();
     const Index *x_ids = _x->get_ids();
     Y *y_vals = _y->get_vals();
@@ -66,6 +67,7 @@ void spmspv_unmasked_or(const MatrixCSR<A> *_matrix,
                         Descriptor *_desc,
                         Workspace *_workspace)
 {
+    LOG_TRACE("Running spmspv_unmasked_or")
     const X *x_vals = _x->get_vals();
     const Index *x_ids = _x->get_ids();
     Y *y_vals = _y->get_vals();
@@ -119,6 +121,7 @@ void spmspv_unmasked_critical(const MatrixCSR<A> *_matrix,
                               Descriptor *_desc,
                               Workspace *_workspace)
 {
+    LOG_TRACE("Running spmspv_unmasked_critical")
     const X *x_vals = _x->get_vals();
     const Index *x_ids = _x->get_ids();
     Y *y_vals = _y->get_vals();

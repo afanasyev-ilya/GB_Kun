@@ -1,3 +1,10 @@
+/// @file generic_operations.h
+/// @author Lastname:Firstname
+/// @version Revision 1.1
+/// @brief Implementations of Generic Operations
+/// @details Backend implementations of Generic Operations
+/// @date June 8, 2022
+
 #pragma once
 
 #include "../matrix/matrix.h"
@@ -5,7 +12,10 @@
 #include "../descriptor/descriptor.h"
 #include "../la_backend.h"
 
+/// @namespace Lablas
 namespace lablas {
+
+/// @namespace Backend
 namespace backend {
 
 template <typename M, typename LambdaOp>
@@ -14,6 +24,7 @@ LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
                                        LambdaOp &&_lambda_op,
                                        Descriptor *_desc)
 {
+    LOG_TRACE("Running generic_dense_vector_op_assign")
     if (_mask != NULL)
     {
         if (_mask->get_size() != _size)
@@ -69,12 +80,21 @@ LA_Info generic_dense_vector_op_assign(const Vector<M>* _mask,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Generic Extract Operation for Dense Vector
+///
+/// Applies lambda_op that might use outside variables as lambda function for each mask element
+/// @param[in] _mask Input mask
+/// @param[in] _size Expected mask size
+/// @param[in] _lambda_op Lambda operation
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename M, typename LambdaOp>
 LA_Info generic_dense_vector_op_extract(const Vector<M>* _mask,
                                         const Index _size,
                                         LambdaOp &&_lambda_op,
                                         Descriptor *_desc)
 {
+    LOG_TRACE("Running generic_dense_vector_op_extract")
     if (_mask != NULL)
     {
         if (_mask->get_size() != _size)
@@ -122,6 +142,7 @@ LA_Info generic_dense_vector_op(const Vector<M>* _mask,
     LambdaOp&& _lambda_op,
     Descriptor* _desc)
 {
+    LOG_TRACE("Running generic_dense_vector_op")
     if (_mask != NULL)
     {
         if (_mask->get_size() != _size)
@@ -162,6 +183,16 @@ LA_Info generic_dense_vector_op(const Vector<M>* _mask,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Generic Reduce Operation for Dense Vector
+///
+/// Implements a reduce operation for vector which is basically does
+/// w = op(w, u[i]) for each i by calling _lambda_op lambda operations that might use outer lambda scope variables.
+/// @param[out] _tmp_val Pointer to result value
+/// @param[in] _size Expected iterations count
+/// @param[in] _lambda_op Lambda operation
+/// @param[in] _monoid_op Monoid operation
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename T, typename LambdaOp, typename MonoidOpT>
 LA_Info generic_dense_reduce_op(T* _tmp_val,
                                 const Index _size,
@@ -169,6 +200,7 @@ LA_Info generic_dense_reduce_op(T* _tmp_val,
                                 MonoidOpT _monoid_op,
                                 Descriptor *_desc)
 {
+    LOG_TRACE("Running generic_dense_reduce_op")
     #pragma omp parallel
     {
         T local_res = _monoid_op.identity();
@@ -188,6 +220,16 @@ LA_Info generic_dense_reduce_op(T* _tmp_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Generic Reduce Operation for Sparse Vector
+///
+/// Implements a reduce operation for vector which is basically does
+/// w = op(w, u[i]) for each i over a given _vals array.
+/// @param[out] _tmp_val Pointer to result value
+/// @param[in] _vals Input array
+/// @param[in] _nvals Amount of elemnts
+/// @param[in] _monoid_op Monoid operation
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename T, typename V, typename MonoidOpT>
 LA_Info generic_sparse_vals_reduce_op(T *_tmp_val,
                                       const V*_vals,
@@ -195,6 +237,7 @@ LA_Info generic_sparse_vals_reduce_op(T *_tmp_val,
                                       MonoidOpT _monoid_op,
                                       Descriptor *_desc)
 {
+    LOG_TRACE("Running generic_sparse_vals_reduce_op")
     #pragma omp parallel
     {
         T local_res = _monoid_op.identity();

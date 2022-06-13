@@ -9,6 +9,7 @@ void SpMSpV_map_seq(const MatrixCSR<A> *_matrix,
                     SemiringT _op,
                     const Vector <M> *_mask)
 {
+    LOG_TRACE("Running SpMSpV_map_seq")
     const X *x_vals = _x->get_vals(); // y is guaranteed to be sparse
     const Index *y_ids = _y->get_ids();
 
@@ -47,7 +48,7 @@ void SpMSpV_map_seq(const MatrixCSR<A> *_matrix,
         Desc_value mask_field;
         _desc->get(GrB_MASK, &mask_field);
         if(!_mask->is_dense())
-            std::cout << "warning! costly mask conversion to dense in spmspv seq_mask" << std::endl;
+            LOG_DEBUG("warning! costly mask conversion to dense in spmspv seq_map_based");
         const M *mask_vals = _mask->getDense()->get_vals();
         _y->clear();
 

@@ -12,6 +12,7 @@ void SpMV(MatrixSortCSR<A> *_matrix,
           BinaryOpTAccum _accum,
           SemiringT _op)
 {
+    LOG_TRACE("Running SpMV for SortCSR")
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(_op);

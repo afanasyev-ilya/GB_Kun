@@ -1,3 +1,10 @@
+/// @file select.h
+/// @author Lastname:Firstname
+/// @version Revision 1.1
+/// @brief Implementations of Select Operation
+/// @details Backend implementations of select operation
+/// @date June 8, 2022
+
 #pragma once
 
 #include <map>
@@ -10,11 +17,28 @@
 #include "indexed_operations.h"
 #include "../../cpp_graphblas/types.hpp"
 
+/// @namespace Lablas
 namespace lablas{
+
+/// @namespace Backend
 namespace backend{
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Select Operation for Dense vector and Dense mask
+///
+/// Implements a Select operation for Vector which is basically does apply a select operator
+/// (an index unary operator) to the elements of a Vector u
+/// and accumutale/store the result in vector w. Mask can also be provided.
+/// w[i] = accum(w[i], op(u[i], i, 0, val))
+/// @param[out] w Pointer to result Dense Vector
+/// @param[in] mask Pointer to mask Dense Vector
+/// @param[in] accum Binary operation accumulator
+/// @param[in] op Select operation
+/// @param[in] u Pointer to the input Dense Vector object
+/// @param[in] val Val parameter
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
 static LA_Info select(DenseVector<W> *w,
                       const DenseVector<M> *mask,
@@ -24,6 +48,7 @@ static LA_Info select(DenseVector<W> *w,
                       const T val,
                       Descriptor *desc)
 {
+    LOG_TRACE("Running select for dense vector and dense mask")
           W* w_vals    = w->get_vals();
     const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
@@ -54,6 +79,20 @@ static LA_Info select(DenseVector<W> *w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Select Operation for Sparse vector and Dense mask
+///
+/// Implements a Select operation for Vector which is basically does apply a select operator
+/// (an index unary operator) to the elements of a Vector u
+/// and accumutale/store the result in vector w. Mask can also be provided.
+/// w[i] = accum(w[i], op(u[i], i, 0, val))
+/// @param[out] w Pointer to result Dense Vector
+/// @param[in] mask Pointer to mask Dense Vector
+/// @param[in] accum Binary operation accumulator
+/// @param[in] op Select operation
+/// @param[in] u Pointer to the input Sparse Vector object
+/// @param[in] val Val parameter
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
 static LA_Info select(DenseVector<W> *w,
                       const DenseVector<M> *mask,
@@ -63,6 +102,7 @@ static LA_Info select(DenseVector<W> *w,
                       const T val,
                       Descriptor *desc)
 {
+    LOG_TRACE("Running select for sparse vector and dense mask")
           W* w_vals    = w->get_vals();
     const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
@@ -110,6 +150,20 @@ static LA_Info select(DenseVector<W> *w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Select Operation for Dense vector and Sparse mask
+///
+/// Implements a Select operation for Vector which is basically does apply a select operator
+/// (an index unary operator) to the elements of a Vector u
+/// and accumutale/store the result in vector w. Mask can also be provided.
+/// w[i] = accum(w[i], op(u[i], i, 0, val))
+/// @param[out] w Pointer to result Dense Vector
+/// @param[in] mask Pointer to mask Sparse Vector
+/// @param[in] accum Binary operation accumulator
+/// @param[in] op Select operation
+/// @param[in] u Pointer to the input Dense Vector object
+/// @param[in] val Val parameter
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
 static LA_Info select(DenseVector<W> *w,
                       const SparseVector<M> *mask,
@@ -119,6 +173,7 @@ static LA_Info select(DenseVector<W> *w,
                       const T val,
                       Descriptor *desc)
 {
+    LOG_TRACE("Running select for dense vector and sparse mask")
           W* w_vals    = w->get_vals();
     const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
@@ -165,6 +220,20 @@ static LA_Info select(DenseVector<W> *w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Select Operation for Sparse vector and Sparse mask
+///
+/// Implements a Select operation for Vector which is basically does apply a select operator
+/// (an index unary operator) to the elements of a Vector u
+/// and accumutale/store the result in vector w. Mask can also be provided.
+/// w[i] = accum(w[i], op(u[i], i, 0, val))
+/// @param[out] w Pointer to result Sparse Vector
+/// @param[in] mask Pointer to mask Sparse Vector
+/// @param[in] accum Binary operation accumulator
+/// @param[in] op Select operation
+/// @param[in] u Pointer to the input Sparse Vector object
+/// @param[in] val Val parameter
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
 static LA_Info select(DenseVector<W> *w,
                       const SparseVector<M> *mask,
@@ -174,6 +243,7 @@ static LA_Info select(DenseVector<W> *w,
                       const T val,
                       Descriptor *desc)
 {
+    LOG_TRACE("Running select for sparse vector and sparse mask")
           W* w_vals    = w->get_vals();
     const U* u_vals    = u->get_vals();
     const M* mask_vals = mask->get_vals();
@@ -257,6 +327,18 @@ static LA_Info select(DenseVector<W> *w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Unmasked Select Operation for Dense Vector
+///
+/// Implements a Select operation for Vector which is basically does apply a select operator
+/// (an index unary operator) to the elements of a Vector u
+/// and accumutale/store the result in vector w.
+/// w[i] = accum(w[i], op(u[i], i, 0, val))
+/// @param[out] w Pointer to result Dense Vector
+/// @param[in] accum Binary operation accumulator
+/// @param[in] op Select operation
+/// @param[in] u Pointer to the input Dense Vector object
+/// @param[in] val Val parameter
+/// @result LA_Info status
 template <typename W, typename U, typename T, typename BinaryOpT, typename SelectOpT>
 static LA_Info select(DenseVector<W> *w,
                       BinaryOpT accum,
@@ -264,6 +346,7 @@ static LA_Info select(DenseVector<W> *w,
                       const DenseVector<U> *u,
                       const T val)
 {
+    LOG_TRACE("Running non-masked select for dense vector")
           W* w_vals = w->get_vals();
     const U* u_vals = u->get_vals();
 
@@ -278,6 +361,18 @@ static LA_Info select(DenseVector<W> *w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Unmasked Select Operation for Sparse Vector
+///
+/// Implements a Select operation for Vector which is basically does apply a select operator
+/// (an index unary operator) to the elements of a Vector u
+/// and accumutale/store the result in vector w.
+/// w[i] = accum(w[i], op(u[i], i, 0, val))
+/// @param[out] w Pointer to result Sparse Vector
+/// @param[in] accum Binary operation accumulator
+/// @param[in] op Select operation
+/// @param[in] u Pointer to the input Sparse Vector object
+/// @param[in] val Val parameter
+/// @result LA_Info status
 template <typename W, typename U, typename T, typename BinaryOpT, typename SelectOpT>
 static LA_Info select(DenseVector<W> *w,
                       BinaryOpT accum,
@@ -285,6 +380,7 @@ static LA_Info select(DenseVector<W> *w,
                       const SparseVector<U> *u,
                       const T val)
 {
+    LOG_TRACE("Running non-masked select for sparse vector")
           W* w_vals = w->get_vals();
     const U* u_vals = u->get_vals();
 
@@ -316,12 +412,19 @@ static LA_Info select(DenseVector<W> *w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*!
- * Backend select operation wrapper
- * Chooses the necessary variant of the select function depending on the types of input vectors
- * Inout vector W is always converted to Dense due to the unpredictability of the result of the operator 'op' on zero values
- * Mask and u vectors types can vary
- */
+/// @brief Backend select operation wrapper
+///
+/// Chooses the necessary variant of the select function depending on the types of input vectors
+/// Inout vector W is always converted to Dense due to the unpredictability of the result of the operator 'op' on
+/// zero values. Mask and u vectors types can vary
+/// @param[out] w Pointer to result Vector
+/// @param[in] mask Pointer to mask Vector
+/// @param[in] accum Binary operation accumulator
+/// @param[in] op Select operation
+/// @param[in] u Pointer to the input Vector object
+/// @param[in] val Val parameter
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
 LA_Info select(Vector<W> *w,
                const Vector<M> *mask,
@@ -359,6 +462,20 @@ LA_Info select(Vector<W> *w,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Select Operation for Sparse Matrix and Sparse Mask
+///
+/// Implements a Select operation for Matrix which is basically does apply a select operator
+/// (an index unary operator) to the elements of a matrix u
+/// and accumutale/store the result in vector w. Mask can also be provided.
+/// w[i, j] = accum(w[i, j], op(u[i, j], i, j, 0, val))
+/// @param[out] w Pointer to result Sparse Matrix
+/// @param[in] mask Pointer to mask Sparse Matrix
+/// @param[in] accum Binary operation accumulator
+/// @param[in] op Select operation
+/// @param[in] u Pointer to the input Matrix object
+/// @param[in] val Val parameter
+/// @param[in] desc Pointer to the descriptor
+/// @result LA_Info status
 template <typename W, typename M, typename U, typename T, typename BinaryOpT, typename SelectOpT>
 static LA_Info select(Matrix<W> *w,
                       const Matrix<M> *mask,
@@ -368,6 +485,7 @@ static LA_Info select(Matrix<W> *w,
                       const T val,
                       Descriptor *desc)
 {
+    LOG_TRACE("Running matrix-like select")
     VNT n = u->get_nrows();
     ENT nnz = u->get_nnz();
     VNT *row_ptr = new VNT[n + 1];
