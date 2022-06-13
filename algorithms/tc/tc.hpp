@@ -175,6 +175,8 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
     Descriptor mxm_desc;
     if (multiplication_mode == GrB_IJK_DOUBLE_SORT) {
         mxm_desc = GrB_DESC_IJK_DOUBLE_SORT;
+    } else if (multiplication_mode == GrB_ESC_MASKED) {
+        mxm_desc = GrB_DESC_ESC_MASKED;
     } else {
         mxm_desc = GrB_DESC_IKJ_MASKED;
     }

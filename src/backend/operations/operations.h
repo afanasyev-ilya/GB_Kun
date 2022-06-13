@@ -529,7 +529,9 @@ LA_Info extract(Vector<W>*       w,
 /// <li> Basic Masked IJK algorithm
 /// <li> Masked IJK algorithm with both input matrices presorted
 /// <li> Masked hash-based IKJ algorithm
+/// <li> Masked ESC algorithm (not preferred at the moment)
 /// <li> Unmasked hash-based IKJ algorithm
+/// <li> Unmasked ESC algorithm (not preferred at the moment)
 /// @param[out] C Pointer to the (empty) matrix object that will contain the result matrix.
 /// @param[in] mask Pointer to the mask matrix
 /// @param[in] accum NULL_TYPE accumulator
@@ -577,15 +579,23 @@ LA_Info mxm(Matrix<c>* C,
                                        B,
                                        C,
                                        op);
+        } else if (multiplication_mode == GrB_ESC_MASKED) {
+            LOG_TRACE("Using masked ESC method")
+            backend::SpMSpM_masked_esc(mask,
+                                       A,
+                                       B,
+                                       C,
+                                       op);
         } else {
             return GrB_INVALID_VALUE;
         }
     } else {
         LOG_TRACE("Using unmasked hash based mxm method")
-        backend::SpMSpM_unmasked_ikj(A,
-                                     B,
-                                     C,
-                                     op);
+        if (multiplication_mode == GrB_ESC) {
+            backend::SpMSpM_unmasked_esc(A, B, C, op);
+        } else {
+            backend::SpMSpM_unmasked_ikj(A, B, C, op);
+        }
     }
     return GrB_SUCCESS;
 }
