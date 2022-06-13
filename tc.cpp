@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
         // For now the most fast and stable TC algorithm is LAGraph_TriangleCount_Burkhardt
         SAVE_TEPS(lablas::algorithm::LAGr_TriangleCount(&ntriangles, &graph, tc_algorithm,
                                      lablas::algorithm::LAGraph_TriangleCount_Presort::LAGraph_TriangleCount_NoSort,
-                                     &lablas::GrB_DESC_ESC_MASKED), "TriangleCount", 1,(graph.AT));
+                                     &lablas::GrB_DESC_IKJ_MASKED), "TriangleCount", 1,(graph.AT));
         double t2 = omp_get_wtime();
         #ifdef __DEBUG_INFO__
             std::cout << "TC time : " << t2 - t1 << std::endl;

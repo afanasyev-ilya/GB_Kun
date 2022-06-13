@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 
         #define MASK_NULL static_cast<const lablas::Matrix<float>*>(NULL)
         lablas::mxm(&C, MASK_NULL, lablas::second<float>(),
-                    lablas::PlusMultipliesSemiring<float>(), &A, &B, &lablas::GrB_DESC_ESC);
+                    lablas::PlusMultipliesSemiring<float>(), &A, &B, &lablas::GrB_DESC_IKJ);
         #undef MASK_NULL
 
         if (parser.check()) {
