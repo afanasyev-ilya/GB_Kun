@@ -23,14 +23,15 @@ namespace lablas{
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * seq_page_rank function.
- * @brief The function does...
- * @param _ranks _ranks
- * @param _graph _graph
- * @param iters output: number of iterations taken
- * @param itermax maximum number of iterations (typically 100)
- * @param damping damping factor (typically 0.85)
- * @param tol stopping tolerance (typically 1e-4)
+ * Sequential page rank algorithm implementation in terms of vertices and edges.
+ * Sequential only, must be used only for verification purposes.
+ * @brief Calculates page rank values for each vertex using traditional sequential algorithm.
+ * @param _ranks Vector with page rank values for each vertex (main result of calculations).
+ * @param _graph Input graph, represented as GraphBLAS matrix.
+ * @param iters number of Page rank iterations taken before algorithm converged.
+ * @param itermax maximum number of iterations (default 100).
+ * @param damping damping factor (typically 0.85).
+ * @param tol stopping tolerance, after which algorithm is considered converged (default 1e-4).
 */
 
 template <typename T>

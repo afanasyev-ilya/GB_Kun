@@ -29,14 +29,15 @@ namespace lablas {
 #define MASK_NULL static_cast<const lablas::Vector<int>*>(NULL)
 
 /**
- * LG_BreadthFirstSearch_vanilla function.
- * @brief Brief description.
- * @return Returns int.
- * @param level level
- * @param parent parent
- * @param G G
- * @param src src
- * @param pushpull pushpull
+ * Implementation of Breadth-First Search algorithm from GraphBLAST.
+ * Calculates both levels and parents. Currently is not fully tested and only partially implemented.
+ * @brief Brief Top-down BFS algorithm from GraphBLAS.
+ * @return Returns integer error code (0 if successfully terminated).
+ * @param level Level values for each vertex, main result of BFS (number of hops from source vertex).
+ * @param parent Parent values for each vertex, secondary result of BFS (id of vertices, from which current vertex has been reached).
+ * @param G Input graph, represented as GraphBLAS matrix.
+ * @param src Initial vertex, from which BFS traversal is started.
+ * @param pushpull If true, optimized direction-optimizing algorithm is used, otherwise - top-down.
 */
 
 int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
@@ -115,12 +116,13 @@ int LG_BreadthFirstSearch_vanilla(GrB_Vector *level,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * bfs_blast function.
- * @brief Brief description.
- * @param v v
- * @param A A
- * @param s s
- * @param desc desc
+ * Implementation of Breadth-First Search algorithm from GraphBLAST. It is equivalent of standard top-down BFS algorithm.
+ * Calculates levels only (without parents). Currently is the fastest among implemented BFS algorithms.
+ * @brief Top-down BFS algorithm from LAGraph.
+ * @param v Level values for each vertex, main result of BFS (number of hops from source vertex).
+ * @param A Input graph, represented as GraphBLAS matrix.
+ * @param s Initial vertex, from which BFS traversal is started.
+ * @param desc A pointer to GraphBLAS descriptor, must be preliminary allocated.
 */
 
 template <typename T>

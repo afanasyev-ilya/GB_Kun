@@ -29,14 +29,14 @@ namespace algorithm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
- * LAGraph_page_rank_sinks function.
- * @brief The function does...
- * @param centrality centrality(i): GAP-style pagerank of node i
- * @param G input graph
- * @param iters output: number of iterations taken
- * @param itermax maximum number of iterations (typically 100)
- * @param damping damping factor (typically 0.85)
- * @param tol  stopping tolerance (typically 1e-4)
+ * Page rank algorithm implementation from LAGraph.
+ * @brief Calculates page rank values for each vertex using algorithm from LAGraph.
+ * @param centrality centrality(i): Vector with page rank values for each vertex (main result of calculations).
+ * @param G Input graph, represented as GraphBLAS matrix.
+ * @param iters output: number of Page rank iterations taken before algorithm converged.
+ * @param itermax maximum number of iterations (default 100).
+ * @param damping damping factor (default 0.85).
+ * @param tol  stopping tolerance, after which algorithm is considered converged (default 1e-4).
 */
 
 void LAGraph_page_rank_sinks (GrB_Vector centrality, // centrality(i): GAP-style pagerank of node i

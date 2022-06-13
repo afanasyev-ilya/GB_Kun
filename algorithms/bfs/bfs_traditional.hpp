@@ -23,11 +23,13 @@ namespace algorithm {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * bfs_traditional function.
- * @brief Brief description.
- * @param _levels _levels
- * @param _graph _graph
- * @param _source_vertex _source_vertex
+ * Implementation of Breadth-First Search algorithm, expressed in terms of vertices and edges.
+ * It is an implementation of standard top-down BFS algorithm. Calculates levels only (without parents).
+ * Sequential only and used only for verification purposes.
+ * @brief Top down BFS, expressed in term of vertices and edges.
+ * @param _levels Level values for each vertex, main result of BFS.
+ * @param _graph Input graph, represented as GraphBLAS matrix.
+ * @param _source_vertex Initial vertex, from which BFS traversal is started.
 */
 
 template <typename T>
