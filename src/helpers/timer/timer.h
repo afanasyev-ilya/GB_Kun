@@ -1,3 +1,10 @@
+/**
+  @file timer.h
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @date June 10, 2022
+*/
+
 #pragma once
 
 #define __DEBUG_PERF_STATS_ENABLED__ true
@@ -21,6 +28,8 @@ var = my_t2 - my_t1;
 call_instruction;
 #endif
 
+/*! Timing class */
+
 class Timer
 {
 private:
@@ -29,12 +38,20 @@ private:
 public:
     Timer(std::string _region_name = "unknown"): m_start(std::chrono::high_resolution_clock::now()),
                 m_region_name(_region_name) {}
-
+    /**
+     * get_time_s function.
+     * @brief The function returns time in seconds.
+    */
     double get_time_s()
     {
         auto m_end = std::chrono::high_resolution_clock::now();
         return std::chrono::duration_cast<std::chrono::seconds>(m_end - m_start).count();
     }
+
+    /**
+     * get_time_s function.
+     * @brief The function returns time in ms.
+    */
 
     double get_time_ms()
     {

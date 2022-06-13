@@ -1,3 +1,10 @@
+/**
+  @file stats.h
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @date June 10, 2022
+*/
+
 #pragma once
 
 #include <stdio.h>
@@ -82,6 +89,15 @@ my_f = fopen("perf_stats.txt", "a");                                            
 fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
 fclose(my_f);                                                                           \
 
+/**
+ * save_teps function.
+ * @brief outputs stats for an operation
+ * @param _op_name name of the operation
+ * @param _time time in ms
+ * @param _nvals amount of values
+ * @param _iterations amount of iterations
+*/
+
 void save_teps(const char *_op_name, double _time /*in ms*/, size_t _nvals, int _iterations = 1)
 {
     double my_time = _time;
@@ -92,6 +108,13 @@ void save_teps(const char *_op_name, double _time /*in ms*/, size_t _nvals, int 
     fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %ld\n", _op_name, my_time, my_perf, my_bw, _nvals);
     fclose(my_f);
 }
+
+/**
+ * save_time_in_ms function.
+ * @brief outputs time in ms
+ * @param _op_name name of the operation
+ * @param _time time in seconds
+*/
 
 void save_time_in_ms(const char *_op_name, double _time)
 {
@@ -106,6 +129,13 @@ void save_time_in_ms(const char *_op_name, double _time)
     fclose(my_f);
 }
 
+/**
+ * save_time_in_sec function.
+ * @brief outputs time in seconds
+ * @param _op_name name of the operation
+ * @param _time time in seconds
+*/
+
 void save_time_in_sec(const char *_op_name, double _time)
 {
     double my_t2 = omp_get_wtime();
@@ -118,6 +148,11 @@ void save_time_in_sec(const char *_op_name, double _time)
     fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", _op_name, my_time, my_perf, my_bw, my_nvals);
     fclose(my_f);
 }
+
+/**
+ * print_omp_stats function.
+ * @brief outputs omp stats
+*/
 
 void print_omp_stats()
 {
