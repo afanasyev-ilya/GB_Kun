@@ -237,7 +237,7 @@ LA_Info vxm (Vector<W>*       _w,
             double t2 = omp_get_wtime();
             SPMSPV_TIME += t2 - t1;
         }
-        if (algo == SPMSPV_BUCKET)
+        if (algo == SPMSPV_MAP_TBB)
         {
             #ifdef __USE_TBB__
             LOG_TRACE("Using SpMSpV TBB map-based");
