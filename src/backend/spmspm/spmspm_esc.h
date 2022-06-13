@@ -1,3 +1,10 @@
+/// @file spmspm_esc.h
+/// @author Lastname:Firstname
+/// @version Revision 1.1
+/// @brief Unmasked ESC SpMSpM algorithm
+/// @details Implements Unmasked ESC IKJ SpMSpM algorithm
+/// @date June 13, 2022
+
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -6,11 +13,26 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @namespace Lablas
 namespace lablas {
+
+/// @namespace Backend
 namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Unmasked ESC SpMSpM algorithm.
+///
+/// This algorithm is using IKJ-structured main loop that uses ESC-based approach that using uses dense accumulator
+/// for each block of sequential first input matrix rows that fills up at "Expansion" stage of the algorithm, is sorted
+/// at the "Sorting" stage of the algorithm and then collapsed into smaller vector in the "Collapse" stage.
+///
+/// At the moment this algorithm is not preferred since it uses dynamic parameter tuning that requires it's own
+/// parametrization such as nnz(cache) to be completed.
+/// @param[in] _matrix1 Pointer to the first input matrix
+/// @param[in] _matrix2 Pointer to the second input matrix
+/// @param[out] _matrix_result Pointer to the (empty) matrix object that will contain the result matrix.
+/// @param[in] _op Semiring operation
 template <typename T, typename SemiringT>
 void SpMSpM_unmasked_esc(const Matrix<T> *_matrix1,
                          const Matrix<T> *_matrix2,
@@ -54,6 +76,7 @@ void SpMSpM_unmasked_esc(const Matrix<T> *_matrix1,
         const auto thread_id = omp_get_thread_num();
         auto cur_slice_start = offsets[thread_id].first;
         auto cur_slice_end = offsets[thread_id].second;
+        // in case we have more threads than rows
         if (cur_slice_start > cur_slice_end) {
             cur_slice_end = cur_slice_start;
         }
@@ -152,6 +175,7 @@ void SpMSpM_unmasked_esc(const Matrix<T> *_matrix1,
 
     double t3 = omp_get_wtime();
 
+    // Initializing CSR arrays:
     ENT nnz = 0;
     #pragma omp parallel for reduction(+:nnz)
     for (VNT i = 0; i < n; ++i) {
@@ -185,6 +209,7 @@ void SpMSpM_unmasked_esc(const Matrix<T> *_matrix1,
 
     double t5 = omp_get_wtime();
 
+    // Printing algorithm times:
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
     fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "esc_mxm_total_time", (t5 - t1) * 1000, 0.0, 0.0, 0ll);

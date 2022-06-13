@@ -529,7 +529,9 @@ LA_Info extract(Vector<W>*       w,
 /// <li> Basic Masked IJK algorithm
 /// <li> Masked IJK algorithm with both input matrices presorted
 /// <li> Masked hash-based IKJ algorithm
+/// <li> Masked ESC algorithm (not preferred at the moment)
 /// <li> Unmasked hash-based IKJ algorithm
+/// <li> Unmasked ESC algorithm (not preferred at the moment)
 /// @param[out] C Pointer to the (empty) matrix object that will contain the result matrix.
 /// @param[in] mask Pointer to the mask matrix
 /// @param[in] accum NULL_TYPE accumulator
