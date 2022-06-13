@@ -36,8 +36,8 @@ public:
 
     /**
      * @brief Print graphviz image of matrix object
-     * @param file_name The name of output file
-     * @param label_vector Labels are to be put into vertices of a visualized graph
+     * @param[in] file_name The name of output file
+     * @param[in] label_vector Labels are to be put into vertices of a visualized graph
      * @return Nothing
      */
     template<class U>
@@ -70,33 +70,67 @@ public:
         return _matrix.get_storage(_mat_type);
     }
 
+    /**
+     * @brief Set the sparse matrix storage format (CSR, COO, etc.)
+     * @param[in] _mat_type Type of desired storage format
+     * @return la_info Flag for the correctness check
+     */
     LA_Info set_preferred_matrix_format(const MatrixStorageFormat _format) {
         return _matrix.set_preferred_matrix_format(_format);
     }
 
+    /**
+     * @brief Get the number of rows allocated for matrix (vertices in a represented graph)
+     * @param[out] _nrows Number of rows in dense matrix (maximum number of rows in sparse matrix)
+     * @return la_info Flag for the correctness check
+     * @see nrows()
+     */
     LA_Info get_nrows(Index* _nrows) const {
         *_nrows = _matrix.get_nrows();
         return GrB_SUCCESS;
     }
 
+    /**
+    * @brief Get the number of rows allocated for matrix (vertices in a represented graph)
+    * @return nrows Number of rows in dense matrix (maximum number of rows in sparse matrix)
+    */
     Index nrows() const{
         return _matrix.get_nrows();
     }
 
+    /**
+    * @brief Get the number of columns allocated for matrix (vertices in a represented graph)
+    * @return ncols Number of columns in dense matrix (maximum number of rows in sparse matrix)
+    */
     Index ncols() const{
         return _matrix.get_ncols();
     }
 
+    /**
+    * @brief Get the number of columns allocated for matrix (vertices in a represented graph)
+    * @param[out] _ncols Number of columns in dense matrix (maximum number of colums in sparse matrix)
+    * @return la_info Flag for the correctness check
+    */
     LA_Info get_ncols(Index* _ncols) const{
         *_ncols = _matrix.get_ncols();
         return GrB_SUCCESS;
     }
 
+    /**
+    * @brief Get the total number or non-NULL elements in a matrix
+    * @param[out] _nvals Total number or non-NULL elements in a matrix
+    * @return la_info Flag for the correctness check
+    */
     LA_Info get_nvals(Index* _nvals) const{
         *_nvals = _matrix.get_nnz();
         return GrB_SUCCESS;
     }
 
+    /**
+    * @brief Get the total number or non-NULL elements in a matrix
+    * @param[out] _nvals Total number or non-NULL elements in a matrix
+    * @return la_info Flag for the correctness check
+    */
     Index* get_rowdegrees() { return _matrix.get_rowdegrees(); }
     [[nodiscard]] const Index* get_rowdegrees() const { return _matrix.get_rowdegrees(); }
 
