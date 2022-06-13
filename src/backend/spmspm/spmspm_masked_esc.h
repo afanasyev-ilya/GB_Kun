@@ -202,10 +202,10 @@ void SpMSpM_masked_esc(const Matrix<mask_type> *_result_mask,
 
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
-    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "esc_mxm_total_time", (t5 - t1) * 1000, 0.0, 0.0, 0ll);
-    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "esc_mxm_inner_loop", (t3 - t2) * 1000, 0.0, 0.0, 0ll);
-    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "esc_mxm_preparation", (t2 - t1) * 1000, 0.0, 0.0, 0ll);
-    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "esc_mxm_csr_export", (t5 - t3) * 1000, 0.0, 0.0, 0ll);
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "esc_masked_mxm_total_time", (t5 - t1) * 1000, 0.0, 0.0, 0ll);
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "esc_masked_mxm_inner_loop", (t3 - t2) * 1000, 0.0, 0.0, 0ll);
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "esc_masked_mxm_preparation", (t2 - t1) * 1000, 0.0, 0.0, 0ll);
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "esc_masked_mxm_csr_export", (t5 - t3) * 1000, 0.0, 0.0, 0ll);
     fclose(my_f);
 }
 
