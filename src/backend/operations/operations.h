@@ -189,15 +189,15 @@ LA_Info mxv (Vector<W>*       _w,
         if (algo == SPMSPV_MAP_TBB) {
             #ifdef __USE_TBB__
             LOG_TRACE("Using SpMSpV TBB map-based");
-            SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            SpMSpV_map_par(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
             #else
             LOG_TRACE("Using SpMSpV sequential map-based");
-            SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
             #endif
         }
         if (algo == SPMSPV_MAP_SEQ) {
             LOG_TRACE("Using SpMSpV sequential map-based");
-            SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
         }
     }
     _w->convert_if_required();
@@ -241,16 +241,16 @@ LA_Info vxm (Vector<W>*       _w,
         {
             #ifdef __USE_TBB__
             LOG_TRACE("Using SpMSpV TBB map-based");
-            SpMSpV_map_par(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
             #else
             LOG_TRACE("Using SpMSpV sequential map-based");
-            SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
             #endif
         }
         if (algo == SPMSPV_MAP_SEQ)
         {
             LOG_TRACE("Using SpMSpV sequential map-based");
-            SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+            SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
         }
     }
 
