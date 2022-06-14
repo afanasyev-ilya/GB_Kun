@@ -127,18 +127,44 @@ public:
     }
 
     /**
-    * @brief Get the total number or non-NULL elements in a matrix
-    * @param[out] _nvals Total number or non-NULL elements in a matrix
-    * @return la_info Flag for the correctness check
+    * @brief Get the array of vertices degrees in row-major way
+    * @return degrees Pointer to an array of vertice degrees
     */
     Index* get_rowdegrees() { return _matrix.get_rowdegrees(); }
+    /**
+    * @brief Get the pointer to-const an array of vertices degrees
+    * @return degrees Pointer to an array of vertice degrees
+    */
     [[nodiscard]] const Index* get_rowdegrees() const { return _matrix.get_rowdegrees(); }
 
+    /**
+    * @brief Get the array of vertices degrees in column-major way
+    * @return degrees Pointer to an array of vertice degrees
+    */
     Index* get_coldegrees() { return _matrix.get_coldegrees(); }
+
+    /**
+    * @brief Get the pointer to-const an array of vertices degrees
+    * @return degrees Pointer to an array of vertice degrees
+    */
     [[nodiscard]] const Index* get_coldegrees() const { return _matrix.get_coldegrees(); }
 
+    /**
+    * @brief Transpose the matrix by invoking appropriate backend method
+    * @return la_info Flag for the correctness check
+    */
     LA_Info transpose() { return _matrix.transpose(); }
 
+    /**
+    * @brief Build matrix from coordinate list source
+    * @param[in] row_indices Pointer to the vector of source vertices of each edge
+    * @param[in] col_indices Pointer to the vector of target vertices of each edge
+    * @param[in] values Pointer to the vector of edge weights (are to put into (u,v) cell of a matrix)
+    * @param[in] nvals Total number or non-NULL elements in a matrix
+    * @param[in] dup dup?
+    * @param[in] dat_name dat_name??
+    * @return la_info Flag for the correctness check
+    */
     template <typename BinaryOpT>
     LA_Info build (const std::vector<Index>*   row_indices,
                    const std::vector<Index>*   col_indices,
@@ -163,6 +189,15 @@ public:
         return GrB_SUCCESS;
     }
 
+    /**
+    * @brief Build matrix from compressed sparse row (CSR) format
+    * @param[in] row_indices Pointer to the row-ptr array
+    * @param[in] col_indices Pointer to the col-ids array
+    * @param[in] values Pointer to the array where edges weights are stored
+    * @param[in] _nrows The size of row-ptr array (number of rows or vertices)
+    * @param[in] _nvals The size of row-ptr array (number of rows or vertices)
+    * @return la_info Flag for the correctness check
+    */
     LA_Info build_from_csr_arrays(const Index* _row_ptrs,
                                   const Index *_col_ids,
                                   const T *_values,
@@ -177,38 +212,81 @@ public:
         return GrB_SUCCESS;
     }
 
+    /**
+    * @brief Initialize matrix from Matrix Market file format
+    * @param[in] _mtx_name name of mtx file to be processed
+    * @return Nothing
+    */
     void init_from_mtx(const string &_mtx_name)
     {
         _matrix.init_from_mtx(_mtx_name);
     }
 
+    /**
+    * @brief Print matrix for debug purposes
+    * @return Nothing
+    */
     void print() const
     {
         _matrix.print();
     }
 
+    /**
+    * @brief Get the total number or non-NULL elements in a matrix
+    * @return _nvals Total number or non-NULL elements in a matrix
+    */
     Index get_nnz() const {return _matrix.get_nnz();};
 
+    /**
+    * @brief Sort CSR columns by the number of non-zero elements in them
+    * @param[in] mode Mode which should be used in sorting (TODO enum there)
+    * @return Nothing
+    */
     void sort_csr_columns(const string& mode)
     {
         _matrix.sort_csr_columns(mode);
     }
 
+    /**
+    * @brief Sort CSC rows by the number of non-zero elements in them
+    * @param[in] mode Mode which should be used in sorting (TODO enum there)
+    * @return Nothing
+    */
     void sort_csc_rows(const string& mode)
     {
         _matrix.sort_csc_rows(mode);
     }
 
+    /**
+    * @brief Check if matrix is symmetric
+    * @return false if matrix is not symmetric
+    * @return true if matrix is symmetric
+    */
+
     bool is_symmetric() const {
         return _matrix.is_symmetric();
     }
 
+    /**
+    * @brief Force matrix to be symmetric by changing CSC storage
+    * @return Nothing
+    */
     void to_symmetric() { _matrix.to_symmetric(); };
 
+    /**
+    * @brief Check the equality of matrices
+    * @return false if matrices are not equal
+    * @return true if matrices are equal
+    */
     friend bool operator==(const Matrix<T>& _lhs, const Matrix<T>& _rhs) {
         return _lhs._matrix == _rhs._matrix;
     }
 
+    /**
+    * @brief Check the non-equality of matrices
+    * @return true if matrices are not equal
+    * @return false if matrices are equal
+    */
     friend bool operator!=(const Matrix<T>& _lhs, const Matrix<T>& _rhs) {
         return !(_lhs._matrix == _rhs._matrix);
     }
