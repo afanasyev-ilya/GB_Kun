@@ -173,32 +173,27 @@ LA_Info mxv (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
+    static const double spmspv_seq_to_for_percentage = 5.0;
+    const double vector_sparsity_percentage = (100.0 * _u->get_nvals()) / _u->get_size();
     Desc_value algo;
     _desc->get(GrB_MXVMODE, &algo);
-    if (algo == SPMV_GENERAL or (algo == GrB_DEFAULT and _u->is_dense()))
-    {
+    if (algo == SPMV_GENERAL or (algo == GrB_DEFAULT and _u->is_dense())) {
         LOG_TRACE("Using SpMV General");
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
-    }
-    else
-    {
-        if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and _u->is_sparse())) {
-            LOG_TRACE("Using SpMSpV for-based");
-            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
-        }
-        if (algo == SPMSPV_MAP_TBB) {
-            #ifdef __USE_TBB__
-            LOG_TRACE("Using SpMSpV TBB map-based");
-            SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
-            #else
-            LOG_TRACE("Using SpMSpV sequential map-based");
-            SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
-            #endif
-        }
-        if (algo == SPMSPV_MAP_SEQ) {
-            LOG_TRACE("Using SpMSpV sequential map-based");
-            SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
-        }
+    } else if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and vector_sparsity_percentage > spmspv_seq_to_for_percentage)) {
+        LOG_TRACE("Using SpMSpV for-based");
+        backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+    } else if (algo == SPMSPV_MAP_TBB) {
+        #ifdef __USE_TBB__
+        LOG_TRACE("Using SpMSpV TBB map-based");
+        SpMSpV_map_par(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+        #else
+        LOG_TRACE("Using SpMSpV sequential map-based");
+        SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+        #endif
+    } else if (algo == SPMSPV_MAP_SEQ or (algo == GrB_DEFAULT and vector_sparsity_percentage <= spmspv_seq_to_for_percentage)) {
+        LOG_TRACE("Using SpMSpV sequential map-based");
+        SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
     }
     _w->convert_if_required();
 
