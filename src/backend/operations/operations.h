@@ -173,7 +173,7 @@ LA_Info mxv (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    static const double spmspv_seq_to_for_percentage = 5.0;
+    static const double spmspv_seq_to_for_percentage = 0.1;
     const double vector_sparsity_percentage = (100.0 * _u->get_nvals()) / _u->get_size();
     Desc_value algo;
     _desc->get(GrB_MXVMODE, &algo);
@@ -212,7 +212,7 @@ LA_Info vxm (Vector<W>*       _w,
              const Vector<U>* _u,
              Descriptor*      _desc)
 {
-    static const double spmspv_seq_to_for_percentage = 5.0;
+    static const double spmspv_seq_to_for_percentage = 0.1;
     const double vector_sparsity_percentage = (100.0 * _u->get_nvals()) / _u->get_size();
     Desc_value algo;
     _desc->get(GrB_MXVMODE, &algo);
