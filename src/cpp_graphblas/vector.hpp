@@ -166,22 +166,51 @@ public:
     */
     void set_name(const string &_name) {_vector.set_name(_name); };
 
+    /**
+    * @brief Get actual number of elements in a vector
+    * @return nvals number of non-zero elements in a vector
+    */
     Index nvals() const { return _vector.get_nvals();};
+
+    /**
+    * @brief Get the maximum size of a vector
+    * @return size how many elements can be stored in a vector
+    */
     Index size() const {return _vector.get_size();};
 
+   /**
+   * @brief Swap Vectors by a pointer-like manner
+   * @param[in] _another pointer to another vector
+   * @return Nothing
+   */
     void swap(Vector *_another)
     {
         _vector.swap(_another->get_vector());
     }
 
+   /**
+   * @brief Fill Vector with increasing values from 0 to nvals-1
+   * @param[in] _another pointer to another vector
+   * @return la_info Flag for the correctness check
+   */
     LA_Info fillAscending(Index nvals) {
         return _vector.fillAscending(nvals);
     }
 
+   /**
+   * @brief Make a copy of a Vector
+   * @param[in] rhs pointer to another Vector
+   * @return la_info Flag for the correctness check
+   */
     LA_Info dup (const Vector<T>* rhs) {
         return _vector.dup(rhs->get_vector());
     }
 
+    /**
+   * @brief Get an element by corresponding index
+   * @param[in] _index index to be accessed
+   * @return element stored element at index _index
+   */
     T const & get_at(Index _index) const
     {
         return _vector.get_at(_index);
