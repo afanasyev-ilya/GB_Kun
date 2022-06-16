@@ -24,8 +24,10 @@ double my_bw = my_nvals * bytes_per_flop/((my_t2 - my_t1)*1e9);                 
 printf("%s time = %lf (ms)\n", op_name, my_time);                                      \
 printf("%s BW = %lf (GB/s)\n", op_name, my_bw);                                      \
 FILE *my_f;                                                                          \
-my_f = fopen("perf_stats.txt", "a");                                                 \
-fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+my_f = fopen("perf_stats.txt", "a");                                                    \
+if (my_time) {\
+    fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals); \
+}                                                                                        \
 fclose(my_f);
 #else
 #define SAVE_STATS(call_instruction, op_name, bytes_per_flop, iterations, matrix)       \
@@ -37,9 +39,11 @@ double my_t2 = omp_get_wtime();                                                 
 double my_time = (my_t2 - my_t1)*1000;                                                  \
 double my_perf = my_nvals * 2.0 / ((my_t2 - my_t1)*1e9);                                \
 double my_bw = my_nvals * bytes_per_flop/((my_t2 - my_t1)*1e9);                         \
-FILE *my_f;                                                                          \
-my_f = fopen("perf_stats.txt", "a");                                                 \
-fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+FILE *my_f;                                                                             \
+my_f = fopen("perf_stats.txt", "a");                                                    \
+if (my_time) {                                                                          \
+    fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals); \
+}                                                                                       \
 fclose(my_f);
 #endif
 
@@ -52,8 +56,10 @@ double my_perf = 0;                                        \
 double my_bw = 0;                                  \
 size_t my_nvals = 0;                               \
 FILE *my_f;                                                                          \
-my_f = fopen("perf_stats.txt", "a");                                                 \
-fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+my_f = fopen("perf_stats.txt", "a");               \
+if (my_time) {\
+    fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals); \
+}                                                   \
 fclose(my_f);                                                                           \
 
 #define SAVE_TIME_SEC(call_instruction, op_name)       \
@@ -64,8 +70,10 @@ double my_time = (my_t2 - my_t1);                                               
 double my_perf = 0;                                        \
 double my_bw = 0;                                  \
 size_t my_nvals = 0;                               \
-FILE *my_f = fopen("perf_stats.txt", "a");                                                 \
-fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+FILE *my_f = fopen("perf_stats.txt", "a");             \
+if (my_time) {\
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals); \
+}                                                       \
 fclose(my_f);
 
 #define SAVE_TEPS(call_instruction, op_name, iterations, matrix)                        \
@@ -79,7 +87,9 @@ double my_perf = iterations*(my_nvals / ((my_t2 - my_t1)*1e6));                 
 double my_bw = 0;                                                                       \
 FILE *my_f;                                                                             \
 my_f = fopen("perf_stats.txt", "a");                                                    \
-fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals);\
+if (my_time) {\
+    fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %lld\n", op_name, my_time, my_perf, my_bw, my_nvals); \
+}                                                                                        \
 fclose(my_f);                                                                           \
 
 void save_teps(const char *_op_name, double _time /*in ms*/, size_t _nvals, int _iterations = 1)
@@ -89,7 +99,9 @@ void save_teps(const char *_op_name, double _time /*in ms*/, size_t _nvals, int 
     double my_bw = 0;
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
-    fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %ld\n", _op_name, my_time, my_perf, my_bw, _nvals);
+    if (my_time) {
+        fprintf(my_f, "%s %lf (ms) %lf (MTEPS/s) %lf (GB/s) %ld\n", _op_name, my_time, my_perf, my_bw, _nvals);
+    }
     fclose(my_f);
 }
 
@@ -102,7 +114,9 @@ void save_time_in_ms(const char *_op_name, double _time)
     size_t my_nvals = 0;
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
-    fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", _op_name, my_time, my_perf, my_bw, my_nvals);
+    if (my_time) {
+        fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", _op_name, my_time, my_perf, my_bw, my_nvals);
+    }
     fclose(my_f);
 }
 
@@ -115,7 +129,9 @@ void save_time_in_sec(const char *_op_name, double _time)
     size_t my_nvals = 0;
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
-    fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", _op_name, my_time, my_perf, my_bw, my_nvals);
+    if (my_time) {
+        fprintf(my_f, "%s %lf (ms) %lf (GFLOP/s) %lf (GB/s) %ld\n", _op_name, my_time, my_perf, my_bw, my_nvals);
+    }
     fclose(my_f);
 }
 
