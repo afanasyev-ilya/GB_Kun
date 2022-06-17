@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score
 
 if __name__ == "__main__":
     X_data = []
-    with open('all_graphs', 'rb') as f:
+    with open('dict.pickle', 'rb') as f:
         data_new = pickle.load(f)
         for k, v in data_new.items():
             values = []
@@ -19,7 +19,11 @@ if __name__ == "__main__":
                     values.append(value)
                 if item == "avg_degree":
                     values.append(value)
-                # print(item)
+                if item == "exponent":
+                    values.append(value)
+                if item == "percentile":
+                    values.append(value)
+                #print(item)
             X_data.append(values)
 
     # print(X_train)
