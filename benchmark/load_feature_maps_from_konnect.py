@@ -61,7 +61,7 @@ def extract_float(line):
     if line is None:
         return -1.0
     number_section = line.split('=')[1]
-    required_float = float(number_section.split()[0])
+    required_float = float(number_section.split()[0].replace(",", ""))
     return required_float
 
 
@@ -135,9 +135,12 @@ def add_parameter(parameter, soup):
 def get_info_for_all_graphs(graph_urls, cnt):
     am = 0
     ans = {}
+    iter = 0
     if cnt != None:
         bar = IncrementalBar('Progress', max = int(cnt))
     for graph_url in graph_urls:
+        print(iter, " of ", len(graph_urls))
+        iter = iter + 1
         try:
             # html = urlopen(graph_url).read()
             html= requests.get(graph_url, headers=requests_get_headers)
