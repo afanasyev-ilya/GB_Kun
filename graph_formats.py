@@ -53,9 +53,9 @@ if __name__ == "__main__":
     labels = []
     for i in range(len(seg_perf)):
         if seg_perf[i] < csr_perf[i]:
-            labels.append(0)
+            labels.append(0) #0 is for better segmented csr
         else:
-            labels.append(1)
+            labels.append(1) #1  is for better simple csr
 
     X_data = np.array(X_data)
     labels = np.array(labels)
@@ -81,3 +81,9 @@ if __name__ == "__main__":
         acc_score += accuracy_score(y_pred, y_test)
 
     print("Overall accuracy: ", acc_score/nsplits)
+
+    clf = RandomForestClassifier(n_estimators=100)
+    clf = clf.fit(X_data, labels)
+
+    filename = 'model.sav'
+    pickle.dump(clf, open(filename, 'wb'))
