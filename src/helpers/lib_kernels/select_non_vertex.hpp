@@ -2,6 +2,13 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * select_non_trivial_vertex function.
+ * @brief returns random non trivial vertex from the range.
+ * @param _matrix matrix representing a graph
+ * @param _range range in which a vertex is to be selected
+*/
+
 template <typename T>
 Index select_non_trivial_vertex(lablas::Matrix<T> &_matrix, Index _range = -1)
 {

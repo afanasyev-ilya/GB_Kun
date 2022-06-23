@@ -1,3 +1,10 @@
+/**
+  @file numa_stats.h
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @date June 10, 2022
+*/
+
 #pragma once
 
 #include <unistd.h>
@@ -19,6 +26,11 @@ int cores_per_socket()
     return omp_get_max_threads();
 };
 #endif
+
+/**
+ * num_sockets_used function.
+ * @brief returns number of sockets used
+*/
 
 int num_sockets_used()
 {

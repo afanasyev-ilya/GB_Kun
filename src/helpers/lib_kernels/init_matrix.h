@@ -2,6 +2,13 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * init_matrix function.
+ * @brief initializes the matrix.
+ * @param _matrix matrix representing a graph
+ * @param _parser parser
+*/
+
 template <typename T>
 void init_matrix(lablas::Matrix<T> &_matrix, Parser &_parser)
 {

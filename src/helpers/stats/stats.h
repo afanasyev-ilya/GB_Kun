@@ -111,7 +111,7 @@ void save_teps(const char *_op_name, double _time /*in ms*/, size_t _nvals, int 
 
 /**
  * save_time_in_ms function.
- * @brief outputs time in ms
+ * @brief outputs time taken by the _op_name operation in ms
  * @param _op_name name of the operation
  * @param _time time in seconds
 */
@@ -131,7 +131,7 @@ void save_time_in_ms(const char *_op_name, double _time)
 
 /**
  * save_time_in_sec function.
- * @brief outputs time in seconds
+ * @brief outputs time taken by the _op_name operation in seconds
  * @param _op_name name of the operation
  * @param _time time in seconds
 */
@@ -151,7 +151,7 @@ void save_time_in_sec(const char *_op_name, double _time)
 
 /**
  * print_omp_stats function.
- * @brief outputs omp stats
+ * @brief outputs omp stats (Amount of threads, largest core, etc.).
 */
 
 void print_omp_stats()

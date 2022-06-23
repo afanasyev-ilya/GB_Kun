@@ -1,5 +1,17 @@
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+  @file memory_API.hpp
+  @author Lastname:Firstname:A00123456:cscxxxxx
+  @version Revision 1.1
+  @date June 10, 2022
+*/
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * MemoryAPI::allocate_array function.
+ * @brief allocates _size elements of the type T in the memory using malloc() function.
+ * @param _ptr pointer to which memory is allocated
+ * @param _size amount of elements of the type T to allocate
+*/
 template <typename T>
 void MemoryAPI::allocate_array(T **_ptr, size_t _size)
 {
@@ -17,6 +29,13 @@ void MemoryAPI::allocate_array(T **_ptr, size_t _size)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * MemoryAPI::allocate_array_new function.
+ * @brief allocates _size elements of the type T in the memory using new.
+ * @param _ptr pointer to which memory is allocated
+ * @param _size amount of elements of the type T to allocate
+*/
+
 template <typename T>
 void MemoryAPI::allocate_array_new(T **_ptr, size_t _size)
 {
@@ -32,6 +51,14 @@ void MemoryAPI::allocate_array_new(T **_ptr, size_t _size)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * MemoryAPI::numa_aware_alloc function.
+ * @brief allocates _size elements of the type T in the memory on the _target_socket socket.
+ * @param _ptr pointer to which memory is allocated
+ * @param _size amount of elements of the type T to allocate
+ * @param _target_socket socket where the memory is to be allocated. Each socket has its own NUMA section of memory.
+*/
 
 template <typename T>
 void MemoryAPI::numa_aware_alloc(T **_ptr, size_t _size, int _target_socket)
@@ -76,6 +103,15 @@ void MemoryAPI::numa_aware_alloc(T **_ptr, size_t _size, int _target_socket)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * MemoryAPI::numa_aware_alloc_valued function.
+ * @brief allocates _size elements of the type T in the memory on the _target_socket socket and fill with value.
+ * @param _ptr pointer to which memory is allocated
+ * @param _size amount of elements of the type T to allocate
+ * @param _target_socket socket where the memory is to be allocated. Each socket has its own NUMA section of memory.
+ * @param vals the value that fills the allocated memory
+*/
 
 template <typename T>
 void MemoryAPI::numa_aware_alloc_valued(T **_ptr, size_t _size, int _target_socket, T* vals)
@@ -122,6 +158,13 @@ void MemoryAPI::numa_aware_alloc_valued(T **_ptr, size_t _size, int _target_sock
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * MemoryAPI::allocate_host_array function.
+ * @brief allocates _size elements of the type T in the memory on the host using malloc.
+ * @param _ptr pointer to which memory is allocated
+ * @param _size amount of elements of the type T to allocate
+*/
+
 template <typename T>
 void MemoryAPI::allocate_host_array(T **_ptr, size_t _size)
 {
@@ -129,6 +172,12 @@ void MemoryAPI::allocate_host_array(T **_ptr, size_t _size)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * MemoryAPI::free_array function.
+ * @brief frees memory allocated with malloc function.
+ * @param _ptr pointer to which memory is allocated
+*/
 
 template <typename T>
 void MemoryAPI::free_array(T *_ptr)
@@ -149,6 +198,12 @@ void MemoryAPI::free_array(T *_ptr)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * MemoryAPI::free_array_new function.
+ * @brief frees memory allocated with new function.
+ * @param _ptr pointer to which memory is allocated
+*/
+
 template <typename T>
 void MemoryAPI::free_array_new(T *_ptr)
 {
@@ -168,6 +223,12 @@ void MemoryAPI::free_array_new(T *_ptr)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * MemoryAPI::free_host_array function.
+ * @brief frees memory allocated on the host.
+ * @param _ptr pointer to which memory is allocated
+*/
+
 template <typename T>
 void MemoryAPI::free_host_array(T *_ptr)
 {
@@ -179,6 +240,15 @@ void MemoryAPI::free_host_array(T *_ptr)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * MemoryAPI::copy function.
+ * @brief frees memory allocated on the host.
+ * @param _dst pointer to the memory where to copy
+ * @param _src pointer to the memory from which to copy
+ * @param _size amount of elements of the type T allocated in memory
+*/
+
 
 template <typename T>
 void MemoryAPI::copy(T *_dst, const T *_src, size_t _size)
@@ -193,6 +263,14 @@ void MemoryAPI::copy(T *_dst, const T *_src, size_t _size)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * MemoryAPI::set function.
+ * @brief fills memory with _val value.
+ * @param _data pointer to the allocated memory
+ * @param _val val which is used to fill the memory
+ * @param _size amount of elements of the type T allocated in memory
+*/
+
 template <typename T>
 void MemoryAPI::set(T *_data, T _val, size_t _size)
 {
@@ -206,6 +284,13 @@ void MemoryAPI::set(T *_data, T _val, size_t _size)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * MemoryAPI::resize function.
+ * @brief changes the size of the allocated memory pointed by _ptr.
+ * @param _ptr pointer to which memory is allocated
+ * @param _new_size new amount of elements of the type T to allocate
+*/
+
 template <typename T>
 void MemoryAPI::resize(T **_ptr, size_t _new_size)
 {
@@ -215,6 +300,14 @@ void MemoryAPI::resize(T **_ptr, size_t _new_size)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * MemoryAPI::move_array_to_device function.
+ * @brief moves allocated memory from the host to device.
+ * @param _ptr pointer to which memory is allocated
+ * @param _size amount of elements of the type T to allocate
+*/
+
 
 #ifdef __USE_GPU__
 template <typename T>
@@ -227,6 +320,13 @@ void MemoryAPI::move_array_to_device(T *_ptr, size_t _size)
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * MemoryAPI::move_array_to_host function.
+ * @brief moves allocated memory from device to the host.
+ * @param _ptr pointer to which memory is allocated
+ * @param _size amount of elements of the type T to allocate
+*/
 
 #ifdef __USE_GPU__
 template <typename T>
