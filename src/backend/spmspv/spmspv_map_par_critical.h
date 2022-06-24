@@ -1,7 +1,7 @@
 #pragma once
 
 template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
-void SpMSpV_map_seq_critical(const MatrixCSR<A> *_matrix,
+void SpMSpV_map_par_critical(const MatrixCSR<A> *_matrix,
                     const SparseVector <X> *_x,
                     SparseVector <Y> *_y,
                     Descriptor *_desc,
@@ -9,7 +9,7 @@ void SpMSpV_map_seq_critical(const MatrixCSR<A> *_matrix,
                     SemiringT _op,
                     const Vector <M> *_mask)
 {
-    LOG_TRACE("Running SpMSpV_map_seq")
+    LOG_TRACE("Running SpMSpV_map_par_critical")
     const X *x_vals = _x->get_vals(); // y is guaranteed to be sparse
     const Index *y_ids = _y->get_ids();
 
@@ -22,7 +22,7 @@ void SpMSpV_map_seq_critical(const MatrixCSR<A> *_matrix,
 
     VNT x_nvals = _x->get_nvals();
 
-    std::unordered_map<VNT, Y> map_output;
+    tsl::hopscotch_map<VNT, Y> map_output;
 
     #pragma omp parallel for
     for (VNT i = 0; i < x_nvals; i++)
@@ -41,6 +41,7 @@ void SpMSpV_map_seq_critical(const MatrixCSR<A> *_matrix,
 
             #pragma omp critical
             {
+                cout << omp_get_thread_num() << " " << dest_ind<< endl;
                 if (map_output.find(dest_ind) == map_output.end())
                     map_output[dest_ind] = add_op(identity_val, mul_op_result);
                 else

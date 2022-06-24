@@ -53,9 +53,9 @@ int main(int argc, char** argv)
     ofstream switch_stats;
     switch_stats.open("switch_stats.txt", std::ios_base::app);
 
-    const int algo_count = 4;
-    Desc_value tested_algos[algo_count] = {SPMV_GENERAL, SPMSPV_FOR, SPMSPV_MAP_TBB, SPMSPV_MAP_SEQ};
-    std::string tested_algo_names[algo_count] = {"GENERIC", "FOR    ", "TBB_MAP", "SEQ_MAP"};
+    const int algo_count = 5;
+    Desc_value tested_algos[algo_count] = {SPMV_GENERAL, SPMSPV_FOR, SPMSPV_MAP_TBB, SPMSPV_MAP_SEQ, SPMSPV_MAP_PAR};
+    std::string tested_algo_names[algo_count] = {"GENERIC", "FOR    ", "TBB_MAP", "SEQ_MAP", "MAP_PAR"};
 
     /* Mask type (dense or sparse */
     for (int mask_type = 0; mask_type < 2; mask_type++)
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
                 std::vector<VNT> vec_indices(vec_nvals);
 
                 lablas::Vector<int> results[algo_count] = { lablas::Vector<int>(nrows), lablas::Vector<int>(nrows),
-                                                  lablas::Vector<int>(nrows), lablas::Vector<int>(nrows)};
+                                                  lablas::Vector<int>(nrows), lablas::Vector<int>(nrows), lablas::Vector<int>(nrows)};
 
                 LOG_TRACE("Entering generation zone")
 
@@ -153,7 +153,7 @@ int main(int argc, char** argv)
                 if (parser.check())
                 {
                     int cur_experiment_correct_count = 0;
-                    std::cout << "  /   " << "  GEN  " << "  FOR  " << "  TBB  " << "  SEQ  " << endl;
+                    std::cout << "  /   " << "   GEN   " << "   FOR   " << "   TBB   " << "   SEQ   " << "   PAR   " << endl;
                     for(int i = 0; i < algo_count; i++)
                     {
                         std::cout << tested_algo_names[i] << ": ";
