@@ -41,7 +41,6 @@ void SpMSpV_map_par_critical(const MatrixCSR<A> *_matrix,
 
             #pragma omp critical
             {
-                cout << omp_get_thread_num() << " " << dest_ind<< endl;
                 if (map_output.find(dest_ind) == map_output.end())
                     map_output[dest_ind] = add_op(identity_val, mul_op_result);
                 else
