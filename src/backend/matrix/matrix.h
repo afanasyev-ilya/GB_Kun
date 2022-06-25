@@ -176,6 +176,11 @@ public:
     friend bool operator==(const Matrix<T>& _lhs, const Matrix<T>& _rhs) {
         return (*(_lhs.csr_data) == *(_rhs.csr_data)) && (*(_lhs.csc_data) == *(_rhs.csc_data));
     }
+
+    void add_vertex(Index _vertex_id);
+    void remove_vertex(Index _vertex_id);
+    void add_edge(Index _src_id, Index _dst_id, T value);
+    void remove_edge(Index _src_id, Index _dst_id);
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
@@ -212,6 +217,7 @@ private:
 #include "transpose.hpp"
 #include "build.hpp"
 #include "read_file.hpp"
+#include "modification.hpp"
 
 }
 }

@@ -262,7 +262,6 @@ public:
     * @return false if matrix is not symmetric
     * @return true if matrix is symmetric
     */
-
     bool is_symmetric() const {
         return _matrix.is_symmetric();
     }
@@ -290,6 +289,21 @@ public:
     friend bool operator!=(const Matrix<T>& _lhs, const Matrix<T>& _rhs) {
         return !(_lhs._matrix == _rhs._matrix);
     }
+
+    /**
+    * @brief Add vertex with zero outgoing edges to graph
+    * @param[_vertex_id] id of new vertex
+    */
+    void add_vertex(Index _vertex_id) { _matrix.add_vertex(_vertex_id); };
+
+    /**
+    * @brief Removes vertex from graph
+    * @param[_vertex_id] id of vertex which is required to be removed
+    */
+    void remove_vertex(Index _vertex_id) { _matrix.remove_vertex(_vertex_id); };
+
+    void add_edge(Index _src_id, Index _dst_id, T _value) { _matrix.add_edge(_src_id, _dst_id, _value); };
+    void remove_edge(Index _src_id, Index _dst_id) { _matrix.remove_edge(_src_id, _dst_id); };
 private:
     backend::Matrix<T> _matrix;
 };
