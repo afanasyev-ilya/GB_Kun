@@ -54,8 +54,17 @@ public:
     bool is_symmetric();
     void to_symmetric();
 
-
     void calculate_degrees();
+
+    void add_row(VNT _row_id);
+    void remove_row(VNT _row_id);
+    void add_val(VNT _row, VNT _col, T _val);
+    void remove_val(VNT _row, VNT _col);
+    // TODO do we need update edge here?
+
+    void apply_modifications();
+
+    bool has_unmerged_modifications() const { return ongoing_modifications; };
 private:
     VNT nrows, ncols;
     ENT nnz;
@@ -64,6 +73,15 @@ private:
     T *vals;
     VNT *col_ids;
     VNT *row_degrees;
+
+    std::map<VNT, std::map<VNT, T>> new_matrix_rows;
+    bool ongoing_modifications;
+    std::set<VNT> removed_rows; // can we use set here? it's not efficient
+    std::map<VNT, std::map<VNT, T>> removed_edges; // same, map can be hard to use in SPMV
+    ENT num_changes;
+
+    bool row_marked_for_removal(VNT _row) { return false; }; // TODO implement based on set removed_rows
+    bool val_marked_for_removal(ENT _csr_index) { return false; }; // TODO implement based on map removed_edges
 
     /* Vector of number_of_running_threads size
      * for i-th thread [i].first element means the beginning row to process
@@ -220,6 +238,7 @@ private:
 #include "csr_matrix.hpp"
 #include "build.hpp"
 #include "symmetric.hpp"
+#include "modification.hpp"
 
 }
 }

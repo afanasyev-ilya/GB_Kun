@@ -7,6 +7,7 @@ MatrixCSR<T>::MatrixCSR()
 {
     target_socket = 0;
     load_balancing_offsets_set = false;
+    ongoing_modifications = false;
     alloc(1, 1, 1);
 }
 
