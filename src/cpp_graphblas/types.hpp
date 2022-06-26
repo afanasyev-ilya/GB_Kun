@@ -114,7 +114,8 @@
                     SPMSPV_MAP_SEQ = 67,
                     SPMSPV_FOR = 68, // atomic, critical, or
                     MXV_DEFAULT = 68,// for GrB_MXMMODE
-                    SPMSPV_MAP_PAR = 69 // Hashmap-based SpMSpV with omp critical synchs
+                    SPMSPV_MAP_PAR = 69, // Hashmap-based SpMSpV with omp critical synchs
+                    SPMSPV_ESC = 70 // ESC-based SpMSpV
     };
 
 

@@ -197,6 +197,9 @@ LA_Info mxv (Vector<W>*       _w,
     } else if (algo == SPMSPV_MAP_SEQ or (algo == GrB_DEFAULT and vector_sparsity_percentage <= spmspv_seq_to_for_percentage)) {
         LOG_TRACE("Using SpMSpV sequential map-based");
         SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+    } else if (algo == SPMSPV_ESC) {
+        LOG_TRACE("Using SpMSpV ESC");
+        SpMSpV_esc(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
     }
     _w->convert_if_required();
 
