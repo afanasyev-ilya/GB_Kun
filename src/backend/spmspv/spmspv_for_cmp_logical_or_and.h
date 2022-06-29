@@ -15,24 +15,6 @@ void SpMSpV_for_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
     VNT x_nvals = _x->get_nvals();
     VNT y_size = _y->get_size();
 
-    const M *dense_mask_vals;
-    unordered_set<VNT> sparse_mask_ids;
-
-    bool mask_is_dense = _mask->is_dense();
-
-    if (mask_is_dense) {
-        dense_mask_vals = _mask->getDense()->get_vals();
-    } else {
-        const VNT mask_nvals = _mask->getSparse()->get_nvals();
-        const VNT *mask_ids = _mask->getSparse()->get_ids();
-        #pragma omp for
-        for (VNT i = 0; i < mask_nvals; i++)
-        {
-            VNT mask_id = mask_ids[i];
-            sparse_mask_ids.insert(mask_id);
-        }
-    }
-
     #pragma omp parallel
     {
         #pragma omp for
@@ -52,13 +34,53 @@ void SpMSpV_for_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
             for (ENT j = row_start; j < row_end; j++)
             {
                 VNT dest_ind = _matrix->col_ids[j];
-                if ((mask_is_dense and dense_mask_vals[dest_ind] != 0) or (!mask_is_dense and sparse_mask_ids.find(dest_ind) != sparse_mask_ids.end())) {
-                    continue;
-                }
                 A dest_val = _matrix->vals[j];
 
                 y_vals[dest_ind] = 1;
             }
         }
     }
+
+    if(_mask->is_dense())
+    {
+        const M *mask_vals = _mask->getDense()->get_vals();
+        #pragma omp parallel for
+        for (VNT i = 0; i < _mask->get_size(); i++)
+        {
+            if(mask_vals[i] == 0) // == 0 since CMP mask
+                y_vals[i] = y_vals[i];
+            else
+                y_vals[i] = 0;
+        }
+    }
+    else
+    {
+        bool *dense_mask = (bool*)_workspace->get_mask_conversion();
+
+        const VNT mask_nvals = _mask->getSparse()->get_nvals();
+        const VNT *mask_ids = _mask->getSparse()->get_ids();
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (VNT i = 0; i < _mask->get_size(); i++)
+                dense_mask[i] = 1;
+
+            #pragma omp for
+            for (VNT i = 0; i < mask_nvals; i++)
+            {
+                VNT mask_id = mask_ids[i];
+                dense_mask[mask_id] = 0; // we deactivate all values from original mask since this is CMP
+            }
+
+            #pragma omp for
+            for (VNT i = 0; i < _mask->get_size(); i++)
+            {
+                if(dense_mask[i] == 1)
+                    y_vals[i] = y_vals[i];
+                else
+                    y_vals[i] = 0;
+            }
+        }
+    }
+
 }
