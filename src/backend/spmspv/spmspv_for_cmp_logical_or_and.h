@@ -37,8 +37,8 @@ void SpMSpV_for_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
                 continue;
             }
             X x_val = x_vals[i];
-            ENT row_start   = _matrix->row_ptr[ind];
-            ENT row_end     = _matrix->row_ptr[ind + 1];
+            ENT row_start = _matrix->row_ptr[ind];
+            ENT row_end = _matrix->row_ptr[ind + 1];
 
             for (ENT j = row_start; j < row_end; j++)
             {

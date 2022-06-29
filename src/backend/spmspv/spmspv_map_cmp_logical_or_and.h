@@ -39,9 +39,9 @@ void SpMSpV_map_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
             A mat_val = _matrix->vals[j];
 
             if(map_output.find(dest_ind) == map_output.end())
-                map_output[dest_ind] = ((int) mat_val & (int) x_val);
+                map_output[dest_ind] = (mat_val && x_val);
             else
-                map_output[dest_ind] = (int) map_output[dest_ind] | ((int) mat_val & (int) x_val);
+                map_output[dest_ind] = map_output[dest_ind] || (mat_val && x_val);
         }
     }
 
