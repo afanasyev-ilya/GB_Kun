@@ -8,10 +8,6 @@ void SpMSpV_for_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
                                    Workspace *_workspace)
 {
     LOG_TRACE("Running SpMSpV with functor options (y is dense)")
-    Y *prev_y_vals = _y->get_vals();
-    Y *old_y_vals = (Y*)_workspace->get_shared_one();
-    memcpy(old_y_vals, prev_y_vals, sizeof(Y)*_y->get_size());
-
     const X *x_vals = _x->get_vals();
     const Index *x_ids = _x->get_ids();
     Y *y_vals = _y->get_vals();
@@ -19,7 +15,23 @@ void SpMSpV_for_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
     VNT x_nvals = _x->get_nvals();
     VNT y_size = _y->get_size();
 
-    const M *mask_vals = _mask->getDense()->get_vals();
+    const M *dense_mask_vals;
+    unordered_set<VNT> sparse_mask_ids;
+
+    bool mask_is_dense = _mask->is_dense();
+
+    if (mask_is_dense) {
+        dense_mask_vals = _mask->getDense()->get_vals();
+    } else {
+        const VNT mask_nvals = _mask->getSparse()->get_nvals();
+        const VNT *mask_ids = _mask->getSparse()->get_ids();
+        #pragma omp for
+        for (VNT i = 0; i < mask_nvals; i++)
+        {
+            VNT mask_id = mask_ids[i];
+            sparse_mask_ids.insert(mask_id);
+        }
+    }
 
     #pragma omp parallel
     {
@@ -33,9 +45,6 @@ void SpMSpV_for_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
         for (VNT i = 0; i < x_nvals; i++)
         {
             VNT ind = x_ids[i];
-            if (mask_vals[ind] != 0) {
-                continue;
-            }
             X x_val = x_vals[i];
             ENT row_start = _matrix->row_ptr[ind];
             ENT row_end = _matrix->row_ptr[ind + 1];
@@ -43,6 +52,9 @@ void SpMSpV_for_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
             for (ENT j = row_start; j < row_end; j++)
             {
                 VNT dest_ind = _matrix->col_ids[j];
+                if ((mask_is_dense and !dense_mask_vals[dest_ind]) or (!mask_is_dense and sparse_mask_ids.find(dest_ind) == sparse_mask_ids.end())) {
+                    continue;
+                }
                 A dest_val = _matrix->vals[j];
 
                 y_vals[dest_ind] = 1;
