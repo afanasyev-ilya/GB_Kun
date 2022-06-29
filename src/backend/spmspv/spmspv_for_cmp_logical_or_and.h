@@ -52,7 +52,7 @@ void SpMSpV_for_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
             for (ENT j = row_start; j < row_end; j++)
             {
                 VNT dest_ind = _matrix->col_ids[j];
-                if ((mask_is_dense and !dense_mask_vals[dest_ind]) or (!mask_is_dense and sparse_mask_ids.find(dest_ind) == sparse_mask_ids.end())) {
+                if ((mask_is_dense and dense_mask_vals[dest_ind] != 0) or (!mask_is_dense and sparse_mask_ids.find(dest_ind) != sparse_mask_ids.end())) {
                     continue;
                 }
                 A dest_val = _matrix->vals[j];
