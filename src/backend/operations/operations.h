@@ -195,7 +195,7 @@ LA_Info mxv (Vector<W>*       _w,
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     } else if (functor == 1 and mask_field == GrB_COMP and (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and vector_sparsity_percentage > spmspv_seq_to_for_percentage))) {
         LOG_TRACE("Using bfs-optimized SpMV for-based");
-        SpMSpV_for_cmp_logical_or_and(_matrix->get_csc(), _u->getSparse(), _w->getDense(), _mask);
+        SpMSpV_for_cmp_logical_or_and(_matrix->get_csc(), _u->getSparse(), _w->getDense(), _mask, _matrix->get_workspace());
     } else if (functor == 1 and mask_field == GrB_COMP and (algo == SPMSPV_MAP_SEQ or (algo == GrB_DEFAULT and vector_sparsity_percentage <= spmspv_seq_to_for_percentage))) {
         LOG_TRACE("Using bfs-optimized SpMSpV sequential map-based");
         SpMSpV_map_cmp_logical_or_and(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _mask);
@@ -262,7 +262,7 @@ LA_Info vxm (Vector<W>*       _w,
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
     } else if (functor == 1 and mask_field == GrB_COMP and (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and vector_sparsity_percentage > spmspv_seq_to_for_percentage))) {
         LOG_TRACE("Using bfs-optimized SpMV for-based");
-        SpMSpV_for_cmp_logical_or_and(_matrix->get_csr(), _u->getSparse(), _w->getDense(), _mask);
+        SpMSpV_for_cmp_logical_or_and(_matrix->get_csr(), _u->getSparse(), _w->getDense(), _mask, _matrix->get_workspace());
     } else if (functor == 1 and mask_field == GrB_COMP and (algo == SPMSPV_MAP_SEQ or (algo == GrB_DEFAULT and vector_sparsity_percentage <= spmspv_seq_to_for_percentage))) {
         LOG_TRACE("Using bfs-optimized SpMSpV sequential map-based");
         SpMSpV_map_cmp_logical_or_and(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _mask);

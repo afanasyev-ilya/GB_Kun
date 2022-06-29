@@ -242,9 +242,10 @@ private:
 
     template <typename A, typename X, typename Y, typename M>
     friend void SpMSpV_for_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
-                                       const SparseVector <X> *_x,
-                                       DenseVector <Y> *_y,
-                                       const Vector <M> *_mask);
+                                              const SparseVector <X> *_x,
+                                              DenseVector <Y> *_y,
+                                              const Vector <M> *_mask,
+                                              Workspace *_workspace);
 };
 
 #include "csr_matrix.hpp"
