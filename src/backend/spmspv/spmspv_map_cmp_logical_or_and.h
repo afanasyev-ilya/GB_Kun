@@ -19,6 +19,8 @@ void SpMSpV_map_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
 
     std::unordered_map<VNT, Y> map_output;
 
+    const M *mask_vals = _mask->getDense()->get_vals();
+
     for (VNT i = 0; i < x_nvals; i++)
     {
         VNT ind = x_ids[i];
@@ -29,6 +31,11 @@ void SpMSpV_map_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
         for (ENT j = row_start; j < row_end; j++)
         {
             VNT dest_ind = _matrix->col_ids[j]; // this is row_ids
+
+            if (mask_vals[dest_ind] != 0) {
+                continue;
+            }
+
             A mat_val = _matrix->vals[j];
 
             if(map_output.find(dest_ind) == map_output.end())
@@ -37,22 +44,10 @@ void SpMSpV_map_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
                 map_output[dest_ind] = (int) map_output[dest_ind] | ((int) mat_val & (int) x_val);
         }
     }
-    /*
-    if(_mask != 0) // apply mask and save results
-    {
-        Desc_value mask_field;
-        _desc->get(GrB_MASK, &mask_field);
-        const M *mask_vals = _mask->getDense()->get_vals();
-        _y->clear();
 
-        if (mask_field == GrB_STR_COMP) // CMP mask
-        {
-            for (auto [index, val]: map_output)
-            {
-                if (mask_vals[index] == 0) // since CMP we keep when 0
-                    _y->push_back(index, val);
-            }
-        }
+    _y->clear();
+    for (auto [index, val]: map_output)
+    {
+        _y->push_back(index, val);
     }
-     */
 }
