@@ -1,6 +1,20 @@
+/**
+  @file select_non_vertex.hpp
+  @author S.krymskiy
+  @version Revision 1.1
+  @date June 10, 2022
+*/
+
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * select_non_trivial_vertex function.
+ * @brief returns random non trivial vertex from the given range.
+ * @param _matrix matrix representing a graph
+ * @param _range range in which a vertex is to be selected
+*/
 
 template <typename T>
 Index select_non_trivial_vertex(lablas::Matrix<T> &_matrix, Index _range = -1)

@@ -1,6 +1,21 @@
+/**
+  @file balancing.h
+  @author S.krymskiy
+  @version Revision 1.1
+  @date June 10, 2022
+*/
+
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * balance_matrix_rows function.
+ * @brief The function creates groups of rows with roughly equal number of rows in each group
+ * @param _row_ptrs pointer to rows in CSR format
+ * @param _offsets output offsets
+*/
+
 
 void balance_matrix_rows(const vector<ENT> &_row_ptrs, vector<pair<VNT, VNT>> &_offsets)
 {

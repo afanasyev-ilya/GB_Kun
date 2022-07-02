@@ -1,6 +1,21 @@
+/**
+  @file edges_container.hpp
+  @author S.krymskiy
+  @version Revision 1.1
+  @date June 10, 2022
+*/
+
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * reorder function.
+ * @brief changes the order of elements in data array.
+ * @param data an array of elements which are to be reordered
+ * @param indexes new order of elements in data array
+ * @param size number of elements in data array
+*/
 
 template <typename T>
 void reorder(T *data, ENT *indexes, ENT size)
@@ -21,6 +36,14 @@ void reorder(T *data, ENT *indexes, ENT size)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * ends_with function.
+ * @brief checks whether string value end with string ending or not
+ * @param value the first string which is to be checked
+ * @param ending the second string which is checked to be the ending of the first string
+ * @return true or false
+*/
+
 inline bool ends_with(std::string const & value, std::string const & ending)
 {
     if (ending.size() > value.size()) return false;
@@ -28,6 +51,12 @@ inline bool ends_with(std::string const & value, std::string const & ending)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * save_as_mtx function.
+ * @brief saves graph in mtx format
+ * @param _file_name name of the file
+*/
 
 template <typename T>
 void EdgeListContainer<T>::save_as_mtx(string _file_name)
@@ -89,6 +118,11 @@ void EdgeListContainer<T>::save_as_mtx(string _file_name)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * remove_duplicated_edges function.
+ * @brief removes multiple edges from the graph
+*/
 
 template <typename T>
 void EdgeListContainer<T>::remove_duplicated_edges()

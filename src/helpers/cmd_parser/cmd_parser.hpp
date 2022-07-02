@@ -1,3 +1,10 @@
+/**
+  @file cmd_parser.hpp
+  @author S.krymskiy
+  @version Revision 1.1
+  @date June 10, 2022
+*/
+
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -17,6 +24,13 @@ Parser::Parser()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * parse_args function.
+ * @brief parses arguments
+ * @param _argc number of arguments
+ * @param _argv arguments
+*/
 
 void Parser::parse_args(int _argc, char **_argv)
 {
