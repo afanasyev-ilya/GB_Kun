@@ -1,3 +1,4 @@
+
 // code taken form LAGraph
 // add license
 
@@ -18,13 +19,11 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//! Lablas namespace
-
+/// @namespace Lablas
 namespace lablas {
 
-    //! Algorithm namespace
-
-    namespace algorithm {
+/// @namespace Algorithm
+namespace algorithm {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -55,6 +54,13 @@ enum LAGraph_TriangleCount_Presort
     GrB_free (U) ;              \
 }
 
+/// @brief Triangle count preparation function for TC algorithms.
+///
+/// This algorithm implements LU-decomposition for several TC algorithms by using GrB_select function.
+/// @param[out] L Pointer to the first (left) selected matrix from LU-decomposition
+/// @param[out] U Pointer to the second (right) selected matrix from LU-decomposition
+/// @param[in] A Input matrix
+/// @result GrB status
 static int tricount_prep(GrB_Matrix *L,      // if present, compute L = tril (A,-1)
                          GrB_Matrix *U,      // if present, compute U = triu (A, 1)
                          GrB_Matrix A)
@@ -99,6 +105,21 @@ static int tricount_prep(GrB_Matrix *L,      // if present, compute L = tril (A,
     GrB_free (&U) ;                         \
 }
 
+/// @brief Triangle count function.
+///
+/// This algorithm implements triangle counting by using several TC algorithms implementations.
+/// Implemented TC algorithms are as follows:
+/// <li> Burkhardt algorithm (used by default),
+/// <li> Cohen algorithm,
+/// <li> Sandia algorithm,
+/// <li> SandiaDot algorithm
+/// By using descriptor it is also possible to choose from mxm methods to be used in TC.
+/// @param[out] ntriangles Pointer to the triangles count result variable
+/// @param[in] G Pointer to the input Graph object
+/// @param[in] method Lagraph method enum value
+/// @param[in] presort Lagraph presort option enum value
+/// @param[in] desc Pointer to the descriptor
+/// @result GrB status
 int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
                        LAGraph_TriangleCount_Method method,
                        LAGraph_TriangleCount_Presort presort,
@@ -149,58 +170,6 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
     auto semiring = LAGraph_plus_one_int64 ;
     auto monoid = GrB_PLUS_MONOID_INT64 ;
 
-    /*
-    if (auto_sort) {
-        // auto selection of sorting method
-        presort = LAGraph_TriangleCount_NoSort ; // default is not to sort
-
-        if (method_can_use_presort) {
-            #define NSAMPLES 1000
-            GrB_Index nvals ;
-            GrB_TRY (GrB_Matrix_nvals (&nvals, A)) ;
-            if (n > NSAMPLES && ((double) nvals / ((double) n)) >= 10) {
-                // estimate the mean and median degrees
-                double mean, median ;
-                LG_TRY (LAGraph_SampleDegree (&mean, &median, G, true, NSAMPLES, n, msg)) ;
-                // sort if the average degree is very high vs the median
-                if (mean > 4 * median) {
-                    switch (method)
-                    {
-                        case LAGraph_TriangleCount_Sandia:
-                            presort = LAGraph_TriangleCount_Ascending  ;
-                            break ;
-                        case LAGraph_TriangleCount_Sandia2:
-                            presort = LAGraph_TriangleCount_Descending ;
-                            break ;
-                        default:
-                        case LAGraph_TriangleCount_SandiaDot:
-                            presort = LAGraph_TriangleCount_Ascending  ;
-                            break ;
-                        case LAGraph_TriangleCount_SandiaDot2:
-                            presort = LAGraph_TriangleCount_Descending ;
-                            break ;
-                    }
-                }
-            }
-        }
-    }
-
-    if (presort != LAGraph_TriangleCount_NoSort) {
-        // P = permutation that sorts the rows by their degree
-        LG_TRY (LAGraph_SortByDegree (&P, G, true, presort == LAGraph_TriangleCount_Ascending, msg)) ;
-
-        // T = A (P,P) and typecast to boolean
-        GrB_TRY (GrB_Matrix_new (&T, GrB_BOOL, n, n)) ;
-        GrB_TRY (GrB_extract (T, NULL, NULL, A, (GrB_Index *) P, n, (GrB_Index *) P, n, NULL)) ;
-        A = T ;
-
-        // free workspace
-        if (P != NULL) {
-            free(P);
-        }
-    }
-    */
-
     int64_t ntri ;
 
     Desc_value multiplication_mode = GrB_IKJ_MASKED;
@@ -212,6 +181,8 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
     Descriptor mxm_desc;
     if (multiplication_mode == GrB_IJK_DOUBLE_SORT) {
         mxm_desc = GrB_DESC_IJK_DOUBLE_SORT;
+    } else if (multiplication_mode == GrB_ESC_MASKED) {
+        mxm_desc = GrB_DESC_ESC_MASKED;
     } else {
         mxm_desc = GrB_DESC_IKJ_MASKED;
     }
