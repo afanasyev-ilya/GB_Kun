@@ -151,7 +151,7 @@ void save_time_in_sec(const char *_op_name, double _time)
 
 /**
  * print_omp_stats function.
- * @brief outputs omp stats (Amount of threads, largest core, etc.).
+ * @brief outputs omp stats (Amount of threads, largest core, the number of a core for each thread).
 */
 
 void print_omp_stats()

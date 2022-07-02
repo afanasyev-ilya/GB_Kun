@@ -13,7 +13,7 @@
  * balance_matrix_rows function.
  * @brief The function creates groups of rows with roughly equal number of rows in each group
  * @param _row_ptrs pointer to rows in CSR format
- * @param _offsets offsets
+ * @param _offsets output offsets
 */
 
 
