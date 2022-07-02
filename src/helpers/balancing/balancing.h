@@ -1,6 +1,6 @@
 /**
   @file balancing.h
-  @author Lastname:Firstname:A00123456:cscxxxxx
+  @author S.krymskiy
   @version Revision 1.1
   @date June 10, 2022
 */
@@ -11,8 +11,8 @@
 
 /**
  * balance_matrix_rows function.
- * @brief The function balances matrix rows
- * @param _row_ptrs rows
+ * @brief The function creates groups of rows with roughly equal number of rows in each group
+ * @param _row_ptrs pointer to rows in CSR format
  * @param _offsets offsets
 */
 

@@ -44,13 +44,6 @@ public:
     template <typename T>
     static void resize(T **_ptr, size_t _new_size);
 
-    #ifdef __USE_GPU__
-    template <typename T>
-    static void move_array_to_device(T *_ptr, size_t _size);
-
-    template <typename T>
-    static void move_array_to_host(T *_ptr, size_t _size);
-    #endif
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

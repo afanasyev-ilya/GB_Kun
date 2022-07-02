@@ -1,6 +1,6 @@
 /**
   @file cc.hpp
-  @author Lastname:Firstname:A00123456:cscxxxxx
+  @author S.krymskiy
   @version Revision 1.1
   @brief CC algorithm.
   @details  Code is based on the algorithm described in the following paper.

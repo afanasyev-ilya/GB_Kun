@@ -1,6 +1,6 @@
 /**
   @file stats.h
-  @author Lastname:Firstname:A00123456:cscxxxxx
+  @author S.krymskiy
   @version Revision 1.1
   @date June 10, 2022
 */
@@ -91,10 +91,10 @@ fclose(my_f);                                                                   
 
 /**
  * save_teps function.
- * @brief outputs stats for an operation
+ * @brief saves performance statistics for an operation
  * @param _op_name name of the operation
  * @param _time time in ms
- * @param _nvals amount of values
+ * @param _nvals number of elements (for example matrix elements) processed in the region
  * @param _iterations amount of iterations
 */
 

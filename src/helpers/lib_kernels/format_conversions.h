@@ -1,6 +1,24 @@
+/**
+  @file format_conversions.h
+  @author S.krymskiy
+  @version Revision 1.1
+  @date June 10, 2022
+*/
+
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * edges_list_to_vector_of_vectors function.
+ * @brief converts list of edges to the adjacency list
+ * @param _row_ids pointer to an array containing the row number of nonzero elements
+ * @param _col_ids pointer to an array containing the column number of nonzero elements
+ * @param _vals pointer an array containing values of nonzero elements
+ * @param _size size of the resulting vector of vectors (number of vertexes)
+ * @param _nnz number of nonzero elements
+ * @param _result resulting vector of vectors
+*/
 
 template <typename T>
 void edges_list_to_vector_of_vectors(const VNT *_row_ids,
@@ -22,6 +40,15 @@ void edges_list_to_vector_of_vectors(const VNT *_row_ids,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * vector_of_vectors_to_csr function.
+ * @brief converts an adjacency list to the CSR format
+ * @param _tmp_mat vector of vectors containing all nonzero elements
+ * @param _row_ids pointer to an array containing the row number of nonzero elements
+ * @param _col_ids pointer to an array containing the column number of nonzero elements
+ * @param _vals pointer an array containing values of nonzero elements
+*/
 
 template <typename T>
 void vector_of_vectors_to_csr(vector<vector<pair<VNT, T>>> &_tmp_mat,
@@ -49,6 +76,15 @@ void vector_of_vectors_to_csr(vector<vector<pair<VNT, T>>> &_tmp_mat,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * vector_of_maps_to_csr function.
+ * @brief converts an adjacency list to the CSR format
+ * @param _tmp_mat vector of maps containing all nonzero elements
+ * @param _row_ids pointer to an array containing the row number of nonzero elements
+ * @param _col_ids pointer to an array containing the column number of nonzero elements
+ * @param _vals pointer an array containing values of nonzero elements
+*/
 
 template <typename T>
 void vector_of_maps_to_csr(std::vector<std::unordered_map<VNT, T>> &_tmp_mat,
@@ -78,6 +114,13 @@ void vector_of_maps_to_csr(std::vector<std::unordered_map<VNT, T>> &_tmp_mat,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * estimate_nnz_in_vector_of_vectors function.
+ * @brief returns number of nonzero elements in an adjacency list
+ * @param _tmp_mat vector of vectors containing all nonzero elements
+ * @return number of nonzero elements
+*/
 
 template <typename T>
 ENT estimate_nnz_in_vector_of_vectors(vector<vector<pair<VNT, T>>> &_tmp_mat)

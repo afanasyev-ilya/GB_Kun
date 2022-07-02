@@ -1,6 +1,6 @@
 /**
   @file sssp_blast.hpp
-  @author Lastname:Firstname:A00123456:cscxxxxx
+  @author S.krymskiy
   @version Revision 1.1
   @brief SSSP blast algorithm.
   @details Detailed description.

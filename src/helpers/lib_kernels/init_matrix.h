@@ -1,12 +1,19 @@
+/**
+  @file init_matrix.h
+  @author S.krymskiy
+  @version Revision 1.1
+  @date June 10, 2022
+*/
+
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * init_matrix function.
- * @brief initializes the matrix.
+ * @brief initializes the matrix based on options provided in parser. For example, loads matrix from specified file or generates random graph.
  * @param _matrix matrix representing a graph
- * @param _parser parser
+ * @param _parser parser from which options are taken from
 */
 
 template <typename T>

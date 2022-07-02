@@ -5,7 +5,7 @@
 
 /**
   @file sssp.hpp
-  @author Lastname:Firstname:A00123456:cscxxxxx
+  @author S.krymskiy
   @version Revision 1.1
   @brief SSSP algorithm.
   @details This file uses algorithm implementation from graphblast, which is available under

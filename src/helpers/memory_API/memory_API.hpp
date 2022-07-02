@@ -1,6 +1,6 @@
 /**
   @file memory_API.hpp
-  @author Lastname:Firstname:A00123456:cscxxxxx
+  @author S.krymskiy
   @version Revision 1.1
   @date June 10, 2022
 */
@@ -298,42 +298,5 @@ void MemoryAPI::resize(T **_ptr, size_t _new_size)
         MemoryAPI::free_array(*_ptr);
     MemoryAPI::allocate_array(_ptr, _new_size);
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * MemoryAPI::move_array_to_device function.
- * @brief moves allocated memory from the host to device.
- * @param _ptr pointer to which memory is allocated
- * @param _size amount of elements of the type T to allocate
-*/
-
-
-#ifdef __USE_GPU__
-template <typename T>
-void MemoryAPI::move_array_to_device(T *_ptr, size_t _size)
-{
-    int device_id = 0;
-    SAFE_CALL(cudaGetDevice(&device_id));
-    SAFE_CALL(cudaMemPrefetchAsync(_ptr, _size*sizeof(T), device_id, NULL));
-}
-#endif
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * MemoryAPI::move_array_to_host function.
- * @brief moves allocated memory from device to the host.
- * @param _ptr pointer to which memory is allocated
- * @param _size amount of elements of the type T to allocate
-*/
-
-#ifdef __USE_GPU__
-template <typename T>
-void MemoryAPI::move_array_to_host(T *_ptr, size_t _size)
-{
-    SAFE_CALL(cudaMemPrefetchAsync(_ptr, _size*sizeof(T), cudaCpuDeviceId, NULL));
-}
-#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

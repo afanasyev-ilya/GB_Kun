@@ -1,6 +1,6 @@
 /**
   @file timer.h
-  @author Lastname:Firstname:A00123456:cscxxxxx
+  @author S.krymskiy
   @version Revision 1.1
   @date June 10, 2022
 */
