@@ -1,5 +1,22 @@
+/// @file spmspm_esc.h
+/// @author Anton Potapov
+/// @version Revision 1.2
+/// @brief BFS-optimized sequential map-based SpMSpV
+/// @details Implements COMP-masked sequential map-based SpMSpV with LogicalOrAnd semiring operation and no accumulator
+/// @date June 13, 2022
+
 #pragma once
 
+/// @brief BFS-optimized sequential map-based SpMSpV
+///
+/// This algorithm is an BFS-optimized version of sequential map-based SpMSpV algorithm that assumes
+/// usage of complimentary mask, LogicalOrAnd semiring operation and no accumulator.
+///
+/// @param[in] _matrix Pointer to the input matrix
+/// @param[in] _x Pointer to the input vector
+/// @param[out] _y Pointer to the DenseVector object that will contain the result vector.
+/// @param[in] _mask SpMSpV mask pointer
+/// @see SpMSpV_for_cmp_logical_or_and
 template <typename A, typename X, typename Y, typename M>
 void SpMSpV_map_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
                                    const SparseVector <X> *_x,

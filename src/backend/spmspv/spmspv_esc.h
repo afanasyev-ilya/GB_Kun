@@ -1,5 +1,27 @@
+/// @file spmspm_esc.h
+/// @author Anton Potapov
+/// @version Revision 1.2
+/// @brief Parallel map-based SpMSpV with ESC approach
+/// @details Implements parallel map-based SpMSpV with ESC approach
+/// @date June 13, 2022
 #pragma once
 
+/// @brief Parallel map-based SpMSpV with with ESC approach
+///
+/// This algorithm implements parallel map-based SpMSpV with ESC approach to avoid synchronizations in loop
+/// section by accumulating each threads data in it's own hash-map accumulator and then reducing it across the
+/// threads into one.
+///
+/// @param[in] _matrix Pointer to the input matrix
+/// @param[in] _x Pointer to the input vector
+/// @param[out] _y Pointer to the DenseVector object that will contain the result vector.
+/// @param[in] _desc Pointer to a descriptor object
+/// @param[in] _accum BinaryOp accumulator
+/// @param[in] _op Semiring operation
+/// @param[in] _mask SpMSpV mask pointer
+/// @see SpMSpV_map_par
+/// @see SpMSpV_map_seq
+/// @see SpMSpV_map_par_critical
 template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
 void SpMSpV_esc(const MatrixCSR<A> *_matrix,
                              const SparseVector <X> *_x,
