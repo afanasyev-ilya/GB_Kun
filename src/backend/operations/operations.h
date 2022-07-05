@@ -191,6 +191,7 @@ LA_Info mxv (Vector<W>*       _w,
     int functor = add_op(3, 5);
 
     bool bfs_optimization = (functor == 1 and mask_field == GrB_STR_COMP);
+    // low_sparsity defines the switch between for-based mxv and sequential map-based mxv
     bool low_sparsity = (vector_sparsity_percentage <= spmspv_seq_to_for_percentage);
 
     if (algo == SPMV_GENERAL or (algo == GrB_DEFAULT and _u->is_dense())) {
@@ -262,6 +263,7 @@ LA_Info vxm (Vector<W>*       _w,
     int functor = add_op(3, 5);
 
     bool bfs_optimization = (functor == 1 and mask_field == GrB_STR_COMP);
+    // low_sparsity defines the switch between for-based mxv and sequential map-based mxv
     bool low_sparsity = (vector_sparsity_percentage <= spmspv_seq_to_for_percentage);
 
     if (algo == SPMV_GENERAL or (algo == GrB_DEFAULT and _u->is_dense())) {
