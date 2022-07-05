@@ -1,4 +1,5 @@
 #pragma once
+#include <arm_neon.h>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -466,18 +467,31 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
 
         for(VNT row = first_row; row < last_row; row++)
         {
-            Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+//            Y res = identity_val;
+            int64x2_t vec_resval = vmovq_n_s64(identity_val);
+            int64x2_t vec_res;
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j+=2)
             {
-                VNT col = _matrix->col_ids[j];
+                //int64x2_t vec_col = vld1q_s64(&_matrix->col_ids[j]);
+                VNT cols = {_matrix->col_ids[j], _matrix->col_ids[j+1]};
+                int64x2_t vec_cols = vld1q_s64(&cols);
+
+                int64x2_t vec_vals = vld1q_s64(&_matrix->vals[j]);
                 A val = _matrix->vals[j];
-                res = add_op(res, mul_op(val, x_vals[col]));
+
+                int64x2_t vec_mul =  vmulq_f64(vec_vals, vec_cols);
+
+                vec_res = vaddq_s64(vec_mul, vec_vals);
+
+                //res = add_op(res, mul_op(val, x_vals[col]));
             }
-            buffer[row] = res;
+            vst1q_u8(&buffer[row], vec_res);
         }
 
         #pragma omp barrier
 
+
+        //TODO
         #pragma omp for
         for(VNT row = 0; row < _matrix->nrows; row++)
         {
