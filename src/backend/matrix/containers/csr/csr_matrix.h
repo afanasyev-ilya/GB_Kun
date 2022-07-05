@@ -215,6 +215,37 @@ private:
                         BinaryOpTAccum _accum,
                         SemiringT _op,
                         const Vector <M> *_mask);
+
+    template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
+    friend void SpMSpV_map_par_critical(const MatrixCSR<A> *_matrix,
+                               const SparseVector <X> *_x,
+                               SparseVector <Y> *_y,
+                               Descriptor *_desc,
+                               BinaryOpTAccum _accum,
+                               SemiringT _op,
+                               const Vector <M> *_mask);
+
+    template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
+    friend void SpMSpV_esc(const MatrixCSR<A> *_matrix,
+                                        const SparseVector <X> *_x,
+                                        SparseVector <Y> *_y,
+                                        Descriptor *_desc,
+                                        BinaryOpTAccum _accum,
+                                        SemiringT _op,
+                                        const Vector <M> *_mask);
+
+    template <typename A, typename X, typename Y, typename M>
+    friend void SpMSpV_map_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
+                                       const SparseVector <X> *_x,
+                                       SparseVector <Y> *_y,
+                                       const Vector <M> *_mask);
+
+    template <typename A, typename X, typename Y, typename M>
+    friend void SpMSpV_for_cmp_logical_or_and(const MatrixCSR<A> *_matrix,
+                                              const SparseVector <X> *_x,
+                                              DenseVector <Y> *_y,
+                                              const Vector <M> *_mask,
+                                              Workspace *_workspace);
 };
 
 #include "csr_matrix.hpp"

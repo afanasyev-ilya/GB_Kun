@@ -177,12 +177,42 @@ LA_Info mxv (Vector<W>*       _w,
     const double vector_sparsity_percentage = (100.0 * _u->get_nvals()) / _u->get_size();
     Desc_value algo;
     _desc->get(GrB_MXVMODE, &algo);
+    Desc_value mask_field;
+    _desc->get(GrB_MASK, &mask_field);
+    auto add_op = extractAdd(_op);
+    /*!
+      * /brief atomicAdd() 3+5  = 8
+      *        atomicSub() 3-5  =-2
+      *        atomicMin() 3,5  = 3
+      *        atomicMax() 3,5  = 5
+      *        atomicOr()  3||5 = 1
+      *        atomicXor() 3^^5 = 0
+    */
+    int functor = add_op(3, 5);
+
+    bool bfs_optimization = (functor == 1 and mask_field == GrB_STR_COMP);
+    // low_sparsity defines the switch between for-based mxv and sequential map-based mxv
+    bool low_sparsity = (vector_sparsity_percentage <= spmspv_seq_to_for_percentage);
+
     if (algo == SPMV_GENERAL or (algo == GrB_DEFAULT and _u->is_dense())) {
         LOG_TRACE("Using SpMV General");
         backend::SpMV(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
-    } else if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and vector_sparsity_percentage > spmspv_seq_to_for_percentage)) {
-        LOG_TRACE("Using SpMSpV for-based");
-        backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+    } else if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and !low_sparsity)) {
+        if (bfs_optimization) {
+            LOG_TRACE("Using bfs-optimized SpMV for-based");
+            SpMSpV_for_cmp_logical_or_and(_matrix->get_csc(), _u->getSparse(), _w->getDense(), _mask, _matrix->get_workspace());
+        } else {
+            LOG_TRACE("Using SpMSpV for-based");
+            backend::SpMSpV(_matrix, false, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        }
+    } else if (algo == SPMSPV_MAP_SEQ or (algo == GrB_DEFAULT and low_sparsity)) {
+        if (bfs_optimization) {
+            LOG_TRACE("Using bfs-optimized SpMSpV sequential map-based");
+            SpMSpV_map_cmp_logical_or_and(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _mask);
+        } else {
+            LOG_TRACE("Using SpMSpV sequential map-based");
+            SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+        }
     } else if (algo == SPMSPV_MAP_TBB) {
         #ifdef __USE_TBB__
         LOG_TRACE("Using SpMSpV TBB map-based");
@@ -191,9 +221,12 @@ LA_Info mxv (Vector<W>*       _w,
         LOG_TRACE("Using SpMSpV sequential map-based");
         SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
         #endif
-    } else if (algo == SPMSPV_MAP_SEQ or (algo == GrB_DEFAULT and vector_sparsity_percentage <= spmspv_seq_to_for_percentage)) {
-        LOG_TRACE("Using SpMSpV sequential map-based");
-        SpMSpV_map_seq(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+    } else if (algo == SPMSPV_MAP_PAR) {
+        LOG_TRACE("Using SpMSpV Parallel (omp critical) map-based");
+        SpMSpV_map_par_critical(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+    } else if (algo == SPMSPV_ESC) {
+        LOG_TRACE("Using SpMSpV ESC");
+        SpMSpV_esc(_matrix->get_csc(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
     }
     _w->convert_if_required();
 
@@ -216,16 +249,38 @@ LA_Info vxm (Vector<W>*       _w,
     const double vector_sparsity_percentage = (100.0 * _u->get_nvals()) / _u->get_size();
     Desc_value algo;
     _desc->get(GrB_MXVMODE, &algo);
+    Desc_value mask_field;
+    _desc->get(GrB_MASK, &mask_field);
+    auto add_op = extractAdd(_op);
+    /*!
+      * /brief atomicAdd() 3+5  = 8
+      *        atomicSub() 3-5  =-2
+      *        atomicMin() 3,5  = 3
+      *        atomicMax() 3,5  = 5
+      *        atomicOr()  3||5 = 1
+      *        atomicXor() 3^^5 = 0
+    */
+    int functor = add_op(3, 5);
+
+    bool bfs_optimization = (functor == 1 and mask_field == GrB_STR_COMP);
+    // low_sparsity defines the switch between for-based mxv and sequential map-based mxv
+    bool low_sparsity = (vector_sparsity_percentage <= spmspv_seq_to_for_percentage);
+
     if (algo == SPMV_GENERAL or (algo == GrB_DEFAULT and _u->is_dense())) {
         LOG_TRACE("Using SpMV General");
         double t1 = omp_get_wtime();
         backend::VSpM(_matrix, _u->getDense(), _w->getDense(), _desc, _accum, _op, _mask);
         double t2 = omp_get_wtime();
         SPMV_TIME += t2 - t1;
-    } else if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and vector_sparsity_percentage > spmspv_seq_to_for_percentage)) {
-        LOG_TRACE("Using SpMSpV for-based");
+    } else if (algo == SPMSPV_FOR or (algo == GrB_DEFAULT and !low_sparsity)) {
         double t1 = omp_get_wtime();
-        backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        if (bfs_optimization) {
+            LOG_TRACE("Using bfs-optimized SpMSpV for-based");
+            SpMSpV_for_cmp_logical_or_and(_matrix->get_csr(), _u->getSparse(), _w->getDense(), _mask, _matrix->get_workspace());
+        } else {
+            LOG_TRACE("Using SpMSpV for-based");
+            backend::SpMSpV(_matrix, true, _u->getSparse(), _w->getDense(), _desc, _accum, _op, _mask);
+        }
         double t2 = omp_get_wtime();
         SPMSPV_TIME += t2 - t1;
     } else if (algo == SPMSPV_MAP_TBB) {
@@ -236,9 +291,20 @@ LA_Info vxm (Vector<W>*       _w,
         LOG_TRACE("Using SpMSpV sequential map-based");
         SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
         #endif
-    } else if (algo == SPMSPV_MAP_SEQ or (algo == GrB_DEFAULT and vector_sparsity_percentage <= spmspv_seq_to_for_percentage)) {
-        LOG_TRACE("Using SpMSpV sequential map-based");
-        SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+    } else if (algo == SPMSPV_MAP_SEQ or (algo == GrB_DEFAULT and low_sparsity)) {
+        if (bfs_optimization) {
+            LOG_TRACE("Using bfs-optimized SpMSpV sequential map-based");
+            SpMSpV_map_cmp_logical_or_and(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _mask);
+        } else {
+            LOG_TRACE("Using SpMSpV sequential map-based");
+            SpMSpV_map_seq(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+        }
+    } else if (algo == SPMSPV_MAP_PAR) {
+        LOG_TRACE("Using SpMSpV Parallel (omp critical) map-based");
+        SpMSpV_map_par_critical(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
+    } else if (algo == SPMSPV_ESC) {
+        LOG_TRACE("Using SpMSpV ESC");
+        SpMSpV_esc(_matrix->get_csr(), _u->getSparse(), _w->getSparse(), _desc, _accum, _op, _mask);
     }
 
     double t1 = omp_get_wtime();
