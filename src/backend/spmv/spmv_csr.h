@@ -2,6 +2,16 @@
 #include <arm_neon.h>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+inline int64x2_t arm_vmulq_s64(const int64x2_t& a, const int64x2_t& b)
+{
+    const auto ac = vmovn_s64(a);
+    const auto pr = vmovn_s64(b);
+
+    const auto hi = vmulq_s32(b, vrev64q_s32(a));
+
+    return vmlal_u32(vshlq_n_s64(vpaddlq_u32(hi), 32), ac, pr);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace lablas {
 namespace backend {
@@ -467,25 +477,26 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
 
         for(VNT row = first_row; row < last_row; row++)
         {
-//            Y res = identity_val;
             int64x2_t vec_resval = vmovq_n_s64(identity_val);
             int64x2_t vec_res;
             for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j+=2)
             {
                 //int64x2_t vec_col = vld1q_s64(&_matrix->col_ids[j]);
-                VNT cols = {_matrix->col_ids[j], _matrix->col_ids[j+1]};
-                int64x2_t vec_cols = vld1q_s64(&cols);
+                //VNT cols = {_matrix->col_ids[j], _matrix->col_ids[j+1]};
+                //int64x2_t vec_cols = vld1q_s64(&cols);
 
-                int64x2_t vec_vals = vld1q_s64(&_matrix->vals[j]);
-                A val = _matrix->vals[j];
+                int64x2_t vec_cols = vld1q_s64((long int*)&_matrix->col_ids[j]);
+                int64x2_t vec_vals = vld1q_s64((long int*)&_matrix->vals[j]);
 
-                int64x2_t vec_mul =  vmulq_f64(vec_vals, vec_cols);
+                //A val = _matrix->vals[j];
+
+                int64x2_t vec_mul =  arm_vmulq_s64(vec_vals, vec_cols);
 
                 vec_res = vaddq_s64(vec_mul, vec_vals);
 
                 //res = add_op(res, mul_op(val, x_vals[col]));
             }
-            vst1q_u8(&buffer[row], vec_res);
+            vst1q_s64(&buffer[row], vec_res);
         }
 
         #pragma omp barrier

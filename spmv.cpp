@@ -131,7 +131,7 @@ int main(int argc, char **argv)
     try
     {
         print_omp_stats();
-        test_spmv<float>(argc, argv);
+        test_spmv<long int>(argc, argv);
     }
     catch (string error)
     {
