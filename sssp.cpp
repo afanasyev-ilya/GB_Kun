@@ -59,7 +59,14 @@ int main(int argc, char **argv)
             double sssp_time_ms = 0;
             {
                 Timer tm("sssp");
-                lablas::algorithm::sssp_bellman_ford_blast(&distances, graph.A, source_vertex, &desc);
+
+                if(parser.get_algo_name() == "Lagraph_sssp") {
+                    auto p_distances = &distances;
+                    lablas::algorithm::LAGr_SingleSourceShortestPath(&p_distances, &graph, source_vertex, 0.f, NULL);
+                } else if(parser.get_algo_name() == "Bellman_Ford_sssp") {
+                    lablas::algorithm::sssp_bellman_ford_blast(&distances, graph.A, source_vertex, &desc);
+                }
+
                 sssp_time_ms = tm.get_time_ms();
             }
             save_teps("sssp", sssp_time_ms, matrix.get_nnz(), 1);
