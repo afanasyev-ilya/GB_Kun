@@ -78,8 +78,10 @@ private:
     ENT num_changes;
     std::set<VNT> removed_rows;
     std::set<VNT> restored_rows;
+    std::set<VNT> added_rows;
     std::set<std::pair<VNT, ENT> > removed_edges;
     std::set<std::pair<VNT, ENT> > restored_edges;
+    std::set<std::pair<VNT, ENT> > added_edges;
 
     bool row_marked_for_removal(VNT _row) { return false; }; // TODO implement based on set removed_rows
     bool val_marked_for_removal(ENT _csr_index) { return false; }; // TODO implement based on map removed_edges
