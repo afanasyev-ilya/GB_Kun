@@ -57,8 +57,19 @@ void MatrixCSR<T>::add_val(VNT _row, VNT _col, T _val)
 template<typename T>
 void MatrixCSR<T>::remove_val(VNT _row, VNT _col)
 {
-    throw "MatrixCSR<T>::remove_edge : not implemented yet";
     num_changes++;
+    ongoing_modifications = true;
+    if (added_edges.find(_row) != added_edges.end()) {
+        if (added_edges[_row].find(std::make_pair(_row, _col))) {
+            added_edges[_row].erase(std::make_pair(_row, _col));
+        }
+    }
+    if (added_edges.find(_col) != added_edges.end()) {
+        if (added_edges[_col].find(std::make_pair(_row, _col))) {
+            added_edges[_col].erase(std::make_pair(_row, _col));
+        }
+    }
+    removed_edges.insert(std::make_pair(_row, _col));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
