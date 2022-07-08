@@ -85,7 +85,7 @@ void test_spmv(int argc, char **argv)
         w.fill(1.0);
 
         double t1 = omp_get_wtime();
-        SAVE_STATS(GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);,
+        SAVE_STATS(GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &w, &desc);,
                    "SPMV", (sizeof(float)*2 + sizeof(size_t)), 1, &matrix);
         double t2 = omp_get_wtime();
         avg_time += (t2 - t1) / num_runs;
