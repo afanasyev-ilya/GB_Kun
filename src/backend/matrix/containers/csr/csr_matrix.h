@@ -74,11 +74,12 @@ private:
     VNT *col_ids;
     VNT *row_degrees;
 
-    std::map<VNT, std::map<VNT, T>> new_matrix_rows;
     bool ongoing_modifications;
-    std::set<VNT> removed_rows; // can we use set here? it's not efficient
-    std::map<VNT, std::map<VNT, T>> removed_edges; // same, map can be hard to use in SPMV
     ENT num_changes;
+    std::set<VNT> removed_rows;
+    std::set<VNT> restored_rows;
+    std::set<std::pair<VNT, ENT> > removed_edges;
+    std::set<std::pair<VNT, ENT> > restored_edges;
 
     bool row_marked_for_removal(VNT _row) { return false; }; // TODO implement based on set removed_rows
     bool val_marked_for_removal(ENT _csr_index) { return false; }; // TODO implement based on map removed_edges
