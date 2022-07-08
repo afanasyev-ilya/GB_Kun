@@ -5,25 +5,14 @@
 template<typename T>
 void MatrixCSR<T>::add_row(VNT _row)
 {
-    num_changes++;
-    if (_row < nrows)
-    {
-        auto it = removed_rows.find(_row);
-        if(it != removed_rows.end())
-        {
-            if(row_degrees[_row] == 0)
-                removed_rows.erase(it);
-            else // maybe force update here?
-                throw "part of MatrixCSR<T>::add_row when non-zero degree vertex is restored not implemented yet";
-        }
-        return;
-    }
-
-    ongoing_modifications = true;
-
-    if (new_matrix_rows.find(_row) == new_matrix_rows.end())
-    {
-        new_matrix_rows[_row] = std::map<VNT, T>();
+    ++num_changes;
+    if (_row < nrows) {
+        if (removed_rows.find(_row) != removed_rows.end()) {
+            restored_rows.insert(_row);
+        } // otherwise, graph already has the vertex
+    } else {
+        ongoing_modifications = true;
+        added_rows.insert(_row);
     }
 }
 
