@@ -22,6 +22,9 @@ template<typename T>
 void MatrixCSR<T>::remove_row(VNT _row)
 {
     ++num_changes;
+    if (added_edges.find(_row) != added_edges.end()) {
+        added_edges.erase(_row);
+    }
     if (_row < nrows) {
         if (restored_rows.find(_row) != restored_rows.end()) {
             restored_rows.erase(_row);
