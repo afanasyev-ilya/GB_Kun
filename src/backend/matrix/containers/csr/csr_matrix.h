@@ -80,8 +80,9 @@ private:
     std::set<VNT> restored_rows;
     std::set<VNT> added_rows;
     std::set<std::pair<VNT, ENT> > removed_edges;
-    std::set<std::pair<VNT, ENT> > restored_edges;
-    std::set<std::pair<VNT, ENT> > added_edges;
+    std::map<VNT, std::map<std::pair<VNT, ENT>, T> > added_edges; /* supporting invariant that both adjacent
+                                                                     vertices should have same edge in order for it
+                                                                     to be valid when merging changes*/
 
     bool row_marked_for_removal(VNT _row) { return false; }; // TODO implement based on set removed_rows
     bool val_marked_for_removal(ENT _csr_index) { return false; }; // TODO implement based on map removed_edges
