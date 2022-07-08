@@ -21,24 +21,19 @@ void MatrixCSR<T>::add_row(VNT _row)
 template<typename T>
 void MatrixCSR<T>::remove_row(VNT _row)
 {
-    num_changes++;
-    if (_row < nrows)
-    {
-        ongoing_modifications = true;
-        removed_rows.insert(_row);
-        return;
-    } else
-    {
-        auto it = new_matrix_rows.find(_row);
-        if (it == new_matrix_rows.end())
-        {
-            LOG_ERROR("Deleting vertices which does not exist...");
-            return;
-        } else
-        {
+    ++num_changes;
+    if (_row < nrows) {
+        if (restored_rows.find(_row) != restored_rows.end()) {
+            restored_rows.erase(_row);
+        } else if (removed_rows.find(_row) == removed_rows.end()) {
             ongoing_modifications = true;
-            new_matrix_rows.erase(it, new_matrix_rows.end());
-            return;
+            removed_rows.insert(_row);
+        }
+    } else {
+        if (added_rows.find(_row) != added_rows.end()) {
+            added_rows.erase(_row);
+        } else {
+            LOG_ERROR("Deleting vertices which does not exist...");
         }
     }
 }
