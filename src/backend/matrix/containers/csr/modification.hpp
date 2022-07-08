@@ -46,9 +46,10 @@ void MatrixCSR<T>::remove_row(VNT _row)
 template<typename T>
 void MatrixCSR<T>::add_val(VNT _row, VNT _col, T _val)
 {
-    num_changes++;
+    ++num_changes;
     ongoing_modifications = true;
-    new_matrix_rows[_row][_col] = _val;
+    added_edges[_row][std::make_pair(_row, _col)] = _val;
+    added_edges[_col][std::make_pair(_row, _col)] = _val;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
