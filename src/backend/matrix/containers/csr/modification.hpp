@@ -123,6 +123,7 @@ void MatrixCSR<T>::apply_modifications()
             // add old vertices
             if (removed_rows.find(row) != removed_rows.end()) {
                 if (restored_rows.find(row) != restored_rows.end()) {
+                    // old but deleted and then restored vertices
                     for (const auto &[edge_pair, edge_weight] : added_edges[row]) {
                         if (edge_pair.first == row and added_edge_is_valid(row, edge_pair, edge_weight, added_edges)) {
                             new_col_ids.push_back(edge_pair.second);
@@ -133,7 +134,28 @@ void MatrixCSR<T>::apply_modifications()
                     }
                 }
             } else {
-                // TODO: implement this case
+                // old and not deleted vertices
+                std::set<std::pair<VNT, ENT> > just_added_edges;
+                for (const auto &[edge_pair, edge_weight] : added_edges[row]) {
+                    if (edge_pair.first == row and added_edge_is_valid(row, edge_pair, edge_weight, added_edges)) {
+                        new_col_ids.push_back(edge_pair.second);
+                        new_ncols = std::max(new_ncols, edge_pair.second);
+                        new_col_ids.push_back(edge_weight);
+                        just_added_edges.insert(edge_pair);
+                        ++cur_row_nnz;
+                    }
+                }
+                for(ENT i = row_ptr[row]; i < row_ptr[row + 1]; ++i) {
+                    VNT col = col_ids[i];
+                    T val = vals[i];
+                    const auto cur_edge_pair = std::make_pair(row, col);
+                    if (just_added_edges.find(cur_edge_pair) == just_added_edges.end() and removed_edges.find(cur_edge_pair) == removed_edges.end()) {
+                        new_col_ids.push_back(col);
+                        new_ncols = std::max(new_ncols, col);
+                        new_col_ids.push_back(val);
+                        ++cur_row_nnz;
+                    }
+                }
             }
         } else {
             // add new vertices
