@@ -137,7 +137,14 @@ void MatrixCSR<T>::apply_modifications()
             }
         } else {
             // add new vertices
-            // TODO: implement this case
+            for (const auto &[edge_pair, edge_weight] : added_edges[row]) {
+                if (edge_pair.first == row and added_edge_is_valid(row, edge_pair, edge_weight, added_edges)) {
+                    new_col_ids.push_back(edge_pair.second);
+                    new_ncols = std::max(new_ncols, edge_pair.second);
+                    new_col_ids.push_back(edge_weight);
+                    ++cur_row_nnz;
+                }
+            }
         }
         new_row_ptr.push_back(new_row_ptr.back() + cur_row_nnz);
     }
