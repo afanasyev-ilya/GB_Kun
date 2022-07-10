@@ -485,7 +485,8 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
                 //VNT cols = {_matrix->col_ids[j], _matrix->col_ids[j+1]};
                 //int64x2_t vec_cols = vld1q_s64(&cols);
 
-                int64x2_t vec_cols = vld1q_s64((long int*)&_matrix->col_ids[j]);
+                VNT values[2] = {x_vals[_matrix->col_ids[j]], x_vals[_matrix->col_ids[j+1]]};
+                int64x2_t vec_cols = vld1q_s64((long int*)&values);
                 int64x2_t vec_vals = vld1q_s64((long int*)&_matrix->vals[j]);
 
                 //A val = _matrix->vals[j];
@@ -502,7 +503,7 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
         #pragma omp barrier
 
 
-        //TODO
+        //Last easy vectorization stage
         #pragma omp for
         for(VNT row = 0; row < _matrix->nrows; row++)
         {
