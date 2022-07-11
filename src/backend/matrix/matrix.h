@@ -181,6 +181,7 @@ public:
     void remove_vertex(Index _vertex_id);
     void add_edge(Index _src_id, Index _dst_id, T value);
     void remove_edge(Index _src_id, Index _dst_id);
+    void apply_modifications() { csr_data->apply_modifications(); csc_data->apply_modifications(); }
 private:
     MatrixContainer<T> *data;
     MatrixContainer<T> *transposed_data;
