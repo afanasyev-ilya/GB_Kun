@@ -63,6 +63,7 @@ public:
     // TODO do we need update edge here?
 
     void apply_modifications();
+    void soft_apply_modifications();
 
     bool has_unmerged_modifications() const { return ongoing_modifications; };
 private:
@@ -83,9 +84,6 @@ private:
     std::map<VNT, std::map<std::pair<VNT, ENT>, T> > added_edges; /* supporting invariant that both adjacent
                                                                      vertices should have same edge in order for it
                                                                      to be valid when merging changes*/
-
-    bool row_marked_for_removal(VNT _row) { return false; }; // TODO implement based on set removed_rows
-    bool val_marked_for_removal(ENT _csr_index) { return false; }; // TODO implement based on map removed_edges
 
     /* Vector of number_of_running_threads size
      * for i-th thread [i].first element means the beginning row to process
