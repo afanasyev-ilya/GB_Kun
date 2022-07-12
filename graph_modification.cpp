@@ -120,8 +120,8 @@ int main(int argc, char **argv) {
                     apply_modification(get_random_modification(), A, A_clone, cur_nrows, cur_ncols);
                 }
 
-                //A.get_matrix()->apply_modifications();
-                /*
+                A.get_matrix()->apply_modifications();
+
                 for (int i = 0; i < cur_nrows; ++i) {
                     for (int j = 0; j < cur_ncols; ++j) {
                         if (A.get_matrix()->get_csr()->get(i, j) != A_clone[i][j]) {
@@ -129,7 +129,6 @@ int main(int argc, char **argv) {
                         }
                     }
                 }
-                */
             }
 
             cout << "error_count: " << error_cnt << "/" << cur_nrows * cur_ncols << endl;

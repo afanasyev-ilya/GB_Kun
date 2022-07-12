@@ -141,7 +141,7 @@ void MatrixCSR<T>::apply_modifications()
                         if (edge_pair.first == row and added_edge_is_valid(row, edge_pair, edge_weight, added_edges)) {
                             new_col_ids.push_back(edge_pair.second);
                             new_ncols = std::max(new_ncols, edge_pair.second);
-                            new_col_ids.push_back(edge_weight);
+                            new_vals.push_back(edge_weight);
                             ++cur_row_nnz;
                         }
                     }
@@ -153,7 +153,7 @@ void MatrixCSR<T>::apply_modifications()
                     if (edge_pair.first == row and added_edge_is_valid(row, edge_pair, edge_weight, added_edges)) {
                         new_col_ids.push_back(edge_pair.second);
                         new_ncols = std::max(new_ncols, edge_pair.second);
-                        new_col_ids.push_back(edge_weight);
+                        new_vals.push_back(edge_weight);
                         just_added_edges.insert(edge_pair);
                         ++cur_row_nnz;
                     }
@@ -165,7 +165,7 @@ void MatrixCSR<T>::apply_modifications()
                     if (just_added_edges.find(cur_edge_pair) == just_added_edges.end() and removed_edges.find(cur_edge_pair) == removed_edges.end()) {
                         new_col_ids.push_back(col);
                         new_ncols = std::max(new_ncols, col);
-                        new_col_ids.push_back(val);
+                        new_vals.push_back(val);
                         ++cur_row_nnz;
                     }
                 }
@@ -176,7 +176,7 @@ void MatrixCSR<T>::apply_modifications()
                 if (edge_pair.first == row and added_edge_is_valid(row, edge_pair, edge_weight, added_edges)) {
                     new_col_ids.push_back(edge_pair.second);
                     new_ncols = std::max(new_ncols, edge_pair.second);
-                    new_col_ids.push_back(edge_weight);
+                    new_vals.push_back(edge_weight);
                     ++cur_row_nnz;
                 }
             }
