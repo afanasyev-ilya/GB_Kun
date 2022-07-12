@@ -146,7 +146,7 @@ def get_info_for_all_graphs(graph_urls, cnt):
             continue
         soup = BeautifulSoup(html.text, features="html.parser")
         ret = get_graph_info(graph_url)
-        if ret != None and ret['tsv_link'] != None and ret['volume'] > 1000000 and ret['volume'] < 99000000:
+        if ret != None and ret['tsv_link'] != None:
             ans[get_name(soup)] = ret
             am += 1
 
