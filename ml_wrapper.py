@@ -22,7 +22,6 @@ if __name__ == "__main__":
 
     args = sys.argv[2:]
     graphname = " ".join(args)
-    print("Looking in the pickle for graph: ", graphname)
 
     # Gather graph data from collected pickle file
 
@@ -45,7 +44,6 @@ if __name__ == "__main__":
                         values.append(value)
                 X_data.append(values)
 
-    print(X_data)
 
     # Predict label from downloaded model
 
@@ -60,8 +58,7 @@ if __name__ == "__main__":
 
     cmd = ["bash", "./benchmark.sh", get_binary_path(current_app), "-graph mtx ",
            get_path_to_graph(graphname, file_extension)] + common_args
-    print("! ! ! " + get_path_to_graph(graphname, file_extension))
-    print(' '.join(cmd))
+
     proc = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     proc.wait()
     stdout, stderr = proc.communicate()

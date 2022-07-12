@@ -23,10 +23,8 @@ if __name__ == "__main__":
                     values.append(value)
                 if item == "percentile":
                     values.append(value)
-                #print(item)
             X_data.append(values)
 
-    # print(X_train)
 
     seg_perf = []
     csr_perf = []
@@ -52,9 +50,8 @@ if __name__ == "__main__":
         print("Different sizes of training datasets")
         exit(-1)
 
-    #print(len(seg_perf))
-    #
     labels = []
+
     for i in range(len(seg_perf)):
         if seg_perf[i] < csr_perf[i]:
             labels.append(0) #0 is for better segmented csr
@@ -72,7 +69,6 @@ if __name__ == "__main__":
     acc_score = 0
 
     for train_index, test_index in kf.split(X_data):
-        #print(train_index, test_index)
         X_train, X_test = X_data[train_index], X_data[test_index]
         y_train, y_test = labels[train_index], labels[test_index]
 
