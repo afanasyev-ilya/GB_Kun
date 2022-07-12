@@ -162,7 +162,9 @@ void MatrixCSR<T>::apply_modifications()
                     VNT col = col_ids[i];
                     T val = vals[i];
                     const auto cur_edge_pair = std::make_pair(row, col);
-                    if (just_added_edges.find(cur_edge_pair) == just_added_edges.end() and removed_edges.find(cur_edge_pair) == removed_edges.end()) {
+                    if (removed_rows.find(col) == removed_rows.end() and
+                        just_added_edges.find(cur_edge_pair) == just_added_edges.end() and
+                        removed_edges.find(cur_edge_pair) == removed_edges.end()) {
                         new_col_ids.push_back(col);
                         new_ncols = std::max(new_ncols, col);
                         new_vals.push_back(val);
@@ -192,7 +194,7 @@ void MatrixCSR<T>::apply_modifications()
     added_edges.clear();
 
     nrows = new_nrows;
-    ncols = new_ncols;
+    ncols = new_nrows;
     nnz = new_col_ids.size();
     resize(nrows, ncols, nnz);
     #pragma omp parallel
