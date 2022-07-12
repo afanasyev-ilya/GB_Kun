@@ -104,6 +104,15 @@ void MatrixCSR<T>::remove_val(VNT _row, VNT _col)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
+void MatrixCSR<T>::soft_apply_modifications() {
+    if (ongoing_modifications and num_changes > 1000) {
+        apply_modifications();
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
 void MatrixCSR<T>::apply_modifications()
 {
     if (!ongoing_modifications) {
