@@ -28,7 +28,7 @@ void apply_modification(ModificationTypes modification_type, lablas::Matrix<floa
         const auto vertex_id = get_random_vertex_id_to_insert(nrows, ncols);
         cout << "Applying vertex insertion of <" << vertex_id << ">" << endl;
 
-        //A.add_vertex(vertex_id);
+        A.add_vertex(vertex_id);
 
         if (vertex_id >= nrows) {
             for (VNT i = 0; i < nrows; ++i) {
@@ -46,7 +46,7 @@ void apply_modification(ModificationTypes modification_type, lablas::Matrix<floa
         const auto vertex_id = get_random_vertex_id_to_delete(nrows, ncols);
         cout << "Applying vertex deletion of <" << vertex_id << ">" << endl;
 
-        //A.remove_vertex(vertex_id);
+        A.remove_vertex(vertex_id);
 
         if (vertex_id < nrows) {
             if (vertex_id + 1 == nrows) {
@@ -70,7 +70,7 @@ void apply_modification(ModificationTypes modification_type, lablas::Matrix<floa
         const auto edge_weight = get_random_edge_weight_value();
         cout << "Applying edge insertion of (" << src_id << ", " << dst_id << ", " << edge_weight << ")" << endl;
 
-        //A.add_edge(src_id, dst_id, edge_weight);
+        A.add_edge(src_id, dst_id, edge_weight);
 
         if (src_id < nrows and dst_id < ncols) {
             A_clone[src_id][dst_id] = edge_weight;
@@ -79,7 +79,7 @@ void apply_modification(ModificationTypes modification_type, lablas::Matrix<floa
         const auto [src_id, dst_id] = get_random_edge_pair(nrows, ncols);
         cout << "Applying edge deletion of (" << src_id << ", " << dst_id <<  ")" << endl;
 
-        //A.remove_edge(src_id, dst_id);
+        A.remove_edge(src_id, dst_id);
 
         if (src_id < nrows and dst_id < ncols) {
             A_clone[src_id][dst_id] = 0;
@@ -130,7 +130,6 @@ int main(int argc, char **argv) {
                     }
                 }
                 */
-
             }
 
             cout << "error_count: " << error_cnt << "/" << cur_nrows * cur_ncols << endl;
