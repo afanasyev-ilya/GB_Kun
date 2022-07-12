@@ -12,15 +12,15 @@ bool added_edge_is_valid(VNT asking_row, const std::pair<VNT, ENT>& edge_pair, T
     bool edge_is_valid = true;
     if (asking_row != edge_src_id) {
         if (added_edges.find(edge_src_id) == added_edges.end() or
-            added_edges[edge_src_id].find(edge_pair) == added_edges[edge_src_id].end() or
-            added_edges[edge_src_id].at(edge_pair) != edge_weight) {
+            added_edges.at(edge_src_id).find(edge_pair) == added_edges.at(edge_src_id).end() or
+            added_edges.at(edge_src_id).at(edge_pair) != edge_weight) {
             edge_is_valid = false;
         }
     }
     if (asking_row != edge_dst_id) {
         if (added_edges.find(edge_dst_id) == added_edges.end() or
-            added_edges[edge_dst_id].find(edge_pair) == added_edges[edge_dst_id].end() or
-            added_edges[edge_dst_id].at(edge_pair) != edge_weight) {
+            added_edges.at(edge_dst_id).find(edge_pair) == added_edges.at(edge_dst_id).end() or
+            added_edges.at(edge_dst_id).at(edge_pair) != edge_weight) {
             edge_is_valid = false;
         }
     }
