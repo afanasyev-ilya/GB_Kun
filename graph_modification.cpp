@@ -3,7 +3,11 @@
 enum ModificationTypes { VERTEX_INSERTION_OP, VERTEX_DELETION_OP, EDGE_INSERTION_OP, EDGE_DELETION_OP, MOD_TYPES_LEN };
 
 VNT get_random_vertex_id_to_insert(VNT nrows, VNT ncols) {
-    return (rand() % ((nrows * 2)));
+    auto result = (rand() % ((nrows * 2)));
+    if (result > 5000) {
+        result = rand() % 5000;
+    }
+    return result;
 }
 
 VNT get_random_vertex_id_to_delete(VNT nrows, VNT ncols) {
@@ -11,7 +15,9 @@ VNT get_random_vertex_id_to_delete(VNT nrows, VNT ncols) {
 }
 
 std::pair<VNT, VNT> get_random_edge_pair(VNT nrows, VNT ncols) {
-    return std::make_pair(rand() % ((int)((double) nrows * 1.2)), rand() % ((int)((double) ncols * 1.2)));
+    auto result1 =  rand() % ((int)((double) nrows * 1.2));
+    auto result2 = rand() % ((int)((double) ncols * 1.2));
+    return std::make_pair(result1, result2);
 }
 
 float get_random_edge_weight_value() {
