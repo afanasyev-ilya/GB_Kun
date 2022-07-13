@@ -76,6 +76,14 @@ template<typename T>
 void MatrixCSR<T>::add_val(VNT _row, VNT _col, T _val)
 {
     ++num_changes;
+    auto cur_max_rows = nrows;
+    if (!added_rows.empty()) {
+        cur_max_rows = max(cur_max_rows, *(added_rows.rbegin()) + 1);
+    }
+    if (_row >= cur_max_rows or _col >= cur_max_rows) {
+        LOG_ERROR("Adding edge between non-existent vertices...");
+        return;
+    }
     ongoing_modifications = true;
     added_edges[_row][std::make_pair(_row, _col)] = _val;
     added_edges[_col][std::make_pair(_row, _col)] = _val;
@@ -86,7 +94,7 @@ void MatrixCSR<T>::add_val(VNT _row, VNT _col, T _val)
 template<typename T>
 void MatrixCSR<T>::remove_val(VNT _row, VNT _col)
 {
-    num_changes++;
+    ++num_changes;
     ongoing_modifications = true;
     if (added_edges.find(_row) != added_edges.end()) {
         if (added_edges[_row].find(std::make_pair(_row, _col)) != added_edges[_row].end()) {
@@ -127,7 +135,7 @@ void MatrixCSR<T>::apply_modifications()
     std::vector<T> new_vals;
 
     for (const auto row: added_rows) {
-        new_nrows = std::max(row, new_nrows);
+        new_nrows = std::max(row + 1, new_nrows);
     }
 
     for (VNT row = 0; row < new_nrows; ++row) {
@@ -198,7 +206,7 @@ void MatrixCSR<T>::apply_modifications()
     nnz = new_col_ids.size();
     resize(nrows, ncols, nnz);
     #pragma omp parallel
-    for (VNT i = 0; i < nrows; ++i) {
+    for (VNT i = 0; i <= nrows; ++i) {
         row_ptr[i] = new_row_ptr[i];
     }
     #pragma omp parallel
