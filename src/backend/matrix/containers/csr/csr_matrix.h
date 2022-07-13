@@ -77,6 +77,7 @@ private:
 
     bool ongoing_modifications;
     ENT num_changes;
+    std::set<VNT> removed_vertices;
     std::set<VNT> removed_rows;
     std::set<VNT> restored_rows;
     std::set<VNT> added_rows;

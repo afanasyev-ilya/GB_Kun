@@ -35,6 +35,11 @@ template<typename T>
 void MatrixCSR<T>::add_row(VNT _row)
 {
     ++num_changes;
+
+    if (removed_vertices.find(_row) != removed_vertices.end()) {
+        removed_vertices.erase(_row);
+    }
+
     if (_row < nrows) {
         if (removed_rows.find(_row) != removed_rows.end()) {
             restored_rows.insert(_row);
@@ -54,6 +59,9 @@ void MatrixCSR<T>::remove_row(VNT _row)
     if (added_edges.find(_row) != added_edges.end()) {
         added_edges.erase(_row);
     }
+
+    removed_vertices.insert(_row);
+
     if (_row < nrows) {
         if (restored_rows.find(_row) != restored_rows.end()) {
             restored_rows.erase(_row);
@@ -80,7 +88,8 @@ void MatrixCSR<T>::add_val(VNT _row, VNT _col, T _val)
     if (!added_rows.empty()) {
         cur_max_rows = max(cur_max_rows, *(added_rows.rbegin()) + 1);
     }
-    if (_row >= cur_max_rows or _col >= cur_max_rows) {
+    if (_row >= cur_max_rows or _col >= cur_max_rows or
+        removed_vertices.find(_row) != removed_vertices.end() or removed_vertices.find(_col) != removed_vertices.end()) {
         LOG_ERROR("Adding edge between non-existent vertices...");
         return;
     }
@@ -95,6 +104,10 @@ template<typename T>
 void MatrixCSR<T>::remove_val(VNT _row, VNT _col)
 {
     ++num_changes;
+    if (removed_vertices.find(_row) != removed_vertices.end() or removed_vertices.find(_col) != removed_vertices.end()) {
+        LOG_ERROR("Removing edge between non-existent vertices...");
+        return;
+    }
     ongoing_modifications = true;
     if (added_edges.find(_row) != added_edges.end()) {
         if (added_edges[_row].find(std::make_pair(_row, _col)) != added_edges[_row].end()) {
@@ -146,7 +159,7 @@ void MatrixCSR<T>::apply_modifications()
                 if (restored_rows.find(row) != restored_rows.end()) {
                     // old but deleted and then restored vertices
                     for (const auto &[edge_pair, edge_weight] : added_edges[row]) {
-                        if (edge_pair.first == row and added_edge_is_valid(row, edge_pair, edge_weight, added_edges)) {
+                        if (edge_pair.first == row and removed_vertices.find(edge_pair.second) == removed_vertices.end() and added_edge_is_valid(row, edge_pair, edge_weight, added_edges)) {
                             new_col_ids.push_back(edge_pair.second);
                             new_ncols = std::max(new_ncols, edge_pair.second);
                             new_vals.push_back(edge_weight);
@@ -158,7 +171,7 @@ void MatrixCSR<T>::apply_modifications()
                 // old and not deleted vertices
                 std::set<std::pair<VNT, ENT> > just_added_edges;
                 for (const auto &[edge_pair, edge_weight] : added_edges[row]) {
-                    if (edge_pair.first == row and added_edge_is_valid(row, edge_pair, edge_weight, added_edges)) {
+                    if (edge_pair.first == row and removed_vertices.find(edge_pair.second) == removed_vertices.end() and added_edge_is_valid(row, edge_pair, edge_weight, added_edges)) {
                         new_col_ids.push_back(edge_pair.second);
                         new_ncols = std::max(new_ncols, edge_pair.second);
                         new_vals.push_back(edge_weight);
@@ -172,7 +185,8 @@ void MatrixCSR<T>::apply_modifications()
                     const auto cur_edge_pair = std::make_pair(row, col);
                     if (removed_rows.find(col) == removed_rows.end() and
                         just_added_edges.find(cur_edge_pair) == just_added_edges.end() and
-                        removed_edges.find(cur_edge_pair) == removed_edges.end()) {
+                        removed_edges.find(cur_edge_pair) == removed_edges.end() and
+                        removed_vertices.find(col) == removed_vertices.end()) {
                         new_col_ids.push_back(col);
                         new_ncols = std::max(new_ncols, col);
                         new_vals.push_back(val);
@@ -182,17 +196,31 @@ void MatrixCSR<T>::apply_modifications()
             }
         } else {
             // add new vertices
-            for (const auto &[edge_pair, edge_weight] : added_edges[row]) {
-                if (edge_pair.first == row and added_edge_is_valid(row, edge_pair, edge_weight, added_edges)) {
-                    new_col_ids.push_back(edge_pair.second);
-                    new_ncols = std::max(new_ncols, edge_pair.second);
-                    new_vals.push_back(edge_weight);
-                    ++cur_row_nnz;
+            if (added_rows.find(row) == added_rows.end()) {
+                removed_vertices.insert(row);
+            } else {
+                for (const auto &[edge_pair, edge_weight] : added_edges[row]) {
+                    if (edge_pair.first == row and removed_vertices.find(edge_pair.second) == removed_vertices.end() and added_edge_is_valid(row, edge_pair, edge_weight, added_edges)) {
+                        new_col_ids.push_back(edge_pair.second);
+                        new_ncols = std::max(new_ncols, edge_pair.second);
+                        new_vals.push_back(edge_weight);
+                        ++cur_row_nnz;
+                    }
                 }
             }
         }
         new_row_ptr.push_back(new_row_ptr.back() + cur_row_nnz);
     }
+
+    std::set<VNT> new_removed_vertices;
+
+    for (const auto el : removed_vertices) {
+        if (el < new_nrows) {
+            new_removed_vertices.insert(el);
+        }
+    }
+
+    removed_vertices = new_removed_vertices;
 
     // clear datastructures, which store updates
     removed_rows.clear();
