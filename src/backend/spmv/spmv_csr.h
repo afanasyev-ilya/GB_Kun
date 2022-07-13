@@ -382,13 +382,25 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
 
         for(VNT row = first_row; row < last_row; row++)
         {
+            /* Set all SIMD lanes to identity value */
+            int64x2_t vec_resval = vmovq_n_s64(identity_val);
+            /* Temporary SIMD register for addition result store */
+            int64x2_t vec_addition_result;
+
             Y res = identity_val;
             for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
-                VNT col = _matrix->col_ids[j];
-                A val = _matrix->vals[j];
-                //if(x_vals[col] != 0) // TODO is it correct?
-                    res = add_op(res, mul_op(val, x_vals[col]));
+                /* Perform scalar gather primitive, which is unavailable in NEON */
+                VNT values[2] = {x_vals[_matrix->col_ids[j]], x_vals[_matrix->col_ids[j+1]]};
+                /* Store vector and matrix values on vector registers */
+                int64x2_t vec_cols = vld1q_s64((long int*)&values);
+                int64x2_t vec_vals = vld1q_s64((long int*)&_matrix->vals[j]);
+
+                /* Perform vector multiplication with the help of additional function */
+                int64x2_t vec_mul =  arm_vmulq_s64(vec_vals, vec_cols);
+
+                /* Accumulation */
+                vec_addition_result = vaddq_s64(vec_mul, vec_vals);
             }
             y_vals[row] = _accum(y_vals[row], res);
         }
@@ -478,7 +490,7 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
         for(VNT row = first_row; row < last_row; row++)
         {
             int64x2_t vec_resval = vmovq_n_s64(identity_val);
-            int64x2_t vec_res;
+            int64x2_t vec_addition_result;
             for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j+=2)
             {
                 //int64x2_t vec_col = vld1q_s64(&_matrix->col_ids[j]);
@@ -493,11 +505,11 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
 
                 int64x2_t vec_mul =  arm_vmulq_s64(vec_vals, vec_cols);
 
-                vec_res = vaddq_s64(vec_mul, vec_vals);
+                vec_addition_result = vaddq_s64(vec_mul, vec_vals);
 
                 //res = add_op(res, mul_op(val, x_vals[col]));
             }
-            vst1q_s64(&buffer[row], vec_res);
+            vst1q_s64(&buffer[row], vec_addition_result);
         }
 
         #pragma omp barrier
