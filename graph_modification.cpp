@@ -136,8 +136,8 @@ int main(int argc, char **argv) {
                 }
             }
 
-            const int op_blocks_cnt = 100;
-            const int op_cnt = 100;
+            const int op_blocks_cnt = 1000;
+            const int op_cnt = 900;
             for (int cur_block_op = 0; cur_block_op < op_blocks_cnt; ++cur_block_op) {
                 for (int op_id = 0; op_id < op_cnt; ++op_id) {
                     apply_modification(get_random_modification(), A, A_clone, removed_vertices, cur_nrows, cur_ncols);
@@ -153,9 +153,6 @@ int main(int argc, char **argv) {
                             ++error_cnt;
                         }
                     }
-                }
-                if (error_cnt) {
-                    return 1;
                 }
             }
 
