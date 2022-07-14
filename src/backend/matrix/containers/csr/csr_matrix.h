@@ -65,6 +65,8 @@ public:
     void apply_modifications();
     void soft_apply_modifications();
 
+    bool vertex_exists(VNT _row_id) const;
+
     bool has_unmerged_modifications() const { return ongoing_modifications; };
 private:
     VNT nrows, ncols;

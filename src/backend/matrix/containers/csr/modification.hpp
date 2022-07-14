@@ -32,6 +32,17 @@ bool added_edge_is_valid(VNT asking_row, const std::pair<VNT, ENT>& edge_pair, T
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
+bool MatrixCSR<T>::vertex_exists(VNT _row_id) const {
+    auto cur_max_rows = nrows;
+    if (!added_rows.empty()) {
+        cur_max_rows = max(cur_max_rows, *(added_rows.rbegin()) + 1);
+    }
+    return removed_rows.find(_row_id) == removed_rows.end() and _row_id < cur_max_rows;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
 void MatrixCSR<T>::add_row(VNT _row)
 {
     ++num_changes;
