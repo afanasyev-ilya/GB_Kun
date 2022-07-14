@@ -138,3 +138,14 @@ python3 codestyle_formatter.py --apply --safe
 ```
 
 The script also has `--quiet` option so the output could be easily interpreted by other scripts.
+
+
+***Wrapper using ML trained model***
+
+Initial version of wrapper script uses built-in parameters for algorithm running
+You need to pass algorithm name and graphname in this script
+```bash
+python3 ./ml_wrapper.py bfs Flickr 
+```
+
+
