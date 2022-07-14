@@ -384,8 +384,6 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
         {
             /* Set all SIMD lanes to identity value */
             int64x2_t vec_resval = vmovq_n_s64(identity_val);
-            /* Temporary SIMD register for addition result store */
-            int64x2_t vec_addition_result;
 
             Y res = identity_val;
             for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
@@ -399,10 +397,14 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
                 /* Perform vector multiplication with the help of additional function */
                 int64x2_t vec_mul =  arm_vmulq_s64(vec_vals, vec_cols);
 
-                /* Accumulation */
-                vec_addition_result = vaddq_s64(vec_mul, vec_vals);
+                /* Sum of multplied pairs */
+                vec_resval = vaddq_s64(vec_mul, vec_resval);
             }
-            y_vals[row] = _accum(y_vals[row], res);
+
+            VNT temp_values[2] = {0, 0};
+            vst1q_s64((long int*)&temp_values, vec_resval);
+
+            y_vals[row] = _accum(y_vals[row], temp_values[0] + temp_values[1]);
         }
     }
     #ifdef __DEBUG_BANDWIDTHS__
