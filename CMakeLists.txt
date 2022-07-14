@@ -74,8 +74,8 @@ STRING(REPLACE ";" " " headers_list "${headers_list}")
 STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" headers_list "${headers_list}")
 #message(STATUS "[INFO] header files list: ${headers_list}")
 #
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
+#find_package(GTest REQUIRED)
+#include_directories(${GTEST_INCLUDE_DIRS})
 
 file(MAKE_DIRECTORY benchmark/integration_scripts)
 
@@ -108,6 +108,9 @@ target_include_directories(transpose PRIVATE)
 
 add_executable(switch_test switch_test.cpp)
 target_include_directories(switch_test PRIVATE)
+
+add_executable(nested_test nested_test.cpp)
+target_include_directories(nested_test PRIVATE)
 
 #if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 #add_executable(test_matrix tests/GB_objects/test_matrix_ops.cpp)
