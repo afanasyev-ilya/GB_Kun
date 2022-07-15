@@ -79,34 +79,34 @@ include_directories(${GTEST_INCLUDE_DIRS})
 
 file(MAKE_DIRECTORY benchmark/integration_scripts)
 
-add_executable(cc cc.cpp)
+add_executable(cc cc.cpp tests/gtest/mxv_test.cpp)
 target_include_directories(cc PRIVATE)
 
-add_executable(bfs bfs.cpp)
+add_executable(bfs bfs.cpp tests/gtest/mxv_test.cpp)
 target_include_directories(bfs PRIVATE)
 
-add_executable(spmv spmv.cpp)
+add_executable(spmv spmv.cpp tests/gtest/mxv_test.cpp)
 target_include_directories(spmv PRIVATE)
 
-add_executable(pr pr.cpp)
+add_executable(pr pr.cpp tests/gtest/mxv_test.cpp)
 target_include_directories(pr PRIVATE)
 
-add_executable(sssp sssp.cpp)
+add_executable(sssp sssp.cpp tests/gtest/mxv_test.cpp)
 target_include_directories(sssp PRIVATE)
 
-add_executable(gen gen.cpp)
+add_executable(gen gen.cpp tests/gtest/mxv_test.cpp)
 target_include_directories(gen PRIVATE)
 
-add_executable(gemm gemm.cpp)
+add_executable(gemm gemm.cpp tests/gtest/mxv_test.cpp)
 target_include_directories(gemm PRIVATE)
 
-add_executable(tc tc.cpp tc.cpp)
+add_executable(tc tc.cpp tc.cpp tests/gtest/mxv_test.cpp)
 target_include_directories(tc PRIVATE)
 
-add_executable(transpose transpose.cpp)
+add_executable(transpose transpose.cpp tests/gtest/mxv_test.cpp)
 target_include_directories(transpose PRIVATE)
 
-add_executable(switch_test switch_test.cpp)
+add_executable(switch_test switch_test.cpp tests/gtest/mxv_test.cpp)
 target_include_directories(switch_test PRIVATE)
 
 #if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
