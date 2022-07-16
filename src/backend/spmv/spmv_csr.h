@@ -386,19 +386,23 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
             int64x2_t vec_resval = vmovq_n_s64(identity_val);
 
             Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j+=2)
             {
                 /* Perform scalar gather primitive, which is unavailable in NEON */
-                VNT values[2] = {x_vals[_matrix->col_ids[j]], x_vals[_matrix->col_ids[j+1]]};
+                VNT values[2] = {x_vals[_matrix->col_ids[j]], j + 1 ==  _matrix->row_ptr[row + 1] ? 0 : x_vals[_matrix->col_ids[j+1]]};
+
                 /* Store vector and matrix values on vector registers */
                 int64x2_t vec_cols = vld1q_s64((long int*)&values);
+
                 int64x2_t vec_vals = vld1q_s64((long int*)&_matrix->vals[j]);
 
                 int32x2_t cols_narrowed = vmovn_s64(vec_cols);
                 int32x2_t vals_narrowed = vmovn_s64(vec_vals);
 
-                /* Perform vector multiplication with the help of additional function */
-//                int64x2_t vec_mul =  arm_vmulq_s64(vec_vals, vec_cols);
+
+                /* Perform vector multiplication */
+
+                /* 64-bit MUL for later work int64x2_t vec_mul =  arm_vmulq_s64(vec_vals, vec_cols); */
                 int32x2_t vec_mul = vmul_s32(cols_narrowed, vals_narrowed);
 
                 int64x2_t mul_widened = vmovl_s32(vec_mul);
