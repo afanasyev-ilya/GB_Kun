@@ -2,6 +2,7 @@
 
 #include "spmv_seg.h"
 #include "spmv_csr.h"
+#include "spmv_csr_neon.h"
 #include "spmv_coo.h"
 #include "spmv_lav.h"
 #include "spmv_sell_c.h"
@@ -31,27 +32,40 @@ void SpMV(const Matrix<A> *_matrix,
     {
         MatrixStorageFormat format;
         _matrix->get_format(&format);
+        Desc_value neon_mode;
+        _desc->get(GrB_NEON, &neon_mode);
+//        std::cout << num_sockets_used() << std::endl;
         if(format == CSR)
         {
-            if(num_sockets_used() > 1)
-            {
-
-                LOG_TRACE("Using NUMA-aware SPMV");
-
-                SpMV_numa_aware(_matrix->get_csr(), _x, _y, _accum, _op, _matrix->get_workspace());
+            if (neon_mode == GrB_NEON_ON) {
+                SpMV_all_active_diff_vectors_neon(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+            } else {
+                SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
             }
-            else
-            {
-                LOG_TRACE("Using single socket SPMV")
-                if(_x == _y)
-                {
-                    SpMV_all_active_same_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
-                }
-                else
-                {
-                    SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
-                }
-            }
+//            if(num_sockets_used() > 1)
+//            {
+//
+//                LOG_TRACE("Using NUMA-aware SPMV");
+//
+//                SpMV_numa_aware(_matrix->get_csr(), _x, _y, _accum, _op, _matrix->get_workspace());
+//            }
+//            else
+//            {
+//                LOG_TRACE("Using single socket SPMV")
+//                if(_x == _y)
+//                {
+//                    SpMV_all_active_same_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+//                }
+//                else
+//                {
+//
+//                    if (neon_mode == GrB_NEON_ON) {
+//                        SpMV_all_active_diff_vectors_neon(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+//                    } else {
+//                        SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+//                    }
+//                }
+//            }
         }
         else if(format == LAV)
             SpMV(((MatrixLAV<A> *) _matrix->get_data()), _x, _y, _accum, _op, _matrix->get_workspace());

@@ -79,6 +79,7 @@
                     GrB_TOL,
                     GrB_BACKEND,
                     GrB_MXMMODE,
+                    GrB_NEON,
                     GrB_NDESCFIELD};
 
     enum Desc_value {GrB_SCMP,               // for GrB_MASK
@@ -108,6 +109,8 @@
                     GrB_IKJ_MASKED = 35,
                     GrB_ESC = 36,
                     GrB_ESC_MASKED = 37,
+                    GrB_NEON_ON = 38,
+                    GrB_NEON_OFF = 39,
                     SPMV_GENERAL   = 63,
                     SPMSPV_BUCKET = 65,
                     SPMSPV_MAP_TBB = 66,
