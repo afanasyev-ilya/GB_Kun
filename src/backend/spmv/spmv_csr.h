@@ -1,17 +1,6 @@
 #pragma once
-#include <arm_neon.h>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-inline int64x2_t arm_vmulq_s64(const int64x2_t& a, const int64x2_t& b)
-{
-    const auto ac = vmovn_s64(a);
-    const auto pr = vmovn_s64(b);
-
-    const auto hi = vmulq_s32(b, vrev64q_s32(a));
-
-    return vmlal_u32(vshlq_n_s64(vpaddlq_u32(hi), 32), ac, pr);
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace lablas {
 namespace backend {
@@ -382,39 +371,14 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
 
         for(VNT row = first_row; row < last_row; row++)
         {
-            /* Set all SIMD lanes to identity value */
-            int64x2_t vec_resval = vmovq_n_s64(identity_val);
-
             Y res = identity_val;
-            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j+=2)
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
             {
-                /* Perform scalar gather primitive, which is unavailable in NEON */
-                VNT values[2] = {x_vals[_matrix->col_ids[j]], j + 1 ==  _matrix->row_ptr[row + 1] ? 0 : x_vals[_matrix->col_ids[j+1]]};
-
-                /* Store vector and matrix values on vector registers */
-                int64x2_t vec_cols = vld1q_s64((long int*)&values);
-
-                int64x2_t vec_vals = vld1q_s64((long int*)&_matrix->vals[j]);
-
-                int32x2_t cols_narrowed = vmovn_s64(vec_cols);
-                int32x2_t vals_narrowed = vmovn_s64(vec_vals);
-
-
-                /* Perform vector multiplication */
-
-                /* 64-bit MUL for later work int64x2_t vec_mul =  arm_vmulq_s64(vec_vals, vec_cols); */
-                int32x2_t vec_mul = vmul_s32(cols_narrowed, vals_narrowed);
-
-                int64x2_t mul_widened = vmovl_s32(vec_mul);
-
-                /* Sum of multplied pairs */
-                vec_resval = vaddq_s64(mul_widened, vec_resval);
+                VNT col = _matrix->col_ids[j];
+                A val = _matrix->vals[j];
+                res = add_op(res, mul_op(val, x_vals[col]));
             }
-
-            VNT temp_values[2] = {0, 0};
-            vst1q_s64((long int*)&temp_values, vec_resval);
-
-            y_vals[row] = _accum(y_vals[row], temp_values[0] + temp_values[1]);
+            y_vals[row] = _accum(y_vals[row], res);
         }
     }
     #ifdef __DEBUG_BANDWIDTHS__
@@ -493,47 +457,32 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
     double t1 = omp_get_wtime();
     #endif
 
-//    #pragma omp parallel
-//    {
-//        int tid = omp_get_thread_num();
-//        VNT first_row = offsets[tid].first;
-//        VNT last_row = offsets[tid].second;
-//
-//        for(VNT row = first_row; row < last_row; row++)
-//        {
-//            int64x2_t vec_resval = vmovq_n_s64(identity_val);
-//            int64x2_t vec_addition_result;
-//            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j+=2)
-//            {
-//                //int64x2_t vec_col = vld1q_s64(&_matrix->col_ids[j]);
-//                //VNT cols = {_matrix->col_ids[j], _matrix->col_ids[j+1]};
-//                //int64x2_t vec_cols = vld1q_s64(&cols);
-//
-//                VNT values[2] = {x_vals[_matrix->col_ids[j]], x_vals[_matrix->col_ids[j+1]]};
-//                int64x2_t vec_cols = vld1q_s64((long int*)&values);
-//                int64x2_t vec_vals = vld1q_s64((long int*)&_matrix->vals[j]);
-//
-//                //A val = _matrix->vals[j];
-//
-//                int64x2_t vec_mul =  arm_vmulq_s64(vec_vals, vec_cols);
-//
-//                vec_addition_result = vaddq_s64(vec_mul, vec_vals);
-//
-//                //res = add_op(res, mul_op(val, x_vals[col]));
-//            }
-//            vst1q_s64(&buffer[row], vec_addition_result);
-//        }
-//
-//        #pragma omp barrier
-//
-//
-//        //Last easy vectorization stage
-//        #pragma omp for
-//        for(VNT row = 0; row < _matrix->nrows; row++)
-//        {
-//            y_vals[row] = _accum(y_vals[row], buffer[row]);
-//        }
-//    }
+    #pragma omp parallel
+    {
+        int tid = omp_get_thread_num();
+        VNT first_row = offsets[tid].first;
+        VNT last_row = offsets[tid].second;
+
+        for(VNT row = first_row; row < last_row; row++)
+        {
+            Y res = identity_val;
+            for(ENT j = _matrix->row_ptr[row]; j < _matrix->row_ptr[row + 1]; j++)
+            {
+                VNT col = _matrix->col_ids[j];
+                A val = _matrix->vals[j];
+                res = add_op(res, mul_op(val, x_vals[col]));
+            }
+            buffer[row] = res;
+        }
+
+        #pragma omp barrier
+
+        #pragma omp for
+        for(VNT row = 0; row < _matrix->nrows; row++)
+        {
+            y_vals[row] = _accum(y_vals[row], buffer[row]);
+        }
+    }
 
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
