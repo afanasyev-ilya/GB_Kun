@@ -106,6 +106,7 @@ bool MatrixCSR<T>::is_non_zero(VNT _row, VNT _col)
 template <typename T>
 T MatrixCSR<T>::get(VNT _row, VNT _col) const
 {
+    apply_modifications();
     for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
     {
         if(col_ids[i] == _col)
