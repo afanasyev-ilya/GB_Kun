@@ -48,7 +48,7 @@ void check_mxv(lablas::Vector<T> &_out, lablas::Matrix<T> &_matrix, lablas::Vect
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void test_spmv(int argc, char **argv)
+void test_spmv(int argc, char **argv, int run_number)
 {
     Parser parser;
     parser.parse_args(argc, argv);
@@ -70,9 +70,18 @@ void test_spmv(int argc, char **argv)
     vector<GrB_Index> nnz_subset;
     for(Index i = 0; i < size/sparsity_k + 1; i++)
         nnz_subset.push_back(rand() % size);
+    std::string mode = "SPMV_GENERAL";
 
 #ifdef __USE_KUNPENG__
-    desc.set(GrB_NEON, GrB_NEON_ON);
+    if (run_number == 2) {
+        desc.set(GrB_NEON, GrB_NEON_32);
+        mode = "SPMV_NEON_32";
+    }
+
+    if (run_number == 3) {
+        desc.set(GrB_NEON, GrB_NEON_64);
+        mode = "SPMV_NEON_64";
+    }
 #endif
 
     Index u_const = 1;
@@ -90,16 +99,16 @@ void test_spmv(int argc, char **argv)
 
              double t1 = omp_get_wtime();
              SAVE_STATS(GrB_mxv(&w, MASK_NULL, NULL, lablas::PlusMultipliesSemiring<T>(), &matrix, &u, &desc);,
-                        "SPMV", (sizeof(float) * 2 + sizeof(size_t)), 1, &matrix);
+                        mode.data(), (sizeof(float) * 2 + sizeof(size_t)), 1, &matrix);
              double t2 = omp_get_wtime();
              avg_time += (t2 - t1) / num_runs;
          }
 
          double perf = 2.0 * matrix.get_nnz() / (avg_time * 1e9);
          double bw = (2.0 * sizeof(T) + sizeof(Index)) * matrix.get_nnz() / (avg_time * 1e9);
-         cout << "SPMV avg time: " << avg_time * 1000 << " ms" << endl;
-         cout << "SPMV avg perf: " << perf << " GFlop/s" << endl;
-         cout << "SPMV avg BW: " << bw << " GB/s" << endl;
+         cout << mode.data() << "avg time: " << avg_time * 1000 << " ms" << endl;
+         cout << mode.data() <<"avg perf: " << perf << " GFlop/s" << endl;
+         cout << mode.data() <<"avg BW: " << bw << " GB/s" << endl;
          save_to_file("./output/perf.txt", perf);
          save_to_file("./output/bw.txt", bw);
 
@@ -136,7 +145,18 @@ int main(int argc, char **argv)
 {
     try
     {
-        test_spmv<long int>(argc, argv);
+        /* Regular run*/
+        test_spmv<int>(argc, argv, 1);
+
+        #ifdef __USE_KUNPENG__
+
+        /* Run with 32-bit */
+        test_spmv<int>(argc, argv, 2);
+
+        /* Run with 64-bit */
+        test_spmv<long int>(argc, argv, 3);
+
+        #endif
     }
     catch (string error)
     {
