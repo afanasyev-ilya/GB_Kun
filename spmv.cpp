@@ -71,7 +71,9 @@ void test_spmv(int argc, char **argv)
     for(Index i = 0; i < size/sparsity_k + 1; i++)
         nnz_subset.push_back(rand() % size);
 
+#ifdef __USE_KUNPENG__
     desc.set(GrB_NEON, GrB_NEON_ON);
+#endif
 
     Index u_const = 1;
     Index u_diff_const = 5;

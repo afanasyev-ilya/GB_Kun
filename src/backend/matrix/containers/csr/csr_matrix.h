@@ -98,6 +98,8 @@ private:
                                              Descriptor *_desc,
                                              Workspace *_workspace);
 
+#ifdef __USE_KUNPENG__
+
     template <typename A, typename X, typename Y, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_all_active_diff_vectors_neon(const MatrixCSR<A> *_matrix,
                                              const DenseVector <X> *_x,
@@ -106,6 +108,8 @@ private:
                                              SemiringT op,
                                              Descriptor *_desc,
                                              Workspace *_workspace);
+
+#endif
 
     template <typename A, typename X, typename Y, typename M, typename SemiringT, typename BinaryOpTAccum>
     friend void SpMV_dense(const MatrixCSR<A> *_matrix,
