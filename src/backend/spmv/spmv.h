@@ -52,10 +52,16 @@ void SpMV(const Matrix<A> *_matrix,
                 }
                 else
                 {
-                    if (neon_mode == GrB_NEON_ON) {
-#ifdef __USE_KUNPENG__
-                        SpMV_all_active_diff_vectors_neon(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
-#endif
+                    if (neon_mode == GrB_NEON_64) {
+                        #ifdef __USE_KUNPENG__
+                        SpMV_all_active_diff_vectors_neon(_matrix->get_csr(), _x, _y, _accum, _op, _desc,
+                                                                _matrix->get_workspace());
+                        #endif
+                    } else if (neon_mode == GrB_NEON_32) {
+                        #ifdef __USE_KUNPENG__
+                        SpMV_all_active_diff_vectors_neon_short(_matrix->get_csr(), _x, _y, _accum, _op, _desc,
+                                                                _matrix->get_workspace());
+                        #endif
                     } else {
                         SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
                     }
