@@ -5,6 +5,14 @@ CHECK_INCLUDE_FILE_CXX("tbb/info.h" TBB_EXISTS)
 include(ProcessorCount)
 ProcessorCount(N)
 
+find_package(GTest)
+if(GTest_FOUND)
+    include_directories(${GTEST_INCLUDE_DIRS})
+endif()
+if (GTest_FOUND)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_GTEST__")
+endif()
+
 message("${CMAKE_CXX_COMPILER_ID}")
 message("${CMAKE_CXX_COMPILER}")
 message("${CMAKE_C_COMPILER}")
@@ -80,8 +88,6 @@ STRING(REPLACE ";" " " headers_list "${headers_list}")
 STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" headers_list "${headers_list}")
 #message(STATUS "[INFO] header files list: ${headers_list}")
 #
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
 
 file(MAKE_DIRECTORY benchmark/integration_scripts)
 
@@ -114,6 +120,9 @@ target_include_directories(transpose PRIVATE)
 
 add_executable(switch_test switch_test.cpp)
 target_include_directories(switch_test PRIVATE)
+
+add_executable(unit_tests unit_tests.cpp)
+target_include_directories(unit_tests PRIVATE)
 
 #if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 #add_executable(test_matrix tests/GB_objects/test_matrix_ops.cpp)
