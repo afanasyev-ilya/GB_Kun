@@ -376,6 +376,7 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
             {
                 VNT col = _matrix->col_ids[j];
                 A val = _matrix->vals[j];
+                // TODO is it correct?
                 res = add_op(res, mul_op(val, x_vals[col]));
             }
             y_vals[row] = _accum(y_vals[row], res);
