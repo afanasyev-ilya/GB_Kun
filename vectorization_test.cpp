@@ -1,5 +1,11 @@
 #include "src/gb_kun.h"
 
+enum vec_runmode{
+    GENERAL,
+    NEON_32,
+    NEON_64
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void save_to_file(const string &_file_name, double _stat)
@@ -48,7 +54,7 @@ void check_mxv(lablas::Vector<T> &_out, lablas::Matrix<T> &_matrix, lablas::Vect
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void test_spmv(int argc, char **argv, int run_number)
+void test_spmv(int argc, char **argv, vec_runmode run_number)
 {
     Parser parser;
     parser.parse_args(argc, argv);
@@ -72,17 +78,17 @@ void test_spmv(int argc, char **argv, int run_number)
         nnz_subset.push_back(rand() % size);
     std::string mode = "SPMV_GENERAL";
 
-#ifdef __USE_KUNPENG__
-    if (run_number == 2) {
+    #ifdef __USE_KUNPENG__
+    if (run_number == NEON_32) {
         desc.set(GrB_NEON, GrB_NEON_32);
         mode = "SPMV_NEON_32";
     }
 
-    if (run_number == 3) {
+    if (run_number == NEON_64) {
         desc.set(GrB_NEON, GrB_NEON_64);
         mode = "SPMV_NEON_64";
     }
-#endif
+    #endif
 
     Index u_const = 1;
     Index u_diff_const = 5;
@@ -146,17 +152,17 @@ int main(int argc, char **argv)
     try
     {
         /* Regular run*/
-        test_spmv<int>(argc, argv, 1);
+        test_spmv<int>(argc, argv, GENERAL);
 
-#ifdef __USE_KUNPENG__
+    #ifdef __USE_KUNPENG__
 
         /* Run with 32-bit */
-        test_spmv<int>(argc, argv, 2);
+        test_spmv<int>(argc, argv, NEON_32);
 
         /* Run with 64-bit */
-        test_spmv<long int>(argc, argv, 3);
+        test_spmv<long int>(argc, argv, NEON_64);
 
-#endif
+    #endif
     }
     catch (string error)
     {
