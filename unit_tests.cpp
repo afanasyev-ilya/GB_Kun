@@ -7,11 +7,7 @@
 #define SIZE 5
 #define MASK_NULL static_cast<const lablas::Vector<float>*>(NULL)
 
-class TestFoo : public ::testing::Test
-{
-};
-
-TEST_F(TestFoo, test1)
+TEST(MxvTest, test1)
 {
     lablas::Vector<int> u(SIZE);
     lablas::Vector<int> w(SIZE);

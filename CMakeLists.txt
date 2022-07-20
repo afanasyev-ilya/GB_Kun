@@ -123,6 +123,7 @@ target_include_directories(switch_test PRIVATE)
 
 add_executable(unit_tests unit_tests.cpp)
 target_include_directories(unit_tests PRIVATE)
+target_link_libraries(unit_tests ${GTEST_LIBRARIES})
 
 #if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 #add_executable(test_matrix tests/GB_objects/test_matrix_ops.cpp)
