@@ -89,6 +89,9 @@ STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" headers_list "${headers_list}")
 #message(STATUS "[INFO] header files list: ${headers_list}")
 #
 
+#find_package(GTest REQUIRED)
+#include_directories(${GTEST_INCLUDE_DIRS})
+
 file(MAKE_DIRECTORY benchmark/integration_scripts)
 
 add_executable(cc cc.cpp)
@@ -124,6 +127,9 @@ target_include_directories(switch_test PRIVATE)
 add_executable(unit_tests unit_tests.cpp)
 target_include_directories(unit_tests PRIVATE)
 target_link_libraries(unit_tests ${GTEST_LIBRARIES})
+
+add_executable(vectorization_test vectorization_test.cpp)
+target_include_directories(vectorization_test PRIVATE)
 
 #if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 #add_executable(test_matrix tests/GB_objects/test_matrix_ops.cpp)

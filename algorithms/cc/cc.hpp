@@ -6,7 +6,7 @@
   @details  Code is based on the algorithm described in the following paper.
   Zhang, Azad, Hu. FastSV: FastSV: A Distributed-Memory Connected Component
   Algorithm with Fast Convergence (SIAM PP20).
-  @date May 12, 2022
+  @date June 12, 2022
 */
 
 #pragma once
@@ -21,12 +21,12 @@ namespace lablas {
     namespace algorithm {
 
 /**
- * cc function.
- * @brief The function does...
- * @param v v
- * @param A A
- * @param seed seed
- * @param desc desc
+ * Connected components algorithm (FastSV variant) implemented with GraphBLAS primitives
+ * @brief The function implements the CC algorithm in notation of GraphBLAS standard
+ * @param v Vector to store component labels
+ * @param A Target matrix representing an input graph
+ * @param seed seed?
+ * @param desc Descriptor to store some auxilary data
 */
 
 void cc(Vector<int>*       v,

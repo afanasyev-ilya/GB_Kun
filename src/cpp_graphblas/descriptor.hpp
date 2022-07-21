@@ -63,5 +63,7 @@ lablas::Descriptor GrB_DESC_IKJ({{GrB_MXMMODE, GrB_IKJ}});
 lablas::Descriptor GrB_DESC_IKJ_MASKED({{GrB_MXMMODE, GrB_IKJ_MASKED}});
 lablas::Descriptor GrB_DESC_IJK({{GrB_MXMMODE, GrB_IJK}});
 lablas::Descriptor GrB_DESC_IJK_DOUBLE_SORT({{GrB_MXMMODE, GrB_IJK_DOUBLE_SORT}});
+lablas::Descriptor GrB_DESC_ESC({{GrB_MXMMODE, GrB_ESC}});
+lablas::Descriptor GrB_DESC_ESC_MASKED({{GrB_MXMMODE, GrB_ESC_MASKED}});
 
 }

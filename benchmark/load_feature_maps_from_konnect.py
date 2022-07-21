@@ -57,6 +57,14 @@ def extract_number(line):
     digits_list = [int(s) for s in line if s.isdigit()]
     return int(''.join(map(str, digits_list)))
 
+def extract_float(line):
+    if line is None:
+        return -1.0
+    number_section = line.split('=')[1]
+    required_float = float(number_section.split()[0].replace(",", ""))
+    return required_float
+
+
 def find_info_on_page(text, pattern):
     for line in text.splitlines():
         if pattern in line:
@@ -101,6 +109,8 @@ def get_graph_info(graph_url):
     volume = extract_number(find_info_on_page(page_text, "Volume"))
     avg_degree = extract_number(find_info_on_page(page_text, "Average degree"))
     category = extract_category(find_info_on_page(page_text, "Category"))
+    exponent = extract_float(find_info_on_page(page_text, "Power law exponent"))
+    percentile = extract_float(find_info_on_page(page_text, "90-Percentile effective diameter"))
     # Adding a new parameter.
     # [name] = extract_number(find_info_on_page(page_text, "[name]"))
     # If it does not work, then you need to write your own function which
@@ -115,7 +125,7 @@ def get_graph_info(graph_url):
 
 
     # Add your parameter here.
-    return {"tsv_link": download_link, "size": size, "volume": volume, "avg_degree": avg_degree, "category": category}
+    return {"tsv_link": download_link, "size": size, "volume": volume, "avg_degree": avg_degree, "category": category, "exponent": exponent, "percentile": percentile}
 
 def add_parameter(parameter, soup):
     ans = {parameter: ''}

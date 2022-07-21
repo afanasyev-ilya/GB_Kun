@@ -18,10 +18,10 @@ namespace lablas {
     namespace algorithm {
 
 /**
- * cc_bfs_based_sequential function.
- * @brief The function does...
- * @param _components _components
- * @param _graph _graph
+ * Sequential implementation of Connected Components algorithm based on simple graph primitives
+ * @brief The function does implement sequential CC
+ * @param _components Vector to store component labels
+ * @param _graph Target matrix representing an input graph
 */
 
 template <typename T>
