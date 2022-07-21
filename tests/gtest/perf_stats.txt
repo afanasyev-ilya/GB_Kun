@@ -1,0 +1,10 @@
+mtx_read 0.000374 (s) 0.000000 (GFLOP/s) 0.000000 (GB/s) 0
+build_matrix_from_file 0.018294 (ms) 0.000000 (GFLOP/s) 0.000000 (GB/s) 0
+mtx_read 0.000237 (s) 0.000000 (GFLOP/s) 0.000000 (GB/s) 0
+build_matrix_from_file 0.004835 (ms) 0.000000 (GFLOP/s) 0.000000 (GB/s) 0
+mtx_read 0.000304 (s) 0.000000 (GFLOP/s) 0.000000 (GB/s) 0
+build_matrix_from_file 0.015759 (ms) 0.000000 (GFLOP/s) 0.000000 (GB/s) 0
+mtx_read 0.000297 (s) 0.000000 (GFLOP/s) 0.000000 (GB/s) 0
+build_matrix_from_file 0.016555 (ms) 0.000000 (GFLOP/s) 0.000000 (GB/s) 0
+mtx_read 0.000264 (s) 0.000000 (GFLOP/s) 0.000000 (GB/s) 0
+build_matrix_from_file 0.016434 (ms) 0.000000 (GFLOP/s) 0.000000 (GB/s) 0
