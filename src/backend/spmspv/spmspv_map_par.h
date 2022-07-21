@@ -13,6 +13,7 @@ void SpMSpV_map_par(const MatrixCSR<A> *_matrix,
                     const Vector <M> *_mask)
 {
     LOG_TRACE("Running SpMSpV_map_par")
+    _matrix->apply_modifications();
     const X *x_vals = _x->get_vals(); // y is guaranteed to be sparse
     const Index *y_ids = _y->get_ids();
 
