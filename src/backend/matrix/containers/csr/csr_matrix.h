@@ -69,22 +69,22 @@ public:
 
     bool has_unmerged_modifications() const { return ongoing_modifications; };
 private:
-    VNT nrows, ncols;
-    ENT nnz;
+    mutable VNT nrows, ncols;
+    mutable ENT nnz;
 
-    ENT *row_ptr;
-    T *vals;
-    VNT *col_ids;
-    VNT *row_degrees;
+    mutable ENT *row_ptr;
+    mutable T *vals;
+    mutable VNT *col_ids;
+    mutable VNT *row_degrees;
 
-    bool ongoing_modifications;
-    ENT num_changes;
-    std::set<VNT> removed_vertices;
-    std::set<VNT> removed_rows;
-    std::set<VNT> restored_rows;
-    std::set<VNT> added_rows;
-    std::set<std::pair<VNT, ENT> > removed_edges;
-    std::map<VNT, std::map<std::pair<VNT, ENT>, T> > added_edges; /* supporting invariant that both adjacent
+    mutable bool ongoing_modifications;
+    mutable ENT num_changes;
+    mutable std::set<VNT> removed_vertices;
+    mutable std::set<VNT> removed_rows;
+    mutable std::set<VNT> restored_rows;
+    mutable std::set<VNT> added_rows;
+    mutable std::set<std::pair<VNT, ENT> > removed_edges;
+    mutable std::map<VNT, std::map<std::pair<VNT, ENT>, T> > added_edges; /* supporting invariant that both adjacent
                                                                      vertices should have same edge in order for it
                                                                      to be valid when merging changes*/
 
