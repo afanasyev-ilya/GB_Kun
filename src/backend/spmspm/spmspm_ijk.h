@@ -1,7 +1,22 @@
+/// @file spmspm_ijk.h
+/// @author Lastname:Firstname
+/// @version Revision 1.1
+/// @brief Masked IJK SpMSpM algorithm
+/// @details Implements Masked IJK SpMSpM algorithm
+/// @date June 8, 2022
+
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Lower bound function for IJK algorithm.
+///
+/// A helper function for IJK-based SpMSpM algorithm.
+/// @param[in] data Pointer to the data
+/// @param[in] left Left index of an array (inclusive)
+/// @param[out] right Right index of an array (exclusive)
+/// @param[in] value Value that is searched
+/// @result Index of the data array that is a lower bound in terms of a binary search
 VNT spgemm_lower_bound(const Index* data, VNT left, VNT right, ENT value)
 {
     while (left < right) {
@@ -17,11 +32,25 @@ VNT spgemm_lower_bound(const Index* data, VNT left, VNT right, ENT value)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @namespace Lablas
 namespace lablas {
+
+/// @namespace Backend
 namespace backend {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Masked IJK-based SpMSpM algorithm.
+///
+/// This algorithm is using IJK-structured main loop that uses binary search on sorted second input
+/// matrix CSR structure. This algorithm could also be modified by passing sorted first matrix and mentioning it with
+/// a_is_sorted parameter. Algorithm assumes that result matrix will have the same nnz structure as a mask matrix.
+/// @param[in] _matrix1 Pointer to the first input matrix
+/// @param[in] _matrix2 Pointer to the second input matrix (should be sorted)
+/// @param[out] _matrix_result Pointer to the (empty) matrix object that will contain the result matrix.
+/// @param[in] _result_mask Mask matrix
+/// @param[in] _op Semiring operation
+/// @param[in] a_is_sorted Whether or not the first input matrix is sorted
 template <typename T, typename SemiringT>
 void SpMSpM_ijk(const Matrix<T> *_matrix1,
                 const Matrix<T> *_matrix2,
@@ -77,10 +106,12 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
 
     double t2 = omp_get_wtime();
 
+    // main parallel IJK loop
     #pragma omp parallel
     {
         const auto thread_id = omp_get_thread_num();
 
+        // explicit optimization for saving pointer's values on stack variables
         const ENT * matrix1_row_ptr;
         const VNT * matrix1_col_ids_ptr;
         const T * matrix1_vals_ptr;
@@ -89,6 +120,7 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
         const T * matrix2_vals_ptr;
 
         if (num_sockets_used() == 2) {
+            // In this case using NUMA optimization and copying input matrices on both sockets
             #ifdef __USE_KUNPENG__
                 const int cpu_id = sched_getcpu();
             #else
@@ -119,12 +151,15 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
             matrix2_col_ids_ptr = _matrix2->get_csc()->get_col_ids();
             matrix2_vals_ptr = _matrix2->get_csc()->get_vals();
         }
+
+        // i-th loop by mask/matrix1/matrix2 rows (it is the same amount)
         for (VNT matrix1_row_id = offsets[thread_id].first; matrix1_row_id < offsets[thread_id].second;
              ++matrix1_row_id) {
             ENT matrix1_col_start_id = matrix1_row_ptr[matrix1_row_id];
             ENT matrix1_col_end_id = matrix1_row_ptr[matrix1_row_id + 1];
             ENT mask_col_start_id = mask_row_ptr[matrix1_row_id];
             ENT mask_col_end_id = mask_row_ptr[matrix1_row_id + 1];
+            // j-th loop by mask current row nnz values
             for (ENT mask_col_id = mask_col_start_id; mask_col_id < mask_col_end_id; ++mask_col_id) {
                 if (!mask_vals_ptr[mask_col_id]) {
                     continue;
@@ -141,6 +176,7 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
                      matrix1_col_id < matrix1_col_end_id; ++matrix1_col_id) {
                     ENT matrix1_col_num = matrix1_col_ids_ptr[matrix1_col_id];
                     // i == matrix1_row_id, j == matrix2_col_id, k == matrix1_col_num
+                    // using binary search on second input matrix columns ids to find j-th column in k-th row
                     VNT found_matrix2_row_id = spgemm_lower_bound(matrix2_col_ids_ptr,
                                                                   matrix2_row_id,
                                                                   matrix2_col_end_id,
@@ -150,6 +186,7 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
                         break;
                     }
                     if (a_is_sorted) {
+                        // if first input matrix is sorted it is possible to move left border for binary search
                         matrix2_row_id = found_matrix2_row_id;
                     }
 
@@ -166,12 +203,14 @@ void SpMSpM_ijk(const Matrix<T> *_matrix1,
 
     double t3 = omp_get_wtime();
 
+    // Building result matrix from CSR arrays
     SpMSpM_alloc(_matrix_result);
     _matrix_result->build_from_csr_arrays(row_ptr, col_ids, vals, n, nnz);
     double t4 = omp_get_wtime();
 
     double overall_time = t4 - t1;
 
+    // saving performance results into the output file
     FILE *my_f;
     my_f = fopen("perf_stats.txt", "a");
     fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "ijk_masked_mxm", overall_time * 1000, 0.0, 0.0, 0ll);

@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 
         lablas::Descriptor desc;
 
-        lablas::Matrix<float> matrix;
+        lablas::Matrix<signed short> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
         init_matrix(matrix, parser);
 
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
         matrix.get_nrows(&nrows);
         Index source_vertex = 0;
 
-        lablas::Vector<float> levels(nrows);
+        lablas::Vector<signed short> levels(nrows);
 
         double wall_bfs_time = 0;
         for(int run = 0; run < parser.get_iterations(); run++)
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 
         if(parser.check())
         {
-            lablas::Vector<float> check_levels(nrows);
+            lablas::Vector<signed short> check_levels(nrows);
 
             lablas::algorithm::bfs_traditional(&check_levels, &matrix, source_vertex);
 

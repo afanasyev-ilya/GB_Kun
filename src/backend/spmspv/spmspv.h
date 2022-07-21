@@ -10,6 +10,10 @@ namespace backend{
 #include "spmspv_maps.h"
 #include "spmspv_map_seq.h"
 #include "spmspv_map_par.h"
+#include "spmspv_map_par_critical.h"
+#include "spmspv_esc.h"
+#include "spmspv_for_cmp_logical_or_and.h"
+#include "spmspv_map_cmp_logical_or_and.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -14,6 +14,8 @@ Software Requirements:
 
 5. GoogleTest
 
+6. clang-format >= 10
+
 ***Important***: for matlibplot installation use
 
 ```bash
@@ -21,6 +23,17 @@ yum install python3-devel
 pip3 install matplotlib
 ```
 
+Recommended Environment variables set up:
+```bash
+export OMP_NUM_THREADS=96
+export OMP_PROC_BIND=close
+export OMP_PLACES=cores
+```
+
+Main testing machine specs:
+1. CPU used: Kunpeng 920 (48 core version)
+2. Amount of threads used: 96 (48 + 48 with NUMA)
+3. OS: CentOS Linux release 8.4.2105
 
 On CentOS 8, yum must be fixed according to the following instruction:
 
@@ -113,4 +126,37 @@ If ```--cnt``` parameter is not specified all graphs will be downloaded.
 Parameter ```--file``` is used to specify the name of the output file.
 
 If ```--file``` parameter is not specified the output file will be named ```dict.pickle```.
+
+***Handling project Code Style***
+
+For this project we applied a Code Style that is specified in `.clang-format` file in the root folder of the repository.
+
+In order to be able to do both safe checking and applying Code Style in a whole project, the has two main options:
+- `--apply` to apply the Code Style to all `.cpp`, `.c`, `.hpp`, `.h` files in project
+- `--check` to check all these files for a Code Style violations
+
+So for example to check and apply Code Style to a whole project you can use the following command:
+```bash
+python3 codestyle_formatter.py --apply --check
+```
+
+It's important to mention that in order to ignore `#pragma`, `#ifdef` and other preprocessing directives indentations 
+in project files, mentioned above options are modifying source code before applying `clang-format` so the indentations
+for these preprocessing directives are ignored. In order to avoid this behaviour we added one more option `--safe` which
+could be used for a safe check/apply as follows:
+```bash
+python3 codestyle_formatter.py --apply --safe
+```
+
+The script also has `--quiet` option so the output could be easily interpreted by other scripts.
+
+
+***Wrapper using ML trained model***
+
+Initial version of wrapper script uses built-in parameters for algorithm running
+You need to pass algorithm name and graphname in this script
+```bash
+python3 ./ml_wrapper.py bfs Flickr 
+```
+
 

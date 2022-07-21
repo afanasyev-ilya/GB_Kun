@@ -1,4 +1,10 @@
 #pragma once
+/// @file vector.hpp
+/// @author Lastname:Firstname
+/// @version Revision 1.1
+/// @brief Vector class frontend wrapper for cpp usage
+/// @details Describes GraphBLAS methods for vector object, invokes functions and methods of backend vector object
+/// @date June 15, 2022
 
 #include "../backend/vector/vector.h"
 #include "types.hpp"
@@ -13,11 +19,30 @@ class Vector {
 public:
     using ValueType = T;
 public:
+    /**
+     * Create a new Vector object with default size
+     * @brief Default constructor
+     * @see Vector(Index nsize)
+     */
     Vector() : _vector() {}
+
+    /**
+     * Create a new Vector object with given size
+     * @brief Parameter constructor
+     * @param nsize The maximum number of elements in a Vector
+     * @see Vector()
+     */
     explicit Vector(Index nsize) : _vector(nsize) {}
 
     ~Vector() {}
 
+    /**
+    * @brief Build Vector from STL vector of indices and appropriate values
+    * @param[in] indices Pointer to the STL vector of indices which correspond to non-zero elements of a Vector
+    * @param[in] values Pointer to the STL vector of values are to be placed according to corresponding indices
+    * @param[in] nvals Total number of non-NULL elements in a Vector
+    * @return la_info Flag for the correctness check
+    */
     LA_Info build(const std::vector<Index>* indices,
                   const std::vector<T>*     values,
                   Index  nvals)
@@ -27,6 +52,12 @@ public:
         return _vector.build(indices->data(), values->data(), nvals);
     }
 
+    /**
+    * @brief Build Vector from STL vector of values
+    * @param[in] values Pointer to the STL vector of values are to be placed in the Vector
+    * @param[in] nvals Total number of elements in a Vector
+    * @return la_info Flag for the correctness check
+    */
     LA_Info build(const std::vector<T>*     values,
                   Index  nvals)
     {
@@ -35,6 +66,12 @@ public:
         return _vector.build(values->data(), nvals);
     }
 
+    /**
+    * @brief Build Vector from array of values
+    * @param[in] values Pointer to the array of values are to be placed in the Vector
+    * @param[in] nvals Total number of elements in a Vector
+    * @return la_info Flag for the correctness check
+    */
     LA_Info build(const T* values,
                   Index  nvals)
     {
@@ -43,68 +80,137 @@ public:
         return _vector.build(values, nvals);
     }
 
+    /**
+    * @brief Fill Vector with the same value
+    * @param[in] val Value to be placed in each element of the Vector
+    * @return la_info Flag for the correctness check
+    */
     LA_Info fill(T val)
     {
         _vector.set_constant(val);
         return GrB_SUCCESS;
     }
 
+    /**
+    * @brief Fill Vector with zeros
+    * @return la_info Flag for the correctness check
+    */
     LA_Info clear()
     {
         return _vector.clear();
     }
 
+    /**
+    * @brief Place a chosen element into a defined position
+    * @param[in] val Value to be placed in the element of the Vector
+    * @param[in] pos Position to be updated
+    * @return la_info Flag for the correctness check
+    */
     LA_Info set_element(T val, VNT pos)
     {
         _vector.set_element(val, pos);
         return GrB_SUCCESS;
     }
 
+    /**
+    * @brief Get a backend implementation of a Vector
+    * @return vector Pointer to a backend vector
+    */
     inline backend::Vector<T>* get_vector()
     {
         return &(this->_vector);
     }
 
+    /**
+    * @brief Get the number of non-zero elements is a vector
+    * @param[out] _nvals Number of non-zero elements
+    * @return la_info Flag for the correctness check
+    */
     LA_Info get_nvals(Index *_nvals) const
     {
         *_nvals = _vector.get_nvals();
         return GrB_SUCCESS;
     }
 
+    /**
+    * @brief Get a backend implementation of a Vector
+    * @return vector Const pointer to a backend vector
+    */
     const backend::Vector<T>* get_vector() const
     {
         return &_vector;
     }
 
+    /**
+    * @brief Print Vector for debug purposes
+    * @return Nothing
+    */
     void print() const
     {
         return _vector.print();
     }
 
+    /**
+    * @brief Print main representation of a backend Vector (sparse or dense)
+    * @return Nothing
+    */
     void print_storage_type() const
     {
         _vector.print_storage_type();
     }
 
-    // we can name vectors for debug purposes
+    /**
+    * @brief Give Vector a name for debug purposes
+    * @param[in] _name Name of a vector
+    * @return Nothing
+    */
     void set_name(const string &_name) {_vector.set_name(_name); };
 
+    /**
+    * @brief Get actual number of elements in a vector
+    * @return nvals number of non-zero elements in a vector
+    */
     Index nvals() const { return _vector.get_nvals();};
+
+    /**
+    * @brief Get the maximum size of a vector
+    * @return size how many elements can be stored in a vector
+    */
     Index size() const {return _vector.get_size();};
 
+   /**
+   * @brief Swap Vectors by a pointer-like manner
+   * @param[in] _another pointer to another vector
+   * @return Nothing
+   */
     void swap(Vector *_another)
     {
         _vector.swap(_another->get_vector());
     }
 
+   /**
+   * @brief Fill Vector with increasing values from 0 to nvals-1
+   * @param[in] _another pointer to another vector
+   * @return la_info Flag for the correctness check
+   */
     LA_Info fillAscending(Index nvals) {
         return _vector.fillAscending(nvals);
     }
 
+   /**
+   * @brief Make a copy of a Vector
+   * @param[in] rhs pointer to another Vector
+   * @return la_info Flag for the correctness check
+   */
     LA_Info dup (const Vector<T>* rhs) {
         return _vector.dup(rhs->get_vector());
     }
 
+    /**
+   * @brief Get an element by corresponding index
+   * @param[in] _index index to be accessed
+   * @return element stored element at index _index
+   */
     T const & get_at(Index _index) const
     {
         return _vector.get_at(_index);

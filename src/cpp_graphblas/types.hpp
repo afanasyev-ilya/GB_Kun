@@ -79,6 +79,7 @@
                     GrB_TOL,
                     GrB_BACKEND,
                     GrB_MXMMODE,
+                    GrB_NEON,
                     GrB_NDESCFIELD};
 
     enum Desc_value {GrB_SCMP,               // for GrB_MASK
@@ -106,12 +107,19 @@
                     GrB_IKJ        = 33,
                     GrB_IJK_DOUBLE_SORT = 34,
                     GrB_IKJ_MASKED = 35,
+                    GrB_ESC = 36,
+                    GrB_ESC_MASKED = 37,
+                    GrB_NEON_64 = 38,
+                    GrB_NEON_32 = 39,
+                    GrB_NEON_OFF = 40,
                     SPMV_GENERAL   = 63,
                     SPMSPV_BUCKET = 65,
                     SPMSPV_MAP_TBB = 66,
                     SPMSPV_MAP_SEQ = 67,
                     SPMSPV_FOR = 68, // atomic, critical, or
-                    MXV_DEFAULT = 68 // for GrB_MXMMODE
+                    MXV_DEFAULT = 68,// for GrB_MXMMODE
+                    SPMSPV_MAP_PAR = 69, // Hashmap-based SpMSpV with omp critical synchs
+                    SPMSPV_ESC = 70 // ESC-based SpMSpV
     };
 
 
