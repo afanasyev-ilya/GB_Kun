@@ -137,7 +137,7 @@ void MatrixCSR<T>::remove_val(VNT _row, VNT _col)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixCSR<T>::soft_apply_modifications() {
+void MatrixCSR<T>::soft_apply_modifications() const {
     if (ongoing_modifications and num_changes > 1000) {
         apply_modifications();
     }
@@ -146,7 +146,7 @@ void MatrixCSR<T>::soft_apply_modifications() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void MatrixCSR<T>::apply_modifications()
+void MatrixCSR<T>::apply_modifications() const
 {
     if (!ongoing_modifications) {
         return;
@@ -250,7 +250,16 @@ void MatrixCSR<T>::apply_modifications()
     nrows = new_nrows;
     ncols = new_nrows;
     nnz = new_col_ids.size();
-    resize(nrows, ncols, nnz);
+
+    MemoryAPI::free_array(row_ptr);
+    MemoryAPI::free_array(col_ids);
+    MemoryAPI::free_array(vals);
+    MemoryAPI::free_array(row_degrees);
+    MemoryAPI::allocate_array(&row_ptr, nrows + 1);
+    MemoryAPI::allocate_array(&col_ids, nnz);
+    MemoryAPI::allocate_array(&vals, nnz);
+    MemoryAPI::allocate_array(&row_degrees, nrows);
+
     #pragma omp parallel
     for (VNT i = 0; i <= nrows; ++i) {
         row_ptr[i] = new_row_ptr[i];
@@ -264,7 +273,10 @@ void MatrixCSR<T>::apply_modifications()
         vals[i] = new_vals[i];
     }
 
-    calculate_degrees();
+    #pragma omp parallel for
+    for(VNT row = 0; row < nrows; ++row) {
+        row_degrees[row] = row_ptr[row + 1] - row_ptr[row];
+    }
 
     ongoing_modifications = false;
     num_changes = 0;
