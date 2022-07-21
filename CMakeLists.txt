@@ -1,7 +1,17 @@
 cmake_minimum_required(VERSION 3.11)
 project(GB_Kun)
+include(CheckIncludeFileCXX)
+CHECK_INCLUDE_FILE_CXX("tbb/info.h" TBB_EXISTS)
 include(ProcessorCount)
 ProcessorCount(N)
+
+find_package(GTest)
+if(GTest_FOUND)
+    include_directories(${GTEST_INCLUDE_DIRS})
+endif()
+if (GTest_FOUND)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_GTEST__")
+endif()
 
 message("${CMAKE_CXX_COMPILER_ID}")
 message("${CMAKE_CXX_COMPILER}")
@@ -15,7 +25,11 @@ else ()
     if(N EQUAL 48 OR N EQUAL 64 OR N EQUAL 96 OR N EQUAL 128)
         message("COMPILING FOR KUNPENG 920")
         set(CMAKE_CXX_STANDARD 17)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_KUNPENG__ -D MAX_CORES=${N} -O3 -std=c++17 -fno-trapping-math -fopenmp-simd -fopenmp -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays -ltbb")
+        if(TBB_EXISTS)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_KUNPENG__ -D MAX_CORES=${N} -O3 -std=c++17 -fno-trapping-math -fopenmp-simd -fopenmp -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays -ltbb -D __USE_TBB__")
+        else()
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_KUNPENG__ -D MAX_CORES=${N} -O3 -std=c++17 -fno-trapping-math -fopenmp-simd -fopenmp -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays")
+        endif()
     else ()
         message("CLION compilation") # this is for local testing
         set(CMAKE_CXX_STANDARD 17)
@@ -74,6 +88,7 @@ STRING(REPLACE ";" " " headers_list "${headers_list}")
 STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" headers_list "${headers_list}")
 #message(STATUS "[INFO] header files list: ${headers_list}")
 #
+
 #find_package(GTest REQUIRED)
 #include_directories(${GTEST_INCLUDE_DIRS})
 
@@ -108,6 +123,10 @@ target_include_directories(transpose PRIVATE)
 
 add_executable(switch_test switch_test.cpp)
 target_include_directories(switch_test PRIVATE)
+
+add_executable(unit_tests unit_tests.cpp)
+target_include_directories(unit_tests PRIVATE)
+target_link_libraries(unit_tests ${GTEST_LIBRARIES})
 
 add_executable(vectorization_test vectorization_test.cpp)
 target_include_directories(vectorization_test PRIVATE)
