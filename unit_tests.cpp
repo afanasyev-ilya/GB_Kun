@@ -27,7 +27,6 @@ TEST(MxvTest, test1)
 
     lablas::Matrix<int> A;
     A.init_from_mtx("test_matrix.mtx");
-    A.print();
 
     lablas::Descriptor desc;
     mxv(&w, MASK_NULL, GrB_NULL, lablas::PlusMultipliesSemiring<int>(), &A, &u, &desc);

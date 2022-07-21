@@ -110,10 +110,10 @@ public:
         return _vector.get_at(_index);
     }
 private:
-    backend::Vector<T> _vector;
+    mutable backend::Vector<T> _vector;
 
     template<typename Y>
-    friend bool operator==(Vector<Y>& lhs, Vector<Y>& rhs);
+    friend bool operator==(const Vector<Y>& lhs, const Vector<Y>& rhs);
 
     template<typename Y>
     friend bool operator!=(Vector<Y>& lhs, Vector<Y>& rhs);
@@ -196,7 +196,7 @@ inline VectorConstIterator<T> end(const Vector<T>& collection)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool operator==(Vector<T>& lhs, Vector<T>& rhs)
+bool operator==(const Vector<T>& lhs, const Vector<T>& rhs)
 {
     return lhs._vector == rhs._vector;
 }

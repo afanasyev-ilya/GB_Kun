@@ -78,7 +78,7 @@ public:
         return (SparseVector<T>*)main_container;
     }
 
-    void force_to_dense()
+    void force_to_dense() const
     {
         #if(__DEBUG_PERF_STATS_ENABLED__)
         double t1 = omp_get_wtime();
@@ -93,10 +93,10 @@ public:
         #if(__DEBUG_PERF_STATS_ENABLED__)
         double t2 = omp_get_wtime();
         GLOBAL_CONVERSION_TIME += t2 - t1;
-        #endif
+        #endif 
     }
 
-    void force_to_sparse()
+    void force_to_sparse() const
     {
         #if(__DEBUG_PERF_STATS_ENABLED__)
         double t1 = omp_get_wtime();
@@ -249,10 +249,10 @@ public:
             throw "Error: out of range in backend::vector";
     }
 private:
-    GenericVector<T> *main_container;
-    GenericVector<T> *secondary_container;
+    mutable GenericVector<T> *main_container;
+    mutable GenericVector<T> *secondary_container;
 
-    void swap_to_sparse()
+    void swap_to_sparse() const
     {
         if(is_dense())
         {
@@ -260,7 +260,7 @@ private:
         }
     }
 
-    void swap_to_dense()
+    void swap_to_dense() const
     {
         if(is_sparse())
         {
@@ -269,7 +269,7 @@ private:
     }
 
     template<typename Y>
-    friend bool operator==(Vector<Y>& lhs, Vector<Y>& rhs);
+    friend bool operator==(const Vector<Y>& lhs, const Vector<Y>& rhs);
 
     template<typename Y>
     friend void print_diff(Vector<Y>& lhs, Vector<Y>& rhs);
@@ -278,7 +278,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool operator==(Vector<T>& lhs, Vector<T>& rhs)
+bool operator==(const Vector<T>& lhs, const Vector<T>& rhs)
 {
     if(lhs.is_sparse())
         lhs.force_to_dense();
