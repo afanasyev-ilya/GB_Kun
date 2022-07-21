@@ -60,10 +60,12 @@ void MatrixCSR<T>::resize(VNT _nrows, VNT _ncols, ENT _nnz)
 template <typename T>
 void MatrixCSR<T>::deep_copy(const MatrixCSR<T> *_copy, int _target_socket)
 {
+    apply_modifications();
     this->free();
     this->nrows = _copy->nrows;
     this->ncols = _copy->ncols;
     this->nnz = _copy->nnz;
+    this->removed_vertices = _copy->removed_vertices;
 
     if(_target_socket == -1)
     {
@@ -93,6 +95,7 @@ void MatrixCSR<T>::deep_copy(const MatrixCSR<T> *_copy, int _target_socket)
 template <typename T>
 bool MatrixCSR<T>::is_non_zero(VNT _row, VNT _col)
 {
+    apply_modifications();
     for(ENT i = row_ptr[_row]; i < row_ptr[_row + 1]; i++)
     {
         if(col_ids[i] == _col)
@@ -120,6 +123,7 @@ T MatrixCSR<T>::get(VNT _row, VNT _col) const
 template <typename T>
 void MatrixCSR<T>::print() const
 {
+    apply_modifications();
     cout << "--------------------\n";
     for(VNT row = 0; row < nrows; row++)
     {
@@ -174,6 +178,7 @@ void MatrixCSR<T>::print() const
 template <typename T>
 const vector<pair<VNT, VNT>> & MatrixCSR<T>::get_load_balancing_offsets() const
 {
+    apply_modifications();
     if(!load_balancing_offsets_set) // recalculate then
     {
         vector<ENT> vector_row_ptr;
@@ -192,6 +197,8 @@ const vector<pair<VNT, VNT>> & MatrixCSR<T>::get_load_balancing_offsets() const
 
 template <typename T>
 bool operator == (const MatrixCSR<T> &c1, const MatrixCSR<T> &c2) {
+    c1.apply_modifications();
+    c2.apply_modifications();
     auto nrows1 = c1.get_num_rows();  auto nrows2 = c2.get_num_rows();
     if (nrows1 != nrows2) {
         std::cout << "nrows are not equal " << nrows1 << " vs " << nrows2 << std::endl;
@@ -259,3 +266,106 @@ bool operator == (const MatrixCSR<T> &c1, const MatrixCSR<T> &c2) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <typename T>
+ENT MatrixCSR<T>::get_nnz() const {
+    apply_modifications();
+    return this->nnz;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+VNT MatrixCSR<T>::get_num_rows() const {
+    apply_modifications();
+    return nrows;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+VNT MatrixCSR<T>::get_num_cols() const {
+    apply_modifications();
+    return ncols;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+ENT *MatrixCSR<T>::get_row_ptr() {
+    apply_modifications();
+    return row_ptr;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+const ENT *MatrixCSR<T>::get_row_ptr() const {
+    apply_modifications();
+    return row_ptr;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+T *MatrixCSR<T>::get_vals() {
+    apply_modifications();
+    return vals;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+const T *MatrixCSR<T>::get_vals() const {
+    apply_modifications();
+    return vals;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+VNT *MatrixCSR<T>::get_col_ids() {
+    apply_modifications();
+    return col_ids;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+const VNT *MatrixCSR<T>::get_col_ids() const {
+    apply_modifications();
+    return col_ids;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MatrixCSR<T>::set_row_ptr(ENT* ptr) {
+    apply_modifications();
+    row_ptr = ptr;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+VNT *MatrixCSR<T>::get_rowdegrees() {
+    apply_modifications();
+    return row_degrees;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+const VNT *MatrixCSR<T>::get_rowdegrees() const {
+    apply_modifications();
+    return row_degrees;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+ENT MatrixCSR<T>::get_degree(VNT _row) {
+    apply_modifications();
+    return row_ptr[_row + 1] - row_ptr[_row];
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

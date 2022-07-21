@@ -24,25 +24,23 @@ public:
 
     void print() const;
 
-    ENT get_nnz() const {return this->nnz;};
-    VNT get_num_rows() const {return nrows;};
-    VNT get_num_cols() const {return ncols;};
+    ENT get_nnz() const;
+    VNT get_num_rows() const;
+    VNT get_num_cols() const;
 
-    ENT *get_row_ptr() {return row_ptr;};
-    const ENT *get_row_ptr() const {return row_ptr;};
-    T *get_vals() {return vals;};
-    const T *get_vals() const {return vals;};
-    VNT *get_col_ids() {return col_ids;};
-    const VNT *get_col_ids() const {return col_ids;};
+    ENT *get_row_ptr();
+    const ENT *get_row_ptr() const;
+    T *get_vals();
+    const T *get_vals() const;
+    VNT *get_col_ids();
+    const VNT *get_col_ids() const;
 
-    void set_row_ptr(ENT* ptr) {
-        row_ptr = ptr;
-    }
+    void set_row_ptr(ENT* ptr);
 
-    VNT *get_rowdegrees() {return row_degrees;};
-    const VNT *get_rowdegrees() const {return row_degrees;};
+    VNT *get_rowdegrees();
+    const VNT *get_rowdegrees() const;
 
-    ENT get_degree(VNT _row) {return row_ptr[_row + 1] - row_ptr[_row];};
+    ENT get_degree(VNT _row);
 
     T get(VNT _row, VNT _col) const;
 
@@ -62,8 +60,8 @@ public:
     void remove_val(VNT _row, VNT _col);
     // TODO do we need update edge here?
 
-    void apply_modifications();
-    void soft_apply_modifications();
+    void apply_modifications() const;
+    void soft_apply_modifications() const;
 
     bool vertex_exists(VNT _row_id) const;
 
