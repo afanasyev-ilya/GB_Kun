@@ -25,6 +25,7 @@ public:
 
     void print() const
     {
+        cout << "Sparse vector \"" << name << ": "; 
         if(nvals == 0)
             LOG_DEBUG("vector is empty (from print)")
         else

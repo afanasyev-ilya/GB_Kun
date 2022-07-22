@@ -28,6 +28,7 @@ DenseVector<T>::~DenseVector()
 template <typename T>
 void DenseVector<T>::print() const
 {
+    cout << "Sparse vector \"" << name << ": "; 
     for(VNT i = 0; i < size; i++)
     {
         if(fabs(vals[i]) >= 1000000/*std::numeric_limits<T>::max()*/)
