@@ -61,9 +61,8 @@ int main(int argc, char **argv)
                 Timer tm("sssp");
 
                 if(parser.get_algo_name() == "Lagraph_sssp") {
-                    auto p_distances = &distances;
-                    lablas::algorithm::LAGr_SingleSourceShortestPath(&p_distances, &graph, source_vertex, 0.f, NULL);
-                } else if(parser.get_algo_name() == "Bellman_Ford_sssp") {
+                    lablas::algorithm::LAGr_SingleSourceShortestPath(&distances, &graph, source_vertex, 1.0f, NULL);
+                } else if(parser.get_algo_name() == "Bellman-Ford_sssp") {
                     lablas::algorithm::sssp_bellman_ford_blast(&distances, graph.A, source_vertex, &desc);
                 }
 
