@@ -389,4 +389,4 @@ konect_best_fast = ['soc_libimseti', 'soc_pokec', 'web_dimacs10-cnr-2000', 'web_
 konect_twenty_set = ['soc_libimseti', 'soc_pokec', 'web_dimacs10-cnr-2000', 'web_eu_2005', 'soc_livemocha',
                      'soc_livejournal', 'web_zhishi', 'web_wikipedia_links_ru', 'web_wikipedia_links_it', 'web_hudong',
                      'web_wikipedia_links_sv', 'soc_orkut', 'web_web_trackers', 'web_dbpedia_links', 'web_uk_domain_2002',
-                     'soc_twitter_www', 'soc_friendster', 'soc_catster_dogster', 'road_texas', 'road_colorado']
+                     'soc_twitter_www', 'rating_epinions', 'soc_catster_dogster', 'road_texas', 'road_colorado']
