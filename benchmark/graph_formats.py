@@ -6,7 +6,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 
-if __name__ == "__main__":
+def run_train():
     X_data = []
     with open('dict.pickle', 'rb') as f:
         data_new = pickle.load(f)
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     seg_perf = []
     csr_perf = []
 
-    with open("seg_csr_perf.txt") as file:
+    with open("./train_data/seg_csr_perf.txt") as file:
         seg_perf_len = file.readline()
         while True:
             line = file.readline()
@@ -38,7 +38,7 @@ if __name__ == "__main__":
             seg_perf.append(int(line))
 
 
-    with open("csr_perf.txt") as file:
+    with open("./train_data/csr_perf.txt") as file:
         csr_perf_len = file.readline()
         while True:
             line = file.readline()
@@ -87,3 +87,6 @@ if __name__ == "__main__":
 
     filename = 'model.sav'
     pickle.dump(clf, open(filename, 'wb'))
+
+if __name__ == "__main__":
+    run_train()
