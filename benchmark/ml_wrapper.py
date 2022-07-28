@@ -6,25 +6,9 @@ import os
 import subprocess
 import numpy as np
 
-if __name__ == "__main__":
+label_dict = {0: "SEG_CSR", 1: "CSR"}
 
-    # Set up label dictionary
-    label_dict = {0: "SEG_CSR", 1: "CSR"}
-
-    # Download trained model
-
-    filename = 'model.sav'
-    loaded_model = pickle.load(open(filename, 'rb'))
-
-    # Get script parameters
-
-    current_app = sys.argv[1]
-
-    args = sys.argv[2:]
-    graphname = " ".join(args)
-
-    # Gather graph data from collected pickle file
-
+def get_label(graphname):
     X_data = []
     with open('dict.pickle', 'rb') as f:
         data_new = pickle.load(f)
@@ -48,13 +32,31 @@ if __name__ == "__main__":
     # Predict label from downloaded model
 
     pred_label = loaded_model.predict(X_data)[0]
+    return label_dict[pred_label]
+
+if __name__ == "__main__":
+
+    # Download trained model
+    filename = 'model.sav'
+    loaded_model = pickle.load(open(filename, 'rb'))
+
+    # Get script parameters
+
+    current_app = sys.argv[1]
+
+    args = sys.argv[2:]
+    graphname = " ".join(args)
+
+    # Gather graph data from collected pickle file
+
+    pred_format = get_label(graphname)
 
     # Running a application
 
     mult = 10
     file_extension = "mtx"
 
-    common_args = ["-it", str(common_iterations * mult), "-format", label_dict[pred_label], "-no-check"]
+    common_args = ["-it", str(common_iterations * mult), "-format", pred_format, "-no-check"]
 
     cmd = ["bash", "./benchmark.sh", get_binary_path(current_app), "-graph mtx ",
            get_path_to_graph(graphname, file_extension)] + common_args

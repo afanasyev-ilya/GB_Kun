@@ -6,8 +6,6 @@ from scripts.verification_api import *
 from scripts.scaling_api import *
 from scripts.export import BenchmarkingResults
 from scripts.helpers import get_list_of_formats
-from os.path import exists
-import graph_formats
 
 
 def run_compile(options):
@@ -80,12 +78,6 @@ def run_verify(options, benchmarking_results):
 def benchmark_and_verify(options, benchmarking_results):
     benchmarked_num = 0
     verified_num = 0
-
-    if options.ml_enable:
-        if not exists("./model.sav"):
-            graph_formats.run_train()
-
-
 
 
     if options.scaling: # must be first among benchmarking and verify

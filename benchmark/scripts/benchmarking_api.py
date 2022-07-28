@@ -8,6 +8,9 @@ import time
 from threading import Timer
 from .analize_perf_data import *
 import collections
+from os.path import exists
+from benchmark.graph_formats import run_train
+from benchmark.ml_wrapper import get_label
 
 
 def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, timeout_length, options):
@@ -19,7 +22,14 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
         mult = 100
     elif app_name == "pr":
         mult = 10
-    common_args = ["-it", str(common_iterations*mult), "-format", graph_format, "-no-check"]
+
+    if options.ml_enable:
+        if not exists("./model.sav"):
+            run_train()
+        common_args = ["-it", str(common_iterations*mult), "-no-check"]
+    else:
+        common_args = ["-it", str(common_iterations*mult), "-format", graph_format, "-no-check"]
+
     print(common_args)
 
     algorithms_tested = 0
@@ -34,6 +44,11 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
     for current_args in arguments:
         first_graph = True
         for current_graph in list_of_graphs:
+            pred_format = graph_format
+
+            #TODO reduce number of pickle loadings
+            if options.ml_enable:
+                pred_format = get_label(current_graph)
             if requires_undir_graphs(app_name):
                 current_graph = UNDIRECTED_PREFIX + current_graph
 
@@ -47,6 +62,9 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
             except OSError:
                 pass
             cmd = ["bash", "./benchmark.sh", get_binary_path(app_name), "-graph mtx ", get_path_to_graph(current_graph, file_extension)] + current_args + common_args
+
+            if options.ml_enable:
+                cmd += ["-format", pred_format]
             print("! ! ! " + get_path_to_graph(current_graph, file_extension))
             print(' '.join(cmd))
             proc = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

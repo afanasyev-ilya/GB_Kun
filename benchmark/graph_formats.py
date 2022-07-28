@@ -5,10 +5,12 @@ from sklearn.model_selection import KFold
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from tqdm import tqdm
+
 
 def run_train():
     X_data = []
-    with open('dict.pickle', 'rb') as f:
+    with open('./train_data/dict.pickle', 'rb') as f:
         data_new = pickle.load(f)
         for k, v in data_new.items():
             values = []
