@@ -12,5 +12,6 @@ done
 export OMP_NUM_THREADS=${threads_count}
 export OMP_PROC_BIND=spread
 export OMP_PLACES=cores
+export PATH=../build/:$PATH # for all GB_Kun binaries
 
 ${program_name} ${program_args[@]}
