@@ -390,3 +390,6 @@ konect_twenty_set = ['soc_libimseti', 'soc_pokec', 'web_dimacs10-cnr-2000', 'web
                      'soc_livejournal', 'web_zhishi', 'web_wikipedia_links_ru', 'web_wikipedia_links_it', 'web_hudong',
                      'web_wikipedia_links_sv', 'soc_orkut', 'web_web_trackers', 'web_dbpedia_links', 'web_uk_domain_2002',
                      'soc_twitter_www', 'rating_epinions', 'soc_catster_dogster', 'road_texas', 'road_colorado']
+
+konect_seven_set = ['web_web_trackers', 'web_wikipedia_links_it', 'web_wikipedia_links_sv', 'web_uk_domain_2002',
+                    'web_dbpedia_links', 'soc_orkut', 'soc_livejournal']
