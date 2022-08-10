@@ -125,6 +125,21 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
                        LAGraph_TriangleCount_Presort presort,
                        Descriptor *desc)
 {
+    const auto previous_omp_dynamic = omp_get_dynamic();
+    int previous_omp_threads;
+    #pragma omp parallel
+    {
+        #pragma omp single
+        previous_omp_threads = omp_get_num_threads();
+    }
+    if (previous_omp_threads == 96) {
+        omp_set_num_threads(48);
+    }
+
+    if (previous_omp_threads == 128) {
+        omp_set_num_threads(64);
+    }
+
     LG_CLEAR_MSG ;
     GrB_Matrix C = NULL;
     GrB_Matrix L = NULL;
@@ -265,6 +280,10 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
 
     LG_FREE_ALL ;
     (*ntriangles) = (uint64_t) ntri ;
+
+    omp_set_dynamic(previous_omp_dynamic);
+    omp_set_num_threads(previous_omp_threads);
+
     return (GrB_SUCCESS) ;
 }
 
