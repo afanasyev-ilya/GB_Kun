@@ -129,6 +129,21 @@ void bfs_blast(Vector<T>*       v,
                Index s,
                Descriptor *desc)
 {
+    const auto previous_omp_dynamic = omp_get_dynamic();
+    int previous_omp_threads;
+    #pragma omp parallel
+    {
+        #pragma omp single
+        previous_omp_threads = omp_get_num_threads();
+    }
+    if (previous_omp_threads == 96) {
+        omp_set_num_threads(48);
+    }
+
+    if (previous_omp_threads == 128) {
+        omp_set_num_threads(64);
+    }
+
     Index A_nrows = A->nrows();
 
     // Visited vector (use T for now)
@@ -188,6 +203,9 @@ void bfs_blast(Vector<T>*       v,
     std::cout << "     bfs SPMV_TIME/vxm: " << 100.0*(SPMV_TIME / vxm_time) << "%\n";
     std::cout << "     bfs SPMSPV_TIME/vxm: " << 100.0*(SPMSPV_TIME / vxm_time) << "%\n";
     std::cout << "     bfs CONVERT/vxm: " << 100.0*(CONVERT_TIME / vxm_time) << "%\n";
+
+    omp_set_dynamic(previous_omp_dynamic);
+    omp_set_num_threads(previous_omp_threads);
 }
 
 }
