@@ -34,21 +34,6 @@ void cc(Vector<int>*       v,
         int seed,
         Descriptor *desc)
 {
-    const auto previous_omp_dynamic = omp_get_dynamic();
-    int previous_omp_threads;
-    #pragma omp parallel
-    {
-        #pragma omp single
-        previous_omp_threads = omp_get_num_threads();
-    }
-    if (previous_omp_threads == 96) {
-        omp_set_num_threads(48);
-    }
-
-    if (previous_omp_threads == 128) {
-        omp_set_num_threads(64);
-    }
-
     Index A_nrows;
     A->get_nrows(&A_nrows);
     // Difference vector.
@@ -151,9 +136,6 @@ void cc(Vector<int>*       v,
     }
     v->dup(&parent);
     std::cout << "Did " << iter <<  " iterations" << std::endl;
-
-    omp_set_dynamic(previous_omp_dynamic);
-    omp_set_num_threads(previous_omp_threads);
 }
 
 }  // namespace algorithm

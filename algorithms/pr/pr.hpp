@@ -48,21 +48,6 @@ void LAGraph_page_rank_sinks (GrB_Vector centrality, // centrality(i): GAP-style
                               double tol = 1e-4               // stopping tolerance (typically 1e-4) ;
 )
 {
-    const auto previous_omp_dynamic = omp_get_dynamic();
-    int previous_omp_threads;
-    #pragma omp parallel
-    {
-        #pragma omp single
-        previous_omp_threads = omp_get_num_threads();
-    }
-    if (previous_omp_threads == 96) {
-        omp_set_num_threads(48);
-    }
-
-    if (previous_omp_threads == 128) {
-        omp_set_num_threads(64);
-    }
-
     GrB_Matrix AT = G->AT;
     lablas::Vector<Index>* d_out = G->coldegree; // TODO row degree and transpose
     GrB_Vector r = NULL, *d = NULL, *t = NULL, *w = NULL, *d1 = NULL ;
@@ -187,9 +172,6 @@ void LAGraph_page_rank_sinks (GrB_Vector centrality, // centrality(i): GAP-style
         GrB_free (&sink);
         GrB_free (&rsink);
     }
-
-    omp_set_dynamic(previous_omp_dynamic);
-    omp_set_num_threads(previous_omp_threads);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
