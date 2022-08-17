@@ -2,6 +2,7 @@
 
 #include "spmv_seg.h"
 #include "spmv_csr.h"
+#include "spmv_csr_neon.h"
 #include "spmv_coo.h"
 #include "spmv_lav.h"
 #include "spmv_sell_c.h"
@@ -31,6 +32,8 @@ void SpMV(const Matrix<A> *_matrix,
     {
         MatrixStorageFormat format;
         _matrix->get_format(&format);
+        Desc_value neon_mode;
+        _desc->get(GrB_NEON, &neon_mode);
         if(format == CSR)
         {
             if(_matrix->get_csr()->has_unmerged_modifications())
@@ -38,7 +41,7 @@ void SpMV(const Matrix<A> *_matrix,
                 throw "Error: unmerged modifiactions not supported in SPMV yet";
             }
 
-            if(num_sockets_used() > 1)
+            if(num_sockets_used() == 3) //TODO return to 1 after function fix
             {
                 LOG_TRACE("Using NUMA-aware SPMV");
                 SpMV_numa_aware(_matrix->get_csr(), _x, _y, _accum, _op, _matrix->get_workspace());
@@ -52,7 +55,19 @@ void SpMV(const Matrix<A> *_matrix,
                 }
                 else
                 {
-                    SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                    if (neon_mode == GrB_NEON_64) {
+                        #ifdef __USE_KUNPENG__
+                        SpMV_all_active_diff_vectors_neon(_matrix->get_csr(), _x, _y, _accum, _op, _desc,
+                                                                _matrix->get_workspace());
+                        #endif
+                    } else if (neon_mode == GrB_NEON_32) {
+                        #ifdef __USE_KUNPENG__
+                        SpMV_all_active_diff_vectors_neon_short(_matrix->get_csr(), _x, _y, _accum, _op, _desc,
+                                                                _matrix->get_workspace());
+                        #endif
+                    } else {
+                        SpMV_all_active_diff_vectors(_matrix->get_csr(), _x, _y, _accum, _op, _desc, _matrix->get_workspace());
+                    }
                 }
             }
         }

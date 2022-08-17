@@ -5,7 +5,7 @@
 
 /**
   @file bfs.hpp
-  @author Lastname:Firstname:A00123456:cscxxxxx
+  @author S.krymskiy
   @version Revision 1.1
   @brief BFS algorithm.
   @details This file uses algorithm implementation from LAGraph, which is available under

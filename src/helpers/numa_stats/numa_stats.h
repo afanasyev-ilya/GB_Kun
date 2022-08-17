@@ -1,3 +1,10 @@
+/**
+  @file numa_stats.h
+  @author S.krymskiy
+  @version Revision 1.1
+  @date June 10, 2022
+*/
+
 #pragma once
 
 #include <unistd.h>
@@ -20,13 +27,18 @@ int cores_per_socket()
 };
 #endif
 
+/**
+ * num_sockets_used function.
+ * @brief returns number of sockets used in parallel region
+*/
+
 int num_sockets_used()
 {
     #ifdef __USE_KUNPENG__
     const int num_cpu = sysconf(_SC_NPROCESSORS_ONLN);
     int threads_amount;
     int cpu[num_cpu];
-        #pragma omp parallel
+    #pragma omp parallel
     {
         threads_amount = omp_get_num_threads();
         int cpu_num = sched_getcpu();

@@ -29,7 +29,7 @@ def get_list_of_synthetic_graphs(run_speed_mode):
         return syn_fastest
     elif run_speed_mode == "scaling":
         return syn_scaling
-    elif run_speed_mode == "best" or run_speed_mode == "bestf":
+    elif run_speed_mode == "best" or run_speed_mode == "bestf" or run_speed_mode == "twenty" or run_speed_mode == "seven":
         return []
     elif run_speed_mode == "dl" or run_speed_mode == "deep_learning": # for parser, won't be changed when new graphs are added
         return syn_deep_learning
@@ -68,6 +68,10 @@ def get_list_of_real_world_graphs(run_speed_mode):
         return [run_speed_mode]
     elif run_speed_mode in syn_tiny_small_medium:
         return []
+    elif run_speed_mode == "twenty":
+        return konect_twenty_set
+    elif run_speed_mode == "seven":
+        return konect_seven_set
     else:
         raise ValueError("Unsupported run_speed_mode")
 

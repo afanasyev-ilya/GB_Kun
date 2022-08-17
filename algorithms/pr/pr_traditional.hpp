@@ -1,6 +1,6 @@
 /**
   @file pr_traditional.hpp
-  @author Lastname:Firstname:A00123456:cscxxxxx
+  @author S.krymskiy
   @version Revision 1.1
   @brief Traditional PR algorithm.
   @details Detailed description.

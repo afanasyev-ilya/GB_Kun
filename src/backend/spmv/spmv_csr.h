@@ -376,15 +376,15 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
             {
                 VNT col = _matrix->col_ids[j];
                 A val = _matrix->vals[j];
-                //if(x_vals[col] != 0) // TODO is it correct?
-                    res = add_op(res, mul_op(val, x_vals[col]));
+                // TODO is it correct?
+                res = add_op(res, mul_op(val, x_vals[col]));
             }
             y_vals[row] = _accum(y_vals[row], res);
         }
     }
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
-    cout << "spmv slices (diff vector), unmasked time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "spmv NEON slices (diff vector), unmasked time: " << (t2 - t1)*1000 << " ms" << endl;
     cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
     #endif
 }
@@ -487,7 +487,7 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
 
     #ifdef __DEBUG_BANDWIDTHS__
     double t2 = omp_get_wtime();
-    cout << "spmv slices (same vector), unmasked time: " << (t2 - t1)*1000 << " ms" << endl;
+    cout << "spmv NEON short slices (same vector), unmasked time: " << (t2 - t1)*1000 << " ms" << endl;
     cout << "bw: " << _matrix->nnz * (2.0*sizeof(X) + sizeof(Index)) / ((t2 - t1)*1e9) << " GB/s" << endl;
     #endif
 }

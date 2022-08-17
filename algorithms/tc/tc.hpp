@@ -1,9 +1,15 @@
-/// @file tc.hpp
-/// @author Lastname:Firstname:A00123456:cscxxxxx
-/// @version Revision 1.1
-/// @brief TC algorithm.
-/// @details code taken form LAGraph. Add license.
-/// @date May 12, 2022
+
+// code taken form LAGraph
+// add license
+
+/**
+  @file tc.hpp
+  @author S.krymskiy
+  @version Revision 1.1
+  @brief TC algorithm.
+  @details code taken form LAGraph. Add license.
+  @date May 12, 2022
+*/
 
 #pragma once
 #include "../../src/gb_kun.h"
@@ -259,6 +265,7 @@ int LAGr_TriangleCount(uint64_t *ntriangles, const LAGraph_Graph<int>* G,
 
     LG_FREE_ALL ;
     (*ntriangles) = (uint64_t) ntri ;
+
     return (GrB_SUCCESS) ;
 }
 

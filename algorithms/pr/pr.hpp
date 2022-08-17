@@ -5,7 +5,7 @@
 
 /**
   @file pr.hpp
-  @author Lastname:Firstname:A00123456:cscxxxxx
+  @author S.krymskiy
   @version Revision 1.1
   @brief PR algorithm.
   @details This file uses algorithm implementation from LAGraph, which is available under

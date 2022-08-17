@@ -1,3 +1,5 @@
+#!/bin/sh
+
 args=("$@")
 number_of_arguments=$#
 

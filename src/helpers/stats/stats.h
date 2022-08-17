@@ -1,3 +1,10 @@
+/**
+  @file stats.h
+  @author S.krymskiy
+  @version Revision 1.1
+  @date June 10, 2022
+*/
+
 #pragma once
 
 #include <stdio.h>
@@ -92,6 +99,15 @@ if (my_time) {\
 }                                                                                        \
 fclose(my_f);                                                                           \
 
+/**
+ * save_teps function.
+ * @brief saves performance statistics for an operation
+ * @param _op_name name of the operation
+ * @param _time time in ms
+ * @param _nvals number of elements (for example matrix elements) processed in the region
+ * @param _iterations amount of iterations
+*/
+
 void save_teps(const char *_op_name, double _time /*in ms*/, size_t _nvals, int _iterations = 1)
 {
     double my_time = _time;
@@ -104,6 +120,13 @@ void save_teps(const char *_op_name, double _time /*in ms*/, size_t _nvals, int 
     }
     fclose(my_f);
 }
+
+/**
+ * save_time_in_ms function.
+ * @brief outputs time taken by the _op_name operation in ms
+ * @param _op_name name of the operation
+ * @param _time time in seconds
+*/
 
 void save_time_in_ms(const char *_op_name, double _time)
 {
@@ -120,6 +143,13 @@ void save_time_in_ms(const char *_op_name, double _time)
     fclose(my_f);
 }
 
+/**
+ * save_time_in_sec function.
+ * @brief outputs time taken by the _op_name operation in seconds
+ * @param _op_name name of the operation
+ * @param _time time in seconds
+*/
+
 void save_time_in_sec(const char *_op_name, double _time)
 {
     double my_t2 = omp_get_wtime();
@@ -134,6 +164,11 @@ void save_time_in_sec(const char *_op_name, double _time)
     }
     fclose(my_f);
 }
+
+/**
+ * print_omp_stats function.
+ * @brief outputs omp stats (Amount of threads, largest core, the number of a core for each thread).
+*/
 
 void print_omp_stats()
 {

@@ -23,6 +23,17 @@ yum install python3-devel
 pip3 install matplotlib
 ```
 
+Recommended Environment variables set up:
+```bash
+export OMP_NUM_THREADS=96
+export OMP_PROC_BIND=close
+export OMP_PLACES=cores
+```
+
+Main testing machine specs:
+1. CPU used: Kunpeng 920 (48 core version)
+2. Amount of threads used: 96 (48 + 48 with NUMA)
+3. OS: CentOS Linux release 8.4.2105
 
 On CentOS 8, yum must be fixed according to the following instruction:
 
@@ -138,3 +149,14 @@ python3 codestyle_formatter.py --apply --safe
 ```
 
 The script also has `--quiet` option so the output could be easily interpreted by other scripts.
+
+
+***Wrapper using ML trained model***
+
+Initial version of wrapper script uses built-in parameters for algorithm running
+You need to pass algorithm name and graphname in this script
+```bash
+python3 ./ml_wrapper.py bfs Flickr 
+```
+
+

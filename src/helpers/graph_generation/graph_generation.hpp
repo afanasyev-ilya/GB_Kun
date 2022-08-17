@@ -1,3 +1,10 @@
+/**
+  @file graph_generation.hpp
+  @author S.krymskiy
+  @version Revision 1.1
+  @date June 10, 2022
+*/
+
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -7,11 +14,17 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// TODO documentation Slava
+
+/**
+ * random_shuffle_edges function.
+ * @brief generates graph using random shuffle
+ * @param _edges_container graph represented as a list of edges
+*/
+
 template <typename T>
 void random_shuffle_edges(EdgeListContainer<T> &_edges_container)
 {
-    srand ( unsigned ( time(0) ) );
+    srand(unsigned(time(0)));
 
     VNT vertices_count = _edges_container.vertices_count;
     ENT edges_count = _edges_container.edges_count;
@@ -34,6 +47,15 @@ void random_shuffle_edges(EdgeListContainer<T> &_edges_container)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * random_shuffle_edges function.
+ * @brief generates graph using random uniform
+ * @param _edges_container graph represented as a list of edges
+ * @param _vertices_count number of graph's vertexes
+ * @param _edges_container number of graph's edges
+ * @param _direction_type graphs's direction (directed or not)
+*/
 
 template <typename T>
 void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
@@ -90,6 +112,19 @@ void GraphGenerationAPI::random_uniform(EdgeListContainer<T> &_edges_container,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * RMAT function.
+ * @brief generates graph using RMAT algorithm (https://www.cs.cmu.edu/~christos/PUBLICATIONS/siam04.pdf)
+ * @param _edges_container graph represented as a list of edges
+ * @param _vertices_count number of graph's vertexes
+ * @param _edges_container number of graph's edges
+ * @param _a_prob RMAT parameter
+ * @param _b_prob RMAT parameter
+ * @param _c_prob RMAT parameter
+ * @param _d_prob RMAT parameter
+ * @param _direction_type graphs's direction (directed or not)
+*/
 
 template <typename T>
 void GraphGenerationAPI::RMAT(EdgeListContainer<T> &_edges_container,
@@ -192,6 +227,15 @@ void GraphGenerationAPI::RMAT(EdgeListContainer<T> &_edges_container,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * HPCG function.
+ * @brief generates graph using HPCG algorithm (https://upcommons.upc.edu/bitstream/handle/2117/116642/1HPCG_shared_mem_implementation_tech_report.pdf)
+ * @param _edges_container graph represented as a list of edges
+ * @param _nx HPCG parameter
+ * @param _ny HPCG parameter
+ * @param _edge_factor HPCG parameter
+*/
 
 template <typename T>
 void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
@@ -389,6 +433,14 @@ void GraphGenerationAPI::HPCG(EdgeListContainer<T> &_edges_container,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * init_from_txt_file function.
+ * @brief initializes graph from a txt file
+ * @param _edges_container graph represented as a list of edges
+ * @param _txt_file_name name of the txt file
+ * @param _direction_type graphs's direction (directed or not)
+*/
+
 template <typename T>
 void GraphGenerationAPI::init_from_txt_file(EdgeListContainer<T> &_edges_container, string _txt_file_name,
                                             DirectionType _direction_type)
@@ -480,6 +532,14 @@ void GraphGenerationAPI::init_from_txt_file(EdgeListContainer<T> &_edges_contain
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * init_from_mtx_file function.
+ * @brief initializes graph from a mtx file
+ * @param _edges_container graph represented as a list of edges
+ * @param _mtx_file_name name of the mtx file
+*/
 
 template <typename T>
 void GraphGenerationAPI::init_from_mtx_file(EdgeListContainer<T> &_edges_container, string _mtx_file_name)
