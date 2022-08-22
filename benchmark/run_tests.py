@@ -130,6 +130,16 @@ def run(options, run_info):
 
     benchmarking_results.finalize()
 
+def one_user_check():
+    file_path = "./one_user_file"
+    if os.path.exists(file_path):
+        return False
+    file = open(file_path, "w+")
+    return True
+
+def remove_file():
+    file_path = "./one_user_file"
+    os.remove(file_path)
 
 def main():
     # parse arguments
@@ -180,6 +190,13 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if one_user_check() == False:
+        print("Already in use!")
+    else:
+        try:
+            main()
+            remove_file()
+        except:
+            remove_file()
 
 
