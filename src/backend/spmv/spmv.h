@@ -36,11 +36,14 @@ void SpMV(const Matrix<A> *_matrix,
         _desc->get(GrB_NEON, &neon_mode);
         if(format == CSR)
         {
+            if(_matrix->get_csr()->has_unmerged_modifications())
+            {
+                throw "Error: unmerged modifiactions not supported in SPMV yet";
+            }
+
             if(num_sockets_used() == 3) //TODO return to 1 after function fix
             {
-
                 LOG_TRACE("Using NUMA-aware SPMV");
-
                 SpMV_numa_aware(_matrix->get_csr(), _x, _y, _accum, _op, _matrix->get_workspace());
             }
             else
@@ -110,10 +113,14 @@ void VSpM(const Matrix<A> *_matrix,
         _matrix->get_format(&format);
         if(format == CSR)
         {
+            if(_matrix->get_csc()->has_unmerged_modifications())
+            {
+                throw "Error: unmerged modifiactions not supported in SPMV yet";
+            }
+
             if(num_sockets_used() > 1)
             {
                 LOG_TRACE("Using NUMA-aware VSpM")
-
                 SpMV_numa_aware(_matrix->get_csc(), _x, _y, _accum, _op, _matrix->get_workspace());
             }
             else

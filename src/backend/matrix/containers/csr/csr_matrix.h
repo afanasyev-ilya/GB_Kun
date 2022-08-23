@@ -54,8 +54,20 @@ public:
     bool is_symmetric();
     void to_symmetric();
 
-
     void calculate_degrees();
+
+    void add_row(VNT _row_id);
+    void remove_row(VNT _row_id);
+    void add_val(VNT _row, VNT _col, T _val);
+    void remove_val(VNT _row, VNT _col);
+    // TODO do we need update edge here?
+
+    void apply_modifications();
+    void soft_apply_modifications();
+
+    bool vertex_exists(VNT _row_id) const;
+
+    bool has_unmerged_modifications() const { return ongoing_modifications; };
 private:
     VNT nrows, ncols;
     ENT nnz;
@@ -64,6 +76,17 @@ private:
     T *vals;
     VNT *col_ids;
     VNT *row_degrees;
+
+    bool ongoing_modifications;
+    ENT num_changes;
+    std::set<VNT> removed_vertices;
+    std::set<VNT> removed_rows;
+    std::set<VNT> restored_rows;
+    std::set<VNT> added_rows;
+    std::set<std::pair<VNT, ENT> > removed_edges;
+    std::map<VNT, std::map<std::pair<VNT, ENT>, T> > added_edges; /* supporting invariant that both adjacent
+                                                                     vertices should have same edge in order for it
+                                                                     to be valid when merging changes*/
 
     /* Vector of number_of_running_threads size
      * for i-th thread [i].first element means the beginning row to process
@@ -273,6 +296,7 @@ private:
 #include "csr_matrix.hpp"
 #include "build.hpp"
 #include "symmetric.hpp"
+#include "modification.hpp"
 
 }
 }
