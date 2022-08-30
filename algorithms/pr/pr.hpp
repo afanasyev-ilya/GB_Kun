@@ -231,7 +231,7 @@ void LAGraph_page_rank_sinks (GrB_Vector centrality, // centrality(i): GAP-style
     fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "pr_assign", loop_assign_time * 1000, 0.0, 0.0, 0ll);
     fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "pr_reduce", loop_reduce_time * 1000, 0.0, 0.0, 0ll);
     fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "pr_ewisemult", loop_ewisemult_time * 1000, 0.0, 0.0, 0ll);
-    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "pr_mxv", loop_mxv_time * 1000, 0.0, 0.0, 0ll);
+    fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "pr_mxv_total_time", loop_mxv_time * 1000, 0.0, 0.0, 0ll);
     fprintf(my_f, "%s %lf (s) %lf (GFLOP/s) %lf (GB/s) %lld\n", "pr_apply", loop_apply_time * 1000, 0.0, 0.0, 0ll);
     fclose(my_f);
 
