@@ -1,0 +1,2 @@
+add_executable(sssp run_LAGr_SingleSourceShortestPath.c)
+target_link_libraries(sssp lagraph graphblas)
