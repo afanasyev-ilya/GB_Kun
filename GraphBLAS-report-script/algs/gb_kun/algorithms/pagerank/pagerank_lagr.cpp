@@ -24,7 +24,8 @@ int main(int argc, char **argv) {
 
   LAGraph_Graph<float> graph(matrix);
 
-  int itermax = 100;
+  // int itermax = 100;
+  int itermax = 10; // due to the reasons current GB_Kun benchmark uses 10 iterations for PR
   double damping = 0.85;
   double tol = 1e-4;
   int iters_taken = 0;
