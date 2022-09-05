@@ -231,7 +231,7 @@ template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
 LA_Info GrB_normalize(T *_val,
                    BinaryOpTAccum _accum,
                    MonoidT _op,
-                   const lablas::Vector<U>* _u,
+                   lablas::Vector<U>* _u,
                    lablas::Descriptor* _desc)
 {
     return lablas::normalize(_val, _accum, _op, _u, _desc);

@@ -547,14 +547,14 @@ LA_Info normalize(T *_val,
     if(_u->is_dense())
     {
         Index vector_size = _u->getDense()->get_size();
-        const U* u_vals = _u->getDense()->get_vals();
+        U* u_vals = _u->getDense()->get_vals();
 
         auto lambda_op = [u_vals](Index idx)->U
         {
             return u_vals[idx] * u_vals[idx];
         };
 
-        auto lambda_op_div = [u_vals](Index idx, T div_val)
+        auto lambda_op_div = [u_vals](Index idx, T div_val) -> void
         {
             u_vals[idx] = u_vals[idx] / div_val;
         };
@@ -566,7 +566,7 @@ LA_Info normalize(T *_val,
     else // is sparse
     {
         Index nvals = _u->getSparse()->get_nvals();
-        const U* u_vals = _u->getSparse()->get_vals();
+        U* u_vals = _u->getSparse()->get_vals();
 
         backend::generic_sparse_vals_reduce_mult_op(&reduce_result, u_vals, nvals, _op, _desc);
 

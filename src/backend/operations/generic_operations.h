@@ -345,13 +345,13 @@ LA_Info generic_dense_divide_by_value(T _tmp_val,
                                 MonoidOpT _monoid_op,
                                 Descriptor *_desc)
 {
-    LOG_TRACE("Running generic_dense_reduce_op")
+    LOG_TRACE("Running generic_dense_divide_by_value")
 #pragma omp parallel
     {
 #pragma omp for
         for (Index i = 0; i < _size; i++)
         {
-            _lambda_op(i);
+            _lambda_op(i, _tmp_val);
         }
     }
     return GrB_SUCCESS;
