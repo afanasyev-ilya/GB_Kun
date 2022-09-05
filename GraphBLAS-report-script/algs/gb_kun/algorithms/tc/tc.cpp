@@ -21,9 +21,12 @@ int main(int argc, char **argv) {
 
   std::cout << "read time: " << read_t << endl;
 
+  /*
+  // As in LAGraph implementation the Parser is the one responsible for calling this function
   if (!matrix.is_symmetric()) {
       matrix.to_symmetric();
   }
+  */
 
   LAGraph_Graph<int> graph(matrix);
 

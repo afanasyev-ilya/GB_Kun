@@ -24,7 +24,8 @@ int main(int argc, char **argv) {
 
   LAGraph_Graph<float> graph(matrix);
 
-  int itermax = 100;
+  // int itermax = 100;
+  int itermax = 10; // due to the reasons current GB_Kun benchmark uses 10 iterations for PR
   double damping = 0.85;
   double tol = 1e-4;
   int iters_taken = 0;
@@ -34,7 +35,7 @@ int main(int argc, char **argv) {
   int N = strtol(argv[2], NULL, 10);
   for (int i = 0; i < N; ++i) {
     start = std::chrono::steady_clock::now();
-    lablas::algorithm::LAGraph_page_rank_sinks(&ranks, &graph, &iters_taken);
+    lablas::algorithm::LAGraph_page_rank_sinks(&ranks, &graph, &iters_taken, itermax);
     end = std::chrono::steady_clock::now();
     dt = end - start;
     auto run_t = dt.count();
