@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
   int N = strtol(argv[2], NULL, 10);
   for (int i = 0; i < N; ++i) {
     start = std::chrono::steady_clock::now();
-    lablas::algorithm::LAGraph_page_rank_sinks(&ranks, &graph, &iters_taken);
+    lablas::algorithm::LAGraph_page_rank_sinks(&ranks, &graph, &iters_taken, itermax);
     end = std::chrono::steady_clock::now();
     dt = end - start;
     auto run_t = dt.count();
