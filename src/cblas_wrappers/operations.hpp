@@ -217,6 +217,28 @@ LA_Info GrB_reduce(T *_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief CBLAS Reduce Wrapper for Vector
+///
+/// Implements a wrapper over a reduce operation for vector which is basically does
+/// w = op(w, u[i]) for each i. Accumulator also could be used as well as descriptor.
+/// @param[out] _val Pointer to result value
+/// @param[in] _accum Binary operation accumulator
+/// @param[in] _op Monoid operation
+/// @param[in] _u Pointer to the Vector object
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
+template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
+LA_Info GrB_normalize(T *_val,
+                   BinaryOpTAccum _accum,
+                   MonoidT _op,
+                   const lablas::Vector<U>* _u,
+                   lablas::Descriptor* _desc)
+{
+    return lablas::normalize(_val, _accum, _op, _u, _desc);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
 LA_Info GrB_Vector_clear(lablas::Vector<T>* _vec)
 {

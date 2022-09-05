@@ -572,6 +572,56 @@ LA_Info reduce(T *_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+/// @brief CPP_GRAPHBLAS Normalize Wrapper for Vector
+///
+/// Implements a wrapper over a reduce operation for vector which is basically does
+/// w = op(w, u[i]) for each i. Accumulator also could be used as well as descriptor.
+/// If input vector _u is not initialized it returns GrB_UNINITIALIZED_OBJECT.
+/// @param[out] _val Pointer to result value
+/// @param[in] _accum Binary operation accumulator
+/// @param[in] _op Monoid operation
+/// @param[in] _u Pointer to the Vector object
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
+template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
+LA_Info normalize(T *_val,
+               BinaryOpTAccum _accum,
+               MonoidT _op,
+               Vector<U>* _u,
+               Descriptor* _desc)
+{
+    if(not_initialized(_u))
+        return GrB_UNINITIALIZED_OBJECT;
+
+    backend::Descriptor* desc_t = (_desc == NULL) ? NULL : _desc->get_descriptor();
+
+    return backend::normalize(_val, _accum, _op, _u->get_vector(), desc_t);
+}
+
+/// @brief CPP_GRAPHBLAS Reduce Wrapper for Vector with default accumulator
+///
+/// Implements a wrapper over a reduce operation for vector which is basically does
+/// w = op(w, u[i]) for each i. Accumulator also could be used as well as descriptor.
+/// Accumulator is initialized with second<T, T, T>().
+/// @param[out] _val Pointer to result value
+/// @param[in] _accum NULL_TYPE accumulator
+/// @param[in] _op Monoid operation
+/// @param[in] _u Pointer to the Vector object
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
+template <typename T, typename U, typename MonoidT>
+LA_Info normalize(T *_val,
+               NULL_TYPE _accum,
+               MonoidT _op,
+               Vector<U>* _u,
+               Descriptor* _desc)
+{
+    return normalize(_val, second<T, T, T>(), _op, _u, _desc);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /// @brief CPP_GRAPHBLAS Extract Wrapper for Vector
 ///
 /// Gather values in vector u from indices (vector index) and store in another
