@@ -561,7 +561,7 @@ LA_Info normalize(T *_val,
 
         backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, _desc);
 
-        backend::generic_dense_divide_by_value(reduce_result, vector_size, lambda_op_div, _op, _desc);
+        backend::generic_dense_divide_by_value(sqrt(reduce_result), vector_size, lambda_op_div, _op, _desc);
     }
     else // is sparse
     {
@@ -570,7 +570,7 @@ LA_Info normalize(T *_val,
 
         backend::generic_sparse_vals_reduce_mult_op(&reduce_result, u_vals, nvals, _op, _desc);
 
-        backend::generic_sparse_vals_divide_by_value(reduce_result, u_vals, nvals, _op, _desc);
+        backend::generic_sparse_vals_divide_by_value(sqrt(reduce_result), u_vals, nvals, _op, _desc);
     }
 
 
