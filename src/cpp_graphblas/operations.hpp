@@ -575,10 +575,10 @@ LA_Info reduce(T *_val,
 
 /// @brief CPP_GRAPHBLAS Normalize Wrapper for Vector
 ///
-/// Implements a wrapper over a reduce operation for vector which is basically does
+/// Implements a wrapper over a normalize operation for vector which is basically does
 /// w = op(w, u[i]) for each i. Accumulator also could be used as well as descriptor.
 /// If input vector _u is not initialized it returns GrB_UNINITIALIZED_OBJECT.
-/// @param[out] _val Pointer to result value
+/// @param[out] _val Pointer to squared reduce value
 /// @param[in] _accum Binary operation accumulator
 /// @param[in] _op Monoid operation
 /// @param[in] _u Pointer to the Vector object
@@ -599,12 +599,12 @@ LA_Info normalize(T *_val,
     return backend::normalize(_val, _accum, _op, _u->get_vector(), desc_t);
 }
 
-/// @brief CPP_GRAPHBLAS Reduce Wrapper for Vector with default accumulator
+/// @brief CPP_GRAPHBLAS Normalize Wrapper for Vector with default accumulator
 ///
-/// Implements a wrapper over a reduce operation for vector which is basically does
+/// Implements a wrapper over a normalize operation for vector which is basically does
 /// w = op(w, u[i]) for each i. Accumulator also could be used as well as descriptor.
 /// Accumulator is initialized with second<T, T, T>().
-/// @param[out] _val Pointer to result value
+/// @param[out] _val Pointer to squared reduce value
 /// @param[in] _accum NULL_TYPE accumulator
 /// @param[in] _op Monoid operation
 /// @param[in] _u Pointer to the Vector object

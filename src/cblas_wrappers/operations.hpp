@@ -217,11 +217,11 @@ LA_Info GrB_reduce(T *_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// @brief CBLAS Reduce Wrapper for Vector
+/// @brief CBLAS Normalize Wrapper for Vector
 ///
 /// Implements a wrapper over a reduce operation for vector which is basically does
 /// w = op(w, u[i]) for each i. Accumulator also could be used as well as descriptor.
-/// @param[out] _val Pointer to result value
+/// @param[out] _val Pointer to squared reduce value
 /// @param[in] _accum Binary operation accumulator
 /// @param[in] _op Monoid operation
 /// @param[in] _u Pointer to the Vector object
