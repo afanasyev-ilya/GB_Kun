@@ -8,7 +8,6 @@ with open(input_path) as file:
     lines = [line.rstrip() for line in lines]
 
 mtx_header = lines[0]
-
 num_rows, num_cols, nnz = lines[1].split()
 
 edges = set(map(lambda x: tuple(x.split()[:2]), lines[2:]))
@@ -20,10 +19,7 @@ for edge in edges:
 
 edges = edges.union(new_edges)
 
-nnz = len(edges)
-
 with open(output_path, 'w') as file:
     print(mtx_header, file=file)
-    print(num_rows, num_cols, nnz, file=file)
-    for edge in edges:
-        print(edge[0], edge[1], file=file)
+    print(num_rows, num_cols, len(edges), file=file)
+    print("\n".join(map(lambda e: f"{e[0]} {e[1]}", edges)), file=file)
