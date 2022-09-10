@@ -16,7 +16,7 @@ edges = set(map(lambda x: tuple(x.split()[:2]), lines[2:]))
 new_edges = set()
 for edge in edges:
     if (edge[1], edge[0]) not in edges:
-        new_edges.add(edge)
+        new_edges.add((edge[1], edge[0]))
 
 edges = edges.union(new_edges)
 
