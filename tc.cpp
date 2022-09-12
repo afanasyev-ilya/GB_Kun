@@ -34,8 +34,15 @@ int main(int argc, char **argv) {
         matrix.set_preferred_matrix_format(parser.get_storage_format());
         init_matrix(matrix, parser);
 
-        if (parser.check() && !matrix.is_symmetric()) {
+        if (!matrix.is_symmetric()) {
+            cout << "Input matrix is not symmetric" << endl;
+            const auto before_symmetric_nnz = matrix.get_matrix()->get_nnz();
+            double symmetric_t1 = omp_get_wtime();
             matrix.to_symmetric();
+            double symmetric_t2 = omp_get_wtime();
+            cout << "To symmetric time: " << symmetric_t2 - symmetric_t1 << endl;
+            const auto after_symmetric_nnz = matrix.get_matrix()->get_nnz();
+            cout << "nnz changed from " << before_symmetric_nnz << " to " << after_symmetric_nnz << endl;
         }
 
         Index nrows;
