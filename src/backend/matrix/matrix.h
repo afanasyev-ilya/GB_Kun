@@ -168,10 +168,10 @@ public:
 
     [[nodiscard]] bool is_symmetric() const {
         //return (*csr_data == *csc_data);
-        return csr_data->is_symmetric();
+        return csr_data->is_symmetric_safe() && csc_data->is_symmetric_safe();
     }
 
-    void to_symmetric() { csr_data->to_symmetric(); csc_data->deep_copy(csr_data); };
+    void to_symmetric() { csr_data->to_symmetric_safe(); csc_data->to_symmetric_safe(); };
 
     friend bool operator==(const Matrix<T>& _lhs, const Matrix<T>& _rhs) {
         return (*(_lhs.csr_data) == *(_rhs.csr_data)) && (*(_lhs.csc_data) == *(_rhs.csc_data));
