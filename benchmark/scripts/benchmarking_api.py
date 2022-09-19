@@ -17,6 +17,8 @@ def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, 
     mult = 1
     if app_name == "bfs":
         mult = 100
+    elif app_name == "pr":
+        mult = 10
     common_args = ["-it", str(common_iterations*mult), "-format", graph_format, "-no-check"]
     print(common_args)
 
