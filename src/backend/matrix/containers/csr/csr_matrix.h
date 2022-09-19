@@ -52,8 +52,9 @@ public:
     void numa_aware_realloc();
 
     bool is_symmetric();
+    bool is_symmetric_safe();
     void to_symmetric();
-
+    void to_symmetric_safe();
 
     void calculate_degrees();
 private:

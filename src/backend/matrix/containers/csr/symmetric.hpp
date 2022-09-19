@@ -70,6 +70,29 @@ bool MatrixCSR<T>::is_symmetric()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
+bool MatrixCSR<T>::is_symmetric_safe()
+{
+    if(nrows != ncols) { return false; }
+
+    std::set<std::tuple<VNT, VNT, T> > edges;
+
+    for(VNT row = 0; row < nrows; row++) {
+        for (ENT cols_idx = row_ptr[row]; cols_idx < row_ptr[row + 1]; ++cols_idx) {
+            edges.insert(std::make_tuple(row, col_ids[cols_idx], vals[cols_idx]));
+        }
+    }
+
+    for (const auto & edge : edges) {
+        if (edges.find(std::make_tuple(std::get<1>(edge), std::get<0>(edge), std::get<2>(edge))) == edges.end()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
 void MatrixCSR<T>::to_symmetric()
 {
     std::vector<std::unordered_map<VNT, T>> col_data(ncols);
@@ -138,3 +161,53 @@ void MatrixCSR<T>::to_symmetric()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void MatrixCSR<T>::to_symmetric_safe()
+{
+    if(nrows != ncols)
+    {
+        std::cout << "can't made symmetric matrix with unequal number of cols and rows" << std::endl;
+        throw "Aborting...";
+    }
+
+    std::map<std::pair<VNT, VNT>, T> edges;
+    for(VNT row = 0; row < nrows; row++) {
+        for (ENT cols_idx = row_ptr[row]; cols_idx < row_ptr[row + 1]; ++cols_idx) {
+            if (vals[cols_idx]) {
+                edges[std::make_pair(row, col_ids[cols_idx])] = vals[cols_idx];
+                edges[std::make_pair(col_ids[cols_idx], row)] = vals[cols_idx];
+            }
+        }
+    }
+
+    VNT new_nrows = nrows;
+    VNT new_ncols = ncols;
+    VNT new_nnz = edges.size();
+    resize(new_nrows, new_ncols, new_nnz);
+
+    std::vector<std::map<VNT, T> > edges_vector_of_map(new_nrows);
+    for (const auto & edge_key_value : edges) {
+        const auto edge_pair = edge_key_value.first;
+        const auto edge_weight = edge_key_value.second;
+        edges_vector_of_map[edge_pair.first][edge_pair.second] = edge_weight;
+    }
+
+    ENT cur_csr_pos = 0;
+    for(VNT i = 0; i < new_nrows; i++) {
+        row_ptr[i] = cur_csr_pos;
+        row_ptr[i + 1] = row_ptr[i] + edges_vector_of_map[i].size();
+        for(const auto &[col_id, val]: edges_vector_of_map[i]) {
+            col_ids[cur_csr_pos] = col_id;
+            vals[cur_csr_pos] = val;
+            ++cur_csr_pos;
+        }
+    }
+
+    calculate_degrees();
+    get_load_balancing_offsets();
+    numa_aware_realloc();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
