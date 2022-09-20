@@ -551,7 +551,8 @@ LA_Info normalize(T *_val,
 
         auto lambda_op = [u_vals](Index idx)->U
         {
-            return u_vals[idx] * u_vals[idx];
+            /* L1 normalizing */
+            return u_vals[idx];
         };
 
         auto lambda_op_div = [u_vals](Index idx, T div_val) -> void
@@ -561,7 +562,7 @@ LA_Info normalize(T *_val,
 
         backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, _desc);
 
-        backend::generic_dense_divide_by_value(sqrt(reduce_result), vector_size, lambda_op_div, _op, _desc);
+        backend::generic_dense_divide_by_value(reduce_result, vector_size, lambda_op_div, _op, _desc);
     }
     else // is sparse
     {

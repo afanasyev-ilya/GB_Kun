@@ -36,7 +36,6 @@ namespace algorithm {
  * @param iters output: number of iterations taken
  * @param itermax maximum number of iterations (typically 100)
  * @param damping damping factor (typically 0.85)
- * @param tol  stopping tolerance (typically 1e-4)
 */
 
 void LAGraph_page_rank_sinks (GrB_Vector centrality, // centrality(i): GAP-style pagerank of node i
@@ -44,15 +43,13 @@ void LAGraph_page_rank_sinks (GrB_Vector centrality, // centrality(i): GAP-style
                               LAGraph_Graph<float> *G,        // input graph
                               int *iters,                     // output: number of iterations taken
                               int itermax = 100,              // maximum number of iterations (typically 100)
-                              double damping = 0.85,           // damping factor (typically 0.85)
-                              double tol = 1e-4               // stopping tolerance (typically 1e-4) ;
+                              double damping = 0.85          // damping factor (typically 0.85)
 )
 {
     GrB_Matrix AT = G->AT;
-    lablas::Vector<Index>* d_out = G->coldegree; // TODO row degree and transpose
+    lablas::Vector<Index>* d_out = G->coldegree;
     GrB_Vector r = NULL, *d = NULL, *t = NULL, *w = NULL, *d1 = NULL ;
     lablas::Descriptor desc;
-
     //--------------------------------------------------------------------------
     // initializations
     //--------------------------------------------------------------------------

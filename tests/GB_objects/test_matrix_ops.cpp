@@ -148,15 +148,13 @@ TEST (TransposeTest, NormTest) {
     GrB_normalize(&value, NULL, GrB_PLUS_MONOID_FP32,&vec, &desc);
 
     for (int i = 0; i < vals.size(); i++) {
-        ASSERT_EQ(0.5, vec.get_at(i));
+        ASSERT_EQ(0.25, vec.get_at(i));
     }
-
-    vec.print();
 }
 
 TEST (TransposeTest, NormTest1) {
-    lablas::Vector<float> vec(4);
-    const std::vector<float> vals = {0, 1, 0, 1};
+    lablas::Vector<float> vec(6);
+    const std::vector<float> vals = {0, 1, 0, 1, 0, 2};
     Index size = vals.size();
     lablas::Descriptor desc;
 
@@ -165,7 +163,13 @@ TEST (TransposeTest, NormTest1) {
     float value;
     GrB_normalize(&value, NULL, GrB_PLUS_MONOID_FP32,&vec, &desc);
 
-    vec.print();
+
+    ASSERT_EQ(0, vec.get_at(0));
+    ASSERT_EQ(0.25, vec.get_at(1));
+    ASSERT_EQ(0, vec.get_at(2));
+    ASSERT_EQ(0.25, vec.get_at(3));
+    ASSERT_EQ(0, vec.get_at(4));
+    ASSERT_EQ(0.5, vec.get_at(5));
 }
 
 
