@@ -24,25 +24,23 @@ public:
 
     void print() const;
 
-    ENT get_nnz() const {return this->nnz;};
-    VNT get_num_rows() const {return nrows;};
-    VNT get_num_cols() const {return ncols;};
+    ENT get_nnz() const;
+    VNT get_num_rows() const;
+    VNT get_num_cols() const;
 
-    ENT *get_row_ptr() {return row_ptr;};
-    const ENT *get_row_ptr() const {return row_ptr;};
-    T *get_vals() {return vals;};
-    const T *get_vals() const {return vals;};
-    VNT *get_col_ids() {return col_ids;};
-    const VNT *get_col_ids() const {return col_ids;};
+    ENT *get_row_ptr();
+    const ENT *get_row_ptr() const;
+    T *get_vals();
+    const T *get_vals() const;
+    VNT *get_col_ids();
+    const VNT *get_col_ids() const;
 
-    void set_row_ptr(ENT* ptr) {
-        row_ptr = ptr;
-    }
+    void set_row_ptr(ENT* ptr);
 
-    VNT *get_rowdegrees() {return row_degrees;};
-    const VNT *get_rowdegrees() const {return row_degrees;};
+    VNT *get_rowdegrees();
+    const VNT *get_rowdegrees() const;
 
-    ENT get_degree(VNT _row) {return row_ptr[_row + 1] - row_ptr[_row];};
+    ENT get_degree(VNT _row);
 
     T get(VNT _row, VNT _col) const;
 
@@ -62,29 +60,29 @@ public:
     void remove_val(VNT _row, VNT _col);
     // TODO do we need update edge here?
 
-    void apply_modifications();
-    void soft_apply_modifications();
+    void apply_modifications() const;
+    void soft_apply_modifications() const;
 
     bool vertex_exists(VNT _row_id) const;
 
     bool has_unmerged_modifications() const { return ongoing_modifications; };
 private:
-    VNT nrows, ncols;
-    ENT nnz;
+    mutable VNT nrows, ncols;
+    mutable ENT nnz;
 
-    ENT *row_ptr;
-    T *vals;
-    VNT *col_ids;
-    VNT *row_degrees;
+    mutable ENT *row_ptr;
+    mutable T *vals;
+    mutable VNT *col_ids;
+    mutable VNT *row_degrees;
 
-    bool ongoing_modifications;
-    ENT num_changes;
-    std::set<VNT> removed_vertices;
-    std::set<VNT> removed_rows;
-    std::set<VNT> restored_rows;
-    std::set<VNT> added_rows;
-    std::set<std::pair<VNT, ENT> > removed_edges;
-    std::map<VNT, std::map<std::pair<VNT, ENT>, T> > added_edges; /* supporting invariant that both adjacent
+    mutable bool ongoing_modifications;
+    mutable ENT num_changes;
+    mutable std::set<VNT> removed_vertices;
+    mutable std::set<VNT> removed_rows;
+    mutable std::set<VNT> restored_rows;
+    mutable std::set<VNT> added_rows;
+    mutable std::set<std::pair<VNT, ENT> > removed_edges;
+    mutable std::map<VNT, std::map<std::pair<VNT, ENT>, T> > added_edges; /* supporting invariant that both adjacent
                                                                      vertices should have same edge in order for it
                                                                      to be valid when merging changes*/
 

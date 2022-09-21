@@ -42,6 +42,7 @@ void SpMV_numa_aware(const MatrixCSR<A> *_matrix,
                      Workspace *_workspace)
 {
     LOG_TRACE("Running SpMV_numa_aware for CSR")
+    _matrix->apply_modifications();
     const X *x_vals = _x->get_vals();
     X *x_vals_first_socket = (X*)_workspace->get_first_socket_vector();
     X *x_vals_second_socket = (X*)_workspace->get_second_socket_vector();
@@ -150,6 +151,7 @@ void SpMV_all_active_static(const MatrixCSR<A> *_matrix,
                             Workspace *_workspace)
 {
     LOG_TRACE("Running SpMV_all_active_static for CSR")
+    _matrix->apply_modifications();
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
@@ -186,6 +188,7 @@ void SpMV_sparse(const MatrixCSR<A> *_matrix,
                  Workspace *_workspace)
 {
     LOG_TRACE("Running SpMV_sparse for CSR")
+    _matrix->apply_modifications();
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
@@ -278,6 +281,7 @@ void SpMV_dense(const MatrixCSR<A> *_matrix,
                 Workspace *_workspace)
 {
     LOG_TRACE("Running SpMV_dense for CSR")
+    _matrix->apply_modifications();
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
@@ -352,6 +356,7 @@ void SpMV_all_active_diff_vectors(const MatrixCSR<A> *_matrix,
                                   Workspace *_workspace)
 {
     LOG_TRACE("Running SpMV_all_active_diff_vectors for CSR")
+    _matrix->apply_modifications();
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
@@ -401,6 +406,7 @@ void SpMV_all_active_diff_vectors_tbb(const MatrixCSR<A> *_matrix,
                                       Descriptor *_desc,
                                       Workspace *_workspace)
 {
+    _matrix->apply_modifications();
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
@@ -445,6 +451,7 @@ void SpMV_all_active_same_vectors(const MatrixCSR<A> *_matrix,
                                   Workspace *_workspace)
 {
     LOG_TRACE("Running SpMV_all_active_same_vectors for CSR")
+    _matrix->apply_modifications();
     const X *x_vals = _x->get_vals();
     Y *y_vals = _y->get_vals();
     auto add_op = extractAdd(op);
