@@ -180,6 +180,7 @@ public:
     LA_Info build(const T*    _values,
                   Index _nvals)
     {
+        LOG_TRACE("Building dense vector");
         swap_to_dense();
         auto *dense_vec = (DenseVector<T>*)main_container;
         return dense_vec->build(_values, _nvals);

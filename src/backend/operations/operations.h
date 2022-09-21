@@ -524,6 +524,64 @@ LA_Info reduce(T *_val,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Reduce Operation for Vector
+///
+/// Implements a reduce operation for vector which is basically does
+/// w = op(w, u[i]) for each i. Accumulator also could be used as well as descriptor.
+/// Different base operations are used for dense and sparse vectors.
+/// @param[out] _val Pointer to result value
+/// @param[in] _accum Binary operation accumulator
+/// @param[in] _op Monoid operation
+/// @param[in] _u Pointer to the Vector object
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
+template <typename T, typename U, typename BinaryOpTAccum, typename MonoidT>
+LA_Info normalize(T *_val,
+               BinaryOpTAccum _accum,
+               MonoidT _op,
+               Vector<U> *_u,
+               Descriptor *_desc)
+{
+    LOG_TRACE("Running vector-like normalize")
+    T reduce_result = _op.identity();
+    if(_u->is_dense())
+    {
+        Index vector_size = _u->getDense()->get_size();
+        U* u_vals = _u->getDense()->get_vals();
+
+        auto lambda_op = [u_vals](Index idx)->U
+        {
+            /* L1 normalizing */
+            return u_vals[idx];
+        };
+
+        auto lambda_op_div = [u_vals](Index idx, T div_val) -> void
+        {
+            u_vals[idx] = u_vals[idx] / div_val;
+        };
+
+        backend::generic_dense_reduce_op(&reduce_result, vector_size, lambda_op, _op, _desc);
+
+        backend::generic_dense_divide_by_value(reduce_result, vector_size, lambda_op_div, _op, _desc);
+    }
+    else // is sparse
+    {
+        Index nvals = _u->getSparse()->get_nvals();
+        U* u_vals = _u->getSparse()->get_vals();
+
+        backend::generic_sparse_vals_reduce_mult_op(&reduce_result, u_vals, nvals, _op, _desc);
+
+        backend::generic_sparse_vals_divide_by_value(sqrt(reduce_result), u_vals, nvals, _op, _desc);
+    }
+
+
+    *_val = _accum(*_val, reduce_result);
+
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /// @brief Extract Operation for Vector
 ///
 /// Gather values in vector u from indices (vector index) and store in another

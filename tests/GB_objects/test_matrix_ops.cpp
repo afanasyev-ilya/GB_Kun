@@ -136,6 +136,42 @@ TEST (TransposeTest, SymmetricTest) {
     ASSERT_TRUE(matrix.is_symmetric());
 }
 
+TEST (TransposeTest, NormTest) {
+    lablas::Vector<float> vec(4);
+    const std::vector<float> vals = {1, 1, 1, 1};
+    Index size = vals.size();
+    lablas::Descriptor desc;
+
+    vec.build(&vals, size);
+
+    float value;
+    GrB_normalize(&value, NULL, GrB_PLUS_MONOID_FP32,&vec, &desc);
+
+    for (int i = 0; i < vals.size(); i++) {
+        ASSERT_EQ(0.25, vec.get_at(i));
+    }
+}
+
+TEST (TransposeTest, NormTest1) {
+    lablas::Vector<float> vec(6);
+    const std::vector<float> vals = {0, 1, 0, 1, 0, 2};
+    Index size = vals.size();
+    lablas::Descriptor desc;
+
+    vec.build(&vals, size);
+
+    float value;
+    GrB_normalize(&value, NULL, GrB_PLUS_MONOID_FP32,&vec, &desc);
+
+
+    ASSERT_EQ(0, vec.get_at(0));
+    ASSERT_EQ(0.25, vec.get_at(1));
+    ASSERT_EQ(0, vec.get_at(2));
+    ASSERT_EQ(0.25, vec.get_at(3));
+    ASSERT_EQ(0, vec.get_at(4));
+    ASSERT_EQ(0.5, vec.get_at(5));
+}
+
 
 TEST (TransposeTest, SymmetricBigTest) {
 

@@ -14,8 +14,10 @@ void read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, ENT _nnz
             throw "Error: unexpected end of graph file! Aborting...";
 
         sscanf(buffer, "%lld %lld", &src_id, &dst_id);
-        _src_ids[ln - _ln_pos] = src_id;
-        _dst_ids[ln - _ln_pos] = dst_id;
+
+        /* Change these lines if the previous edge ordering needs to be restored*/
+        _src_ids[ln - _ln_pos] = dst_id;
+        _dst_ids[ln - _ln_pos] = src_id;
         if (src_id <= 0 || dst_id <= 0)
             cout << "Error in read_portion, <= 0 src/dst ids" << endl;
     }

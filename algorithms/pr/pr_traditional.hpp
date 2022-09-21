@@ -38,8 +38,7 @@ void seq_page_rank(Vector <T> *_ranks,
                    const Matrix <T> *_graph,
                    int *iters,                     // output: number of iterations taken
                    int itermax = 100,              // maximum number of iterations (typically 100)
-                   double damping = 0.85,          // damping factor (typically 0.85)
-                   double tol = 1e-4)               // stopping tolerance (typically 1e-4) ;
+                   double damping = 0.85)         // damping factor (typically 0.85)
 {
     Index vertices_count = _ranks->get_vector()->getDense()->get_size();
     T* ranks = _ranks->get_vector()->getDense()->get_vals();

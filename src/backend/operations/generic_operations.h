@@ -256,5 +256,106 @@ LA_Info generic_sparse_vals_reduce_op(T *_tmp_val,
     return GrB_SUCCESS;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Generic Reduce Operation for Sparse Vector
+///
+/// Implements a reduce operation for vector which is basically does
+/// w = op(w, u[i]) for each i over a given _vals array.
+/// @param[out] _tmp_val Pointer to result value
+/// @param[in] _vals Input array
+/// @param[in] _nvals Amount of elemnts
+/// @param[in] _monoid_op Monoid operation
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
+template <typename T, typename V, typename MonoidOpT>
+LA_Info generic_sparse_vals_reduce_mult_op(T *_tmp_val,
+                                      const V*_vals,
+                                      const Index _nvals,
+                                      MonoidOpT _monoid_op,
+                                      Descriptor *_desc)
+{
+    LOG_TRACE("Running generic_sparse_vals_reduce_op")
+#pragma omp parallel
+    {
+        T local_res = _monoid_op.identity();
+#pragma omp for
+        for (Index i = 0; i < _nvals; i++)
+        {
+            T val = _vals[i] * _vals[i];
+            local_res = _monoid_op(val, local_res);
+        }
+
+#pragma omp critical
+        {
+            *_tmp_val = _monoid_op(*_tmp_val, local_res);
+        };
+    }
+    return GrB_SUCCESS;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Generic Reduce Operation for Sparse Vector
+///
+/// Implements a reduce operation for vector which is basically does
+/// w = op(w, u[i]) for each i over a given _vals array.
+/// @param[out] _tmp_val Pointer to result value
+/// @param[in] _vals Input array
+/// @param[in] _nvals Amount of elemnts
+/// @param[in] _monoid_op Monoid operation
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
+template <typename T, typename V, typename MonoidOpT>
+LA_Info generic_sparse_vals_divide_by_value(T _tmp_val,
+                                           V* _vals,
+                                           const Index _nvals,
+                                           MonoidOpT _monoid_op,
+                                           Descriptor *_desc)
+{
+    LOG_TRACE("Running generic_sparse_vals_divide_by_value")
+#pragma omp parallel
+    {
+        T local_res = _monoid_op.identity();
+#pragma omp for
+        for (Index i = 0; i < _nvals; i++) {
+            _vals[i] /= _tmp_val;
+        }
+    }
+    return GrB_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Generic Reduce Operation for Dense Vector
+///
+/// Implements a reduce operation for vector which is basically does
+/// w = op(w, u[i]) for each i by calling _lambda_op lambda operations that might use outer lambda scope variables.
+/// @param[out] _tmp_val Pointer to result value
+/// @param[in] _size Expected iterations count
+/// @param[in] _lambda_op Lambda operation
+/// @param[in] _monoid_op Monoid operation
+/// @param[in] _desc Pointer to the descriptor
+/// @result LA_Info status
+template <typename T, typename LambdaOp, typename MonoidOpT>
+LA_Info generic_dense_divide_by_value(T _tmp_val,
+                                const Index _size,
+                                LambdaOp &&_lambda_op,
+                                MonoidOpT _monoid_op,
+                                Descriptor *_desc)
+{
+    LOG_TRACE("Running generic_dense_divide_by_value")
+#pragma omp parallel
+    {
+#pragma omp for
+        for (Index i = 0; i < _size; i++)
+        {
+            _lambda_op(i, _tmp_val);
+        }
+    }
+    return GrB_SUCCESS;
+}
+
 }
 }
