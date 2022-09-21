@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../lib/liblagraphtest.a CMakeFiles/lagraphtest_static.dir/LG_brutal_malloc.c.o CMakeFiles/lagraphtest_static.dir/LG_brutal_setup.c.o CMakeFiles/lagraphtest_static.dir/LG_brutal_teardown.c.o CMakeFiles/lagraphtest_static.dir/LG_check_bfs.c.o CMakeFiles/lagraphtest_static.dir/LG_check_cc.c.o CMakeFiles/lagraphtest_static.dir/LG_check_export.c.o CMakeFiles/lagraphtest_static.dir/LG_check_sssp.c.o CMakeFiles/lagraphtest_static.dir/LG_check_tri.c.o CMakeFiles/lagraphtest_static.dir/LG_check_vector.c.o
+/usr/bin/ranlib ../../lib/liblagraphtest.a

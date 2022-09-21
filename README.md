@@ -1,78 +1,107 @@
-GB_Kun is a high-performance graph-processing library, based on the GraphBLAS standard. 
-Primary target hardware of GB_Kun is Kunpeng 920 processors (48-core and 64-core), 
-but it can be also launched on other multicore CPU if all the software requirements are provides. 
+[![Build Status](https://github.com/GraphBLAS/LAGraph/workflows/LAGraph%20CI/badge.svg)](https://github.com/GraphBLAS/LAGraph/actions)
 
-Software Requirements:
+# LAGraph
 
-1. CMake >= 3
+LAGraph is a draft library plus a test harness for collecting algorithms that
+use the GraphBLAS.
 
-2. GCC >= 8.7
+The library can be built and tested with any GraphBLAS library.
+Currently, if SuiteSparse:GraphBLAS is used, v6.0.0 or later is required.
 
-3. Python >= 3.6
+Since it's a draft, it contains are many draft/experimental codes with known
+sub-par performance.  Performance of the best methods is highly sensitive on
+which version of SuiteSparse:GraphBLAS is being used, as well.  No one other
+than the authors of this code are aware of which methods are the best, and how
+to achieve that performance.
 
-4. Python packages: xlswriter, matlibplot, tqdm, bs4
+Thus, do not benchmark LAGraph on your own without asking the authors first.
 
-5. GoogleTest
-
-***Important***: for matlibplot installation use 
-
-```bash
-yum install python3-devel
-pip3 install matplotlib
+To build do the following from the top level directory:
+```
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make [-j#]
+$ make test
 ```
 
+To compile with a non-default compiler:
+```
+$ CC=gcc-11 cmake ..
+```
 
-On CentOS 8, yum must be fixed according to the following instruction:  
-
-
-***gtest installation***
-
-```bash
-cd /usr/src/gtest
-sudo mkdir build
+To compile with test coverage:
+```
 cd build
-sudo cmake .. -DBUILD_GMOCK=OFF
-sudo make install
+cmake -DCOVERAGE=1 .. ; make -j8 ; make test_coverage
 ```
 
-***Compilation***
+The test coverage of the latest [CI build](https://github.com/GraphBLAS/LAGraph/actions) is deployed to <https://graphblas.github.io/LAGraph/>.
 
-GB_Kun uses cmake for compilation purposes. In order to compiler GB_Kun, use the following commands:
-
-```bash
-cd GB_Kun
-mkdir build
-cd build
-cmake ..
+Then open this file in your browser:
+```
+build/test_coverage/index.html
 ```
 
-All the compiled binaries will be located in GB_kun/build. Currently, the following binaries are compiled:
-
-1. cc - implementation of the connected components problem.
-2. bfs - implementation of the breadth-first search algorithms.
-3. pr - implementation of the page rank algorithms.
-4. tc - implementation of triangle counting problem.
-5. sssp - implementation of single source shortest paths problem.
-5. spmv - implementation of sparse matrix-vector multiplication.
-6. gemm - implementation of sparse matrix-matrix multiplication.
-
-Other binaries are temporary and will be removed in the final version of the project, serving for temporary experiments and performance evaluation.
-
-***Benchmarking***
-
-In order to benchmark implemented graph algorithms, use the following commands:
-
-```bash
-cd benchmark
-python3 ./run_tests.py --apps=cc,pr,bfs --name=output_file --benchmark --verify --mode=best
+To run the GAP benchmarks, see the instructions in these files:
+```
+./BENCHMARK_INSTRUCTIONS__README1st.txt
+./src/demo/README.md
 ```
 
-All the benchmarking and verification results will be saved into output_file.xlsx table (on different pages).
+# The rest of this README is outdated and needs to be updated.
 
-To check all available benchmarking options, type:
+LAGraph contains the following files and folders:
 
-```bash
-python3 ./run_tests.py --help
-```
+    CMakeLists.txt: a CMake script for compiling.  Do not run cmake in this
+        top-level directory.  Do "make" here, which does the build in the
+        ./build directory:
 
-For example, other options, such as --scaling, are available.
+	( cd build ; cmake .. ; make )
+
+    Doc: documentation
+
+    Include: contains the LAGraph.h file
+
+    LICENSE: BSD 2-clause license
+
+    Makefile: a simple Makefile that relies on CMake to build LAGraph.
+
+    README.md: this file
+
+    Source: stable source code for the LAGraph library:  this is currently
+        empty.
+
+        * Algorithms: graph algorithms such as BFS, connected components,
+            centrality, etc, will go here
+
+        * Utilities: read/write a graph from a file, etc, will go here...
+
+    Experimental*: draft code under development: do not benchmark without
+        asking the LAGraph authors first
+
+        * Algorithms: draft graph algorithms such as BFS, connected components,
+            centrality, etc
+
+        * Utilities: draft utilities go here
+
+    Test*: main programs that test LAGraph.  To run the tests, first compile
+        GraphBLAS and LAGraph, and then do "make tests" in this directory.
+
+    build: initially empty
+
+To link against GraphBLAS, first install whatever GraphBLAS library you wish to
+use.  LAGraph will use -lgraphblas and will include the GraphBLAS.h file
+from its installed location.  Alternatively, the CMakeLists.txt script can use
+a relative directory:
+
+    ../GraphBLAS: any GraphBLAS implementation.
+
+So that LAGraph and GraphBLAS reside in the same parent folder.  The include
+file for GraphBLAS will be assumed to appear in ../GraphBLAS/Include, and the
+compiled GraphBLAS library is assumed to appear in ../GraphBLAS/build.  If you
+use a GraphBLAS library that uses a different structure, then edit the
+CMakeLists.txt file to point to right location.
+
+Authors: (... list them here)
+

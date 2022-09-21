@@ -1,125 +1,268 @@
-cmake_minimum_required(VERSION 3.11)
-project(GB_Kun)
-include(ProcessorCount)
-ProcessorCount(N)
+include_directories("/usr/local/opt/libomp/include")
 
-message("${CMAKE_CXX_COMPILER_ID}")
-message("${CMAKE_CXX_COMPILER}")
-message("${CMAKE_C_COMPILER}")
+#-------------------------------------------------------------------------------
+# LAGraph/CMakeLists.txt:  cmake script for LAGraph
+#-------------------------------------------------------------------------------
 
-if(CMAKE_C_COMPILER MATCHES "ncc")
-    message("COMPILING FOR NEC SX-Aurora TSUBASA") # this is needed to test Sell-C and evaluate vectorization efficiency on Kunpeng
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_NEC_SX_AURORA__ -std=c++14 -fopenmp -O3 -fopenmp -mparallel -mretain-list-vector")
-else ()
-    message(STATUS "Number of cores: ${N}")
-    if(N EQUAL 48 OR N EQUAL 64 OR N EQUAL 96 OR N EQUAL 128)
-        message("COMPILING FOR KUNPENG 920")
-        set(CMAKE_CXX_STANDARD 17)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D __USE_KUNPENG__ -D MAX_CORES=${N} -D __USE_TBB__ -O3 -std=c++17 -fno-trapping-math -fopenmp-simd -fopenmp -ffreestanding -ffast-math -march=armv8.2-a -fpermissive -fprefetch-loop-arrays -ltbb")
-    else ()
-        message("CLION compilation") # this is for local testing
-        set(CMAKE_CXX_STANDARD 17)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D MAX_CORES=${N} -std=c++17 -fopenmp -fpermissive")
-    endif()
-endif()
-
-#backend root dir can be changed easily
-set(kun_backend_dir src/backend)
-
-
-set(desc_dir ${kun_backend_dir}/descriptor/)
-set(matrix_dir ${kun_backend_dir}/matrix/)
-set(operations_dir ${kun_backend_dir}/operations/)
-set(vector_dir ${kun_backend_dir}/vector/)
-set(spmv_dir ${kun_backend_dir}/spmv/)
-
-set(interface_dir src/cpp_graphblas)
-
-# scan all dirs recuresivly
-
-MACRO(HEADER_DIRECTORIES return_list)
-    FILE(GLOB_RECURSE new_list *.h*)
-    SET(dir_list "")
-    FOREACH(file_path ${new_list})
-        GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
-        SET(dir_list ${dir_list} ${dir_path})
-    ENDFOREACH()
-    LIST(REMOVE_DUPLICATES dir_list)
-    SET(${return_list} ${dir_list})
-ENDMACRO()
-
-MACRO(HEADER_FILES return_list)
-    FILE(GLOB_RECURSE new_list *.h*)
-    SET(dir_list "")
-    FOREACH(file_path ${new_list})
-        SET(dir_list ${dir_list} ${file_path})
-    ENDFOREACH()
-    LIST(REMOVE_DUPLICATES dir_list)
-    SET(${return_list} ${dir_list})
-ENDMACRO()
-
-HEADER_DIRECTORIES(header_dir_list)
-HEADER_FILES(headers_list)
-
-message(Working in ${PROJECT_SOURCE_DIR})
-list(LENGTH header_dir_list header_dir_list_count)
-message(STATUS "[INFO] Found ${header_dir_list_count} header directories.")
-STRING(REPLACE ";" " " header_dir_list "${header_dir_list}")
-STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" header_dir_list "${header_dir_list}")
-#message(STATUS "[INFO] header dir list: ${header_dir_list}")
-
-list(LENGTH headers_list headers_list_count)
-message(STATUS "[INFO] Found ${headers_list_count} headers.")
-STRING(REPLACE ";" " " headers_list "${headers_list}")
-STRING(REPLACE "${PROJECT_SOURCE_DIR}/" "" headers_list "${headers_list}")
-#message(STATUS "[INFO] header files list: ${headers_list}")
+# LAGraph, (c) 2021 by The LAGraph Contributors, All Rights Reserved.
+# SPDX-License-Identifier: BSD-2-Clause
 #
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
+# See additional acknowledgments in the LICENSE file,
+# or contact permission@sei.cmu.edu for the full terms.
 
-file(MAKE_DIRECTORY benchmark/integration_scripts)
+#-------------------------------------------------------------------------------
 
-add_executable(cc cc.cpp)
-target_include_directories(cc PRIVATE)
+# CMakeLists.txt: instructions for cmake to build LAGraph.  An ANSI C11
+# compiler is required.  First, install any GraphBLAS library.  Alternatively,
+# use ../GraphBLAS (see comments below).
+#
+# To compile the LAGraph library and its tests and benchmarks, and run the
+# tests:
+#
+#   mkdir build
+#   cd build
+#   cmake ..
+#   make
+#   make test
+#
+# If that fails for any reason, make sure your compiler supports ANSI C11.  You
+# could try changing your compiler for the cmake command, for example:
+#
+#   CC=icc cmake ..
+#   CC=xlc cmake ..
+#   CC=gcc cmake ..
 
-add_executable(bfs bfs.cpp)
-target_include_directories(bfs PRIVATE)
+#-------------------------------------------------------------------------------
+# get the version
+#-------------------------------------------------------------------------------
 
-add_executable(spmv spmv.cpp)
-target_include_directories(spmv PRIVATE)
+# cmake 3.13 is preferred.
+cmake_minimum_required ( VERSION 3.1 )
 
-add_executable(pr pr.cpp)
-target_include_directories(pr PRIVATE)
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
-add_executable(sssp sssp.cpp)
-target_include_directories(sssp PRIVATE)
+if ( CMAKE_VERSION VERSION_GREATER "3.0" )
+    cmake_policy ( SET CMP0042 NEW )
+    cmake_policy ( SET CMP0048 NEW )
+endif ( )
+set ( CMAKE_MACOSX_RPATH TRUE )
 
-add_executable(gen gen.cpp)
-target_include_directories(gen PRIVATE)
+# version of LAGraph
+set ( LAGraph_DATE "May 14, 2021" )
+set ( LAGraph_VERSION_MAJOR 0 )
+set ( LAGraph_VERSION_MINOR 9 )
+set ( LAGraph_VERSION_SUB   9 )
 
-add_executable(gemm gemm.cpp)
-target_include_directories(gemm PRIVATE)
+project ( lagraph
+          VERSION "${LAGraph_VERSION_MAJOR}.${LAGraph_VERSION_MINOR}.${LAGraph_VERSION_SUB}" )
 
-add_executable(tc tc.cpp tc.cpp)
-target_include_directories(tc PRIVATE)
+#-------------------------------------------------------------------------------
+# code coverage and build type
+#-------------------------------------------------------------------------------
 
-add_executable(sparse_test sparse_test.cpp)
-target_include_directories(sparse_test PRIVATE)
+# To compile with test coverage:
+#   cd build
+#   cmake -DCOVERAGE=1 ..
+#   make -j8
+#   make test_coverage
 
-add_executable(transpose transpose.cpp)
-target_include_directories(transpose PRIVATE)
+if ( "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+	if ( COVERAGE )
+                message ( STATUS "============== Code coverage enabled ===============" )
+		set ( CMAKE_BUILD_TYPE Debug )
+                # On the Mac, you need gcov-11 from homebrew (part of gcc-11):
+                # and uncomment this line:
+                # set ( GCOV_PATH /usr/local/bin/gcov-11)
+		include ( CodeCoverage )
 
-add_executable(saxpy saxpy.cpp)
-target_include_directories(saxpy PRIVATE)
+		append_coverage_compiler_flags ( )
 
-add_executable(test_file_formats test_file_formats.cpp)
-target_include_directories(test_file_formats PRIVATE)
+		# turn off optimization for non-skewed coverage reports
+		set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -DCOVERAGE" )
+		set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0" )
 
-if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-#add_executable(test_matrix tests/GB_objects/test_matrix_ops.cpp)
-#target_link_libraries(test_matrix ${GTEST_LIBRARIES})
+		setup_target_for_coverage_lcov (
+			NAME test_coverage
+			EXECUTABLE ctest
+			DEPENDENCIES ${PROJECT_NAME}
+			BASE_DIRECTORY "."
+			NO_DEMANGLE TRUE
+                        EXCLUDE "*/benchmark/*"
+                            "src/test/include/acutest.h"
+		)
+	endif ( )
+endif ( )
 
-#add_executable(test_primitives tests/primitives/test_primitives.cpp)
-#target_link_libraries(test_primitives ${GTEST_LIBRARIES})
-endif()
+# For development only, not for end-users:
+# set ( CMAKE_BUILD_TYPE Debug )
 
+if ( NOT CMAKE_BUILD_TYPE )
+    set ( CMAKE_BUILD_TYPE Release )
+endif ( )
+
+#-------------------------------------------------------------------------------
+# Find the GraphBLAS installation
+#-------------------------------------------------------------------------------
+
+# If GraphBLAS is not in a standard installation location, either
+#     export GRAPHBLAS_ROOT <path>
+# or
+#     GRAPHBLAS_ROOT=<path> cmake ..
+# or uncomment the next line:
+set ( ENV{GRAPHBLAS_ROOT} ${CMAKE_SOURCE_DIR}/../GraphBLAS )
+message ( STATUS "GraphBLAS root:              " ${GRAPHBLAS_ROOT} )
+message ( STATUS "GraphBLAS libraries:         " ${GRAPHBLAS_LIBRARIES} )
+
+find_package (GraphBLAS REQUIRED MODULE)
+include_directories (${GRAPHBLAS_INCLUDE_DIR})
+message ( STATUS "GraphBLAS library:           " ${GRAPHBLAS_LIBRARY} )
+message ( STATUS "GraphBLAS version:           " ${GRAPHBLAS_VERSION} )
+message ( STATUS "GraphBLAS include directory: " ${GRAPHBLAS_INCLUDE_DIR} )
+
+#-------------------------------------------------------------------------------
+# Is this really necessary?
+#-------------------------------------------------------------------------------
+
+# Tim: yes, if we want a "sudo make install" to work.
+# With also need to use the "install ( ... )" command.
+# See the last part of the SuiteSparse:GraphBLAS CMakeLists.txt
+
+include ( GNUInstallDirs )
+
+#-------------------------------------------------------------------------------
+# determine what user threading model to use
+#-------------------------------------------------------------------------------
+
+include ( FindOpenMP  )
+include ( FindThreads )
+
+if ( OPENMP_FOUND )
+    set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} " )
+endif ( )
+
+#-------------------------------------------------------------------------------
+# report status
+#-------------------------------------------------------------------------------
+
+message ( STATUS "CMAKE build type:          " ${CMAKE_BUILD_TYPE} )
+message ( STATUS "CMAKE source directory:    " ${CMAKE_SOURCE_DIR} )
+message ( STATUS "CMAKE build directory:     " ${CMAKE_BINARY_DIR} )
+
+if ( ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    message ( STATUS "CMAKE C Flags debug:       " ${CMAKE_C_FLAGS_DEBUG} )
+else ( )
+    message ( STATUS "CMAKE C Flags release:     " ${CMAKE_C_FLAGS_RELEASE} )
+endif ( )
+
+message ( STATUS "CMAKE compiler ID:         " ${CMAKE_C_COMPILER_ID} )
+message ( STATUS "CMAKE thread library:      " ${CMAKE_THREAD_LIBS_INIT} )
+message ( STATUS "CMAKE have pthreads:       " ${CMAKE_USE_PTHREADS_INIT}  )
+message ( STATUS "CMAKE have Win32 pthreads: " ${CMAKE_USE_WIN32_THREADS_INIT} )
+message ( STATUS "CMAKE have OpenMP:         " ${OPENMP_FOUND} )
+
+#-------------------------------------------------------------------------------
+# include directories for lagraph library
+#-------------------------------------------------------------------------------
+
+#set ( CMAKE_INCLUDE_CURRENT_DIR ON )
+
+include_directories ( ${CMAKE_SOURCE_DIR}/include
+                      ${CMAKE_SOURCE_DIR}/src/utility
+                      ${CMAKE_SOURCE_DIR}/test/include )
+#                      ${CMAKE_SOURCE_DIR}/experimental/include
+#                      ${CMAKE_SOURCE_DIR}/experimental/utility
+#                      ${CMAKE_SOURCE_DIR}/experimental/utility/Template )
+
+set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLGDIR=${CMAKE_SOURCE_DIR}")
+
+#-------------------------------------------------------------------------------
+# compiler options
+#-------------------------------------------------------------------------------
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED True)
+
+# check which compiler is being used.  If you need to make
+# compiler-specific modifications, here is the place to do it.
+if ( "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+    # cmake 2.8 workaround: gcc needs to be told to do ANSI C11.
+    # cmake 3.0 doesn't have this problem.
+    set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -std=c11 -lm -Wno-pragmas " )
+    # check all warnings:
+#   set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -Werror " )
+    # set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -g " )
+    #if ( CMAKE_C_COMPILER_VERSION VERSION_LESS 4.9 )
+    #    message ( FATAL_ERROR "gcc version must be at least 4.9" )
+    #endif ( )
+elseif ( "${CMAKE_C_COMPILER_ID}" STREQUAL "Intel" )
+    # options for icc: also needs -std=c11
+    # note that -g can be used, for VTune.  Comment out the following line
+    # to compile without -g.
+    # set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -g " )
+    set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -std=c11 " )
+    set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -qopt-malloc-options=3" )
+    # check all warnings:
+#   set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -w3 " )
+    #if ( CMAKE_C_COMPILER_VERSION VERSION_LESS 18.0 )
+    #    message ( FATAL_ERROR "icc version must be at least 18.0" )
+    #endif ( )
+elseif ( "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" )
+    # options for clang
+    set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -O3 -std=c11 " )
+    #if ( CMAKE_C_COMPILER_VERSION VERSION_LESS 3.3 )
+    #    message ( FATAL_ERROR "clang version must be at least 3.3" )
+    #endif ( )
+elseif ( "${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC" )
+    # options for MicroSoft Visual Studio
+elseif ( "${CMAKE_C_COMPILER_ID}" STREQUAL "PGI" )
+    # options for PGI pgcc compiler
+    set ( CMAKE_C_FLAGS    "${CMAKE_C_FLAGS} -acc -Minfo=accel -Mcuda -Mnoopenmp -noswitcherror -c11 -lm -fPIC " )
+    set ( CMAKE_CXX_FLAGS  "${CMAKE_C_FLAGS} -acc -Minfo=accel -Mcuda -Mnoopenmp -D__GCC_ATOMIC_TEST_AND_SET_TRUEVAL=1 -noswitcherror --c++11 -lm -fPIC " )
+endif ( )
+
+if ( ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}" )
+else ( )
+    set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE}" )
+endif ( )
+
+#-------------------------------------------------------------------------------
+# force use of vanilla code
+#-------------------------------------------------------------------------------
+
+if ( LG_VANILLA )
+    set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -DLG_VANILLA=1 " )
+    message ( STATUS "Vanilla build: not relying on any GxB extensions" )
+else ( )
+    message ( STATUS "GxB build: relying on SuiteSparse GxB extensions" )
+endif ( )
+
+#-------------------------------------------------------------------------------
+# print final C flags
+#-------------------------------------------------------------------------------
+
+message ( STATUS "CMAKE C flags: " ${CMAKE_C_FLAGS} )
+
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+# CTEST cannot find the binaries when in this location
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+enable_testing()
+
+add_subdirectory(src)
+add_subdirectory(experimental)
+
+#-------------------------------------------------------------------------------
+# to install use "sudo make install"
+#-------------------------------------------------------------------------------
+
+# only install the dynamic  library
+install ( TARGETS lagraph lagraphx
+         LIBRARY       DESTINATION ${CMAKE_INSTALL_LIBDIR}
+         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+         ARCHIVE       DESTINATION ${CMAKE_INSTALL_LIBDIR} )

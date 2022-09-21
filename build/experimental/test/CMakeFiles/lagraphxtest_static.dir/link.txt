@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../lib/liblagraphxtest.a CMakeFiles/lagraphxtest_static.dir/LG_check_ktruss.c.o CMakeFiles/lagraphxtest_static.dir/LG_check_mis.c.o
+/usr/bin/ranlib ../../lib/liblagraphxtest.a

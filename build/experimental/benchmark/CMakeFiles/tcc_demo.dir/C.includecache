@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/LAGraph.h
+time.h
+-
+ctype.h
+-
+limits.h
+-
+GraphBLAS.h
+-
+omp.h
+-
+
+../include/LAGraphX.h
+GraphBLAS.h
+-
+LAGraph.h
+-
+
+../src/test/include/LG_test.h
+GraphBLAS.h
+-
+LAGraph.h
+-
+
+/home/afanasyev/LAGraph/experimental/benchmark/tcc_demo.c
+../../src/benchmark/LAGraph_demo.h
+/home/afanasyev/LAGraph/src/benchmark/LAGraph_demo.h
+LAGraphX.h
+/home/afanasyev/LAGraph/experimental/benchmark/LAGraphX.h
+
+/home/afanasyev/LAGraph/src/benchmark/LAGraph_demo.h
+LAGraph.h
+-
+LG_test.h
+-
+

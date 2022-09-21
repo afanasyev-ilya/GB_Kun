@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/LAGraph.h
+time.h
+-
+ctype.h
+-
+limits.h
+-
+GraphBLAS.h
+-
+omp.h
+-
+
+../src/utility/LG_internal.h
+LAGraph.h
+../src/utility/LAGraph.h
+malloc.h
+-
+assert.h
+-
+
+/home/afanasyev/LAGraph/src/algorithm/LAGraph_VertexCentrality_PageRankGAP.c
+LG_internal.h
+/home/afanasyev/LAGraph/src/algorithm/LG_internal.h
+

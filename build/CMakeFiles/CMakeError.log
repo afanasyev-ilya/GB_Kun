@@ -1,0 +1,60 @@
+Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Change Dir: /home/afanasyev/LAGraph/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_41de2/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_41de2.dir/build.make CMakeFiles/cmTC_41de2.dir/build
+gmake[1]: Entering directory '/home/afanasyev/LAGraph/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_41de2.dir/src.c.o
+/usr/bin/cc   -DCMAKE_HAVE_LIBC_PTHREAD -o CMakeFiles/cmTC_41de2.dir/src.c.o -c /home/afanasyev/LAGraph/build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_41de2
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_41de2.dir/link.txt --verbose=1
+/usr/bin/cc  -DCMAKE_HAVE_LIBC_PTHREAD -rdynamic CMakeFiles/cmTC_41de2.dir/src.c.o -o cmTC_41de2 
+/opt/aarch64/compiler/gcc-9.3.1-2021.03-aarch64-linux/bin/ld: CMakeFiles/cmTC_41de2.dir/src.c.o: in function `main':
+src.c:(.text+0x34): undefined reference to `pthread_create'
+/opt/aarch64/compiler/gcc-9.3.1-2021.03-aarch64-linux/bin/ld: src.c:(.text+0x3c): undefined reference to `pthread_detach'
+/opt/aarch64/compiler/gcc-9.3.1-2021.03-aarch64-linux/bin/ld: src.c:(.text+0x44): undefined reference to `pthread_cancel'
+/opt/aarch64/compiler/gcc-9.3.1-2021.03-aarch64-linux/bin/ld: src.c:(.text+0x50): undefined reference to `pthread_join'
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [CMakeFiles/cmTC_41de2.dir/build.make:106: cmTC_41de2] Error 1
+gmake[1]: Leaving directory '/home/afanasyev/LAGraph/build/CMakeFiles/CMakeTmp'
+gmake: *** [Makefile:140: cmTC_41de2/fast] Error 2
+
+
+Source file was:
+#include <pthread.h>
+
+void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_cancel(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/afanasyev/LAGraph/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake cmTC_5838c/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_5838c.dir/build.make CMakeFiles/cmTC_5838c.dir/build
+gmake[1]: Entering directory '/home/afanasyev/LAGraph/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_5838c.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create -o CMakeFiles/cmTC_5838c.dir/CheckFunctionExists.c.o -c /usr/share/cmake/Modules/CheckFunctionExists.c
+Linking C executable cmTC_5838c
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5838c.dir/link.txt --verbose=1
+/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create -rdynamic CMakeFiles/cmTC_5838c.dir/CheckFunctionExists.c.o -o cmTC_5838c  -lpthreads 
+/opt/aarch64/compiler/gcc-9.3.1-2021.03-aarch64-linux/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [CMakeFiles/cmTC_5838c.dir/build.make:106: cmTC_5838c] Error 1
+gmake[1]: Leaving directory '/home/afanasyev/LAGraph/build/CMakeFiles/CMakeTmp'
+gmake: *** [Makefile:140: cmTC_5838c/fast] Error 2
+
+
+

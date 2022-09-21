@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/LAGraph.h
+time.h
+-
+ctype.h
+-
+limits.h
+-
+GraphBLAS.h
+-
+omp.h
+-
+
+../include/LAGraphX.h
+GraphBLAS.h
+-
+LAGraph.h
+-
+
+/home/afanasyev/LAGraph/experimental/benchmark/dnn_demo.c
+LAGraph.h
+-
+LAGraphX.h
+-
+

@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/LAGraph.h
+time.h
+-
+ctype.h
+-
+limits.h
+-
+GraphBLAS.h
+-
+omp.h
+-
+
+../src/test/include/LG_test.h
+GraphBLAS.h
+-
+LAGraph.h
+-
+
+/home/afanasyev/LAGraph/src/benchmark/LAGraph_demo.h
+LAGraph.h
+-
+LG_test.h
+-
+
+/home/afanasyev/LAGraph/src/benchmark/gappagerank_demo.c
+LAGraph_demo.h
+/home/afanasyev/LAGraph/src/benchmark/LAGraph_demo.h
+
