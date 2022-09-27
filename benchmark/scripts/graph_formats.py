@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 def run_train():
     X_data = []
-    with open('./train_data/dict.pickle', 'rb') as f:
+    with open('../train_data/dict.pickle', 'rb') as f:
         data_new = pickle.load(f)
         for k, v in data_new.items():
             values = []
@@ -31,7 +31,7 @@ def run_train():
     seg_perf = []
     csr_perf = []
 
-    with open("./train_data/seg_csr_perf.txt") as file:
+    with open("../train_data/seg_csr_perf.txt") as file:
         seg_perf_len = file.readline()
         while True:
             line = file.readline()
@@ -40,7 +40,7 @@ def run_train():
             seg_perf.append(int(line))
 
 
-    with open("./train_data/csr_perf.txt") as file:
+    with open("../train_data/csr_perf.txt") as file:
         csr_perf_len = file.readline()
         while True:
             line = file.readline()
@@ -87,7 +87,7 @@ def run_train():
     clf = RandomForestClassifier(n_estimators=100)
     clf = clf.fit(X_data, labels)
 
-    filename = 'model.sav'
+    filename = '../model.sav'
     pickle.dump(clf, open(filename, 'wb'))
 
 if __name__ == "__main__":

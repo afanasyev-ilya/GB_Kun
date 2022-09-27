@@ -1,5 +1,5 @@
-from benchmark.scripts.helpers import *
-from benchmark.scripts.create_graphs_api import *
+from .helpers import *
+from .create_graphs_api import *
 import pickle
 import sys
 import os
@@ -37,7 +37,7 @@ def get_label(graphname):
 if __name__ == "__main__":
 
     # Download trained model
-    filename = 'model.sav'
+    filename = '../model.sav'
     loaded_model = pickle.load(open(filename, 'rb'))
 
     # Get script parameters

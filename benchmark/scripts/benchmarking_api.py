@@ -9,8 +9,8 @@ from threading import Timer
 from .analize_perf_data import *
 import collections
 from os.path import exists
-from benchmark.graph_formats import run_train
-from benchmark.ml_wrapper import get_label
+from .graph_formats import run_train
+from .ml_wrapper import get_label
 
 
 def benchmark_app(app_name, benchmarking_results, graph_format, run_speed_mode, timeout_length, options):
