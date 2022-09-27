@@ -79,6 +79,7 @@ def benchmark_and_verify(options, benchmarking_results):
     benchmarked_num = 0
     verified_num = 0
 
+
     if options.scaling: # must be first among benchmarking and verify
         run_scaling(options, benchmarking_results)
 
@@ -183,6 +184,11 @@ def main():
                       action="store", dest="timeout",
                       help="execution time (in seconds), after which tested app is automatically aborted. "
                            "(default is 1 hour)", default=3600)
+    parser.add_option('-l', '--ml_enable',
+                      action="store_true", dest="ml_enable",
+                      help="use this flag to enable matrix storage format decision by trained ML model"
+                           "(default false)", default=False)
+
 
     options, args = parser.parse_args()
 
