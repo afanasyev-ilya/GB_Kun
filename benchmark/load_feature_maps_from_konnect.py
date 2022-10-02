@@ -135,9 +135,12 @@ def add_parameter(parameter, soup):
 def get_info_for_all_graphs(graph_urls, cnt):
     am = 0
     ans = {}
+    counter = 0
     if cnt != None:
         bar = IncrementalBar('Progress', max = int(cnt))
     for graph_url in graph_urls:
+        print(counter, "\"", len(graph_urls))
+        counter = counter + 1
         try:
             # html = urlopen(graph_url).read()
             html= requests.get(graph_url, headers=requests_get_headers)
@@ -146,7 +149,7 @@ def get_info_for_all_graphs(graph_urls, cnt):
             continue
         soup = BeautifulSoup(html.text, features="html.parser")
         ret = get_graph_info(graph_url)
-        if ret != None and ret['tsv_link'] != None:
+        if ret != None and ret['tsv_link'] != None and ret["volume"] > 1000000 and ret["volume"] < 261000000:
             ans[get_name(soup)] = ret
             am += 1
 
@@ -172,7 +175,7 @@ if __name__ == '__main__':
     cnt = namespace.cnt
     output_file = namespace.file
     if output_file == None:
-        output_file = 'dict.pickle'
+        output_file = 'dict_extented.pickle'
 
     category_names = get_category_names()
     graph_urls = get_graph_names(category_names)
