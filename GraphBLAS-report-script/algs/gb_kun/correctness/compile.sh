@@ -1,0 +1,5 @@
+g++ -std=c++17 -fopenmp -fpermissive compute_bfs.cpp -o bfs_check -I"$GB_KUN_PATH/src" -I"$GB_KUN_PATH/algorithms/bfs"
+g++ -std=c++17 -fopenmp -fpermissive compute_cc.cpp -o cc_check -I"$GB_KUN_PATH/src" -I"$GB_KUN_PATH/algorithms/cc"
+g++ -std=c++17 -fopenmp -fpermissive compute_sssp.cpp -o sssp_check -I"$GB_KUN_PATH/src" -I"$GB_KUN_PATH/algorithms/sssp"
+g++ -std=c++17 -fopenmp -fpermissive compute_tc.cpp -o tc_check -I"$GB_KUN_PATH/src" -I"$GB_KUN_PATH/algorithms/tc"
+g++ -std=c++17 -fopenmp -fpermissive compute_pr.cpp -o pr_check -I"$GB_KUN_PATH/src" -I"$GB_KUN_PATH/algorithms/pr"
