@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 
         lablas::Matrix<signed short> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
-        init_matrix(matrix, parser);
+        init_matrix(matrix, parser, desc);
 
         Index nrows;
         matrix.get_nrows(&nrows);

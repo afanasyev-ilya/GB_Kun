@@ -33,10 +33,11 @@ int main(int argc, char** argv)
     if(parser.check())
         in_iters = 1;
 
+    lablas::Descriptor desc_top;
     // Matrix A
     lablas::Matrix<int> matrix;
     matrix.set_preferred_matrix_format(parser.get_storage_format());
-    init_matrix(matrix,parser);
+    init_matrix(matrix,parser, desc_top);
 
     nrows = matrix.nrows();
     ncols = matrix.ncols();

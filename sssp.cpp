@@ -38,10 +38,11 @@ int main(int argc, char **argv)
         parser.parse_args(argc, argv);
         VNT scale = parser.get_scale();
         VNT avg_deg = parser.get_avg_degree();
+        lablas::Descriptor desc;
 
         lablas::Matrix<float> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
-        init_matrix(matrix, parser);
+        init_matrix(matrix, parser, desc);
 
         GrB_Index size;
         matrix.get_nrows(&size);
@@ -51,7 +52,6 @@ int main(int argc, char **argv)
 
         Index source_vertex = 0;
 
-        lablas::Descriptor desc;
         int num_tests = 3;
         for(int i = 0; i < num_tests; i++)
         {

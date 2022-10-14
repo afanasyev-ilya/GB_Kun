@@ -11,13 +11,15 @@ int main(int argc, char **argv) {
         VNT scale = parser.get_scale();
         VNT avg_deg = parser.get_avg_degree();
 
+        lablas::Descriptor desc;
+
         lablas::Matrix<float> A;
         A.set_preferred_matrix_format(CSR);
-        init_matrix(A, parser);
+        init_matrix(A, parser, desc);
 
         lablas::Matrix<float> B;
         B.set_preferred_matrix_format(CSR);
-        init_matrix(B, parser);
+        init_matrix(B, parser,desc);
 
         lablas::Matrix<float> C;
 

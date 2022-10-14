@@ -12,6 +12,7 @@
 #include "types.hpp"
 #include <vector>
 #include "../backend/la_backend.h"
+#include "descriptor.hpp"
 
 namespace lablas {
 
@@ -217,9 +218,10 @@ public:
     * @param[in] _mtx_name name of mtx file to be processed
     * @return Nothing
     */
-    void init_from_mtx(const string &_mtx_name)
+    void init_from_mtx(const string &_mtx_name, lablas::Descriptor& desc)
     {
-        _matrix.init_from_mtx(_mtx_name);
+        auto _desc= desc.get_descriptor();
+        _matrix.init_from_mtx(_mtx_name, _desc);
     }
 
     /**

@@ -72,6 +72,7 @@ int main(int argc, char** argv)
     std::vector<Index> col_indices;
     std::vector<int> values;
     Index nrows, ncols, nvals;
+    lablas::Descriptor desc;
 
     Parser parser;
     parser.parse_args(argc, argv);
@@ -81,7 +82,7 @@ int main(int argc, char** argv)
     // Matrix A
     lablas::Matrix<int> matrix;
     matrix.set_preferred_matrix_format(parser.get_storage_format());
-    init_matrix(matrix,parser);
+    init_matrix(matrix, parser, desc);
 
     if(!matrix.is_symmetric())
     {
@@ -94,7 +95,6 @@ int main(int argc, char** argv)
 
     lablas::Vector<int> components(nrows);
 
-    lablas::Descriptor desc;
     desc.set(GrB_MXVMODE, SPMV_GENERAL);
 
     for (int i = 0; i < 3; i++) {

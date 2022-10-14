@@ -29,10 +29,10 @@ int main(int argc, char **argv) {
         } else {
             tc_algorithm = lablas::algorithm::LAGraph_TriangleCount_Method::LAGraph_TriangleCount_Default;
         }
-
+        lablas::Descriptor desc;
         lablas::Matrix<int> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
-        init_matrix(matrix, parser);
+        init_matrix(matrix, parser, desc);
 
         if (!matrix.is_symmetric()) {
             cout << "Input matrix is not symmetric" << endl;

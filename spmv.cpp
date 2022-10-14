@@ -57,7 +57,7 @@ void test_spmv(int argc, char **argv, int run_number)
 
     lablas::Matrix<T> matrix;
     matrix.set_preferred_matrix_format(parser.get_storage_format());
-    init_matrix(matrix, parser);
+    init_matrix(matrix, parser, desc);
 
     GrB_Index size;
     matrix.get_nrows(&size);

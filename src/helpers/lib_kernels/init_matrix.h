@@ -17,14 +17,14 @@
 */
 
 template <typename T>
-void init_matrix(lablas::Matrix<T> &_matrix, Parser &_parser)
+void init_matrix(lablas::Matrix<T> &_matrix, Parser &_parser, lablas::Descriptor& desc)
 {
     VNT scale = _parser.get_scale();
     VNT avg_deg = _parser.get_avg_degree();
 
     if(_parser.get_synthetic_graph_type() == MTX_GRAPH)
     {
-        _matrix.init_from_mtx(_parser.get_file_name());
+        _matrix.init_from_mtx(_parser.get_file_name(), desc);
     }
     else
     {
