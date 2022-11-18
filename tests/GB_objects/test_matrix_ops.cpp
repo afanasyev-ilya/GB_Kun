@@ -70,6 +70,7 @@ TEST (TransposeTest, RealTest) {
     std::vector<Index> col_indices;
     std::vector<int> values;
     Index nrows, ncols, nvals;
+    lablas::Descriptor desc;
 
     Parser parser;
     parser.parse_args(my_argc, my_argv);
@@ -79,11 +80,11 @@ TEST (TransposeTest, RealTest) {
     // Matrix A
     lablas::Matrix<int> A;
     A.set_preferred_matrix_format(parser.get_storage_format());
-    init_matrix(A,parser);
+    init_matrix(A, parser, desc);
 
     lablas::Matrix<int> B;
     B.set_preferred_matrix_format(parser.get_storage_format());
-    init_matrix(B,parser);
+    init_matrix(B, parser, desc);
 
     nrows = A.nrows();
     ncols = A.ncols();
@@ -179,6 +180,7 @@ TEST (TransposeTest, SymmetricBigTest) {
     std::vector<Index> col_indices;
     std::vector<int> values;
     Index nrows, ncols, nvals;
+    lablas::Descriptor desc;
 
     Parser parser;
     parser.parse_args(my_argc, my_argv);
@@ -188,7 +190,7 @@ TEST (TransposeTest, SymmetricBigTest) {
     // Matrix A
     lablas::Matrix<int> A;
     A.set_preferred_matrix_format(parser.get_storage_format());
-    init_matrix(A,parser);
+    init_matrix(A, parser, desc);
 
     double a_time = omp_get_wtime();
     ASSERT_TRUE(A.is_symmetric());

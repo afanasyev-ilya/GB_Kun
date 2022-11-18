@@ -54,7 +54,7 @@ public:
     void build(vector<vector<pair<VNT, T>>>& csc_tmp_matrix,
                vector<vector<pair<VNT, T>>>& csr_tmp_matrix);
 
-    void init_from_mtx(const string &_mtx_file_name);
+    void init_from_mtx(const string &_mtx_file_name, lablas::backend::Descriptor* p_desc);
 
     /* CSR, COO...*/
     LA_Info set_preferred_matrix_format(MatrixStorageFormat format) {
@@ -189,7 +189,8 @@ private:
 
     void read_mtx_file_pipelined(const string &_mtx_file_name,
                                  vector<vector<pair<VNT, T>>> &_csr_matrix,
-                                 vector<vector<pair<VNT, T>>> &_csc_matrix);
+                                 vector<vector<pair<VNT, T>>> &_csc_matrix,
+                                 bool needs_invert = false);
 
     void binary_read_mtx_file_pipelined(const string &_mtx_file_name,
                                         vector<vector<pair<VNT, T>>> &_csr_matrix,

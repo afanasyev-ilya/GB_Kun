@@ -13,10 +13,11 @@ int main(int argc, char **argv)
         VNT avg_deg = parser.get_avg_degree();
 
         lablas::Descriptor desc;
+        desc.set(GrB_INV, GrB_INV_READ);
 
         lablas::Matrix<float> matrix;
         matrix.set_preferred_matrix_format(parser.get_storage_format());
-        init_matrix(matrix, parser);
+        init_matrix(matrix, parser, desc);
 
         GrB_Index size;
         matrix.get_nrows(&size);

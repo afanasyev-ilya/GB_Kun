@@ -2,7 +2,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, ENT _nnz)
+void read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, ENT _nnz, bool reorder = false)
 {
     ENT end_pos = _ln_pos + MTX_READ_PARTITION_SIZE;
     const int buffer_size = 8192;
@@ -15,9 +15,14 @@ void read_portion(FILE *_fp, VNT *_src_ids, VNT *_dst_ids, ENT _ln_pos, ENT _nnz
 
         sscanf(buffer, "%lld %lld", &src_id, &dst_id);
 
-        /* Change these lines if the previous edge ordering needs to be restored*/
-        _src_ids[ln - _ln_pos] = dst_id;
-        _dst_ids[ln - _ln_pos] = src_id;
+        if (reorder) {
+            _src_ids[ln - _ln_pos] = dst_id;
+            _dst_ids[ln - _ln_pos] = src_id;
+        } else {
+            _src_ids[ln - _ln_pos] = src_id;
+            _dst_ids[ln - _ln_pos] = dst_id;
+        }
+
         if (src_id <= 0 || dst_id <= 0)
             cout << "Error in read_portion, <= 0 src/dst ids" << endl;
     }
@@ -53,7 +58,7 @@ void process_portion(const VNT *_src_ids,
 template<typename T>
 void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
                                         vector<vector<pair<VNT, T>>> &_csr_matrix,
-                                        vector<vector<pair<VNT, T>>> &_csc_matrix)
+                                        vector<vector<pair<VNT, T>>> &_csc_matrix, bool needs_invert)
 {
     double t1, t2;
     t1 = omp_get_wtime();
@@ -103,7 +108,7 @@ void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
             if (tid == 0)
             {
                 read_portion(fp, proc_src_ids, proc_dst_ids, ln_pos, (ENT)
-                tmp_nnz);
+                tmp_nnz, needs_invert);
                 ln_pos += MTX_READ_PARTITION_SIZE;
             }
 
@@ -116,7 +121,7 @@ void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
                 if (tid == 0)
                 {
                     read_portion(fp, read_src_ids, read_dst_ids, ln_pos, (ENT)
-                    tmp_nnz);
+                    tmp_nnz, needs_invert);
                 }
                 if (tid == 1)
                 {
@@ -150,7 +155,7 @@ void Matrix<T>::read_mtx_file_pipelined(const string &_mtx_file_name,
         while (ln_pos < tmp_nnz)
         {
             read_portion(fp, proc_src_ids, proc_dst_ids, ln_pos, (ENT)
-            tmp_nnz);
+            tmp_nnz, needs_invert);
             process_portion(proc_src_ids, proc_dst_ids, _csr_matrix, _csc_matrix, ln_pos, tmp_nnz);
             ln_pos += MTX_READ_PARTITION_SIZE;
         }
@@ -564,16 +569,22 @@ void Matrix<T>::binary_read_mtx_file(const string &_mtx_file_name,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void Matrix<T>::init_from_mtx(const string &_mtx_file_name)
+void Matrix<T>::init_from_mtx(const string &_mtx_file_name, lablas::backend::Descriptor* p_desc)
 {
     bool csc_is_empty = false;
+    Desc_value TA_value;
+    bool needs_invert = false;
+    p_desc->get(GrB_INV, &TA_value);
+    if (TA_value == GrB_INV_READ) {
+       needs_invert = true;
+    }
     // read mtx file and get tmp representations of csr and csc matrix
     vector<vector<pair<VNT, T>>> csr_tmp_matrix(0);
     vector<vector<pair<VNT, T>>> csc_tmp_matrix(0);
     if(ends_with(_mtx_file_name, "mtx"))
     {
         #ifdef __DEBUG_FILE_IO__
-        SAVE_TIME_SEC((read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix)), "mtx_read");
+        SAVE_TIME_SEC((read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix, needs_invert)), "mtx_read");
         #else
         read_mtx_file_pipelined(_mtx_file_name, csr_tmp_matrix, csc_tmp_matrix);
         #endif
