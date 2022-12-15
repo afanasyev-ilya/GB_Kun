@@ -36,7 +36,7 @@ void SpMV(const Matrix<A> *_matrix,
         _desc->get(GrB_NEON, &neon_mode);
         if(format == CSR)
         {
-            if(num_sockets_used() == 3) //TODO return to 1 after function fix
+            if(num_sockets_used() == 2)
             {
 
                 LOG_TRACE("Using NUMA-aware SPMV");
